@@ -46,6 +46,14 @@ const errors: Readonly<Record<string, string>> = {
   invalid_csrf: "页面状态已过期，请刷新页面后重试。",
   invalid_origin: "请求来源无效，请刷新页面后重试。",
   authentication_required: "请先登录。",
+  model_access_required: "尚未分配可用模型，请联系管理员开通。",
+  api_budget_exhausted: "调用预算未开通或已用尽，请联系管理员处理。",
+  key_not_found: "密钥不存在或不属于当前账号。",
+  key_limit_reached: "个人密钥数量已达上限，请先删除不用的密钥。",
+  gateway_request_failed: "网关操作失败，请稍后重试。",
+  gateway_unavailable: "网关暂不可用，请稍后重试。",
+  model_request_rejected: "模型调用被拒绝，请检查密钥有效期、模型权限、预算和速率限制。",
+  personal_key_unavailable: "平台默认密钥配置不适用于个人账号，请联系管理员检查默认团队或权限设置。",
 };
 
 export function errorMessage(code: string): string {

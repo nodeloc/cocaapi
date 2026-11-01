@@ -103,7 +103,7 @@ export default function AccountProfile({ security = false }: { security?: boolea
   return (
     <AccountDashboardShell
       title={security ? "安全设置" : "我的账号"}
-      description={security ? "管理密码、第三方登录与账号绑定" : "查看账号信息，管理余额和充值记录"}
+      description={security ? "管理密码、第三方登录与账号绑定" : "查看账号信息，管理 API 接入、余额和充值记录"}
       profile={profile}
     >
       <AccountNotice error={error} message={message} />

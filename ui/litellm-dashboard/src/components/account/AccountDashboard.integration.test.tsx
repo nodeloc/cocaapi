@@ -31,6 +31,9 @@ describe("customer dashboard", () => {
     const navigation = await screen.findByRole("navigation", { name: "用户中心导航" });
     expect(within(navigation).getByRole("link", { name: "安全设置" })).toHaveAttribute("href", "/account/security/");
     expect(within(navigation).getByRole("link", { name: "我的账号" })).toHaveAttribute("aria-current", "page");
+    expect(within(navigation).getByRole("link", { name: "API 密钥" })).toHaveAttribute("href", "/account/keys/");
+    expect(within(navigation).getByRole("link", { name: "用量统计" })).toHaveAttribute("href", "/account/usage/");
+    expect(within(navigation).getByRole("link", { name: "接入文档" })).toHaveAttribute("href", "/account/docs/");
     expect(screen.queryByLabelText("新密码")).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "登录与注册" })).not.toBeInTheDocument();
   });

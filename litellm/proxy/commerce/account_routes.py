@@ -389,3 +389,7 @@ router.include_router(wallet_router)
 from litellm.proxy.commerce.payment_routes import router as payment_router
 
 router.include_router(payment_router)
+
+from litellm.proxy.commerce.gateway_routes import router as gateway_router
+
+router.include_router(gateway_router)

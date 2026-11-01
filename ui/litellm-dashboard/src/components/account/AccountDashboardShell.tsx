@@ -13,6 +13,13 @@ import {
   ReceiptText,
   ShieldCheck,
   Wallet,
+  KeyRound,
+  Boxes,
+  FlaskConical,
+  ChartColumn,
+  ScrollText,
+  Gauge,
+  BookOpen,
 } from "lucide-react";
 import {
   Sidebar,
@@ -48,6 +55,23 @@ import { accountApi, type Profile } from "./accountApi";
 
 const groups = [
   {
+    label: "AI 网关",
+    items: [
+      { label: "概览", href: "/account/home/", icon: Gauge },
+      { label: "API 密钥", href: "/account/keys/", icon: KeyRound },
+      { label: "模型目录", href: "/account/models/", icon: Boxes },
+      { label: "Playground", href: "/account/playground/", icon: FlaskConical },
+    ],
+  },
+  {
+    label: "用量与记录",
+    items: [
+      { label: "用量统计", href: "/account/usage/", icon: ChartColumn },
+      { label: "请求日志", href: "/account/logs/", icon: ScrollText },
+      { label: "调用限额", href: "/account/limits/", icon: Gauge },
+    ],
+  },
+  {
     label: "用户中心",
     items: [
       { label: "我的账号", href: "/account/profile/", icon: House },
@@ -56,6 +80,7 @@ const groups = [
     ],
   },
   { label: "账号管理", items: [{ label: "安全设置", href: "/account/security/", icon: ShieldCheck }] },
+  { label: "开发者工具", items: [{ label: "接入文档", href: "/account/docs/", icon: BookOpen }] },
 ] as const;
 
 function AccountNavigation({
@@ -78,7 +103,7 @@ function AccountNavigation({
       <SidebarHeader className="h-14 border-b border-border group-data-[collapsed=true]/sidebar:h-auto">
         <div className="flex items-center justify-between gap-2 group-data-[collapsed=true]/sidebar:flex-col">
           <a
-            href="/account/profile/"
+            href="/account/home/"
             aria-label="CocaAPI 用户中心"
             className="min-w-0 text-xl font-semibold tracking-tight"
           >
@@ -223,7 +248,7 @@ export function AccountDashboardShell({
             <Breadcrumb className="min-w-0 flex-1">
               <BreadcrumbList className="flex-nowrap">
                 <BreadcrumbItem className="hidden md:inline-flex">
-                  <BreadcrumbLink href="/account/profile/">用户中心</BreadcrumbLink>
+                  <BreadcrumbLink href="/account/home/">用户中心</BreadcrumbLink>
                 </BreadcrumbItem>
                 <BreadcrumbSeparator className="hidden md:flex" />
                 <BreadcrumbItem className="min-w-0">
