@@ -53,22 +53,43 @@ class AccountSettings(FrozenModel):
         return next((provider for provider in self.providers if provider.id == provider_id), None)
 
 
-def _provider(
-    values: Mapping[str, str], provider_id: ProviderID, label: str, issuer: str, discovery: str | None
-) -> ProviderSettings | None:
+def provider_from_credentials(provider_id: ProviderID, client_id: str, client_secret: str) -> ProviderSettings:
+    match provider_id:
+        case "github":
+            return ProviderSettings(
+                id=provider_id,
+                label="GitHub",
+                client_id=client_id,
+                client_secret=SecretStr(client_secret),
+                issuer="https://github.com",
+            )
+        case "google":
+            return ProviderSettings(
+                id=provider_id,
+                label="Google",
+                client_id=client_id,
+                client_secret=SecretStr(client_secret),
+                issuer="https://accounts.google.com",
+                discovery_url="https://accounts.google.com/.well-known/openid-configuration",
+            )
+        case "nodeloc":
+            return ProviderSettings(
+                id=provider_id,
+                label="NodeLoc",
+                client_id=client_id,
+                client_secret=SecretStr(client_secret),
+                issuer="https://www.nodeloc.com",
+                discovery_url="https://www.nodeloc.com/oauth-provider/.well-known/openid-configuration",
+            )
+
+
+def _provider(values: Mapping[str, str], provider_id: ProviderID) -> ProviderSettings | None:
     prefix: Final = "COCAAPI_" + provider_id.upper()
     client_id: Final = values.get(prefix + "_CLIENT_ID", "")
     client_secret: Final = values.get(prefix + "_CLIENT_SECRET", "")
     if not client_id or not client_secret:
         return None
-    return ProviderSettings(
-        id=provider_id,
-        label=label,
-        client_id=client_id,
-        client_secret=SecretStr(client_secret),
-        issuer=issuer,
-        discovery_url=discovery,
-    )
+    return provider_from_credentials(provider_id, client_id, client_secret)
 
 
 def load_settings(values: Mapping[str, str] = os.environ) -> AccountSettings | None:
@@ -76,21 +97,9 @@ def load_settings(values: Mapping[str, str] = os.environ) -> AccountSettings | N
     if not secret:
         return None
     candidates: Final = (
-        _provider(values, "github", "GitHub", "https://github.com", None),
-        _provider(
-            values,
-            "google",
-            "Google",
-            "https://accounts.google.com",
-            "https://accounts.google.com/.well-known/openid-configuration",
-        ),
-        _provider(
-            values,
-            "nodeloc",
-            "NodeLoc",
-            "https://www.nodeloc.com",
-            "https://www.nodeloc.com/oauth-provider/.well-known/openid-configuration",
-        ),
+        _provider(values, "github"),
+        _provider(values, "google"),
+        _provider(values, "nodeloc"),
     )
     return AccountSettings(
         public_url=values.get("COCAAPI_PUBLIC_URL", values.get("PROXY_BASE_URL", "https://cocaapi.com")),
@@ -102,7 +111,7 @@ def load_settings(values: Mapping[str, str] = os.environ) -> AccountSettings | N
         smtp_username=values.get("COCAAPI_SMTP_USERNAME", ""),
         smtp_password=SecretStr(values.get("COCAAPI_SMTP_PASSWORD", "")),
         smtp_from=values.get("COCAAPI_SMTP_FROM", ""),
-        smtp_security=TypeAdapter(Literal["starttls", "tls"]).validate_python(
+        smtp_security=TypeAdapter[Literal["starttls", "tls"]](Literal["starttls", "tls"]).validate_python(
             values.get("COCAAPI_SMTP_SECURITY", "starttls")
         ),
         trusted_proxies=tuple(

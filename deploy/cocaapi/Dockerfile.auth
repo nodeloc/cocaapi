@@ -13,5 +13,6 @@ COPY litellm/proxy/proxy_server.py litellm/proxy/schema.prisma /app/.venv/lib/py
 COPY litellm-proxy-extras/litellm_proxy_extras/schema.prisma /app/.venv/lib/python3.13/site-packages/litellm_proxy_extras/schema.prisma
 COPY litellm-proxy-extras/litellm_proxy_extras/migrations/20261101120000_commerce_auth/ /app/.venv/lib/python3.13/site-packages/litellm_proxy_extras/migrations/20261101120000_commerce_auth/
 COPY litellm-proxy-extras/litellm_proxy_extras/migrations/20261101140000_commerce_wallet/ /app/.venv/lib/python3.13/site-packages/litellm_proxy_extras/migrations/20261101140000_commerce_wallet/
+COPY litellm-proxy-extras/litellm_proxy_extras/migrations/20261101150000_commerce_login_settings/ /app/.venv/lib/python3.13/site-packages/litellm_proxy_extras/migrations/20261101150000_commerce_login_settings/
 COPY ui/litellm-dashboard/out/ /app/cocaapi-ui/
 ENV LITELLM_UI_PATH=/app/cocaapi-ui

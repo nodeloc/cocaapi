@@ -163,6 +163,7 @@ export default function CommerceAdmin({ section = "wallets" }: { section?: Secti
             ["wallets", "/ui/commerce/", "用户余额"],
             ["redemptions", "/ui/commerce/redemptions/", "兑换码"],
             ["orders", "/ui/commerce/orders/", "充值订单"],
+            ["settings", "/ui/commerce/settings/", "登录与注册"],
           ] as const
         ).map(([id, href, label]) => (
           <a

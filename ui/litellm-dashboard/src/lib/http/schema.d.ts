@@ -3166,6 +3166,24 @@ export interface paths {
         patch: operations["cohere_proxy_route_cohere__endpoint__patch"];
         trace?: never;
     };
+    "/commerce/admin/v1/login-settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Settings */
+        get: operations["read_settings_commerce_admin_v1_login_settings_get"];
+        /** Save Settings */
+        put: operations["save_settings_commerce_admin_v1_login_settings_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/commerce/admin/v1/recharge-orders": {
         parameters: {
             query?: never;
@@ -38872,6 +38890,28 @@ export interface components {
              */
             status?: "healthy" | "unhealthy";
         };
+        /** LoginConfigurationInput */
+        LoginConfigurationInput: {
+            /** Providers */
+            providers: components["schemas"]["ProviderConfigurationInput"][];
+            /** Registration Enabled */
+            registration_enabled: boolean;
+            /** Revision */
+            revision: number;
+        };
+        /** LoginConfigurationView */
+        LoginConfigurationView: {
+            /** Email Enabled */
+            email_enabled: boolean;
+            /** Providers */
+            providers: components["schemas"]["ProviderConfigurationView"][];
+            /** Registration Enabled */
+            registration_enabled: boolean;
+            /** Revision */
+            revision: number;
+            /** Updated At */
+            updated_at: string | null;
+        };
         /**
          * Logprob
          * @description The log probability of a token.
@@ -43287,6 +43327,43 @@ export interface components {
             spend: number | null;
             /** Time Period */
             time_period: string | null;
+        };
+        /** ProviderConfigurationInput */
+        ProviderConfigurationInput: {
+            /**
+             * Clear Secret
+             * @default false
+             */
+            clear_secret: boolean;
+            /** Client Id */
+            client_id: string;
+            /** Client Secret */
+            client_secret?: string | null;
+            /** Enabled */
+            enabled: boolean;
+            /**
+             * Id
+             * @enum {string}
+             */
+            id: "github" | "google" | "nodeloc";
+        };
+        /** ProviderConfigurationView */
+        ProviderConfigurationView: {
+            /** Callback Url */
+            callback_url: string;
+            /** Client Id */
+            client_id: string;
+            /** Enabled */
+            enabled: boolean;
+            /**
+             * Id
+             * @enum {string}
+             */
+            id: "github" | "google" | "nodeloc";
+            /** Label */
+            label: string;
+            /** Secret Configured */
+            secret_configured: boolean;
         };
         /** ProviderCreateInfo */
         ProviderCreateInfo: {
@@ -59440,6 +59517,59 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_settings_commerce_admin_v1_login_settings_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoginConfigurationView"];
+                };
+            };
+        };
+    };
+    save_settings_commerce_admin_v1_login_settings_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoginConfigurationInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoginConfigurationView"];
                 };
             };
             /** @description Validation Error */

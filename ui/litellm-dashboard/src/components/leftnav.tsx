@@ -179,6 +179,7 @@ const menuItemIsVisible = (item: MenuItem, context: MenuVisibilityContext, isAdm
   if (item.children && item.children.length === 0) return false;
   if (item.key === "llm-playground" && context.isViewOnly) return false;
   if (item.key === "commerce" && context.isViewOnly) return false;
+  if (item.key === "login-settings" && context.isViewOnly) return false;
   const adminVisibility = adminPageVisibility(item, context, isAdmin);
   if (adminVisibility !== null) return adminVisibility;
   if (!projectPageIsVisible(item, context)) return false;
@@ -366,6 +367,7 @@ const menuGroups: MenuGroup[] = [
       },
       { key: "budgets", page: "budgets", label: "Budgets", icon: <Wallet {...ICON} />, roles: all_admin_roles },
       { key: "commerce", page: "commerce", label: "账户与充值", icon: <Wallet {...ICON} />, roles: ["Admin", "proxy_admin"] },
+      { key: "login-settings", page: "commerce/settings", label: "登录与注册", icon: <SettingsIcon {...ICON} />, roles: ["Admin", "proxy_admin"] },
     ],
   },
   {

@@ -30,14 +30,19 @@ from litellm.proxy.commerce.oauth_client import OAuthClient, ProviderClient
 from litellm.repositories.commerce_auth_repository import AccountDatabase, AccountRepository
 
 
-def get_service() -> AccountService:
+async def get_service() -> AccountService:
     from litellm.proxy.proxy_server import prisma_client
+    from litellm.proxy.commerce.login_settings_service import LoginSettingsService
+    from litellm.repositories.commerce_login_settings_repository import LoginConfigurationRepository
 
     settings: Final = load_settings()
     if settings is None or prisma_client is None:
         raise HTTPException(503, detail="account_service_unavailable")
     db: Final[AccountDatabase] = prisma_client.writer_db  # pyright: ignore[reportAssignmentType]  # __getattr__ proxy
-    return AccountService(AccountRepository(db), settings)
+    effective: Final = await LoginSettingsService(LoginConfigurationRepository(db), settings).effective()
+    if isinstance(effective, AuthError):
+        raise_public(effective)
+    return AccountService(AccountRepository(db), effective)
 
 
 Service: TypeAlias = Annotated[AccountService, Depends(get_service)]

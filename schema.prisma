@@ -2188,3 +2188,11 @@ model CommercePaymentEvent {
   order CommerceRechargeOrder @relation(fields: [order_id], references: [id], onDelete: Restrict, onUpdate: NoAction)
   @@unique([provider, event_id])
 }
+
+model CommerceLoginConfiguration {
+  id String @id
+  payload String
+  revision Int
+  updated_by String
+  updated_at DateTime @default(now()) @client.Timestamptz(6)
+}

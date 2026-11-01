@@ -30,6 +30,9 @@ from litellm.proxy.commerce.payment_routes import get_gateway, get_payment_servi
 from litellm.proxy.commerce.payment_gateway import UnconfiguredGateway
 from litellm.proxy.commerce.payment_service import PaymentService
 from litellm.repositories.commerce_payment_repository import PaymentRepository
+from litellm.proxy.commerce.admin_login_routes import get_login_settings_service, router as login_settings_router
+from litellm.proxy.commerce.login_settings_service import LoginSettingsService
+from litellm.repositories.commerce_login_settings_repository import LoginConfigurationRepository
 
 
 @dataclass(frozen=True)
@@ -73,6 +76,8 @@ async def wallet_client() -> AsyncIterator[WalletClient]:
     app.include_router(admin_router)
     app.include_router(payment_admin_router)
     app.include_router(webhook_router)
+    app.include_router(login_settings_router)
+    app.dependency_overrides[get_login_settings_service] = lambda: LoginSettingsService(LoginConfigurationRepository(database), service.settings)
     app.dependency_overrides[get_service] = lambda: service
     app.dependency_overrides[get_wallet_store] = lambda: WalletRepository(database)
     app.dependency_overrides[get_redemption_service] = lambda: RedemptionService(RedemptionRepository(database), AuthSecurity("test-only-redemption-key-" * 8))

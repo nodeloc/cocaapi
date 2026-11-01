@@ -19,6 +19,11 @@ const wallet = {
 const empty = { items: [], has_more: false };
 
 describe("wallet flows", () => {
+  it("links administrators to login and registration settings", async () => {
+    fetchMock.mockResolvedValue(Response.json(empty));
+    render(<CommerceAdmin />);
+    expect(await screen.findByRole("link", { name: "登录与注册" })).toHaveAttribute("href", "/ui/commerce/settings/");
+  });
   beforeEach(() => {
     fetchMock.mockReset();
     vi.stubGlobal("fetch", fetchMock);

@@ -21,6 +21,8 @@
 !litellm-proxy-extras/litellm_proxy_extras/migrations/20261101120000_commerce_auth/**
 !litellm-proxy-extras/litellm_proxy_extras/migrations/20261101140000_commerce_wallet/
 !litellm-proxy-extras/litellm_proxy_extras/migrations/20261101140000_commerce_wallet/**
+!litellm-proxy-extras/litellm_proxy_extras/migrations/20261101150000_commerce_login_settings/
+!litellm-proxy-extras/litellm_proxy_extras/migrations/20261101150000_commerce_login_settings/**
 !ui/
 !ui/litellm-dashboard/
 !ui/litellm-dashboard/out/
