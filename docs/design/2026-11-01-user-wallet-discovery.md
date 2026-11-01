@@ -2,6 +2,8 @@
 
 本文记录 fork 的范围、源码接入点和实施约束，当前尚未实现用户中心、钱包或支付接口
 
+后续完整产品规格见 `docs/superpowers/specs/2026-11-01-cocaapi-user-billing-design.md`，分阶段实施计划见 `docs/superpowers/plans/2026-11-01-cocaapi-user-billing.md`。两份文件覆盖本文尚未定下的账号方案、金额单位和实施顺序，支付服务商仍为未选定状态
+
 ## 已确认范围
 
 以 LiteLLM 开源网关为基础，自建用户与支付能力。充值使用第三方 USDT 支付网关，覆盖 TRON、Ethereum 和 BNB Smart Chain。具体支付服务商尚未选定，实际可用网络由商户账户配置和支付网关返回的能力共同决定
