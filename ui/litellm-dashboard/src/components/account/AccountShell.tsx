@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Alert, AlertDescription } from "@/components/shared/Alert";
+import { CheckCircle2, CircleAlert } from "lucide-react";
 
 export function AccountShell({
   title,
@@ -16,11 +17,13 @@ export function AccountShell({
   return (
     <main lang="zh-CN" className="min-h-screen flex items-center justify-center bg-muted px-4 py-10">
       <Card className={`w-full shadow-md ${wide ? "max-w-2xl" : "max-w-lg"}`}>
-        <CardContent className="flex flex-col gap-6">
-          <div className="text-center space-y-2">
+        <CardContent className="flex flex-col gap-4">
+          <div className="text-center">
             <a href="/account/login/" className="text-3xl font-semibold text-foreground">
               CocaAPI
             </a>
+          </div>
+          <div className="text-center">
             <h1 className="text-2xl font-semibold text-foreground">{title}</h1>
             <p className="text-sm text-muted-foreground">{description}</p>
           </div>
@@ -36,12 +39,14 @@ export function AccountNotice({ error, message }: { error: string; message: stri
   return (
     <div className="space-y-2">
       {message && (
-        <Alert role="status">
+        <Alert variant="success" role="status">
+          <CheckCircle2 />
           <AlertDescription>{message}</AlertDescription>
         </Alert>
       )}
       {error && (
-        <Alert variant="destructive" role="alert">
+        <Alert variant="error" role="alert">
+          <CircleAlert />
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}

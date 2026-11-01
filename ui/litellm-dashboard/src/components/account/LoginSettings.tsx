@@ -7,8 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PasswordInput } from "@/components/shared/PasswordInput";
+import { Checkbox } from "@/components/ui/checkbox";
+import { CommercePage } from "./CommercePage";
 import { AccountNotice } from "./AccountShell";
 import { loginSettingsApi, type LoginSettingsView } from "./loginSettingsApi";
 
@@ -29,18 +31,19 @@ function ProviderForm({
     onChange({ ...provider, clear_secret: checked, client_secret: "", enabled: checked ? false : provider.enabled });
   return (
     <Card>
+      <CardHeader className="flex flex-wrap items-center justify-between gap-3">
+        <CardTitle>
+          <h2>{provider.label}</h2>
+        </CardTitle>
+        <Badge variant="secondary">{provider.secret_configured ? "密钥已配置" : "未配置密钥"}</Badge>
+      </CardHeader>
       <CardContent className="space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-lg font-semibold">{provider.label}</h2>
-          <Badge variant="secondary">{provider.secret_configured ? "密钥已配置" : "未配置密钥"}</Badge>
-        </div>
         <div className="flex items-center gap-2">
-          <input
+          <Checkbox
             id={`${prefix}-enabled`}
-            type="checkbox"
             checked={provider.enabled}
             disabled={busy || provider.clear_secret}
-            onChange={(event) => onChange({ ...provider, enabled: event.target.checked })}
+            onCheckedChange={(checked) => onChange({ ...provider, enabled: checked === true })}
           />
           <Label htmlFor={`${prefix}-enabled`}>启用 {provider.label} 登录</Label>
         </div>
@@ -70,12 +73,11 @@ function ProviderForm({
         </div>
         {provider.secret_configured && (
           <div className="flex items-center gap-2">
-            <input
+            <Checkbox
               id={`${prefix}-clear`}
-              type="checkbox"
               checked={provider.clear_secret}
               disabled={busy}
-              onChange={(event) => clear(event.target.checked)}
+              onCheckedChange={(checked) => clear(checked === true)}
             />
             <Label htmlFor={`${prefix}-clear`}>清除 {provider.label} 密钥并停用登录</Label>
           </div>
@@ -163,19 +165,7 @@ export default function LoginSettings() {
   };
   if (!allowed) return <div className="p-8 text-sm text-muted-foreground">仅完整代理管理员可以配置登录与注册。</div>;
   return (
-    <div lang="zh-CN" className="w-full max-w-5xl p-4 md:p-8 space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold">登录与注册</h1>
-        <p className="text-sm text-muted-foreground mt-2">配置用户中心的第三方登录与新用户注册</p>
-      </div>
-      <nav aria-label="账户管理导航" className="flex flex-wrap gap-4 border-b pb-3 text-sm">
-        <a href="/ui/commerce/">用户余额</a>
-        <a href="/ui/commerce/redemptions/">兑换码</a>
-        <a href="/ui/commerce/orders/">充值订单</a>
-        <a href="/ui/commerce/settings/" aria-current="page" className="font-semibold">
-          登录与注册
-        </a>
-      </nav>
+    <CommercePage section="settings">
       <AccountNotice error={error} message={message} />
       {!settings && !error && (
         <p role="status" className="text-sm text-muted-foreground">
@@ -185,15 +175,18 @@ export default function LoginSettings() {
       {settings && (
         <form onSubmit={save} className="space-y-6">
           <Card>
+            <CardHeader>
+              <CardTitle>
+                <h2>注册设置</h2>
+              </CardTitle>
+            </CardHeader>
             <CardContent className="space-y-4">
-              <h2 className="text-lg font-semibold">注册设置</h2>
               <div className="flex items-center gap-2">
-                <input
+                <Checkbox
                   id="registration-enabled"
-                  type="checkbox"
                   checked={registration}
                   disabled={busy}
-                  onChange={(event) => setRegistration(event.target.checked)}
+                  onCheckedChange={(checked) => setRegistration(checked === true)}
                 />
                 <Label htmlFor="registration-enabled">允许新用户注册</Label>
               </div>
@@ -213,9 +206,11 @@ export default function LoginSettings() {
               </div>
             </CardContent>
           </Card>
-          {providers.map((provider) => (
-            <ProviderForm key={provider.id} provider={provider} busy={busy} onChange={update} />
-          ))}
+          <div className="grid items-start gap-6 xl:grid-cols-2">
+            {providers.map((provider) => (
+              <ProviderForm key={provider.id} provider={provider} busy={busy} onChange={update} />
+            ))}
+          </div>
           <div className="flex flex-wrap items-center gap-3">
             <Button type="submit" disabled={busy}>
               保存设置
@@ -234,6 +229,6 @@ export default function LoginSettings() {
           </p>
         </form>
       )}
-    </div>
+    </CommercePage>
   );
 }

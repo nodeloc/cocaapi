@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { PasswordInput } from "@/components/shared/PasswordInput";
 import { accountApi, AccountRequestError, type Methods, type Profile, type Provider } from "./accountApi";
 import { AccountNotice } from "./AccountShell";
@@ -115,11 +115,13 @@ export default function AccountProfile({ security = false }: { security?: boolea
       {profile && (
         <>
           <Card>
+            <CardHeader>
+              <CardTitle>
+                <h2>账号信息</h2>
+              </CardTitle>
+              <CardDescription className="break-all">用户 ID：{profile.user_id}</CardDescription>
+            </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <h2 className="text-lg font-semibold">账号信息</h2>
-              </div>
-              <p className="text-xs text-muted-foreground break-all">用户 ID：{profile.user_id}</p>
               <div className="flex flex-wrap items-center gap-2 text-sm">
                 <span className="min-w-0 break-all">{profile.email ?? "尚未填写邮箱"}</span>
                 <Badge variant={profile.email_verified ? "default" : "secondary"}>
@@ -186,14 +188,16 @@ export default function AccountProfile({ security = false }: { security?: boolea
           {security && (
             <div className="grid items-start gap-6 xl:grid-cols-2">
               <Card>
+                <CardHeader>
+                  <CardTitle>
+                    <h2 className="flex items-center gap-2">
+                      <ShieldCheck className="size-4" />
+                      第三方登录
+                    </h2>
+                  </CardTitle>
+                  <CardDescription>将不同平台绑定到同一个账号。请保留至少一种可用登录方式。</CardDescription>
+                </CardHeader>
                 <CardContent className="space-y-4">
-                  <h2 className="text-lg font-semibold flex items-center gap-2">
-                    <ShieldCheck className="size-5" />
-                    第三方登录
-                  </h2>
-                  <p className="text-sm text-muted-foreground">
-                    将不同平台绑定到同一个账号。请保留至少一种可用登录方式。
-                  </p>
                   {profile.reauthentication_required && (
                     <p className="text-sm text-muted-foreground">
                       修改安全设置前，请
@@ -265,8 +269,12 @@ export default function AccountProfile({ security = false }: { security?: boolea
                 </CardContent>
               </Card>
               <Card>
+                <CardHeader>
+                  <CardTitle>
+                    <h2>{profile.has_password ? "修改密码" : "设置密码"}</h2>
+                  </CardTitle>
+                </CardHeader>
                 <CardContent className="space-y-4">
-                  <h2 className="text-lg font-semibold">{profile.has_password ? "修改密码" : "设置密码"}</h2>
                   {!profile.email_verified && (
                     <p className="text-sm text-muted-foreground">请先验证邮箱，再设置或修改密码。</p>
                   )}

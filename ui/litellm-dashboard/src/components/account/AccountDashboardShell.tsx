@@ -50,6 +50,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import ThemeToggle from "@/components/ThemeToggle/ThemeToggle";
+import { Page } from "@/components/shared/Page";
+import { PageHeader, PageHeaderDescription, PageHeaderTitle } from "@/components/shared/PageHeader";
 import { AccountNotice } from "./AccountShell";
 import { accountApi, type Profile } from "./accountApi";
 
@@ -261,16 +263,21 @@ export function AccountDashboardShell({
             <ThemeToggle />
           </header>
           <main id="account-main" tabIndex={-1} className="min-h-0 min-w-0 flex-1 overflow-y-auto">
-            <div className={nativeContent ? "h-full min-h-0 w-full" : "mx-auto w-full max-w-7xl space-y-6 p-4 md:p-8"}>
-              {!nativeContent && (
-                <div>
-                  <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
-                  <p className="mt-2 text-sm text-muted-foreground">{description}</p>
-                </div>
-              )}
-              <AccountNotice error={error} message="" />
-              {children}
-            </div>
+            {nativeContent ? (
+              <div className="h-full min-h-0 w-full">
+                <AccountNotice error={error} message="" />
+                {children}
+              </div>
+            ) : (
+              <Page>
+                <PageHeader>
+                  <PageHeaderTitle>{title}</PageHeaderTitle>
+                  <PageHeaderDescription>{description}</PageHeaderDescription>
+                </PageHeader>
+                <AccountNotice error={error} message="" />
+                {children}
+              </Page>
+            )}
           </main>
         </div>
       </div>

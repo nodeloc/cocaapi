@@ -8,8 +8,11 @@ import { Label } from "@/components/ui/label";
 import { accountApi, AccountRequestError, type Profile } from "./accountApi";
 import { AccountNotice } from "./AccountShell";
 import { AccountDashboardShell } from "./AccountDashboardShell";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { walletApi, type Wallet, type Ledger, type Orders, type PaymentMethods, type Order } from "./walletApi";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Stat } from "@/app/(dashboard)/usage/_components/components/overview/Primitives";
+import { RefreshCw } from "lucide-react";
 import { formatCredits } from "./money";
 import { LedgerTable, OrdersTable, Pager } from "./WalletTables";
 
@@ -102,18 +105,20 @@ export default function AccountWallet({ ordersOnly = false }: { ordersOnly?: boo
       {!wallet && !error && <p role="status">正在加载钱包…</p>}
       {wallet && (
         <>
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid overflow-hidden rounded-xl border bg-card sm:grid-cols-3 sm:divide-x">
             {[
               { label: "可用余额（USD 额度）", value: wallet.available_units },
               { label: "累计入账", value: wallet.credited_units },
               { label: "累计扣减", value: wallet.debited_units },
             ].map((item) => (
-              <Card key={item.label}>
-                <CardContent className="space-y-2">
-                  <p className="text-sm text-muted-foreground">{item.label}</p>
-                  <p className="break-all text-3xl font-semibold tabular-nums">{formatCredits(item.value)}</p>
-                </CardContent>
-              </Card>
+              <div key={item.label} className="min-w-0 border-b px-5 py-4 last:border-b-0 sm:border-b-0">
+                <Stat
+                  label={item.label}
+                  value={formatCredits(item.value)}
+                  size="lg"
+                  exact={formatCredits(item.value)}
+                />
+              </div>
             ))}
           </div>
           <p className="text-sm text-muted-foreground">当前余额用于账户额度管理，API 密钥与调用扣费将在后续接入。</p>
@@ -130,9 +135,13 @@ export default function AccountWallet({ ordersOnly = false }: { ordersOnly?: boo
             <>
               <div className="grid items-start gap-6 lg:grid-cols-2">
                 <Card>
+                  <CardHeader>
+                    <CardTitle>
+                      <h2>兑换码</h2>
+                    </CardTitle>
+                  </CardHeader>
                   <CardContent>
                     <form onSubmit={redeem} className="space-y-4">
-                      <h2 className="text-lg font-semibold">兑换码</h2>
                       <Label htmlFor="redeem-code">兑换码</Label>
                       <div className="flex flex-col sm:flex-row gap-2">
                         <Input
@@ -160,9 +169,13 @@ export default function AccountWallet({ ordersOnly = false }: { ordersOnly?: boo
                   </CardContent>
                 </Card>
                 <Card>
+                  <CardHeader>
+                    <CardTitle>
+                      <h2>USDT 充值</h2>
+                    </CardTitle>
+                  </CardHeader>
                   <CardContent>
                     <form onSubmit={create} className="space-y-4">
-                      <h2 className="text-lg font-semibold">USDT 充值</h2>
                       {!methods?.enabled ? (
                         <p className="text-sm text-muted-foreground">
                           USDT 支付尚未开放，网关接入后可选择网络并创建订单。
@@ -179,18 +192,26 @@ export default function AccountWallet({ ordersOnly = false }: { ordersOnly?: boo
                             pattern="[0-9]+(\.[0-9]{1,2})?"
                           />
                           <Label htmlFor="recharge-network">支付网络</Label>
-                          <select
-                            id="recharge-network"
-                            className="w-full rounded-md border bg-background px-3 py-2 text-sm"
+                          <Select
                             value={network}
-                            onChange={(event) => setNetwork(event.target.value as Order["network"])}
+                            items={methods.networks.map((item) => ({ value: item.id, label: item.label }))}
+                            onValueChange={(value) => {
+                              const option = methods.networks.find((item) => item.id === value);
+                              if (option) setNetwork(option.id);
+                            }}
+                            disabled={busy || !profile?.email_verified}
                           >
-                            {methods.networks.map((item) => (
-                              <option value={item.id} key={item.id}>
-                                {item.label}
-                              </option>
-                            ))}
-                          </select>
+                            <SelectTrigger id="recharge-network" className="w-full">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {methods.networks.map((item) => (
+                                <SelectItem value={item.id} key={item.id}>
+                                  {item.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                           <p className="text-xs text-muted-foreground">
                             以支付页面显示的 USDT 数量和网络为准，支付后由服务端查单确认入账。
                           </p>
@@ -201,43 +222,44 @@ export default function AccountWallet({ ordersOnly = false }: { ordersOnly?: boo
                   </CardContent>
                 </Card>
               </div>
-              <Card>
-                <CardContent className="space-y-4">
-                  <h2 className="text-lg font-semibold">余额明细</h2>
-                  {ledger && (
-                    <>
-                      <LedgerTable ledger={ledger} />
-                      <Pager offset={offset} hasMore={ledger.has_more} busy={busy} onPage={setOffset} />
-                    </>
-                  )}
-                </CardContent>
-              </Card>
+              <section className="space-y-3" aria-labelledby="wallet-ledger-heading">
+                <h2 id="wallet-ledger-heading" className="text-base font-medium">
+                  余额明细
+                </h2>
+                {ledger && (
+                  <>
+                    <LedgerTable ledger={ledger} />
+                    <Pager offset={offset} hasMore={ledger.has_more} busy={busy} onPage={setOffset} />
+                  </>
+                )}
+              </section>
             </>
           )}
           {ordersOnly && orders && (
-            <Card>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-semibold">订单记录</h2>
-                  <Button variant="outline" disabled={busy} onClick={() => run(async () => {})}>
-                    刷新列表
-                  </Button>
-                </div>
-                <OrdersTable
-                  orders={orders}
-                  busy={busy}
-                  checkout
-                  onRefresh={(id) => {
-                    if (profile)
-                      void run(async () => {
-                        const order = await walletApi.refresh(id, profile.csrf_token);
-                        setMessage(order.status === "paid" ? "充值已到账。" : "已更新订单状态。");
-                      });
-                  }}
-                />
-                <Pager offset={offset} hasMore={orders.has_more} busy={busy} onPage={setOffset} />
-              </CardContent>
-            </Card>
+            <section className="space-y-3" aria-labelledby="wallet-orders-heading">
+              <div className="flex items-center justify-between">
+                <h2 id="wallet-orders-heading" className="text-base font-medium">
+                  订单记录
+                </h2>
+                <Button variant="outline" disabled={busy} onClick={() => run(async () => {})}>
+                  <RefreshCw />
+                  刷新列表
+                </Button>
+              </div>
+              <OrdersTable
+                orders={orders}
+                busy={busy}
+                checkout
+                onRefresh={(id) => {
+                  if (profile)
+                    void run(async () => {
+                      const order = await walletApi.refresh(id, profile.csrf_token);
+                      setMessage(order.status === "paid" ? "充值已到账。" : "已更新订单状态。");
+                    });
+                }}
+              />
+              <Pager offset={offset} hasMore={orders.has_more} busy={busy} onPage={setOffset} />
+            </section>
           )}
         </>
       )}

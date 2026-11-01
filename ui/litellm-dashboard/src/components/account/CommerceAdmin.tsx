@@ -1,14 +1,18 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useRef, useState, useMemo, type FormEvent } from "react";
+import type { ColumnDef } from "@tanstack/react-table";
 import useAuthorized from "@/app/(dashboard)/hooks/useAuthorized";
 import { isProxyAdminRole } from "@/utils/roles";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
+import { DataTable } from "@/components/shared/DataTable";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { RefreshCw, Search } from "lucide-react";
+import { CommercePage } from "./CommercePage";
 import { AccountNotice } from "./AccountShell";
 import {
   walletApi,
@@ -97,12 +101,12 @@ export default function CommerceAdmin({ section = "wallets" }: { section?: Secti
     if (request.current?.body !== body) request.current = { body, key: crypto.randomUUID() };
     return request.current.key;
   };
-  const selectWallet = (userId: string) => {
+  const selectWallet = useCallback((userId: string) => {
     setSelected(userId);
     setReason("");
     setLedger(null);
     setLedgerOffset(0);
-  };
+  }, []);
   const applySearch = (event: FormEvent) => {
     event.preventDefault();
     setOffset(0);
@@ -149,43 +153,125 @@ export default function CommerceAdmin({ section = "wallets" }: { section?: Secti
     link.click();
     URL.revokeObjectURL(url);
   };
+  const walletColumns = useMemo<ColumnDef<Wallets["items"][number]>[]>(
+    () => [
+      {
+        id: "user",
+        header: "用户",
+        cell: ({ row: { original: wallet } }) => (
+          <div>
+            <p>{wallet.email ?? "未设置邮箱"}</p>
+            <p className="max-w-64 whitespace-normal break-all font-mono text-xs text-muted-foreground">
+              {wallet.user_id}
+            </p>
+          </div>
+        ),
+      },
+      {
+        accessorKey: "available_units",
+        header: "可用余额",
+        meta: { numeric: true },
+        cell: ({ row }) => formatCredits(row.original.available_units),
+      },
+      {
+        id: "totals",
+        header: "累计入账 / 扣减",
+        meta: { numeric: true },
+        cell: ({ row: { original: wallet } }) => (
+          <>
+            {formatCredits(wallet.credited_units)} / {formatCredits(wallet.debited_units)}
+          </>
+        ),
+      },
+      {
+        id: "actions",
+        header: "操作",
+        cell: ({ row }) => (
+          <Button variant="outline" size="sm" disabled={busy} onClick={() => selectWallet(row.original.user_id)}>
+            查看与调整
+          </Button>
+        ),
+      },
+    ],
+    [busy, selectWallet],
+  );
+
+  const batchColumns = useMemo<ColumnDef<Batches["items"][number]>[]>(
+    () => [
+      {
+        id: "batch",
+        header: "批次",
+        cell: ({ row: { original: batch } }) => (
+          <div>
+            <p>{batch.name}</p>
+            <p className="max-w-64 whitespace-normal break-all font-mono text-xs text-muted-foreground">{batch.id}</p>
+          </div>
+        ),
+      },
+      {
+        accessorKey: "face_units",
+        header: "面值",
+        meta: { numeric: true },
+        cell: ({ row }) => formatCredits(row.original.face_units),
+      },
+      {
+        id: "count",
+        header: "已兑换 / 数量",
+        meta: { numeric: true },
+        cell: ({ row: { original: batch } }) => (
+          <>
+            {batch.redeemed_count} / {batch.count}
+          </>
+        ),
+      },
+      {
+        id: "status",
+        header: "状态 / 有效期",
+        cell: ({ row: { original: batch } }) => (
+          <div>
+            <Badge variant="secondary">{batchStatus(batch.disabled, batch.expires_at)}</Badge>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {batch.expires_at ? new Date(batch.expires_at).toLocaleString() : "长期有效"}
+            </p>
+          </div>
+        ),
+      },
+      {
+        id: "actions",
+        header: "操作",
+        cell: ({ row: { original: batch } }) => (
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={busy || batch.disabled}
+            onClick={() => {
+              setDisableId(batch.id);
+              setDisableReason("");
+            }}
+          >
+            停用
+          </Button>
+        ),
+      },
+    ],
+    [busy],
+  );
+
   if (!allowed)
     return <div className="p-8 text-sm text-muted-foreground">仅完整代理管理员可以管理余额、充值和兑换码。</div>;
   return (
-    <div lang="zh-CN" className="w-full p-4 md:p-8 space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold">账户与充值</h1>
-        <p className="text-sm text-muted-foreground mt-2">管理用户额度、兑换码批次和充值订单</p>
-      </div>
-      <nav aria-label="充值管理导航" className="flex flex-wrap gap-4 border-b pb-3 text-sm">
-        {(
-          [
-            ["wallets", "/ui/commerce/", "用户余额"],
-            ["redemptions", "/ui/commerce/redemptions/", "兑换码"],
-            ["orders", "/ui/commerce/orders/", "充值订单"],
-            ["settings", "/ui/commerce/settings/", "登录与注册"],
-          ] as const
-        ).map(([id, href, label]) => (
-          <a
-            key={id}
-            href={href}
-            aria-current={section === id ? "page" : undefined}
-            className={section === id ? "font-semibold text-foreground" : "text-muted-foreground hover:text-foreground"}
-          >
-            {label}
-          </a>
-        ))}
-      </nav>
+    <CommercePage section={section}>
       <AccountNotice error={error} message={message} />
       <p className="text-sm text-muted-foreground">
         余额按 USD 额度记账。API 调用扣费尚未接入，USDT 网关当前预留接口。
       </p>
       {section !== "redemptions" && (
-        <form className="flex flex-col sm:flex-row gap-2" onSubmit={applySearch}>
+        <form className="flex flex-wrap items-center gap-2" onSubmit={applySearch}>
           <Label className="sr-only" htmlFor="commerce-search">
             搜索
           </Label>
           <Input
+            className="w-full sm:max-w-xs"
             id="commerce-search"
             placeholder={section === "wallets" ? "邮箱或用户 ID" : "订单 ID 或用户 ID"}
             value={search}
@@ -193,73 +279,58 @@ export default function CommerceAdmin({ section = "wallets" }: { section?: Secti
             onChange={(event) => setSearch(event.target.value)}
           />
           <Button type="submit" variant="outline" disabled={busy}>
+            <Search />
             搜索
           </Button>
           <Button type="button" variant="outline" disabled={busy} onClick={() => run(async () => {})}>
+            <RefreshCw />
             刷新
           </Button>
         </form>
       )}
       {section === "wallets" && wallets && (
-        <Card>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>用户</TableHead>
-                  <TableHead className="text-right tabular-nums">可用余额</TableHead>
-                  <TableHead className="text-right tabular-nums">累计入账 / 扣减</TableHead>
-                  <TableHead>操作</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {wallets.items.map((wallet) => (
-                  <TableRow key={wallet.user_id}>
-                    <TableCell>
-                      <p>{wallet.email ?? "未设置邮箱"}</p>
-                      <p className="text-xs font-mono text-muted-foreground break-all">{wallet.user_id}</p>
-                    </TableCell>
-                    <TableCell className="text-right tabular-nums">{formatCredits(wallet.available_units)}</TableCell>
-                    <TableCell className="text-right tabular-nums">
-                      {formatCredits(wallet.credited_units)} / {formatCredits(wallet.debited_units)}
-                    </TableCell>
-                    <TableCell>
-                      <Button variant="outline" size="sm" disabled={busy} onClick={() => selectWallet(wallet.user_id)}>
-                        查看与调整
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {wallets.items.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
-                      暂无用户
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-            <Pager offset={offset} hasMore={wallets.has_more} busy={busy} onPage={setOffset} />
-          </CardContent>
-        </Card>
+        <div>
+          <DataTable
+            data={wallets.items}
+            getRowId={(wallet) => wallet.user_id}
+            paginationMode="none"
+            sortingMode="none"
+            noDataMessage="暂无用户"
+            columns={walletColumns}
+          />
+          <Pager offset={offset} hasMore={wallets.has_more} busy={busy} onPage={setOffset} />
+        </div>
       )}
       {section === "wallets" && selected && (
         <Card>
+          <CardHeader>
+            <CardTitle>
+              <h2>余额调整</h2>
+            </CardTitle>
+          </CardHeader>
           <CardContent className="space-y-4">
-            <h2 className="text-lg font-semibold">余额调整</h2>
             <p className="text-xs font-mono break-all">{selected}</p>
             <form className="grid gap-3 sm:grid-cols-2" onSubmit={adjust}>
               <div className="space-y-2">
                 <Label htmlFor="adjust-direction">调整类型</Label>
-                <select
-                  id="adjust-direction"
-                  className="w-full border rounded-md bg-background p-2"
+                <Select
                   value={direction}
-                  onChange={(event) => setDirection(event.target.value as Adjustment["direction"])}
+                  onValueChange={(value) => {
+                    if (value === "credit" || value === "debit") setDirection(value);
+                  }}
+                  items={[
+                    { value: "credit", label: "增加额度" },
+                    { value: "debit", label: "扣减额度" },
+                  ]}
                 >
-                  <option value="credit">增加额度</option>
-                  <option value="debit">扣减额度</option>
-                </select>
+                  <SelectTrigger id="adjust-direction" className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="credit">增加额度</SelectItem>
+                    <SelectItem value="debit">扣减额度</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="adjust-amount">金额（USD）</Label>
@@ -298,8 +369,12 @@ export default function CommerceAdmin({ section = "wallets" }: { section?: Secti
         <>
           {generated ? (
             <Card>
+              <CardHeader>
+                <CardTitle>
+                  <h2>本次生成的兑换码</h2>
+                </CardTitle>
+              </CardHeader>
               <CardContent className="space-y-3">
-                <h2 className="text-lg font-semibold">本次生成的兑换码</h2>
                 <p className="text-sm text-muted-foreground">原始兑换码仅展示一次，请妥善保存。</p>
                 <pre className="max-h-80 overflow-auto rounded-md border bg-muted p-3 text-xs select-all">
                   {generated.codes.join("\n")}
@@ -314,9 +389,13 @@ export default function CommerceAdmin({ section = "wallets" }: { section?: Secti
             </Card>
           ) : (
             <Card>
+              <CardHeader>
+                <CardTitle>
+                  <h2>创建兑换码批次</h2>
+                </CardTitle>
+              </CardHeader>
               <CardContent>
                 <form onSubmit={generate} className="grid sm:grid-cols-2 gap-4">
-                  <h2 className="sm:col-span-2 text-lg font-semibold">创建兑换码批次</h2>
                   <div className="space-y-2">
                     <Label htmlFor="batch-name">批次名称</Label>
                     <Input
@@ -367,65 +446,25 @@ export default function CommerceAdmin({ section = "wallets" }: { section?: Secti
             </Card>
           )}
           {batches && (
-            <Card>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>批次</TableHead>
-                      <TableHead className="text-right tabular-nums">面值</TableHead>
-                      <TableHead>已兑换 / 数量</TableHead>
-                      <TableHead>状态 / 有效期</TableHead>
-                      <TableHead>操作</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {batches.items.map((batch) => (
-                      <TableRow key={batch.id}>
-                        <TableCell>
-                          {batch.name}
-                          <p className="text-xs text-muted-foreground font-mono">{batch.id}</p>
-                        </TableCell>
-                        <TableCell className="text-right tabular-nums">{formatCredits(batch.face_units)}</TableCell>
-                        <TableCell>
-                          {batch.redeemed_count} / {batch.count}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="secondary">{batchStatus(batch.disabled, batch.expires_at)}</Badge>
-                          <p className="text-xs mt-1">
-                            {batch.expires_at ? new Date(batch.expires_at).toLocaleString() : "长期有效"}
-                          </p>
-                        </TableCell>
-                        <TableCell>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            disabled={busy || batch.disabled}
-                            onClick={() => {
-                              setDisableId(batch.id);
-                              setDisableReason("");
-                            }}
-                          >
-                            停用
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                    {batches.items.length === 0 && (
-                      <TableRow>
-                        <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                          暂无兑换码批次
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-                <Pager offset={offset} hasMore={batches.has_more} busy={busy} onPage={setOffset} />
-              </CardContent>
-            </Card>
+            <div>
+              <DataTable
+                data={batches.items}
+                getRowId={(batch) => batch.id}
+                paginationMode="none"
+                sortingMode="none"
+                noDataMessage="暂无兑换码批次"
+                columns={batchColumns}
+              />
+              <Pager offset={offset} hasMore={batches.has_more} busy={busy} onPage={setOffset} />
+            </div>
           )}
           {disableId && (
             <Card>
+              <CardHeader>
+                <CardTitle>
+                  <h2>停用批次</h2>
+                </CardTitle>
+              </CardHeader>
               <CardContent>
                 <form
                   className="space-y-3"
@@ -439,7 +478,6 @@ export default function CommerceAdmin({ section = "wallets" }: { section?: Secti
                       });
                   }}
                 >
-                  <h2 className="font-semibold">停用批次</h2>
                   <p className="font-mono text-xs">{disableId}</p>
                   <Label htmlFor="disable-reason">停用原因</Label>
                   <Input
@@ -464,23 +502,21 @@ export default function CommerceAdmin({ section = "wallets" }: { section?: Secti
         </>
       )}
       {section === "orders" && orders && (
-        <Card>
-          <CardContent>
-            <OrdersTable
-              orders={orders}
-              busy={busy}
-              onRefresh={(id) => {
-                if (accessToken)
-                  void run(async () => {
-                    await walletApi.adminRefresh(accessToken, id);
-                    setMessage("已从支付网关重新查询订单。");
-                  });
-              }}
-            />
-            <Pager offset={offset} hasMore={orders.has_more} busy={busy} onPage={setOffset} />
-          </CardContent>
-        </Card>
+        <div>
+          <OrdersTable
+            orders={orders}
+            busy={busy}
+            onRefresh={(id) => {
+              if (accessToken)
+                void run(async () => {
+                  await walletApi.adminRefresh(accessToken, id);
+                  setMessage("已从支付网关重新查询订单。");
+                });
+            }}
+          />
+          <Pager offset={offset} hasMore={orders.has_more} busy={busy} onPage={setOffset} />
+        </div>
       )}
-    </div>
+    </CommercePage>
   );
 }

@@ -57,8 +57,8 @@ describe("login settings", () => {
     const client = await screen.findByLabelText("NodeLoc Client ID");
     fireEvent.change(client, { target: { value: "node-app" } });
     fireEvent.change(screen.getByLabelText("NodeLoc Client Secret"), { target: { value: "entered-secret" } });
-    fireEvent.click(screen.getByLabelText("启用 NodeLoc 登录"));
-    fireEvent.click(screen.getByLabelText("允许新用户注册"));
+    fireEvent.click(screen.getByRole("checkbox", { name: "启用 NodeLoc 登录" }));
+    fireEvent.click(screen.getByRole("checkbox", { name: "允许新用户注册" }));
     fireEvent.click(screen.getByRole("button", { name: "保存设置" }));
     expect(await screen.findByRole("status")).toHaveTextContent("登录与注册设置已保存");
     expect(screen.getByLabelText("NodeLoc Client Secret")).toHaveValue("");
@@ -90,8 +90,8 @@ describe("login settings", () => {
       return Response.json({ ...current, revision: 3 });
     });
     render(<LoginSettings />);
-    fireEvent.click(await screen.findByLabelText("清除 NodeLoc 密钥并停用登录"));
-    expect(screen.getByLabelText("启用 NodeLoc 登录")).not.toBeChecked();
+    fireEvent.click(await screen.findByRole("checkbox", { name: "清除 NodeLoc 密钥并停用登录" }));
+    expect(screen.getByRole("checkbox", { name: "启用 NodeLoc 登录" })).not.toBeChecked();
     fireEvent.click(screen.getByRole("button", { name: "保存设置" }));
     expect(await screen.findByRole("status")).toHaveTextContent("设置已保存");
   });
