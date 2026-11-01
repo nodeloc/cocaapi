@@ -58,7 +58,9 @@ docker compose -f compose.yaml -f compose.auth.yaml --profile mail up -d gateway
 
 浏览器验证使用隔离数据库与私有 SSH 隧道，真实网关双 worker 运行。邮件链接从测试队列读取，不等同于真实 SMTP 发信。没有应用凭据，因此真实 GitHub、Google、NodeLoc 授权和真实邮件投递仍待配置后验收。仓库的托管 CI、Greptile、Veria、Bugbot 未在本地环境运行，不能视为通过
 
-## 2026-11-01 发布记录
+## 2026-11-01 认证首次发布记录
+
+后续余额、兑换码和充值扩展的运行版本与验证记录见 [WALLET.md](WALLET.md)
 
 运行代码为 `551d604c`，镜像 ID 为 `sha256:c5b33b631671b33352bf9039b78727177a2fe2c2becce40dc1551a911ad3c20a`。服务健康检查通过，首页跳转用户登录页，用户页面与原有管理后台均可通过 HTTPS 访问。公网确认注册请求返回 `registration_closed`，提供商列表为空，邮件功能关闭。管理员登录及 API 的无 Key 401、有管理员 Key 200 行为均通过，生产客户表无测试账户
 
