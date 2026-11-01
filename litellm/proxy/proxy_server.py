@@ -2333,6 +2333,16 @@ origins, allow_cors_credentials = _get_cors_config()
 from litellm.proxy.commerce.account_routes import router as account_router
 
 app.include_router(account_router)
+from litellm.proxy.commerce.admin_wallet_routes import router as commerce_admin_router
+
+app.include_router(commerce_admin_router)
+from litellm.proxy.commerce.payment_routes import (
+    admin_router as payment_admin_router,
+    webhook_router as payment_webhook_router,
+)
+
+app.include_router(payment_admin_router)
+app.include_router(payment_webhook_router)
 
 # get current directory
 try:

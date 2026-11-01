@@ -34,8 +34,17 @@ export function AccountShell({
 export function AccountNotice({ error, message }: { error: string; message: string }) {
   if (!error && !message) return null;
   return (
-    <Alert variant={error ? "destructive" : "default"} role={error ? "alert" : "status"}>
-      <AlertDescription>{error || message}</AlertDescription>
-    </Alert>
+    <div className="space-y-2">
+      {message && (
+        <Alert role="status">
+          <AlertDescription>{message}</AlertDescription>
+        </Alert>
+      )}
+      {error && (
+        <Alert variant="destructive" role="alert">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+    </div>
   );
 }

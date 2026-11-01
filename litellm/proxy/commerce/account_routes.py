@@ -1,6 +1,6 @@
 import secrets
 from collections.abc import Callable, Coroutine
-from typing import Annotated, Final, TypeAlias
+from typing import Annotated, Final, NoReturn, TypeAlias
 from urllib.parse import urlencode
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
@@ -59,7 +59,7 @@ def set_cookie(response: Response, service: AccountService, kind: str, value: st
     )
 
 
-def raise_public(error: AuthError) -> None:
+def raise_public(error: AuthError) -> NoReturn:
     raise HTTPException(error.status, detail=error.code)
 
 
@@ -375,3 +375,12 @@ async def oauth_callback(provider: ProviderID, request: Request, service: Servic
         await service.logout(old)
     set_cookie(response, service, "session", result.token, 604800)
     return response
+
+
+from litellm.proxy.commerce.wallet_routes import router as wallet_router
+
+router.include_router(wallet_router)
+
+from litellm.proxy.commerce.payment_routes import router as payment_router
+
+router.include_router(payment_router)

@@ -6,11 +6,12 @@ RUN python3 -m ensurepip --upgrade \
     && python3 -m pip install --no-cache-dir --no-deps --require-hashes -r /tmp/account-auth-requirements.txt \
     && rm /tmp/account-auth-requirements.txt
 
-COPY litellm/models/commerce_auth.py /app/.venv/lib/python3.13/site-packages/litellm/models/commerce_auth.py
-COPY litellm/repositories/commerce_auth_repository.py /app/.venv/lib/python3.13/site-packages/litellm/repositories/commerce_auth_repository.py
+COPY litellm/models/commerce_*.py /app/.venv/lib/python3.13/site-packages/litellm/models/
+COPY litellm/repositories/commerce_*_repository.py /app/.venv/lib/python3.13/site-packages/litellm/repositories/
 COPY litellm/proxy/commerce/ /app/.venv/lib/python3.13/site-packages/litellm/proxy/commerce/
 COPY litellm/proxy/proxy_server.py litellm/proxy/schema.prisma /app/.venv/lib/python3.13/site-packages/litellm/proxy/
 COPY litellm-proxy-extras/litellm_proxy_extras/schema.prisma /app/.venv/lib/python3.13/site-packages/litellm_proxy_extras/schema.prisma
 COPY litellm-proxy-extras/litellm_proxy_extras/migrations/20261101120000_commerce_auth/ /app/.venv/lib/python3.13/site-packages/litellm_proxy_extras/migrations/20261101120000_commerce_auth/
+COPY litellm-proxy-extras/litellm_proxy_extras/migrations/20261101140000_commerce_wallet/ /app/.venv/lib/python3.13/site-packages/litellm_proxy_extras/migrations/20261101140000_commerce_wallet/
 COPY ui/litellm-dashboard/out/ /app/cocaapi-ui/
 ENV LITELLM_UI_PATH=/app/cocaapi-ui

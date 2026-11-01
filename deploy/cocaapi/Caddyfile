@@ -5,9 +5,9 @@ cocaapi.com {
     header {
         X-Content-Type-Options nosniff
     }
-    @other not path /account/*
+    @other not path /account/* /commerce/*
     header @other Referrer-Policy strict-origin-when-cross-origin
-    @account path /account/*
+    @account path /account/* /commerce/*
     header @account {
         >Referrer-Policy no-referrer
         >Cache-Control no-store

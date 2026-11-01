@@ -100,6 +100,13 @@ export default function AccountProfile() {
   const emailDisabled = !canEditSecurity(profile, busy, false);
   return (
     <AccountShell title="我的账号" description="管理邮箱、密码和第三方登录" wide>
+      <nav aria-label="账号导航" className="flex justify-center gap-5 text-sm underline underline-offset-4">
+        <a href="/account/profile/" aria-current="page">
+          我的账号
+        </a>
+        <a href="/account/wallet/">余额与充值</a>
+        <a href="/account/orders/">充值订单</a>
+      </nav>
       <AccountNotice error={error} message={message} />
       {!profile && !error && (
         <p role="status" className="text-center text-muted-foreground">

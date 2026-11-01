@@ -21,6 +21,7 @@ GROUPS: Final = MappingProxyType(
         "sdk": ("sdk",),
         "cost": ("cost_calculation",),
         "security": ("security",),
+        "commerce": ("commerce",),
     }
 )
 GITHUB_FILES: Final = frozenset(

@@ -2018,6 +2018,9 @@ model CommerceCustomer {
   identities CommerceExternalIdentity[]
   flows CommerceOAuthFlow[]
   mail CommerceMailOutbox[]
+  wallet CommerceWallet?
+  redeemed_codes CommerceRedeemCode[]
+  recharge_orders CommerceRechargeOrder[]
 }
 
 model CommerceSession {
@@ -2089,4 +2092,99 @@ model CommerceAuthRateLimit {
   attempts Int @default(0)
   @@id([key, bucket])
   @@index([bucket])
+}
+
+model CommerceWallet {
+  user_id String @id
+  available_units BigInt @default(0)
+  reserved_units BigInt @default(0)
+  credited_units BigInt @default(0)
+  debited_units BigInt @default(0)
+  created_at DateTime @default(now()) @client.Timestamptz(6)
+  updated_at DateTime @default(now()) @client.Timestamptz(6)
+  customer CommerceCustomer @relation(fields: [user_id], references: [user_id], onDelete: Restrict, onUpdate: NoAction)
+  entries CommerceLedger[]
+}
+
+model CommerceLedger {
+  id String @id
+  user_id String
+  delta_units BigInt
+  available_after BigInt
+  kind String
+  business_key String @unique
+  reference String
+  actor_id String
+  reason String
+  created_at DateTime @default(now()) @client.Timestamptz(6)
+  wallet CommerceWallet @relation(fields: [user_id], references: [user_id], onDelete: Restrict, onUpdate: NoAction)
+  @@index([user_id, created_at(sort: Desc), id(sort: Desc)])
+}
+
+model CommerceAuditEvent {
+  id String @id
+  actor_id String
+  action String
+  target_id String
+  reason String
+  created_at DateTime @default(now()) @client.Timestamptz(6)
+  @@index([target_id, created_at])
+}
+
+model CommerceRedeemBatch {
+  id String @id
+  request_key String @unique
+  name String
+  face_units BigInt
+  count Int
+  disabled Boolean @default(false)
+  expires_at DateTime? @client.Timestamptz(6)
+  created_by String
+  created_at DateTime @default(now()) @client.Timestamptz(6)
+  codes CommerceRedeemCode[]
+}
+
+model CommerceRedeemCode {
+  id String @id
+  batch_id String
+  code_hash String @unique
+  tail String
+  redeemed_by String?
+  redeemed_at DateTime? @client.Timestamptz(6)
+  batch CommerceRedeemBatch @relation(fields: [batch_id], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  customer CommerceCustomer? @relation(fields: [redeemed_by], references: [user_id], onDelete: Restrict, onUpdate: NoAction)
+  @@index([batch_id])
+}
+
+model CommerceRechargeOrder {
+  id String @id
+  user_id String
+  credit_units BigInt
+  network String
+  asset String @default("USDT")
+  provider String
+  merchant_account_id String
+  request_key String @unique
+  status String @default("creating")
+  amount_usdt String?
+  checkout_url String?
+  external_id String?
+  expires_at DateTime? @client.Timestamptz(6)
+  paid_at DateTime? @client.Timestamptz(6)
+  review_reason String?
+  created_at DateTime @default(now()) @client.Timestamptz(6)
+  customer CommerceCustomer @relation(fields: [user_id], references: [user_id], onDelete: Restrict, onUpdate: NoAction)
+  events CommercePaymentEvent[]
+  @@unique([provider, external_id])
+  @@index([user_id, created_at(sort: Desc), id(sort: Desc)])
+}
+
+model CommercePaymentEvent {
+  id String @id
+  provider String
+  event_id String
+  order_id String
+  created_at DateTime @default(now()) @client.Timestamptz(6)
+  order CommerceRechargeOrder @relation(fields: [order_id], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  @@unique([provider, event_id])
 }

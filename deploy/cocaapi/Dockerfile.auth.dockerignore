@@ -5,9 +5,9 @@
 !deploy/cocaapi/auth-requirements.txt
 !litellm/
 !litellm/models/
-!litellm/models/commerce_auth.py
+!litellm/models/commerce_*.py
 !litellm/repositories/
-!litellm/repositories/commerce_auth_repository.py
+!litellm/repositories/commerce_*_repository.py
 !litellm/proxy/
 !litellm/proxy/commerce/
 !litellm/proxy/commerce/**
@@ -19,6 +19,8 @@
 !litellm-proxy-extras/litellm_proxy_extras/migrations/
 !litellm-proxy-extras/litellm_proxy_extras/migrations/20261101120000_commerce_auth/
 !litellm-proxy-extras/litellm_proxy_extras/migrations/20261101120000_commerce_auth/**
+!litellm-proxy-extras/litellm_proxy_extras/migrations/20261101140000_commerce_wallet/
+!litellm-proxy-extras/litellm_proxy_extras/migrations/20261101140000_commerce_wallet/**
 !ui/
 !ui/litellm-dashboard/
 !ui/litellm-dashboard/out/
