@@ -106,6 +106,9 @@ class AccountRoute(APIRoute):
                     status_code=error.status_code,
                     headers={"Cache-Control": "no-store", "Referrer-Policy": "no-referrer"},
                 )
+            finally:
+                if request.url.path.endswith("/callback"):
+                    request.scope["query_string"] = b""  # rebind-ok: redact failed callbacks from Uvicorn logs
             response.headers["Cache-Control"] = "no-store"
             response.headers["Referrer-Policy"] = "no-referrer"
             return response
@@ -350,7 +353,6 @@ def callback_redirect(path: str) -> RedirectResponse:
 @router.get("/oauth/{provider}/callback", response_class=RedirectResponse)
 async def oauth_callback(provider: ProviderID, request: Request, service: Service, client: OAuth) -> RedirectResponse:
     query: Final = request.query_params
-    request.scope["query_string"] = b""  # rebind-ok: Uvicorn reads this scope when logging the callback
     state: Final = query.get("state", "")
     flow: Final = await service.take_flow(provider, state, request.cookies.get(cookie_name(service, "browser"), ""))
     if flow is None:

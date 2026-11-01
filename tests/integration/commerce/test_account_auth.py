@@ -1,5 +1,6 @@
 import os
 import asyncio
+from collections.abc import Awaitable, Callable
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from urllib.parse import parse_qs, urlsplit
@@ -8,7 +9,7 @@ import httpx
 import httpx2
 import pytest
 import pytest_asyncio
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, Response
 from prisma import Prisma
 
 from litellm.proxy.commerce.account_routes import get_service, get_oauth_client, router
@@ -64,6 +65,14 @@ async def client():
         clock=lambda: NOW,
     )
     app = FastAPI()
+
+    @app.middleware("http")
+    async def observe_callback_query(request: Request, call_next: Callable[[Request], Awaitable[Response]]) -> Response:
+        response = await call_next(request)
+        if request.url.path.endswith("/callback"):
+            response.headers["X-Observed-Query"] = request.scope["query_string"].decode()
+        return response
+
     app.include_router(router)
     app.dependency_overrides[get_service] = lambda: service
     app.dependency_overrides[get_oauth_client] = lambda: ProviderClient(
@@ -370,6 +379,7 @@ async def test_oauth_callback_sets_customer_cookie_and_rejects_replay(client):
     )
     assert callback.status_code == 303
     assert callback.headers["location"] == "/account/profile/"
+    assert callback.headers["X-Observed-Query"] == ""
     assert "httponly" in callback.headers["set-cookie"].lower()
     profile = await connection.get("/account/api/v1/me")
     assert profile.status_code == 200
@@ -380,6 +390,15 @@ async def test_oauth_callback_sets_customer_cookie_and_rejects_replay(client):
         "/account/api/v1/oauth/github/callback", params={"state": state, "code": "external-code"}
     )
     assert replay.headers["location"] == "/account/login/?error=invalid_authorization"
+
+
+@pytest.mark.asyncio
+async def test_invalid_callback_redacts_authorization_code_before_access_logging(client):
+    connection, _, _ = client
+    response = await connection.get("/account/api/v1/oauth/unknown/callback?code=sensitive-code&state=state")
+    assert response.status_code == 422
+    assert response.headers["X-Observed-Query"] == ""
+    assert "sensitive-code" not in response.text
 
 
 async def wait_for_blocked_verifier(database: Prisma) -> None:
