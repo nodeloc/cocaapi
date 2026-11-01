@@ -1,0 +1,12 @@
+cocaapi.com {
+    encode zstd gzip
+    @homepage path /
+    redir @homepage /ui/ 302
+    header {
+        X-Content-Type-Options nosniff
+        Referrer-Policy strict-origin-when-cross-origin
+    }
+    reverse_proxy 127.0.0.1:4000 {
+        flush_interval -1
+    }
+}
