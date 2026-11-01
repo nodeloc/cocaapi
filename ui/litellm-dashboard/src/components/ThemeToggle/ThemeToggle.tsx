@@ -2,13 +2,19 @@
 
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
-import React from "react";
+import React, { useSyncExternalStore } from "react";
 
 import { Button } from "@/components/ui/button";
 
+const subscribe = () => () => {};
+const clientSnapshot = () => true;
+const serverSnapshot = () => false;
+
 const ThemeToggle: React.FC = () => {
   const { setTheme, resolvedTheme } = useTheme();
-  const isDark = resolvedTheme === "dark";
+  // Saved preferences are unavailable during export; keep the first render identical.
+  const hydrated = useSyncExternalStore(subscribe, clientSnapshot, serverSnapshot);
+  const isDark = hydrated && resolvedTheme === "dark";
   const label = isDark ? "Switch to light mode" : "Switch to dark mode (beta)";
 
   return (

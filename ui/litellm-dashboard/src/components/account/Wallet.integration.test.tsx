@@ -3,7 +3,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import AccountWallet from "./AccountWallet";
 import CommerceAdmin from "./CommerceAdmin";
 
-vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn(), replace: vi.fn() }) }));
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
+  usePathname: () => "/account/wallet/",
+}));
 vi.mock("@/app/(dashboard)/hooks/useAuthorized", () => ({
   default: () => ({ accessToken: "native-admin", userRole: "Admin", isViewOnly: false, isAuthorized: true }),
 }));
@@ -46,7 +49,7 @@ describe("wallet flows", () => {
       return Response.json(request.url.includes("transactions") ? empty : wallet);
     });
     render(<AccountWallet />);
-    expect(await screen.findByText("$5.50")).toBeInTheDocument();
+    expect(await screen.findAllByText("$5.50")).toHaveLength(2);
     expect(screen.getByText(/USDT 支付尚未开放/)).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "创建充值订单" })).not.toBeInTheDocument();
     fireEvent.change(screen.getByLabelText("兑换码"), { target: { value: "COCA1-1234567890ABCDEF1234567890ABCDEF" } });

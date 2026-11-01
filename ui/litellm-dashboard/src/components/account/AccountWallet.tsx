@@ -6,7 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { accountApi, AccountRequestError, type Profile } from "./accountApi";
-import { AccountNotice, AccountShell } from "./AccountShell";
+import { AccountNotice } from "./AccountShell";
+import { AccountDashboardShell } from "./AccountDashboardShell";
+import { Card, CardContent } from "@/components/ui/card";
 import { walletApi, type Wallet, type Ledger, type Orders, type PaymentMethods, type Order } from "./walletApi";
 import { formatCredits } from "./money";
 import { LedgerTable, OrdersTable, Pager } from "./WalletTables";
@@ -91,27 +93,29 @@ export default function AccountWallet({ ordersOnly = false }: { ordersOnly?: boo
     });
   };
   return (
-    <AccountShell title={ordersOnly ? "充值订单" : "余额与充值"} description="查看余额、兑换额度和充值记录" wide>
-      <nav aria-label="账号导航" className="flex flex-wrap justify-center gap-5 text-sm underline underline-offset-4">
-        <a href="/account/profile/">我的账号</a>
-        <a href="/account/wallet/" aria-current={!ordersOnly ? "page" : undefined}>
-          余额与充值
-        </a>
-        <a href="/account/orders/" aria-current={ordersOnly ? "page" : undefined}>
-          充值订单
-        </a>
-      </nav>
+    <AccountDashboardShell
+      title={ordersOnly ? "充值订单" : "余额与充值"}
+      description="查看余额、兑换额度和充值记录"
+      profile={profile}
+    >
       <AccountNotice error={error} message={message} />
       {!wallet && !error && <p role="status">正在加载钱包…</p>}
       {wallet && (
         <>
-          <section className="rounded-lg border bg-muted/30 p-5 space-y-2">
-            <p className="text-sm text-muted-foreground">可用余额（USD 额度）</p>
-            <p className="text-3xl font-semibold tabular-nums">{formatCredits(wallet.available_units)}</p>
-            <p className="text-xs text-muted-foreground">
-              累计入账 {formatCredits(wallet.credited_units)} · 累计扣减 {formatCredits(wallet.debited_units)}
-            </p>
-          </section>
+          <div className="grid gap-4 sm:grid-cols-3">
+            {[
+              { label: "可用余额（USD 额度）", value: wallet.available_units },
+              { label: "累计入账", value: wallet.credited_units },
+              { label: "累计扣减", value: wallet.debited_units },
+            ].map((item) => (
+              <Card key={item.label}>
+                <CardContent className="space-y-2">
+                  <p className="text-sm text-muted-foreground">{item.label}</p>
+                  <p className="break-all text-3xl font-semibold tabular-nums">{formatCredits(item.value)}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
           <p className="text-sm text-muted-foreground">当前余额用于账户额度管理，API 密钥与调用扣费将在后续接入。</p>
           {!profile?.email_verified && (
             <p className="text-sm text-muted-foreground">
@@ -124,100 +128,119 @@ export default function AccountWallet({ ordersOnly = false }: { ordersOnly?: boo
           )}
           {!ordersOnly && (
             <>
-              <form onSubmit={redeem} className="space-y-3 border-t pt-5">
-                <h2 className="text-lg font-semibold">兑换码</h2>
-                <Label htmlFor="redeem-code">兑换码</Label>
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <Input
-                    id="redeem-code"
-                    autoComplete="off"
-                    spellCheck={false}
-                    value={code}
-                    onChange={(event) => setCode(event.target.value)}
-                    minLength={16}
-                    maxLength={100}
-                    required
-                    disabled={busy || !profile?.email_verified || !methods?.redemption_enabled}
-                  />
-                  <Button type="submit" disabled={busy || !profile?.email_verified || !methods?.redemption_enabled}>
-                    兑换
-                  </Button>
-                </div>
-                {methods && !methods.redemption_enabled && (
-                  <p className="text-xs text-muted-foreground">兑换服务尚未开放。</p>
-                )}
-              </form>
-              <form onSubmit={create} className="space-y-3 border-t pt-5">
-                <h2 className="text-lg font-semibold">USDT 充值</h2>
-                {!methods?.enabled ? (
-                  <p className="text-sm text-muted-foreground">USDT 支付尚未开放，网关接入后可选择网络并创建订单。</p>
-                ) : (
-                  <fieldset disabled={busy || !profile?.email_verified} className="space-y-3">
-                    <Label htmlFor="recharge-amount">充值额度（USD）</Label>
-                    <Input
-                      id="recharge-amount"
-                      inputMode="decimal"
-                      value={amount}
-                      onChange={(event) => setAmount(event.target.value)}
-                      required
-                      pattern="[0-9]+(\.[0-9]{1,2})?"
-                    />
-                    <Label htmlFor="recharge-network">支付网络</Label>
-                    <select
-                      id="recharge-network"
-                      className="w-full rounded-md border bg-background px-3 py-2 text-sm"
-                      value={network}
-                      onChange={(event) => setNetwork(event.target.value as Order["network"])}
-                    >
-                      {methods.networks.map((item) => (
-                        <option value={item.id} key={item.id}>
-                          {item.label}
-                        </option>
-                      ))}
-                    </select>
-                    <p className="text-xs text-muted-foreground">
-                      以支付页面显示的 USDT 数量和网络为准，支付后由服务端查单确认入账。
-                    </p>
-                    <Button type="submit">创建充值订单</Button>
-                  </fieldset>
-                )}
-              </form>
-              <section className="border-t pt-5 space-y-3">
-                <h2 className="text-lg font-semibold">余额明细</h2>
-                {ledger && (
-                  <>
-                    <LedgerTable ledger={ledger} />
-                    <Pager offset={offset} hasMore={ledger.has_more} busy={busy} onPage={setOffset} />
-                  </>
-                )}
-              </section>
+              <div className="grid items-start gap-6 lg:grid-cols-2">
+                <Card>
+                  <CardContent>
+                    <form onSubmit={redeem} className="space-y-4">
+                      <h2 className="text-lg font-semibold">兑换码</h2>
+                      <Label htmlFor="redeem-code">兑换码</Label>
+                      <div className="flex flex-col sm:flex-row gap-2">
+                        <Input
+                          id="redeem-code"
+                          autoComplete="off"
+                          spellCheck={false}
+                          value={code}
+                          onChange={(event) => setCode(event.target.value)}
+                          minLength={16}
+                          maxLength={100}
+                          required
+                          disabled={busy || !profile?.email_verified || !methods?.redemption_enabled}
+                        />
+                        <Button
+                          type="submit"
+                          disabled={busy || !profile?.email_verified || !methods?.redemption_enabled}
+                        >
+                          兑换
+                        </Button>
+                      </div>
+                      {methods && !methods.redemption_enabled && (
+                        <p className="text-xs text-muted-foreground">兑换服务尚未开放。</p>
+                      )}
+                    </form>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent>
+                    <form onSubmit={create} className="space-y-4">
+                      <h2 className="text-lg font-semibold">USDT 充值</h2>
+                      {!methods?.enabled ? (
+                        <p className="text-sm text-muted-foreground">
+                          USDT 支付尚未开放，网关接入后可选择网络并创建订单。
+                        </p>
+                      ) : (
+                        <fieldset disabled={busy || !profile?.email_verified} className="space-y-3">
+                          <Label htmlFor="recharge-amount">充值额度（USD）</Label>
+                          <Input
+                            id="recharge-amount"
+                            inputMode="decimal"
+                            value={amount}
+                            onChange={(event) => setAmount(event.target.value)}
+                            required
+                            pattern="[0-9]+(\.[0-9]{1,2})?"
+                          />
+                          <Label htmlFor="recharge-network">支付网络</Label>
+                          <select
+                            id="recharge-network"
+                            className="w-full rounded-md border bg-background px-3 py-2 text-sm"
+                            value={network}
+                            onChange={(event) => setNetwork(event.target.value as Order["network"])}
+                          >
+                            {methods.networks.map((item) => (
+                              <option value={item.id} key={item.id}>
+                                {item.label}
+                              </option>
+                            ))}
+                          </select>
+                          <p className="text-xs text-muted-foreground">
+                            以支付页面显示的 USDT 数量和网络为准，支付后由服务端查单确认入账。
+                          </p>
+                          <Button type="submit">创建充值订单</Button>
+                        </fieldset>
+                      )}
+                    </form>
+                  </CardContent>
+                </Card>
+              </div>
+              <Card>
+                <CardContent className="space-y-4">
+                  <h2 className="text-lg font-semibold">余额明细</h2>
+                  {ledger && (
+                    <>
+                      <LedgerTable ledger={ledger} />
+                      <Pager offset={offset} hasMore={ledger.has_more} busy={busy} onPage={setOffset} />
+                    </>
+                  )}
+                </CardContent>
+              </Card>
             </>
           )}
           {ordersOnly && orders && (
-            <section className="space-y-3">
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold">订单记录</h2>
-                <Button variant="outline" disabled={busy} onClick={() => run(async () => {})}>
-                  刷新列表
-                </Button>
-              </div>
-              <OrdersTable
-                orders={orders}
-                busy={busy}
-                checkout
-                onRefresh={(id) => {
-                  if (profile)
-                    void run(async () => {
-                      const order = await walletApi.refresh(id, profile.csrf_token);
-                      setMessage(order.status === "paid" ? "充值已到账。" : "已更新订单状态。");
-                    });
-                }}
-              />
-              <Pager offset={offset} hasMore={orders.has_more} busy={busy} onPage={setOffset} />
-            </section>
+            <Card>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-lg font-semibold">订单记录</h2>
+                  <Button variant="outline" disabled={busy} onClick={() => run(async () => {})}>
+                    刷新列表
+                  </Button>
+                </div>
+                <OrdersTable
+                  orders={orders}
+                  busy={busy}
+                  checkout
+                  onRefresh={(id) => {
+                    if (profile)
+                      void run(async () => {
+                        const order = await walletApi.refresh(id, profile.csrf_token);
+                        setMessage(order.status === "paid" ? "充值已到账。" : "已更新订单状态。");
+                      });
+                  }}
+                />
+                <Pager offset={offset} hasMore={orders.has_more} busy={busy} onPage={setOffset} />
+              </CardContent>
+            </Card>
           )}
         </>
       )}
-    </AccountShell>
+    </AccountDashboardShell>
   );
 }

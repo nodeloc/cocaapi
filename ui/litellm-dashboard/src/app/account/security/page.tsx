@@ -1,3 +1,5 @@
 import AccountProfile from "@/components/account/AccountProfile";
 
-export default AccountProfile;
+export default function SecurityPage() {
+  return <AccountProfile security />;
+}
