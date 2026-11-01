@@ -19,9 +19,9 @@
 在服务目录执行以下命令
 
 ```sh
-docker compose config --quiet
-docker compose up -d
-docker compose ps
+docker compose -f compose.yaml -f compose.auth.yaml config --quiet
+docker compose -f compose.yaml -f compose.auth.yaml up -d
+docker compose -f compose.yaml -f compose.auth.yaml ps
 curl --fail http://127.0.0.1:4000/health/readiness
 ```
 

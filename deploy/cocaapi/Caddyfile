@@ -4,12 +4,13 @@ cocaapi.com {
     redir @homepage /account/login/ 302
     header {
         X-Content-Type-Options nosniff
-        Referrer-Policy strict-origin-when-cross-origin
     }
+    @other not path /account/*
+    header @other Referrer-Policy strict-origin-when-cross-origin
     @account path /account/*
     header @account {
-        Referrer-Policy no-referrer
-        Cache-Control no-store
+        >Referrer-Policy no-referrer
+        >Cache-Control no-store
     }
     reverse_proxy 127.0.0.1:4000 {
         flush_interval -1

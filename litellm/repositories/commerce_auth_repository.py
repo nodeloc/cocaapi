@@ -2,9 +2,10 @@ import uuid
 from collections.abc import Mapping, Sequence
 from contextlib import AbstractAsyncContextManager
 from datetime import datetime, timedelta
-from typing import Final, LiteralString, Protocol
+from typing import Final, Protocol
 
 from pydantic import SecretStr, TypeAdapter
+from typing_extensions import LiteralString
 
 from litellm.models.commerce_auth import (
     ActionPurpose,
