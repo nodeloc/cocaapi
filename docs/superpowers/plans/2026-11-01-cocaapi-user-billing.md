@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** 交付用户注册、钱包、消费结算、兑换码、USDT 充值和对应管理能力
+**Goal:** 交付邮箱与 GitHub、Google、NodeLoc 注册登录、钱包、消费结算、兑换码、USDT 充值和对应管理能力
 
 **Architecture:** 在 LiteLLM fork 内增加有明确接口的 commerce 模块，复用已有身份、模型路由与数据库生命周期。用户控制台独立静态部署，管理后台保持 `/ui/`，资金使用 PostgreSQL 事务账本
 
@@ -20,6 +20,8 @@
 
 客户与 `LiteLLM_UserTable.user_id` 一对一绑定，不能另建独立密码来源
 
+首批 OAuth 提供商固定为 GitHub、Google、NodeLoc，参考 `docs/design/2026-11-01-new-api-reference-and-oauth.md`。同一个客户只使用同一个钱包，不根据相同邮箱自动合并账户
+
 客户所有 Key 共用钱包，所有允许的推理入口先预留再结算，未支持的付费入口明确拒绝
 
 资金变更、唯一业务键和流水必须在同一事务提交，Redis 不是资金事实来源
@@ -31,6 +33,8 @@
 ## 工程边界与目录
 
 新领域类型放在 `litellm/models/commerce/`，持久化放在 `litellm/repositories/commerce/`，服务、路由与适配放在 `litellm/proxy/commerce/`。核心钱包只依赖领域类型和仓储接口，不依赖 HTTP 或支付商字段
+
+New API 参考 checkout 为 `E:\cocaapi-references\new-api`，fork 为 `https://github.com/kissopen/new-api`。OAuth 参考 provider registry、绑定记录与登录/绑定意图，充值和兑换参考状态与事务；CocaAPI 按自己的规格独立实现，不直接加入 Go/GORM 模块或整套界面依赖
 
 仓储依赖采用已有数据库访问技能的原则，但稳定基线没有 main 的 `litellm/proxy/deps`，先检查其生命周期接线，再在 `litellm/proxy/commerce/dependencies.py` 增加所需的最小提供器，不能为了新增业务移植整个 main
 
@@ -134,6 +138,43 @@ def retail_units(cost: Decimal, multiplier: Decimal) -> int:
 
 请求额外提交 `user_id`、`user_role` 或 `wallet_units` 时返回明确校验错误，不能忽略后误当成有效授权。测试使用受控模型别名，不依赖某个厂商的当前模型名称
 
+## Task 4A GitHub、Google 与 NodeLoc 注册登录
+
+**Files:** 创建 `litellm/models/commerce/oauth.py`、`litellm/repositories/commerce/oauth.py`、`litellm/proxy/commerce/oauth_service.py`、`litellm/proxy/commerce/oauth_routes.py`、`litellm/proxy/commerce/oauth_adapters/github.py`、`litellm/proxy/commerce/oauth_adapters/oidc.py`，调整客户模型允许 OAuth-only 用户暂缺邮箱与密码，增加相关 Prisma migration。前端在 `ui/cocaapi-console` 增加三家登录入口、绑定管理和补充邮箱页面，管理员在既有商业管理界面配置提供商
+
+**Tests:** `tests/unit/proxy/commerce/test_oauth_service.py`、`tests/integration/commerce/test_oauth_transactions.py`、`tests/integration/commerce/test_oauth_callbacks.py`、`tests/e2e/ui/commerce/oauth.spec.ts`
+
+**Interfaces:** 适配器输出受验证的 `ExternalIdentity`，包含可信 issuer、subject、显示名和可选邮箱及邮箱验证证据。领域服务输出 `Authenticated`、`EmailRequired`、`LinkRequired`、`RegistrationClosed` 或明确失败类型，不输出第三方 access token
+
+公共接口为 `GET /account/api/v1/auth-methods`、`POST /account/api/v1/oauth/{provider}/start` 和 `GET /account/api/v1/oauth/{provider}/callback`。已登录接口为 `GET /account/api/v1/oauth/bindings`、`POST /account/api/v1/oauth/{provider}/link`、`DELETE /account/api/v1/oauth/bindings/{id}`。绑定启动与普通登录不能仅凭回调请求参数互换
+
+- [ ] 以参考记录中的当前官方入口建立 GitHub、Google、NodeLoc 配置，核对授权码、S256 PKCE、OIDC 和签名库兼容性，提交锁文件
+- [ ] 先写过期、重放、缺失浏览器绑定、供应商混淆、错误 issuer/audience/nonce、邮箱冲突和并发开户测试，确认未实现时失败
+- [ ] 实现共享授权事务，state 原子消费，保存服务端用途与目标会话，对 verifier 加密，固定同源返回路径与精确回调，不从 Host 或客户端 issuer 拼接授权目标
+- [ ] 通过维护中的库执行服务端 token 交换和 OIDC 校验，GitHub 读取稳定 id 与 verified 邮箱，Google 与 NodeLoc 验证 issuer/sub 及 ID token，不保存长期第三方 token
+- [ ] 事务创建客户、外部身份和零余额钱包，外部身份唯一约束同时覆盖并发回调与提供商别名，不将相同邮箱直接绑定到旧用户
+- [ ] 实现 OAuth-only 待补充邮箱状态，可信已验证邮箱满足原有验证要求，未完成邮箱验证仍不能操作 Key、兑换或充值
+- [ ] 完成当前用户的绑定、近期重新认证、解绑与最后一个可用登录方式保护，绑定流程开始的目标会话在回调时仍须有效
+- [ ] 提供商启停和允许自动注册独立配置，全局关闭注册时已有身份仍可登录，禁用客户无法通过任一提供商登录
+- [ ] 实现用户和管理员页面，隐藏未配置按钮，回调清理查询字符串并只设置本地 HttpOnly 会话，不在日志或 URL 返回 token
+- [ ] 在两个 worker 下运行故障和事务测试，再用三家测试应用完成真实浏览器注册、重复登录和绑定，确认同一账户看到同一个钱包与 Key 后提交
+
+外部身份的数据库约束与邮箱唯一约束分开，采用下面的身份语义，GitHub 的 issuer 由固定适配器指定
+
+```sql
+CREATE UNIQUE INDEX commerce_external_identity_subject
+ON "CommerceExternalIdentity" ("issuer", "subject");
+
+CREATE UNIQUE INDEX commerce_external_identity_user_provider
+ON "CommerceExternalIdentity" ("user_id", "provider_id");
+```
+
+NodeLoc Discovery 使用 `https://www.nodeloc.com/oauth-provider/.well-known/openid-configuration`，其 PKCE 能力未在公开元数据中声明，需用真实测试应用验证，不能把旧地址或自动关闭 PKCE 当成重试方式
+
+三家回调路径固定为 `/account/api/v1/oauth/github/callback`、`/account/api/v1/oauth/google/callback` 和 `/account/api/v1/oauth/nodeloc/callback`，生产应用登记时均使用 `https://cocaapi.com`，预发布使用独立测试应用和精确域名
+
+运行 `pytest tests/unit/proxy/commerce/test_oauth_service.py tests/integration/commerce/test_oauth_transactions.py tests/integration/commerce/test_oauth_callbacks.py -q`。真实应用浏览器测试单独执行并记录提供商、环境、结果和未验证项，不将模拟回调测试称为真实 OAuth 集成通过
+
 ## Task 5 一次性金额兑换码
 
 **Files:** 创建 `litellm/models/commerce/redemption.py`、`litellm/repositories/commerce/redemption.py`、`litellm/proxy/commerce/redemption_service.py`、`litellm/proxy/commerce/redemption_routes.py`、`litellm/proxy/commerce/admin_redemption_routes.py`，新增两个前端的兑换和批次管理页面
@@ -195,11 +236,13 @@ RETURNING "id", "face_units";
 - [ ] 为资金差异、长时间冻结和充值处理积压增加可查询状态与运营处理流程，配置实际数据库备份并完成独立库恢复演练
 - [ ] 在 staging 跑完整流程与多 worker 并发故障集，记录浏览器截图、请求、余额与流水证据
 - [ ] 生成固定摘要镜像，备份线上数据库和不可轮换的加密盐，先发布默认关闭注册充值的版本，确认原有后台正常
-- [ ] 完成 SMTP、上游模型、网关和经营参数配置后，按内测账号、兑换码、USDT、公开注册的顺序启用，核对账本后提交发布记录
+- [ ] 完成 SMTP、三家 OAuth 应用、上游模型、网关和经营参数配置后，按内测账号、兑换码、USDT、公开注册的顺序启用，核对账本后提交发布记录
 
 ## 完成标准与自检
 
 客户能够在浏览器完成注册验证、登录、兑换或充值、创建 Key、真实调用、扣费和查询流水。余额不足不会调用上游，同码并发和重复支付只记一笔入账，同一请求只结算一次
+
+GitHub、Google 和 NodeLoc 均完成真实测试应用验收，首次开户、重复登录、显式绑定和解绑不会新建重复钱包，同邮箱冲突和最后登录方式保护按规格生效
 
 两个 worker 与重启恢复测试通过，所有允许的付费协议都有终止与异常结算证据，未支持的付费协议均有明确拒绝证据。已通过独立数据库恢复演练，保留版本、配置、来源提交、测试结果和回滚限制
 
