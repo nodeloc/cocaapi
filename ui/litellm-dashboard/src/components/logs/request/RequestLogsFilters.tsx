@@ -1,5 +1,6 @@
 "use client";
 
+import { useCustomerNative } from "@/components/account/native/CustomerNativeContext";
 import { useMemo, useState } from "react";
 
 import { useInfiniteSpendLogEndUsers } from "@/app/(dashboard)/hooks/spendLogs/useSpendLogEndUsers";
@@ -330,38 +331,42 @@ interface RequestLogsFiltersProps {
 }
 
 export function RequestLogsFilters({ get, set, teams, logsWindow }: RequestLogsFiltersProps) {
+  const customer = useCustomerNative();
   const valueOf = (id: string): string => asString(get(id));
   const setter = (id: string) => (next: string | undefined) => set(id, next);
 
   return (
     <>
-      <TeamFilterField
-        value={valueOf(LOG_FILTER_IDS.TEAM_ID)}
-        onChange={setter(LOG_FILTER_IDS.TEAM_ID)}
-        teams={teams}
-      />
+      {!customer && (
+        <>
+          <TeamFilterField
+            value={valueOf(LOG_FILTER_IDS.TEAM_ID)}
+            onChange={setter(LOG_FILTER_IDS.TEAM_ID)}
+            teams={teams}
+          />
 
-      <DataTableFilterField label="Span Type">
-        <Select
-          items={SPAN_TYPE_FILTER_ITEMS}
-          value={valueOf(LOG_FILTER_IDS.SPAN_TYPE) === "" ? ALL_VALUE : valueOf(LOG_FILTER_IDS.SPAN_TYPE)}
-          onValueChange={(next) =>
-            set(LOG_FILTER_IDS.SPAN_TYPE, next === null || next === ALL_VALUE ? undefined : next)
-          }
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="All Types" />
-          </SelectTrigger>
-          <SelectContent>
-            {SPAN_TYPE_FILTER_ITEMS.map((item) => (
-              <SelectItem key={item.value} value={item.value}>
-                {item.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </DataTableFilterField>
-
+          <DataTableFilterField label="Span Type">
+            <Select
+              items={SPAN_TYPE_FILTER_ITEMS}
+              value={valueOf(LOG_FILTER_IDS.SPAN_TYPE) === "" ? ALL_VALUE : valueOf(LOG_FILTER_IDS.SPAN_TYPE)}
+              onValueChange={(next) =>
+                set(LOG_FILTER_IDS.SPAN_TYPE, next === null || next === ALL_VALUE ? undefined : next)
+              }
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="All Types" />
+              </SelectTrigger>
+              <SelectContent>
+                {SPAN_TYPE_FILTER_ITEMS.map((item) => (
+                  <SelectItem key={item.value} value={item.value}>
+                    {item.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </DataTableFilterField>
+        </>
+      )}
       <DataTableFilterField label="Status">
         <Select
           items={STATUS_FILTER_ITEMS}
@@ -381,92 +386,98 @@ export function RequestLogsFilters({ get, set, teams, logsWindow }: RequestLogsF
         </Select>
       </DataTableFilterField>
 
-      <DataTableFilterField label="Cache">
-        <Select
-          items={CACHE_FILTER_ITEMS}
-          value={valueOf(LOG_FILTER_IDS.CACHE_STATUS) === "" ? ALL_VALUE : valueOf(LOG_FILTER_IDS.CACHE_STATUS)}
-          onValueChange={(next) =>
-            set(LOG_FILTER_IDS.CACHE_STATUS, next === null || next === ALL_VALUE ? undefined : next)
-          }
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="All Requests" />
-          </SelectTrigger>
-          <SelectContent>
-            {CACHE_FILTER_ITEMS.map((item) => (
-              <SelectItem key={item.value} value={item.value}>
-                {item.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </DataTableFilterField>
+      {!customer && (
+        <>
+          <DataTableFilterField label="Cache">
+            <Select
+              items={CACHE_FILTER_ITEMS}
+              value={valueOf(LOG_FILTER_IDS.CACHE_STATUS) === "" ? ALL_VALUE : valueOf(LOG_FILTER_IDS.CACHE_STATUS)}
+              onValueChange={(next) =>
+                set(LOG_FILTER_IDS.CACHE_STATUS, next === null || next === ALL_VALUE ? undefined : next)
+              }
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="All Requests" />
+              </SelectTrigger>
+              <SelectContent>
+                {CACHE_FILTER_ITEMS.map((item) => (
+                  <SelectItem key={item.value} value={item.value}>
+                    {item.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </DataTableFilterField>
 
-      <DataTableFilterField label="Credential">
-        <Select
-          items={CREDENTIAL_FILTER_ITEMS}
-          value={valueOf(LOG_FILTER_IDS.CREDENTIAL) === "" ? ALL_VALUE : valueOf(LOG_FILTER_IDS.CREDENTIAL)}
-          onValueChange={(next) =>
-            set(LOG_FILTER_IDS.CREDENTIAL, next === null || next === ALL_VALUE ? undefined : next)
-          }
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="All Credentials" />
-          </SelectTrigger>
-          <SelectContent>
-            {CREDENTIAL_FILTER_ITEMS.map((item) => (
-              <SelectItem key={item.value} value={item.value}>
-                {item.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </DataTableFilterField>
+          <DataTableFilterField label="Credential">
+            <Select
+              items={CREDENTIAL_FILTER_ITEMS}
+              value={valueOf(LOG_FILTER_IDS.CREDENTIAL) === "" ? ALL_VALUE : valueOf(LOG_FILTER_IDS.CREDENTIAL)}
+              onValueChange={(next) =>
+                set(LOG_FILTER_IDS.CREDENTIAL, next === null || next === ALL_VALUE ? undefined : next)
+              }
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="All Credentials" />
+              </SelectTrigger>
+              <SelectContent>
+                {CREDENTIAL_FILTER_ITEMS.map((item) => (
+                  <SelectItem key={item.value} value={item.value}>
+                    {item.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </DataTableFilterField>
 
-      <KeyAliasFilterField
-        value={valueOf(LOG_FILTER_IDS.KEY_ALIAS)}
-        onChange={setter(LOG_FILTER_IDS.KEY_ALIAS)}
-        teamId={valueOf(LOG_FILTER_IDS.TEAM_ID)}
-      />
+          <KeyAliasFilterField
+            value={valueOf(LOG_FILTER_IDS.KEY_ALIAS)}
+            onChange={setter(LOG_FILTER_IDS.KEY_ALIAS)}
+            teamId={valueOf(LOG_FILTER_IDS.TEAM_ID)}
+          />
 
-      <UserIdFilterField
-        value={valueOf(LOG_FILTER_IDS.USER_ID)}
-        onChange={setter(LOG_FILTER_IDS.USER_ID)}
-        logsWindow={logsWindow}
-      />
+          <UserIdFilterField
+            value={valueOf(LOG_FILTER_IDS.USER_ID)}
+            onChange={setter(LOG_FILTER_IDS.USER_ID)}
+            logsWindow={logsWindow}
+          />
 
-      <EndUserFilterField
-        value={valueOf(LOG_FILTER_IDS.END_USER)}
-        onChange={setter(LOG_FILTER_IDS.END_USER)}
-        logsWindow={logsWindow}
-      />
+          <EndUserFilterField
+            value={valueOf(LOG_FILTER_IDS.END_USER)}
+            onChange={setter(LOG_FILTER_IDS.END_USER)}
+            logsWindow={logsWindow}
+          />
 
-      <ErrorCodeFilterField value={valueOf(LOG_FILTER_IDS.ERROR_CODE)} onChange={setter(LOG_FILTER_IDS.ERROR_CODE)} />
+          <ErrorCodeFilterField
+            value={valueOf(LOG_FILTER_IDS.ERROR_CODE)}
+            onChange={setter(LOG_FILTER_IDS.ERROR_CODE)}
+          />
 
-      <DataTableFilterField label="Error Message">
-        <Input
-          value={valueOf(LOG_FILTER_IDS.ERROR_MESSAGE)}
-          onChange={(event) => set(LOG_FILTER_IDS.ERROR_MESSAGE, emptyToUndefined(event.target.value))}
-          placeholder="Enter error message…"
-        />
-      </DataTableFilterField>
+          <DataTableFilterField label="Error Message">
+            <Input
+              value={valueOf(LOG_FILTER_IDS.ERROR_MESSAGE)}
+              onChange={(event) => set(LOG_FILTER_IDS.ERROR_MESSAGE, emptyToUndefined(event.target.value))}
+              placeholder="Enter error message…"
+            />
+          </DataTableFilterField>
 
-      <DataTableFilterField label="Key Hash">
-        <Input
-          value={valueOf(LOG_FILTER_IDS.KEY_HASH)}
-          onChange={(event) => set(LOG_FILTER_IDS.KEY_HASH, emptyToUndefined(event.target.value))}
-          placeholder="Enter key hash…"
-        />
-      </DataTableFilterField>
+          <DataTableFilterField label="Key Hash">
+            <Input
+              value={valueOf(LOG_FILTER_IDS.KEY_HASH)}
+              onChange={(event) => set(LOG_FILTER_IDS.KEY_HASH, emptyToUndefined(event.target.value))}
+              placeholder="Enter key hash…"
+            />
+          </DataTableFilterField>
 
-      <DataTableFilterField label="Session ID">
-        <Input
-          value={valueOf(LOG_FILTER_IDS.SESSION_ID)}
-          onChange={(event) => set(LOG_FILTER_IDS.SESSION_ID, emptyToUndefined(event.target.value))}
-          placeholder="Enter session ID…"
-        />
-      </DataTableFilterField>
-
+          <DataTableFilterField label="Session ID">
+            <Input
+              value={valueOf(LOG_FILTER_IDS.SESSION_ID)}
+              onChange={(event) => set(LOG_FILTER_IDS.SESSION_ID, emptyToUndefined(event.target.value))}
+              placeholder="Enter session ID…"
+            />
+          </DataTableFilterField>
+        </>
+      )}
       <ModelFilterField value={valueOf(LOG_FILTER_IDS.MODEL_ID)} onChange={setter(LOG_FILTER_IDS.MODEL_ID)} />
 
       <DataTableFilterField label="Public model / search tool">

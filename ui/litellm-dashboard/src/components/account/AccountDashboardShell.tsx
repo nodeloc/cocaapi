@@ -176,11 +176,13 @@ export function AccountDashboardShell({
   description,
   profile,
   children,
+  nativeContent = false,
 }: {
   title: string;
   description: string;
   profile: Profile | null;
   children: ReactNode;
+  nativeContent?: boolean;
 }) {
   const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
@@ -259,11 +261,13 @@ export function AccountDashboardShell({
             <ThemeToggle />
           </header>
           <main id="account-main" tabIndex={-1} className="min-h-0 min-w-0 flex-1 overflow-y-auto">
-            <div className="mx-auto w-full max-w-7xl space-y-6 p-4 md:p-8">
-              <div>
-                <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
-                <p className="mt-2 text-sm text-muted-foreground">{description}</p>
-              </div>
+            <div className={nativeContent ? "h-full min-h-0 w-full" : "mx-auto w-full max-w-7xl space-y-6 p-4 md:p-8"}>
+              {!nativeContent && (
+                <div>
+                  <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
+                  <p className="mt-2 text-sm text-muted-foreground">{description}</p>
+                </div>
+              )}
               <AccountNotice error={error} message="" />
               {children}
             </div>

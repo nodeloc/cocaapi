@@ -3,6 +3,7 @@
 import { ColumnFiltersState, OnChangeFn, PaginationState, SortingState } from "@tanstack/react-table";
 import { Search, Settings } from "lucide-react";
 import { useMemo, useState } from "react";
+import { useCustomerNative } from "@/components/account/native/CustomerNativeContext";
 
 import { ModelData } from "@/components/model_dashboard/types";
 import {
@@ -131,6 +132,7 @@ export function AllModelsTable({
   pausingModelId,
   credentialLabels,
 }: AllModelsTableProps) {
+  const customer = useCustomerNative();
   const [filtersOpen, setFiltersOpen] = useState(false);
 
   const columns = useMemo(() => {
@@ -145,7 +147,19 @@ export function AllModelsTable({
       pausingModelId,
       credentialLabels,
     };
-    return getModelsTableColumns(columnDeps);
+    return getModelsTableColumns(columnDeps).filter(
+      (column) =>
+        !customer ||
+        ![
+          "litellm_credential_name",
+          "model_info_created_by",
+          "model_info_updated_at",
+          "model_info_team_id",
+          "model_info_access_groups",
+          "model_info_db_model",
+          "actions",
+        ].includes(String(column.id)),
+    );
   }, [
     userRole,
     userID,
@@ -156,6 +170,7 @@ export function AllModelsTable({
     onTogglePauseClick,
     pausingModelId,
     credentialLabels,
+    customer,
   ]);
 
   const modelGroupOptions = useMemo(

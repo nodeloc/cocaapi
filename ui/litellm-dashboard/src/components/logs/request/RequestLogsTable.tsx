@@ -1,5 +1,6 @@
 "use client";
 
+import { useCustomerNative } from "@/components/account/native/CustomerNativeContext";
 import type { ColumnFiltersState, OnChangeFn, PaginationState, SortingState } from "@tanstack/react-table";
 import { ScrollText } from "lucide-react";
 import { useMemo, useState, type ReactNode } from "react";
@@ -83,6 +84,7 @@ export function RequestLogsTable({
   logsWindow,
   toolbarChildren,
 }: RequestLogsTableProps) {
+  const customer = useCustomerNative();
   const [filtersOpen, setFiltersOpen] = useState(false);
 
   const userIds = useMemo(() => data.flatMap((log) => (log.user ? [log.user] : [])), [data]);
@@ -90,8 +92,14 @@ export function RequestLogsTable({
 
   const columns = useMemo(() => {
     const resolveUserEmail = (userId: string) => emailByUserId?.[userId];
-    return getRequestLogsTableColumns({ onKeyHashClick, onSessionClick, resolveUserEmail });
-  }, [onKeyHashClick, onSessionClick, emailByUserId]);
+    return getRequestLogsTableColumns({ onKeyHashClick, onSessionClick, resolveUserEmail }).filter(
+      (column) =>
+        !customer ||
+        !["api_key", "team_id", "user", "cache_hit", "ttft_ms"].includes(
+          String(column.id ?? ("accessorKey" in column ? column.accessorKey : "")),
+        ),
+    );
+  }, [onKeyHashClick, onSessionClick, emailByUserId, customer]);
 
   const isFiltered = columnFilters.length > 0 || searchValue !== "";
 

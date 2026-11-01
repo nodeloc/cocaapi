@@ -5,7 +5,13 @@ import httpx
 from pydantic import BaseModel, SecretStr, ValidationError
 
 from litellm.models.commerce_auth import AuthError
-from litellm.models.commerce_gateway import CreateGatewayKey, GatewayAccess, PlaygroundInput, PlaygroundOutput
+from litellm.models.commerce_gateway import (
+    CreateGatewayKey,
+    GatewayAccess,
+    PlaygroundInput,
+    PlaygroundOutput,
+    PlaygroundUsage,
+)
 from litellm.proxy.auth.auth_checks import (  # pyright: ignore[reportMissingTypeStubs]  # Native auth namespace has no stubs
     check_model_access_helper,
 )
@@ -45,6 +51,9 @@ class NativeChoice(BaseModel):
 
 class NativeCompletion(BaseModel):
     choices: tuple[NativeChoice, ...]
+    id: str | None = None
+    created: int | None = None
+    usage: PlaygroundUsage | None = None
     model_config = {"frozen": True}
 
 
@@ -109,8 +118,8 @@ class LocalNativeGateway:
             {
                 "user_id": user_id,
                 "key_alias": body.name.strip(),
-                "duration": f"{body.expires_in_days}d",
-                "models": access.models,
+                "duration": body.duration or f"{body.expires_in_days}d",
+                "models": body.models if body.models is not None else access.models,
                 "max_budget": None,
                 "budget_duration": None,
                 "rpm_limit": access.rpm_limit,
@@ -141,7 +150,11 @@ class LocalNativeGateway:
             "/v1/chat/completions",
             {
                 "model": body.model,
-                "messages": [{"role": "user", "content": body.prompt}],
+                "messages": (
+                    [message.model_dump() for message in body.messages]
+                    if body.messages
+                    else [{"role": "user", "content": body.prompt}]
+                ),
                 "max_tokens": 512,
                 "stream": False,
             },
@@ -152,7 +165,12 @@ class LocalNativeGateway:
         try:
             result: Final = NativeCompletion.model_validate_json(response.content)
             return (
-                PlaygroundOutput(content=result.choices[0].message.content)
+                PlaygroundOutput(
+                    content=result.choices[0].message.content,
+                    request_id=result.id,
+                    created=result.created,
+                    usage=result.usage,
+                )
                 if result.choices
                 else AuthError("model_request_rejected", 502)
             )

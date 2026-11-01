@@ -1,3 +1,4 @@
+import { dashboardFetch as fetch } from "@/lib/http/customerTransport";
 import {
   keepPreviousData,
   QueryClient,

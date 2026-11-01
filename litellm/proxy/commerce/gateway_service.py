@@ -53,6 +53,7 @@ class GatewayService:
             budget_reset_at=stored.budget_reset_at,
             can_create_key=reason is None,
             key_creation_reason=reason,
+            budget_duration=stored.budget_duration,
         )
 
     def key_view(self, row: StoredKey) -> GatewayKey:
@@ -65,6 +66,13 @@ class GatewayService:
             expires_at=row.expires,
             created_at=row.created_at,
             blocked=bool(row.blocked),
+            budget_duration=row.budget_duration,
+            budget_reset_at=row.budget_reset_at,
+            total_spend_usd=row.total_spend,
+            rpm_limit=row.rpm_limit,
+            tpm_limit=row.tpm_limit,
+            tpd_limit=row.tpd_limit,
+            last_active_at=row.last_active,
         )
 
     async def keys(self, session: Session, limit: int, offset: int) -> GatewayKeys:
@@ -79,6 +87,8 @@ class GatewayService:
             return access
         if access.key_creation_reason:
             return AuthError(access.key_creation_reason, 403)
+        if body.models is not None and (not body.models or not set(body.models).issubset(access.models)):
+            return AuthError("model_access_required", 403)
         existing: Final = await self.store.keys(session.customer.user_id, 100, 0)
         if len(existing) >= 100:
             return AuthError("key_limit_reached", 409)
@@ -94,6 +104,11 @@ class GatewayService:
             )
             return cleanup or AuthError("personal_key_unavailable", 503)
         return CreatedGatewayKey(key=result.get_secret_value())
+
+    async def key(self, session: Session, key_id: str) -> GatewayKey | AuthError:
+        token: Final = self.security.unseal(key_id)
+        row: Final = await self.store.key(session.customer.user_id, token) if token else None
+        return self.key_view(row) if row else AuthError("key_not_found", 404)
 
     async def delete(self, session: Session, key_id: str) -> AuthError | None:
         token: Final = self.security.unseal(key_id)

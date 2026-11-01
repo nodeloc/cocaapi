@@ -9,6 +9,8 @@
  * header name, the logout side effect) is injected through createApiClient.
  */
 
+import { dashboardFetch as fetch } from "./customerTransport";
+
 export type HttpMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
 
 export type QueryValue = string | number | boolean | null | undefined;

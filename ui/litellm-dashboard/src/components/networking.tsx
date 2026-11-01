@@ -1,4 +1,5 @@
 // Shared date formatter for daily activity endpoints
+import { getCustomerTransport, dashboardFetch as fetch } from "@/lib/http/customerTransport";
 export const formatDate = (date: Date) => {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -199,6 +200,10 @@ const getWindowLocation = () => {
 };
 
 const updateProxyBaseUrl = (serverRootPath: string, receivedProxyBaseUrl: string | null = null) => {
+  if (getCustomerTransport()) {
+    proxyBaseUrl = getWindowLocation()?.origin ?? null;
+    return;
+  }
   /**
    * Special function for updating the proxy base url. Should only be called by getUiConfig.
    */
@@ -217,12 +222,21 @@ const updateServerRootPath = (receivedServerRootPath: string) => {
 };
 
 export const getProxyBaseUrl = (): string => {
+  if (getCustomerTransport()) return getWindowLocation()?.origin ?? "";
   if (proxyBaseUrl) {
     return proxyBaseUrl;
   }
   const browserLocation = getWindowLocation();
   return browserLocation?.origin ?? "";
 };
+
+export function bindCustomerApiOrigin() {
+  const previous = proxyBaseUrl;
+  proxyBaseUrl = getWindowLocation()?.origin ?? null;
+  return () => {
+    proxyBaseUrl = previous;
+  };
+}
 
 /**
  * Switch API calls to point at a worker (or back to the control plane).
@@ -509,7 +523,7 @@ export const apiClient = createApiClient({
 
 registerBaseUrlGetter(getProxyBaseUrl);
 registerAuthHeaderNameGetter(getGlobalLitellmHeaderName);
-registerAuthTokenGetter(() => decodeToken(getCookie("token"))?.key ?? null);
+registerAuthTokenGetter(() => getCustomerTransport()?.marker ?? decodeToken(getCookie("token"))?.key ?? null);
 registerErrorHandler(handleError);
 
 export const makeModelGroupPublic = async (accessToken: string, modelGroups: string[]) => {

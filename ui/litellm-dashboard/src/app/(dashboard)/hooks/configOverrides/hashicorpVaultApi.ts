@@ -1,3 +1,4 @@
+import { dashboardFetch as fetch } from "@/lib/http/customerTransport";
 import { getProxyBaseUrl, getGlobalLitellmHeaderName, deriveErrorMessage } from "@/components/networking";
 
 export const getHashicorpVaultConfig = async (accessToken: string) => {

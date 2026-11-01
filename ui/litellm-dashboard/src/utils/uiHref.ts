@@ -1,4 +1,5 @@
 import { serverRootPath } from "@/lib/serverRootPath";
+import { getCustomerTransport } from "@/lib/http/customerTransport";
 
 function uiBase(): string {
   // next dev serves the app at the root; only the proxy mounts the static export under /ui
@@ -12,6 +13,20 @@ function uiBase(): string {
 
 /** Absolute (same-origin) href for a dashboard route segment, e.g. "api-reference" -> "/ui/api-reference". */
 export function uiHref(routeSegment: string): string {
+  if (getCustomerTransport()) {
+    const [path, query] = routeSegment.replace(/^\/+/, "").split("?");
+    const routes: Readonly<Record<string, string>> = {
+      home: "home",
+      "api-keys": "keys",
+      "models-and-endpoints": "models",
+      playground: "playground",
+      usage: "usage",
+      logs: "logs",
+      budgets: "limits",
+      "api-reference": "docs",
+    };
+    return `/account/${routes[path] ?? "home"}/${query ? `?${query}` : ""}`;
+  }
   return `${uiBase()}/${routeSegment.replace(/^\/+/, "")}`;
 }
 

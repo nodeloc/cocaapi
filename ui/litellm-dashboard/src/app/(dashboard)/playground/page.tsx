@@ -1,5 +1,6 @@
 "use client";
 
+import { useCustomerNative } from "@/components/account/native/CustomerNativeContext";
 import { useState, useEffect } from "react";
 import AgentBuilderView from "@/app/(dashboard)/playground/components/chat_ui/AgentBuilderView";
 import ChatUI from "@/app/(dashboard)/playground/components/chat_ui/ChatUI";
@@ -22,6 +23,7 @@ interface ProxySettings {
 
 export default function PlaygroundPage() {
   const { accessToken, userRole, userId, disabledPersonalKeyCreation, token, isViewOnly } = useAuthorized();
+  const customer = useCustomerNative();
   const [proxySettings, setProxySettings] = useState<ProxySettings | undefined>(undefined);
   const [activeTab, setActiveTab] = useUrlTab(PLAYGROUND_TABS, "chat");
 
@@ -55,7 +57,7 @@ export default function PlaygroundPage() {
   return (
     <div className="flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden">
       <Tabs
-        value={activeTab}
+        value={customer ? "chat" : activeTab}
         onValueChange={setActiveTab}
         className="flex min-h-0 min-w-0 flex-1 flex-col gap-0 overflow-hidden"
       >
@@ -63,18 +65,22 @@ export default function PlaygroundPage() {
           <TabsTrigger value="chat" className="flex-none">
             Chat
           </TabsTrigger>
-          <TabsTrigger value="compare" className="flex-none">
-            Compare
-          </TabsTrigger>
-          <TabsTrigger value="compliance" className="flex-none">
-            Compliance
-          </TabsTrigger>
-          <TabsTrigger value="system-one" className="flex-none">
-            <BetaBadge>Decisions</BetaBadge>
-          </TabsTrigger>
-          <TabsTrigger value="agent-builder" className="flex-none">
-            Agent Builder (Experimental)
-          </TabsTrigger>
+          {!customer && (
+            <>
+              <TabsTrigger value="compare" className="flex-none">
+                Compare
+              </TabsTrigger>
+              <TabsTrigger value="compliance" className="flex-none">
+                Compliance
+              </TabsTrigger>
+              <TabsTrigger value="system-one" className="flex-none">
+                <BetaBadge>Decisions</BetaBadge>
+              </TabsTrigger>
+              <TabsTrigger value="agent-builder" className="flex-none">
+                Agent Builder (Experimental)
+              </TabsTrigger>
+            </>
+          )}
         </TabsList>
         <TabsContent
           value="chat"
@@ -86,31 +92,35 @@ export default function PlaygroundPage() {
             token={token}
             userRole={userRole}
             userID={userId}
-            disabledPersonalKeyCreation={disabledPersonalKeyCreation}
+            disabledPersonalKeyCreation={customer ? true : disabledPersonalKeyCreation}
             proxySettings={proxySettings}
           />
         </TabsContent>
-        <TabsContent value="compare" className="mt-0 h-full data-hidden:hidden" keepMounted>
-          <CompareUI accessToken={accessToken} disabledPersonalKeyCreation={disabledPersonalKeyCreation} />
-        </TabsContent>
-        <TabsContent value="compliance" className="mt-0 h-full data-hidden:hidden" keepMounted>
-          <ComplianceUI accessToken={accessToken} disabledPersonalKeyCreation={disabledPersonalKeyCreation} />
-        </TabsContent>
-        <TabsContent value="system-one" className="mt-0 min-h-0 data-hidden:hidden" keepMounted>
-          <SystemOneUI accessToken={accessToken} disabledPersonalKeyCreation={disabledPersonalKeyCreation} />
-        </TabsContent>
-        <TabsContent value="agent-builder" className="mt-0 h-full data-hidden:hidden" keepMounted>
-          <DeprecationBanner featureName="The Playground's Agent Builder" />
-          <AgentBuilderView
-            accessToken={accessToken}
-            token={token}
-            userID={userId}
-            userRole={userRole}
-            disabledPersonalKeyCreation={disabledPersonalKeyCreation}
-            proxySettings={proxySettings}
-            customProxyBaseUrl={proxySettings?.LITELLM_UI_API_DOC_BASE_URL ?? proxySettings?.PROXY_BASE_URL}
-          />
-        </TabsContent>
+        {!customer && (
+          <>
+            <TabsContent value="compare" className="mt-0 h-full data-hidden:hidden" keepMounted>
+              <CompareUI accessToken={accessToken} disabledPersonalKeyCreation={disabledPersonalKeyCreation} />
+            </TabsContent>
+            <TabsContent value="compliance" className="mt-0 h-full data-hidden:hidden" keepMounted>
+              <ComplianceUI accessToken={accessToken} disabledPersonalKeyCreation={disabledPersonalKeyCreation} />
+            </TabsContent>
+            <TabsContent value="system-one" className="mt-0 min-h-0 data-hidden:hidden" keepMounted>
+              <SystemOneUI accessToken={accessToken} disabledPersonalKeyCreation={disabledPersonalKeyCreation} />
+            </TabsContent>
+            <TabsContent value="agent-builder" className="mt-0 h-full data-hidden:hidden" keepMounted>
+              <DeprecationBanner featureName="The Playground's Agent Builder" />
+              <AgentBuilderView
+                accessToken={accessToken}
+                token={token}
+                userID={userId}
+                userRole={userRole}
+                disabledPersonalKeyCreation={disabledPersonalKeyCreation}
+                proxySettings={proxySettings}
+                customProxyBaseUrl={proxySettings?.LITELLM_UI_API_DOC_BASE_URL ?? proxySettings?.PROXY_BASE_URL}
+              />
+            </TabsContent>
+          </>
+        )}
       </Tabs>
     </div>
   );

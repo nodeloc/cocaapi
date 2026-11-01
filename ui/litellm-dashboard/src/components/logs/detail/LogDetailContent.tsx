@@ -1,3 +1,4 @@
+import { useCustomerNative } from "@/components/account/native/CustomerNativeContext";
 import { useState } from "react";
 import { Check, ChevronDown, ChevronRight, CircleAlert, Copy, Info } from "lucide-react";
 import moment from "moment";
@@ -74,6 +75,7 @@ export function LogDetailContent({
   accessToken,
   userEmail,
 }: LogDetailContentProps) {
+  const customer = useCustomerNative();
   const metadata = logEntry.metadata || {};
   const hasError = metadata.status === "failure";
   const errorInfo = hasError ? metadata.error_information : null;
@@ -188,22 +190,24 @@ export function LogDetailContent({
       <MetricsSection logEntry={logEntry} metadata={metadata} />
 
       {/* Cost Breakdown */}
-      <CostBreakdownViewer
-        costBreakdown={metadata?.cost_breakdown}
-        totalSpend={logEntry.spend ?? 0}
-        promptTokens={logEntry.prompt_tokens}
-        completionTokens={logEntry.completion_tokens}
-        cacheHit={logEntry.cache_hit}
-        rawInputTokens={metadata?.additional_usage_values?.prompt_tokens_details?.text_tokens}
-        cacheReadTokens={metadata?.additional_usage_values?.cache_read_input_tokens}
-        cacheCreationTokens={metadata?.additional_usage_values?.cache_creation_input_tokens}
-      />
+      {!customer && (
+        <CostBreakdownViewer
+          costBreakdown={metadata?.cost_breakdown}
+          totalSpend={logEntry.spend ?? 0}
+          promptTokens={logEntry.prompt_tokens}
+          completionTokens={logEntry.completion_tokens}
+          cacheHit={logEntry.cache_hit}
+          rawInputTokens={metadata?.additional_usage_values?.prompt_tokens_details?.text_tokens}
+          cacheReadTokens={metadata?.additional_usage_values?.cache_read_input_tokens}
+          cacheCreationTokens={metadata?.additional_usage_values?.cache_creation_input_tokens}
+        />
+      )}
 
       {/* Tools */}
       <ToolsSection log={logEntry} />
 
       {/* Configuration Info Message */}
-      {missingData && (
+      {!customer && missingData && (
         <div className="mb-6">
           <ConfigInfoMessage show={missingData} />
         </div>
@@ -221,7 +225,7 @@ export function LogDetailContent({
       {!isLoadingDetails && hasClassifierAudit && (
         <ClassifierAuditView request={rawRequest} response={getFormattedResponse()} />
       )}
-      {!isLoadingDetails && !hasClassifierAudit && (
+      {!customer && !isLoadingDetails && !hasClassifierAudit && (
         <RequestResponseSection
           hasResponse={hasResponse}
           hasError={hasError}

@@ -1,3 +1,4 @@
+import { useCustomerNative } from "@/components/account/native/CustomerNativeContext";
 /**
  * The parent pane, showing list of budgets
  *
@@ -29,6 +30,7 @@ interface BudgetSettingsPageProps {
 }
 
 const BudgetPanel: React.FC<BudgetSettingsPageProps> = ({ accessToken }) => {
+  const customer = useCustomerNative();
   const syntaxTheme = useSyntaxTheme(prism);
   const [isCreateModelVisible, setIsCreateModelVisible] = useState(false);
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
@@ -87,7 +89,9 @@ const BudgetPanel: React.FC<BudgetSettingsPageProps> = ({ accessToken }) => {
             <Wallet />
             Budgets
           </PageHeaderTitle>
-          <PageHeaderDescription>Spend, TPM and RPM limits you can assign to customers.</PageHeaderDescription>
+          <PageHeaderDescription>
+            {customer ? "Your API budget and rate limits." : "Spend, TPM and RPM limits you can assign to customers."}
+          </PageHeaderDescription>
           <PageHeaderControls>
             <PageTabsList>
               {canModify && (
@@ -100,7 +104,7 @@ const BudgetPanel: React.FC<BudgetSettingsPageProps> = ({ accessToken }) => {
                 </>
               )}
               <PageTabsTrigger value="budgets">Budgets</PageTabsTrigger>
-              <PageTabsTrigger value="examples">Examples</PageTabsTrigger>
+              {!customer && <PageTabsTrigger value="examples">Examples</PageTabsTrigger>}
             </PageTabsList>
           </PageHeaderControls>
         </PageHeader>

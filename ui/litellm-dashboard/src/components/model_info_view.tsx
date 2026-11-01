@@ -1,4 +1,5 @@
 import { useModelCostMap } from "@/app/(dashboard)/hooks/models/useModelCostMap";
+import { useCustomerNative } from "@/components/account/native/CustomerNativeContext";
 import { useModelHub, useModelsInfo } from "@/app/(dashboard)/hooks/models/useModels";
 import { useQueryClient } from "@tanstack/react-query";
 import { transformModelData } from "@/app/(dashboard)/models-and-endpoints/utils/modelDataTransformer";
@@ -72,6 +73,7 @@ export default function ModelInfoView({
   onModelUpdate,
   modelAccessGroups,
 }: ModelInfoViewProps) {
+  const customer = useCustomerNative();
   const queryClient = useQueryClient();
   const [localModelData, setLocalModelData] = useState<any>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -100,12 +102,8 @@ export default function ModelInfoView({
 
   // Transform the model data
   const getProviderFromModel = (model: string) => {
-    if (modelCostMapData !== null && modelCostMapData !== undefined) {
-      if (typeof modelCostMapData == "object" && model in modelCostMapData) {
-        return modelCostMapData[model]["litellm_provider"];
-      }
-    }
-    return "openai";
+    if (!modelCostMapData || typeof modelCostMapData !== "object" || !(model in modelCostMapData)) return "openai";
+    return modelCostMapData[model]["litellm_provider"];
   };
 
   const transformedModelData = useMemo(() => {
@@ -174,6 +172,7 @@ export default function ModelInfoView({
   }, [modelData, localModelData]);
 
   useEffect(() => {
+    if (customer) return;
     const getExistingCredential = async () => {
       if (!accessToken) return;
       if (usingExistingCredential) return;
@@ -245,7 +244,7 @@ export default function ModelInfoView({
     fetchGuardrails();
     fetchTags();
     fetchCredentials();
-  }, [accessToken, modelId]);
+  }, [accessToken, modelId, customer]);
 
   const handleReuseCredential = async (values: any) => {
     if (!accessToken) return;
@@ -550,8 +549,8 @@ export default function ModelInfoView({
       onModelUpdate(updatedModel);
     }
   };
-  const isWildcardModel = modelData.litellm_model_name.includes("*");
-  const wildcardProvider = modelData.litellm_model_name.split("/")[0];
+  const isWildcardModel = modelData.litellm_model_name?.includes("*") ?? false;
+  const wildcardProvider = (modelData.litellm_model_name ?? "").split("/")[0];
   const healthCheckModelOptions =
     modelHubData?.data
       ?.filter(
@@ -586,55 +585,57 @@ export default function ModelInfoView({
             </Button>
           </div>
         </div>
-        <div className="flex gap-2">
-          {(!isAnyAutoRouter || isComplexityRouterModel) && (
+        {!customer && (
+          <div className="flex gap-2">
+            {(!isAnyAutoRouter || isComplexityRouterModel) && (
+              <Button
+                variant="outline"
+                onClick={handleTestConnection}
+                className="flex items-center gap-2"
+                data-testid="test-connection-button"
+              >
+                <RefreshIcon className="h-4 w-4" />
+                Test Connection
+              </Button>
+            )}
+
+            {!isAnyAutoRouter && (
+              <>
+                <Button
+                  variant="outline"
+                  onClick={() => setIsUpdateCredentialsModalOpen(true)}
+                  className="flex items-center"
+                  disabled={!canEditModel}
+                  data-testid="update-api-key-button"
+                >
+                  <KeyIcon className="h-4 w-4" />
+                  Update API Key
+                </Button>
+
+                <Button
+                  variant="outline"
+                  onClick={() => setIsCredentialModalOpen(true)}
+                  className="flex items-center"
+                  disabled={!isAdmin}
+                  data-testid="reuse-credentials-button"
+                >
+                  <KeyIcon className="h-4 w-4" />
+                  Re-use Credentials
+                </Button>
+              </>
+            )}
             <Button
-              variant="outline"
-              onClick={handleTestConnection}
-              className="flex items-center gap-2"
-              data-testid="test-connection-button"
+              variant="destructive"
+              onClick={() => setIsDeleteModalOpen(true)}
+              className="flex items-center"
+              disabled={!canEditModel}
+              data-testid="delete-model-button"
             >
-              <RefreshIcon className="h-4 w-4" />
-              Test Connection
+              <TrashIcon className="h-4 w-4" />
+              {deleteLabel}
             </Button>
-          )}
-
-          {!isAnyAutoRouter && (
-            <>
-              <Button
-                variant="outline"
-                onClick={() => setIsUpdateCredentialsModalOpen(true)}
-                className="flex items-center"
-                disabled={!canEditModel}
-                data-testid="update-api-key-button"
-              >
-                <KeyIcon className="h-4 w-4" />
-                Update API Key
-              </Button>
-
-              <Button
-                variant="outline"
-                onClick={() => setIsCredentialModalOpen(true)}
-                className="flex items-center"
-                disabled={!isAdmin}
-                data-testid="reuse-credentials-button"
-              >
-                <KeyIcon className="h-4 w-4" />
-                Re-use Credentials
-              </Button>
-            </>
-          )}
-          <Button
-            variant="destructive"
-            onClick={() => setIsDeleteModalOpen(true)}
-            className="flex items-center"
-            disabled={!canEditModel}
-            data-testid="delete-model-button"
-          >
-            <TrashIcon className="h-4 w-4" />
-            {deleteLabel}
-          </Button>
-        </div>
+          </div>
+        )}
       </div>
 
       <Tabs defaultValue="overview">
@@ -654,16 +655,21 @@ export default function ModelInfoView({
               <Card className="block p-6">
                 <p className="text-sm">Provider</p>
                 <div className="mt-2 flex items-center space-x-2">
-                  {modelData.provider && <Logo provider={modelData.provider} className="w-4 h-4" />}
-                  <h3 className="text-lg font-medium">{modelData.provider || "Not Set"}</h3>
+                  {!customer && modelData.provider && <Logo provider={modelData.provider} className="w-4 h-4" />}
+                  <h3 className="text-lg font-medium">
+                    {customer ? "Not disclosed" : modelData.provider || "Not Set"}
+                  </h3>
                 </div>
               </Card>
               <Card className="block p-6">
-                <p className="text-sm">LiteLLM Model</p>
+                <p className="text-sm">{customer ? "API Model" : "LiteLLM Model"}</p>
                 <div className="mt-2 overflow-hidden">
-                  <SimpleTooltip content={modelData.litellm_model_name || "Not Set"} className="w-full min-w-0">
+                  <SimpleTooltip
+                    content={customer ? modelData.model_name : modelData.litellm_model_name || "Not Set"}
+                    className="w-full min-w-0"
+                  >
                     <div className="break-all text-sm font-medium leading-relaxed cursor-pointer">
-                      {modelData.litellm_model_name || "Not Set"}
+                      {customer ? modelData.model_name : modelData.litellm_model_name || "Not Set"}
                     </div>
                   </SimpleTooltip>
                 </div>
@@ -675,86 +681,90 @@ export default function ModelInfoView({
             </div>
 
             {/* Audit info shown as a subtle banner below the overview */}
-            <div className="mb-6 text-sm text-muted-foreground flex items-center gap-x-6">
-              <div className="flex items-center gap-x-2">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-                Created At{" "}
-                {modelData.model_info.created_at
-                  ? new Date(modelData.model_info.created_at).toLocaleDateString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                      year: "numeric",
-                    })
-                  : "Not Set"}
-              </div>
-              <div className="flex items-center gap-x-2">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                  />
-                </svg>
-                Created By {modelData.model_info.created_by || "Not Set"}
-              </div>
-            </div>
-
-            {/* Settings Card */}
-            <Card className="block p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-medium">Model Settings</h3>
-                <div className="flex gap-2">
-                  {isAutoRouterModel && canEditRouter && !isEditing && (
-                    <Button onClick={() => setIsAutoRouterModalOpen(true)} className="flex items-center">
-                      Edit Auto Router
-                    </Button>
-                  )}
-                  {canEditModel ? (
-                    !isEditing && (
-                      <Button onClick={() => setIsEditing(true)} className="flex items-center">
-                        Edit Settings
-                      </Button>
-                    )
-                  ) : (
-                    <SimpleTooltip content="Only DB models can be edited. You must be an admin or the creator of the model to edit it.">
-                      <Info className="size-4 text-muted-foreground" />
-                    </SimpleTooltip>
-                  )}
+            {!customer && (
+              <div className="mb-6 text-sm text-muted-foreground flex items-center gap-x-6">
+                <div className="flex items-center gap-x-2">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                  Created At{" "}
+                  {modelData.model_info.created_at
+                    ? new Date(modelData.model_info.created_at).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })
+                    : "Not Set"}
+                </div>
+                <div className="flex items-center gap-x-2">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                    />
+                  </svg>
+                  Created By {modelData.model_info.created_by || "Not Set"}
                 </div>
               </div>
-              {localModelData ? (
-                <ModelInfoEditForm
-                  localModelData={localModelData}
-                  modelData={modelData}
-                  teamAlias={aliasForTeam(localModelData.model_info?.team_id)}
-                  accessToken={accessToken}
-                  isEditing={isEditing}
-                  isSaving={isSaving}
-                  isWildcardModel={isWildcardModel}
-                  ptuCostAttributionEnabled={ptuCostAttributionEnabled}
-                  showCacheControl={showCacheControl}
-                  setShowCacheControl={setShowCacheControl}
-                  onCancel={() => setIsEditing(false)}
-                  onSubmit={handleModelUpdate}
-                  modelAccessGroups={modelAccessGroups}
-                  guardrailsList={guardrailsList}
-                  tagsList={tagsList}
-                  credentialsList={credentialsList}
-                  healthCheckModelOptions={healthCheckModelOptions}
-                  teams={assignableTeams}
-                />
-              ) : (
-                <p className="text-sm">Loading...</p>
-              )}
-            </Card>
+            )}
+
+            {/* Settings Card */}
+            {!customer && (
+              <Card className="block p-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-medium">Model Settings</h3>
+                  <div className="flex gap-2">
+                    {isAutoRouterModel && canEditRouter && !isEditing && (
+                      <Button onClick={() => setIsAutoRouterModalOpen(true)} className="flex items-center">
+                        Edit Auto Router
+                      </Button>
+                    )}
+                    {canEditModel ? (
+                      !isEditing && (
+                        <Button onClick={() => setIsEditing(true)} className="flex items-center">
+                          Edit Settings
+                        </Button>
+                      )
+                    ) : (
+                      <SimpleTooltip content="Only DB models can be edited. You must be an admin or the creator of the model to edit it.">
+                        <Info className="size-4 text-muted-foreground" />
+                      </SimpleTooltip>
+                    )}
+                  </div>
+                </div>
+                {localModelData ? (
+                  <ModelInfoEditForm
+                    localModelData={localModelData}
+                    modelData={modelData}
+                    teamAlias={aliasForTeam(localModelData.model_info?.team_id)}
+                    accessToken={accessToken}
+                    isEditing={isEditing}
+                    isSaving={isSaving}
+                    isWildcardModel={isWildcardModel}
+                    ptuCostAttributionEnabled={ptuCostAttributionEnabled}
+                    showCacheControl={showCacheControl}
+                    setShowCacheControl={setShowCacheControl}
+                    onCancel={() => setIsEditing(false)}
+                    onSubmit={handleModelUpdate}
+                    modelAccessGroups={modelAccessGroups}
+                    guardrailsList={guardrailsList}
+                    tagsList={tagsList}
+                    credentialsList={credentialsList}
+                    healthCheckModelOptions={healthCheckModelOptions}
+                    teams={assignableTeams}
+                  />
+                ) : (
+                  <p className="text-sm">Loading...</p>
+                )}
+              </Card>
+            )}
           </TabsContent>
 
           <TabsContent value="raw" keepMounted>
@@ -839,15 +849,17 @@ export default function ModelInfoView({
       )}
 
       {/* Edit Auto Router Modal */}
-      <EditAutoRouterModal
-        isVisible={isAutoRouterModalOpen}
-        onCancel={() => setIsAutoRouterModalOpen(false)}
-        onSuccess={handleAutoRouterUpdate}
-        modelData={localModelData || modelData}
-        accessToken={accessToken || ""}
-        userRole={userRole || ""}
-        isMemberManaged={!canEditModel}
-      />
+      {!customer && (
+        <EditAutoRouterModal
+          isVisible={isAutoRouterModalOpen}
+          onCancel={() => setIsAutoRouterModalOpen(false)}
+          onSuccess={handleAutoRouterUpdate}
+          modelData={localModelData || modelData}
+          accessToken={accessToken || ""}
+          userRole={userRole || ""}
+          isMemberManaged={!canEditModel}
+        />
+      )}
 
       <Dialog open={isAutoRouterTestModalOpen} onOpenChange={(open) => !open && setIsAutoRouterTestModalOpen(false)}>
         <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-[700px]">

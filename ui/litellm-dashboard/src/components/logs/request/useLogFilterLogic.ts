@@ -1,3 +1,4 @@
+import { useCustomerNative } from "@/components/account/native/CustomerNativeContext";
 import moment from "moment";
 import { keepPreviousData, useQuery, type UseQueryOptions } from "@tanstack/react-query";
 import type { ColumnFiltersState, PaginationState, SortingState } from "@tanstack/react-table";
@@ -134,11 +135,12 @@ export function useLogFilterLogic({
   sorting: SortingState;
   sessionCursors?: Record<number, string>;
 }) {
+  const customer = useCustomerNative();
   const pageSize = pagination.pageSize || defaultPageSize;
   const activeSort = sorting[0] ?? DEFAULT_LOGS_SORTING[0];
   const sortBy: LogsSortField = isSortField(activeSort.id) ? activeSort.id : "startTime";
   const sortOrder: "asc" | "desc" = activeSort.desc ? "desc" : "asc";
-  const usesSessionCursor = sortBy === "startTime";
+  const usesSessionCursor = !customer && sortBy === "startTime";
   const sessionCursor = usesSessionCursor ? sessionCursors[pagination.pageIndex] : undefined;
 
   const logsQueryOptions: UseQueryOptions<PaginatedResponse> = {
@@ -197,7 +199,7 @@ export function useLogFilterLogic({
           sort_by: sortBy,
           sort_order: sortOrder,
           exclude_internal_health_checks: excludeInternalHealthChecks,
-          group_by_session: true,
+          group_by_session: !customer,
           session_cursor: sessionCursor,
         },
       });

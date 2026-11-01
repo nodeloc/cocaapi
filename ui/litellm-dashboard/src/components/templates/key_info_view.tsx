@@ -1,3 +1,4 @@
+import { useCustomerNative } from "@/components/account/native/CustomerNativeContext";
 import useAuthorized from "@/app/(dashboard)/hooks/useAuthorized";
 import { useModelAccessGroupNames } from "@/app/(dashboard)/hooks/models/useModels";
 import { useProjects } from "@/app/(dashboard)/hooks/projects/useProjects";
@@ -96,17 +97,18 @@ export default function KeyInfoView({
   backButtonText = "Back to Keys",
 }: KeyInfoViewProps) {
   const { accessToken, userId: userID, userRole, premiumUser } = useAuthorized();
+  const customer = useCustomerNative();
   const accessGroupNames = useModelAccessGroupNames();
   const activityDateRange = useActivityDateRange();
   const queryClient = useQueryClient();
-  const canEditGuardrails = premiumUser || (userRole != null && rolesWithWriteAccess.includes(userRole));
+  const canEditGuardrails = !customer && (premiumUser || (userRole != null && rolesWithWriteAccess.includes(userRole)));
   const { teams: teamsData } = useTeams();
   const { data: organizations } = useOrganizations();
   const { data: projects } = useProjects();
   const { data: uiSettingsData } = useUISettings();
   const applyUserBudgetToTeamKeys = useApplyUserBudgetToTeamKeys();
-  const { data: allMcpServers } = useMCPServers();
-  const { data: allMcpToolsets } = useMCPToolsets();
+  const { data: allMcpServers } = useMCPServers(undefined, !customer);
+  const { data: allMcpToolsets } = useMCPToolsets(!customer);
   const enableProjectsUI = Boolean(uiSettingsData?.values?.enable_projects_ui);
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -679,17 +681,21 @@ export default function KeyInfoView({
           <TabsTrigger value="overview" className="flex-none rounded-none px-4 py-2">
             Overview
           </TabsTrigger>
-          <TabsTrigger value="savings" className="flex-none rounded-none px-4 py-2">
-            Savings
-          </TabsTrigger>
+          {!customer && (
+            <TabsTrigger value="savings" className="flex-none rounded-none px-4 py-2">
+              Savings
+            </TabsTrigger>
+          )}
           {hasProxyWideSpendView(userRole) && (
             <TabsTrigger value="auto-router-usage" className="flex-none rounded-none px-4 py-2">
               Auto-router usage
             </TabsTrigger>
           )}
-          <TabsTrigger value="settings" className="flex-none rounded-none px-4 py-2">
-            Settings
-          </TabsTrigger>
+          {!customer && (
+            <TabsTrigger value="settings" className="flex-none rounded-none px-4 py-2">
+              Settings
+            </TabsTrigger>
+          )}
         </TabsList>
 
         <div>
@@ -768,99 +774,108 @@ export default function KeyInfoView({
                 </div>
               </Card>
 
-              <Card className="block p-6">
-                <ObjectPermissionsView
-                  objectPermission={currentKeyData.object_permission}
-                  variant="inline"
-                  accessToken={accessToken}
-                />
-              </Card>
+              {!customer && (
+                <>
+                  <Card className="block p-6">
+                    <ObjectPermissionsView
+                      objectPermission={currentKeyData.object_permission}
+                      variant="inline"
+                      accessToken={accessToken}
+                    />
+                  </Card>
 
-              <Card className="block p-6">
-                <p className="text-sm font-medium mb-3">Guardrails</p>
-                {Array.isArray(currentKeyData.metadata?.guardrails) && currentKeyData.metadata.guardrails.length > 0 ? (
-                  <div className="flex flex-wrap gap-2">
-                    {currentKeyData.metadata.guardrails.map((guardrail: string, index: number) => (
-                      <Badge key={index} variant="secondary" className="min-w-0 break-words">
-                        {guardrail}
-                      </Badge>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground">No guardrails configured</p>
-                )}
-                {typeof currentKeyData.metadata?.disable_global_guardrails === "boolean" &&
-                  currentKeyData.metadata.disable_global_guardrails === true && (
-                    <div className="mt-3 pt-3 border-t border-border">
-                      <Badge variant="destructive">Global Guardrails Disabled</Badge>
-                    </div>
-                  )}
-              </Card>
-
-              <Card className="block p-6">
-                <p className="text-sm font-medium mb-3">Policies</p>
-                {Array.isArray(currentKeyData.metadata?.policies) && currentKeyData.metadata.policies.length > 0 ? (
-                  <div className="space-y-4">
-                    {currentKeyData.metadata.policies.map((policy: string, index: number) => (
-                      <div key={index} className="space-y-2">
-                        <div className="flex items-center gap-2">
-                          <Badge variant="secondary" className="min-w-0 break-words">
-                            {policy}
+                  <Card className="block p-6">
+                    <p className="text-sm font-medium mb-3">Guardrails</p>
+                    {Array.isArray(currentKeyData.metadata?.guardrails) &&
+                    currentKeyData.metadata.guardrails.length > 0 ? (
+                      <div className="flex flex-wrap gap-2">
+                        {currentKeyData.metadata.guardrails.map((guardrail: string, index: number) => (
+                          <Badge key={index} variant="secondary" className="min-w-0 break-words">
+                            {guardrail}
                           </Badge>
-                          {loadingPolicies && <p className="text-xs text-muted-foreground">Loading guardrails...</p>}
-                        </div>
-                        {!loadingPolicies && policyGuardrails[policy] && policyGuardrails[policy].length > 0 && (
-                          <div className="ml-4 pl-3 border-l-2 border-border">
-                            <p className="text-xs text-muted-foreground mb-1">Resolved Guardrails:</p>
-                            <div className="flex flex-wrap gap-1">
-                              {policyGuardrails[policy].map((guardrail: string, gIndex: number) => (
-                                <Badge key={gIndex} variant="secondary" className="min-w-0 break-words">
-                                  {guardrail}
-                                </Badge>
-                              ))}
-                            </div>
-                          </div>
-                        )}
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground">No policies configured</p>
-                )}
-              </Card>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">No guardrails configured</p>
+                    )}
+                    {typeof currentKeyData.metadata?.disable_global_guardrails === "boolean" &&
+                      currentKeyData.metadata.disable_global_guardrails === true && (
+                        <div className="mt-3 pt-3 border-t border-border">
+                          <Badge variant="destructive">Global Guardrails Disabled</Badge>
+                        </div>
+                      )}
+                  </Card>
 
-              <LoggingSettingsView
-                loggingConfigs={extractLoggingSettings(currentKeyData.metadata)}
-                disabledCallbacks={
-                  Array.isArray(currentKeyData.metadata?.litellm_disabled_callbacks)
-                    ? mapInternalToDisplayNames(currentKeyData.metadata.litellm_disabled_callbacks)
-                    : []
-                }
-                variant="card"
-              />
+                  <Card className="block p-6">
+                    <p className="text-sm font-medium mb-3">Policies</p>
+                    {Array.isArray(currentKeyData.metadata?.policies) && currentKeyData.metadata.policies.length > 0 ? (
+                      <div className="space-y-4">
+                        {currentKeyData.metadata.policies.map((policy: string, index: number) => (
+                          <div key={index} className="space-y-2">
+                            <div className="flex items-center gap-2">
+                              <Badge variant="secondary" className="min-w-0 break-words">
+                                {policy}
+                              </Badge>
+                              {loadingPolicies && (
+                                <p className="text-xs text-muted-foreground">Loading guardrails...</p>
+                              )}
+                            </div>
+                            {!loadingPolicies && policyGuardrails[policy] && policyGuardrails[policy].length > 0 && (
+                              <div className="ml-4 pl-3 border-l-2 border-border">
+                                <p className="text-xs text-muted-foreground mb-1">Resolved Guardrails:</p>
+                                <div className="flex flex-wrap gap-1">
+                                  {policyGuardrails[policy].map((guardrail: string, gIndex: number) => (
+                                    <Badge key={gIndex} variant="secondary" className="min-w-0 break-words">
+                                      {guardrail}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">No policies configured</p>
+                    )}
+                  </Card>
 
-              <AutoRotationView
-                autoRotate={currentKeyData.auto_rotate}
-                rotationInterval={currentKeyData.rotation_interval}
-                lastRotationAt={currentKeyData.last_rotation_at}
-                keyRotationAt={currentKeyData.key_rotation_at}
-                nextRotationAt={currentKeyData.next_rotation_at}
-                variant="card"
-              />
+                  <LoggingSettingsView
+                    loggingConfigs={extractLoggingSettings(currentKeyData.metadata)}
+                    disabledCallbacks={
+                      Array.isArray(currentKeyData.metadata?.litellm_disabled_callbacks)
+                        ? mapInternalToDisplayNames(currentKeyData.metadata.litellm_disabled_callbacks)
+                        : []
+                    }
+                    variant="card"
+                  />
+
+                  <AutoRotationView
+                    autoRotate={currentKeyData.auto_rotate}
+                    rotationInterval={currentKeyData.rotation_interval}
+                    lastRotationAt={currentKeyData.last_rotation_at}
+                    keyRotationAt={currentKeyData.key_rotation_at}
+                    nextRotationAt={currentKeyData.next_rotation_at}
+                    variant="card"
+                  />
+                </>
+              )}
             </div>
           </TabsContent>
 
           {/* Savings Panel. No keepMounted: this tab sweeps the daily rollup, and staying mounted
               would fire that request on every key page open for people who never look at it. */}
-          <TabsContent value="savings">
-            <KeySavingsTab
-              accessToken={accessToken}
-              keyToken={currentKeyData.token}
-              userId={userID}
-              userRole={userRole}
-              activity={activityDateRange}
-            />
-          </TabsContent>
+          {!customer && (
+            <TabsContent value="savings">
+              <KeySavingsTab
+                accessToken={accessToken}
+                keyToken={currentKeyData.token}
+                userId={userID}
+                userRole={userRole}
+                activity={activityDateRange}
+              />
+            </TabsContent>
+          )}
 
           {hasProxyWideSpendView(userRole) && (
             <TabsContent value="auto-router-usage">
@@ -873,333 +888,337 @@ export default function KeyInfoView({
           )}
 
           {/* Settings Panel */}
-          <TabsContent value="settings" keepMounted>
-            <Card className="block p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-medium">Key Settings</h3>
-                {!isEditing && canModifyKey && (
-                  <Button variant="outline" onClick={() => setIsEditing(true)}>
-                    Edit Settings
-                  </Button>
-                )}
-              </div>
-
-              {isEditing ? (
-                <KeyEditView
-                  keyData={currentKeyData}
-                  onCancel={() => setIsEditing(false)}
-                  onSubmit={handleKeyUpdate}
-                  teams={teams}
-                  accessToken={accessToken}
-                  userID={userID}
-                  userRole={userRole}
-                  premiumUser={premiumUser}
-                />
-              ) : (
-                <div className="space-y-4">
-                  <div>
-                    <p className="text-sm font-medium">Key ID</p>
-                    <p className="text-sm font-mono">{currentKeyData.token_id || currentKeyData.token}</p>
-                  </div>
-
-                  <div>
-                    <p className="text-sm font-medium">Key Alias</p>
-                    <p className="text-sm">{currentKeyData.key_alias || "Not Set"}</p>
-                  </div>
-
-                  <div>
-                    <p className="text-sm font-medium">Secret Key</p>
-                    <p className="text-sm font-mono">{currentKeyData.key_name}</p>
-                  </div>
-
-                  <div>
-                    <p className="text-sm font-medium">Team ID</p>
-                    <p className="text-sm">
-                      {currentKeyData.team_id ? (
-                        <EntityLink href={teamDetailHref(currentKeyData.team_id)} className="font-normal">
-                          {currentKeyData.team_id}
-                        </EntityLink>
-                      ) : (
-                        "Not Set"
-                      )}
-                    </p>
-                  </div>
-
-                  {enableProjectsUI && (
-                    <div>
-                      <p className="text-sm font-medium">Project</p>
-                      <p className="text-sm">
-                        {currentKeyData.project_id
-                          ? (() => {
-                              const project = projects?.find((p) => p.project_id === currentKeyData.project_id);
-                              return project?.project_alias
-                                ? `${project.project_alias} (${currentKeyData.project_id})`
-                                : currentKeyData.project_id;
-                            })()
-                          : "Not Set"}
-                      </p>
-                    </div>
+          {!customer && (
+            <TabsContent value="settings" keepMounted>
+              <Card className="block p-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-medium">Key Settings</h3>
+                  {!customer && !isEditing && canModifyKey && (
+                    <Button variant="outline" onClick={() => setIsEditing(true)}>
+                      Edit Settings
+                    </Button>
                   )}
+                </div>
 
-                  <div>
-                    <p className="text-sm font-medium">Organization</p>
-                    <p className="text-sm">{(currentKeyData.organization_id ?? currentKeyData.org_id) || "Not Set"}</p>
-                  </div>
-
-                  <div>
-                    <p className="text-sm font-medium">Created</p>
-                    <p className="text-sm">{formatTimestamp(currentKeyData.created_at)}</p>
-                  </div>
-
-                  {lastRegeneratedAt && (
-                    <div>
-                      <p className="text-sm font-medium">Last Regenerated</p>
-                      <div className="flex items-center gap-2">
-                        <p className="text-sm">{formatTimestamp(lastRegeneratedAt)}</p>
-                        <Badge variant="secondary">Recent</Badge>
-                      </div>
-                    </div>
-                  )}
-
-                  <div>
-                    <p className="text-sm font-medium">Expires</p>
-                    <p className="text-sm">
-                      {currentKeyData.expires ? formatTimestamp(currentKeyData.expires) : "Never"}
-                    </p>
-                  </div>
-
-                  {Boolean(currentKeyData.metadata?.enable_prompt_caching) && (
-                    <div>
-                      <p className="text-sm font-medium">Prompt Caching</p>
-                      <p className="text-sm">
-                        Enabled (auto-injects cache_control markers on Anthropic and Bedrock Claude requests)
-                      </p>
-                    </div>
-                  )}
-
-                  <AutoRotationView
-                    autoRotate={currentKeyData.auto_rotate}
-                    rotationInterval={currentKeyData.rotation_interval}
-                    lastRotationAt={currentKeyData.last_rotation_at}
-                    keyRotationAt={currentKeyData.key_rotation_at}
-                    nextRotationAt={currentKeyData.next_rotation_at}
-                    variant="inline"
-                    className="pt-4 border-t border-border"
+                {isEditing ? (
+                  <KeyEditView
+                    keyData={currentKeyData}
+                    onCancel={() => setIsEditing(false)}
+                    onSubmit={handleKeyUpdate}
+                    teams={teams}
+                    accessToken={accessToken}
+                    userID={userID}
+                    userRole={userRole}
+                    premiumUser={premiumUser}
                   />
-
-                  <div>
-                    <p className="text-sm font-medium">Spend</p>
-                    <p className="text-sm">${formatNumberWithCommas(currentKeyData.spend, 4)} USD</p>
-                  </div>
-
-                  <div>
-                    <p className="text-sm font-medium">Lifetime Spend</p>
-                    <p className="text-sm">${formatNumberWithCommas(currentKeyData.total_spend ?? 0, 4)} USD</p>
-                  </div>
-
-                  <div>
-                    <p className="text-sm font-medium">Budget</p>
-                    <p className="text-sm">
-                      {currentKeyData.max_budget !== null
-                        ? `$${formatNumberWithCommas(currentKeyData.max_budget, 2)}`
-                        : "Unlimited"}
-                    </p>
-                  </div>
-
-                  <div>
-                    <p className="text-sm font-medium">Budget Reset</p>
-                    <p data-testid="budget-reset-value" className="text-sm">
-                      {currentKeyData.budget_reset_at
-                        ? `${currentKeyData.budget_duration ? `Every ${currentKeyData.budget_duration}, next ` : ""}${formatTimestamp(currentKeyData.budget_reset_at)}`
-                        : "Never"}
-                    </p>
-                  </div>
-
-                  {currentKeyData.budget_fallbacks && Object.keys(currentKeyData.budget_fallbacks).length > 0 && (
+                ) : (
+                  <div className="space-y-4">
                     <div>
-                      <p className="text-sm font-medium">Budget Fallbacks</p>
-                      <div className="mt-1 space-y-1">
-                        {Object.entries(currentKeyData.budget_fallbacks).map(([model, fallbacks]) => (
-                          <div key={model} className="text-xs text-muted-foreground">
-                            <span className="font-medium">{model}</span>
-                            <span className="mx-1 text-muted-foreground">-&gt;</span>
-                            {fallbacks.join(", ")}
-                          </div>
-                        ))}
+                      <p className="text-sm font-medium">Key ID</p>
+                      <p className="text-sm font-mono">{currentKeyData.token_id || currentKeyData.token}</p>
+                    </div>
+
+                    <div>
+                      <p className="text-sm font-medium">Key Alias</p>
+                      <p className="text-sm">{currentKeyData.key_alias || "Not Set"}</p>
+                    </div>
+
+                    <div>
+                      <p className="text-sm font-medium">Secret Key</p>
+                      <p className="text-sm font-mono">{currentKeyData.key_name}</p>
+                    </div>
+
+                    <div>
+                      <p className="text-sm font-medium">Team ID</p>
+                      <p className="text-sm">
+                        {currentKeyData.team_id ? (
+                          <EntityLink href={teamDetailHref(currentKeyData.team_id)} className="font-normal">
+                            {currentKeyData.team_id}
+                          </EntityLink>
+                        ) : (
+                          "Not Set"
+                        )}
+                      </p>
+                    </div>
+
+                    {enableProjectsUI && (
+                      <div>
+                        <p className="text-sm font-medium">Project</p>
+                        <p className="text-sm">
+                          {currentKeyData.project_id
+                            ? (() => {
+                                const project = projects?.find((p) => p.project_id === currentKeyData.project_id);
+                                return project?.project_alias
+                                  ? `${project.project_alias} (${currentKeyData.project_id})`
+                                  : currentKeyData.project_id;
+                              })()
+                            : "Not Set"}
+                        </p>
+                      </div>
+                    )}
+
+                    <div>
+                      <p className="text-sm font-medium">Organization</p>
+                      <p className="text-sm">
+                        {(currentKeyData.organization_id ?? currentKeyData.org_id) || "Not Set"}
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-sm font-medium">Created</p>
+                      <p className="text-sm">{formatTimestamp(currentKeyData.created_at)}</p>
+                    </div>
+
+                    {lastRegeneratedAt && (
+                      <div>
+                        <p className="text-sm font-medium">Last Regenerated</p>
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm">{formatTimestamp(lastRegeneratedAt)}</p>
+                          <Badge variant="secondary">Recent</Badge>
+                        </div>
+                      </div>
+                    )}
+
+                    <div>
+                      <p className="text-sm font-medium">Expires</p>
+                      <p className="text-sm">
+                        {currentKeyData.expires ? formatTimestamp(currentKeyData.expires) : "Never"}
+                      </p>
+                    </div>
+
+                    {Boolean(currentKeyData.metadata?.enable_prompt_caching) && (
+                      <div>
+                        <p className="text-sm font-medium">Prompt Caching</p>
+                        <p className="text-sm">
+                          Enabled (auto-injects cache_control markers on Anthropic and Bedrock Claude requests)
+                        </p>
+                      </div>
+                    )}
+
+                    <AutoRotationView
+                      autoRotate={currentKeyData.auto_rotate}
+                      rotationInterval={currentKeyData.rotation_interval}
+                      lastRotationAt={currentKeyData.last_rotation_at}
+                      keyRotationAt={currentKeyData.key_rotation_at}
+                      nextRotationAt={currentKeyData.next_rotation_at}
+                      variant="inline"
+                      className="pt-4 border-t border-border"
+                    />
+
+                    <div>
+                      <p className="text-sm font-medium">Spend</p>
+                      <p className="text-sm">${formatNumberWithCommas(currentKeyData.spend, 4)} USD</p>
+                    </div>
+
+                    <div>
+                      <p className="text-sm font-medium">Lifetime Spend</p>
+                      <p className="text-sm">${formatNumberWithCommas(currentKeyData.total_spend ?? 0, 4)} USD</p>
+                    </div>
+
+                    <div>
+                      <p className="text-sm font-medium">Budget</p>
+                      <p className="text-sm">
+                        {currentKeyData.max_budget !== null
+                          ? `$${formatNumberWithCommas(currentKeyData.max_budget, 2)}`
+                          : "Unlimited"}
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-sm font-medium">Budget Reset</p>
+                      <p data-testid="budget-reset-value" className="text-sm">
+                        {currentKeyData.budget_reset_at
+                          ? `${currentKeyData.budget_duration ? `Every ${currentKeyData.budget_duration}, next ` : ""}${formatTimestamp(currentKeyData.budget_reset_at)}`
+                          : "Never"}
+                      </p>
+                    </div>
+
+                    {currentKeyData.budget_fallbacks && Object.keys(currentKeyData.budget_fallbacks).length > 0 && (
+                      <div>
+                        <p className="text-sm font-medium">Budget Fallbacks</p>
+                        <div className="mt-1 space-y-1">
+                          {Object.entries(currentKeyData.budget_fallbacks).map(([model, fallbacks]) => (
+                            <div key={model} className="text-xs text-muted-foreground">
+                              <span className="font-medium">{model}</span>
+                              <span className="mx-1 text-muted-foreground">-&gt;</span>
+                              {fallbacks.join(", ")}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {hasRouterSettings(currentKeyData.router_settings) && (
+                      <div>
+                        <p className="text-sm font-medium">Router Settings</p>
+                        <div className="mt-1">
+                          <RouterSettingsSummary routerSettings={currentKeyData.router_settings} />
+                        </div>
+                      </div>
+                    )}
+
+                    <div>
+                      <p className="text-sm font-medium">Tags</p>
+                      <div className="flex flex-wrap gap-2 mt-1">
+                        {Array.isArray(currentKeyData.metadata?.tags) && currentKeyData.metadata.tags.length > 0
+                          ? currentKeyData.metadata.tags.map((tag, index) => (
+                              <span key={index} className="px-2 mr-2 py-1 bg-info/15 rounded-sm text-xs">
+                                {tag}
+                              </span>
+                            ))
+                          : "No tags specified"}
                       </div>
                     </div>
-                  )}
 
-                  {hasRouterSettings(currentKeyData.router_settings) && (
                     <div>
-                      <p className="text-sm font-medium">Router Settings</p>
-                      <div className="mt-1">
-                        <RouterSettingsSummary routerSettings={currentKeyData.router_settings} />
-                      </div>
+                      <p className="text-sm font-medium">Prompts</p>
+                      <p className="text-sm">
+                        {Array.isArray(currentKeyData.metadata?.prompts) && currentKeyData.metadata.prompts.length > 0
+                          ? currentKeyData.metadata.prompts.map((prompt, index) => (
+                              <span key={index} className="px-2 mr-2 py-1 bg-info/15 rounded-sm text-xs">
+                                {prompt}
+                              </span>
+                            ))
+                          : "No prompts specified"}
+                      </p>
                     </div>
-                  )}
 
-                  <div>
-                    <p className="text-sm font-medium">Tags</p>
-                    <div className="flex flex-wrap gap-2 mt-1">
-                      {Array.isArray(currentKeyData.metadata?.tags) && currentKeyData.metadata.tags.length > 0
-                        ? currentKeyData.metadata.tags.map((tag, index) => (
-                            <span key={index} className="px-2 mr-2 py-1 bg-info/15 rounded-sm text-xs">
-                              {tag}
-                            </span>
-                          ))
-                        : "No tags specified"}
-                    </div>
-                  </div>
-
-                  <div>
-                    <p className="text-sm font-medium">Prompts</p>
-                    <p className="text-sm">
-                      {Array.isArray(currentKeyData.metadata?.prompts) && currentKeyData.metadata.prompts.length > 0
-                        ? currentKeyData.metadata.prompts.map((prompt, index) => (
-                            <span key={index} className="px-2 mr-2 py-1 bg-info/15 rounded-sm text-xs">
-                              {prompt}
-                            </span>
-                          ))
-                        : "No prompts specified"}
-                    </p>
-                  </div>
-
-                  <div>
-                    <p className="text-sm font-medium">Allowed Routes</p>
-                    <div className="flex flex-wrap gap-2 mt-1">
-                      {Array.isArray(currentKeyData.allowed_routes) && currentKeyData.allowed_routes.length > 0 ? (
-                        currentKeyData.allowed_routes.map((route, index) => (
-                          <span key={index} className="px-2 py-1 bg-info/15 rounded-sm text-xs">
-                            {route}
-                          </span>
-                        ))
-                      ) : (
-                        <Badge variant="secondary">All routes allowed</Badge>
-                      )}
-                    </div>
-                  </div>
-
-                  <div>
-                    <p className="text-sm font-medium">Allowed Pass Through Routes</p>
-                    <p className="text-sm">
-                      {Array.isArray(currentKeyData.metadata?.allowed_passthrough_routes) &&
-                      currentKeyData.metadata.allowed_passthrough_routes.length > 0
-                        ? currentKeyData.metadata.allowed_passthrough_routes.map((route, index) => (
-                            <span key={index} className="px-2 mr-2 py-1 bg-info/15 rounded-sm text-xs">
+                    <div>
+                      <p className="text-sm font-medium">Allowed Routes</p>
+                      <div className="flex flex-wrap gap-2 mt-1">
+                        {Array.isArray(currentKeyData.allowed_routes) && currentKeyData.allowed_routes.length > 0 ? (
+                          currentKeyData.allowed_routes.map((route, index) => (
+                            <span key={index} className="px-2 py-1 bg-info/15 rounded-sm text-xs">
                               {route}
                             </span>
                           ))
-                        : "No pass through routes specified"}
-                    </p>
-                  </div>
-
-                  <div>
-                    <p className="text-sm font-medium">Disable Global Guardrails</p>
-                    <p className="text-sm">
-                      {currentKeyData.metadata?.disable_global_guardrails === true ? (
-                        <Badge variant="destructive">Enabled - Global guardrails bypassed</Badge>
-                      ) : (
-                        <Badge variant="secondary">Disabled - Global guardrails active</Badge>
-                      )}
-                    </p>
-                  </div>
-
-                  <div>
-                    <p className="text-sm font-medium">Models</p>
-                    <div className="flex flex-wrap gap-2 mt-1">
-                      {currentKeyData.models && currentKeyData.models.length > 0 ? (
-                        currentKeyData.models.map((model, index) => (
-                          <BadgeLink
-                            key={index}
-                            href={modelOrAccessGroupHref(model, accessGroupNames)}
-                            className="min-w-0 break-words"
-                          >
-                            {model}
-                          </BadgeLink>
-                        ))
-                      ) : (
-                        <p className="text-sm">No models specified</p>
-                      )}
+                        ) : (
+                          <Badge variant="secondary">All routes allowed</Badge>
+                        )}
+                      </div>
                     </div>
+
+                    <div>
+                      <p className="text-sm font-medium">Allowed Pass Through Routes</p>
+                      <p className="text-sm">
+                        {Array.isArray(currentKeyData.metadata?.allowed_passthrough_routes) &&
+                        currentKeyData.metadata.allowed_passthrough_routes.length > 0
+                          ? currentKeyData.metadata.allowed_passthrough_routes.map((route, index) => (
+                              <span key={index} className="px-2 mr-2 py-1 bg-info/15 rounded-sm text-xs">
+                                {route}
+                              </span>
+                            ))
+                          : "No pass through routes specified"}
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-sm font-medium">Disable Global Guardrails</p>
+                      <p className="text-sm">
+                        {currentKeyData.metadata?.disable_global_guardrails === true ? (
+                          <Badge variant="destructive">Enabled - Global guardrails bypassed</Badge>
+                        ) : (
+                          <Badge variant="secondary">Disabled - Global guardrails active</Badge>
+                        )}
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-sm font-medium">Models</p>
+                      <div className="flex flex-wrap gap-2 mt-1">
+                        {currentKeyData.models && currentKeyData.models.length > 0 ? (
+                          currentKeyData.models.map((model, index) => (
+                            <BadgeLink
+                              key={index}
+                              href={modelOrAccessGroupHref(model, accessGroupNames)}
+                              className="min-w-0 break-words"
+                            >
+                              {model}
+                            </BadgeLink>
+                          ))
+                        ) : (
+                          <p className="text-sm">No models specified</p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div>
+                      <p className="text-sm font-medium">Rate Limits</p>
+                      <p className="text-sm">
+                        TPM: {currentKeyData.tpm_limit !== null ? currentKeyData.tpm_limit : "Unlimited"}
+                      </p>
+                      <p className="text-sm">
+                        RPM: {currentKeyData.rpm_limit !== null ? currentKeyData.rpm_limit : "Unlimited"}
+                      </p>
+                      <p className="text-sm">TPD (batch): {currentKeyData.tpd_limit ?? "Unlimited"}</p>
+                      <p className="text-sm">
+                        Max Parallel Requests:{" "}
+                        {currentKeyData.max_parallel_requests !== null
+                          ? currentKeyData.max_parallel_requests
+                          : "Unlimited"}
+                      </p>
+                      <p className="text-sm">
+                        Model TPM Limits:{" "}
+                        {currentKeyData.metadata?.model_tpm_limit
+                          ? JSON.stringify(currentKeyData.metadata.model_tpm_limit)
+                          : "Unlimited"}
+                      </p>
+                      <p className="text-sm">
+                        Model RPM Limits:{" "}
+                        {currentKeyData.metadata?.model_rpm_limit
+                          ? JSON.stringify(currentKeyData.metadata.model_rpm_limit)
+                          : "Unlimited"}
+                      </p>
+                      <p className="text-sm">
+                        Tag RPM Limits:{" "}
+                        {currentKeyData.metadata?.tag_rpm_limit &&
+                        Object.keys(currentKeyData.metadata.tag_rpm_limit).length > 0
+                          ? JSON.stringify(currentKeyData.metadata.tag_rpm_limit)
+                          : "Unlimited"}
+                      </p>
+                      <p className="text-sm">
+                        Estimated Output Tokens:{" "}
+                        {currentKeyData.metadata?.default_estimated_output_tokens != null
+                          ? String(currentKeyData.metadata.default_estimated_output_tokens)
+                          : "Default"}
+                      </p>
+                      <p className="text-sm">
+                        Estimated Output Tokens Per Model:{" "}
+                        {currentKeyData.metadata?.default_estimated_output_tokens_per_model
+                          ? JSON.stringify(currentKeyData.metadata.default_estimated_output_tokens_per_model)
+                          : "Default"}
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-sm font-medium">Metadata</p>
+                      <pre className="bg-muted p-2 rounded-sm text-xs overflow-auto mt-1">
+                        {formatMetadataForDisplay(stripTagsFromMetadata(currentKeyData.metadata))}
+                      </pre>
+                    </div>
+
+                    <ObjectPermissionsView
+                      objectPermission={currentKeyData.object_permission}
+                      variant="inline"
+                      className="pt-4 border-t border-border"
+                      accessToken={accessToken}
+                    />
+
+                    <LoggingSettingsView
+                      loggingConfigs={extractLoggingSettings(currentKeyData.metadata)}
+                      disabledCallbacks={
+                        Array.isArray(currentKeyData.metadata?.litellm_disabled_callbacks)
+                          ? mapInternalToDisplayNames(currentKeyData.metadata.litellm_disabled_callbacks)
+                          : []
+                      }
+                      variant="inline"
+                      className="pt-4 border-t border-border"
+                    />
                   </div>
-
-                  <div>
-                    <p className="text-sm font-medium">Rate Limits</p>
-                    <p className="text-sm">
-                      TPM: {currentKeyData.tpm_limit !== null ? currentKeyData.tpm_limit : "Unlimited"}
-                    </p>
-                    <p className="text-sm">
-                      RPM: {currentKeyData.rpm_limit !== null ? currentKeyData.rpm_limit : "Unlimited"}
-                    </p>
-                    <p className="text-sm">TPD (batch): {currentKeyData.tpd_limit ?? "Unlimited"}</p>
-                    <p className="text-sm">
-                      Max Parallel Requests:{" "}
-                      {currentKeyData.max_parallel_requests !== null
-                        ? currentKeyData.max_parallel_requests
-                        : "Unlimited"}
-                    </p>
-                    <p className="text-sm">
-                      Model TPM Limits:{" "}
-                      {currentKeyData.metadata?.model_tpm_limit
-                        ? JSON.stringify(currentKeyData.metadata.model_tpm_limit)
-                        : "Unlimited"}
-                    </p>
-                    <p className="text-sm">
-                      Model RPM Limits:{" "}
-                      {currentKeyData.metadata?.model_rpm_limit
-                        ? JSON.stringify(currentKeyData.metadata.model_rpm_limit)
-                        : "Unlimited"}
-                    </p>
-                    <p className="text-sm">
-                      Tag RPM Limits:{" "}
-                      {currentKeyData.metadata?.tag_rpm_limit &&
-                      Object.keys(currentKeyData.metadata.tag_rpm_limit).length > 0
-                        ? JSON.stringify(currentKeyData.metadata.tag_rpm_limit)
-                        : "Unlimited"}
-                    </p>
-                    <p className="text-sm">
-                      Estimated Output Tokens:{" "}
-                      {currentKeyData.metadata?.default_estimated_output_tokens != null
-                        ? String(currentKeyData.metadata.default_estimated_output_tokens)
-                        : "Default"}
-                    </p>
-                    <p className="text-sm">
-                      Estimated Output Tokens Per Model:{" "}
-                      {currentKeyData.metadata?.default_estimated_output_tokens_per_model
-                        ? JSON.stringify(currentKeyData.metadata.default_estimated_output_tokens_per_model)
-                        : "Default"}
-                    </p>
-                  </div>
-
-                  <div>
-                    <p className="text-sm font-medium">Metadata</p>
-                    <pre className="bg-muted p-2 rounded-sm text-xs overflow-auto mt-1">
-                      {formatMetadataForDisplay(stripTagsFromMetadata(currentKeyData.metadata))}
-                    </pre>
-                  </div>
-
-                  <ObjectPermissionsView
-                    objectPermission={currentKeyData.object_permission}
-                    variant="inline"
-                    className="pt-4 border-t border-border"
-                    accessToken={accessToken}
-                  />
-
-                  <LoggingSettingsView
-                    loggingConfigs={extractLoggingSettings(currentKeyData.metadata)}
-                    disabledCallbacks={
-                      Array.isArray(currentKeyData.metadata?.litellm_disabled_callbacks)
-                        ? mapInternalToDisplayNames(currentKeyData.metadata.litellm_disabled_callbacks)
-                        : []
-                    }
-                    variant="inline"
-                    className="pt-4 border-t border-border"
-                  />
-                </div>
-              )}
-            </Card>
-          </TabsContent>
+                )}
+              </Card>
+            </TabsContent>
+          )}
         </div>
       </Tabs>
     </div>

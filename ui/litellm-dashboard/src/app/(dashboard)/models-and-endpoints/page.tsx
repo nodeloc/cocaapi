@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useCustomerNative } from "@/components/account/native/CustomerNativeContext";
 import { RefreshCw } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import useAuthorized from "@/app/(dashboard)/hooks/useAuthorized";
@@ -80,6 +81,7 @@ const renderPanel = (key: string) => {
 };
 
 export default function ModelsAndEndpointsPage() {
+  const customer = useCustomerNative();
   const { accessToken, userRole, userId: userID, premiumUser, isViewOnly } = useAuthorized();
   const { data: teams } = useTeams();
   const { data: uiSettings } = useUISettings();
@@ -91,16 +93,19 @@ export default function ModelsAndEndpointsPage() {
   const [lastRefreshed, setLastRefreshed] = useState("");
 
   const isInternalUser = userRole && internalUserRoles.includes(userRole);
-  const canCreate = canCreateModels(
-    { userRole, userID, isViewOnly },
-    {
-      teams: teams ?? null,
-      disabledForInternalUsers:
-        isInternalUser === true && uiSettings?.values?.disable_model_add_for_internal_users === true,
-    },
-  );
+  const canCreate =
+    !customer &&
+    canCreateModels(
+      { userRole, userID, isViewOnly },
+      {
+        teams: teams ?? null,
+        disabledForInternalUsers:
+          isInternalUser === true && uiSettings?.values?.disable_model_add_for_internal_users === true,
+      },
+    );
   const isAdmin = all_admin_roles.includes(userRole);
   const canViewAutoRouters =
+    !customer &&
     autoRouterCreationScope(
       { userRole, userID, isViewOnly },
       { teams: teams ?? null, disabledForInternalUsers: false },

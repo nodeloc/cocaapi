@@ -1,3 +1,4 @@
+import { useCustomerNative } from "@/components/account/native/CustomerNativeContext";
 import { BarChart3, Bot, Building2, Globe, LineChart, ShoppingCart, Tags, User, Users } from "lucide-react";
 import React from "react";
 import { Badge } from "@/components/ui/badge";
@@ -114,9 +115,11 @@ export const UsageViewSelect: React.FC<UsageViewSelectProps> = ({
   description = "Select the usage data you want to view",
   "data-id": dataId,
 }) => {
+  const customer = useCustomerNative();
   const isAdmin = all_admin_roles.includes(userRole ?? "");
   const getFilteredOptions = () => {
     return OPTIONS.filter((option) => {
+      if (customer) return option.value === "global";
       if (option.capability) {
         return hasCapability(userRole, option.capability, isOrgAdmin);
       }

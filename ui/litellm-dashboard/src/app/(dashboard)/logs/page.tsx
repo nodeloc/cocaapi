@@ -1,5 +1,6 @@
 "use client";
 
+import { useCustomerNative } from "@/components/account/native/CustomerNativeContext";
 import { useState } from "react";
 import useAuthorized from "@/app/(dashboard)/hooks/useAuthorized";
 import useCan from "@/app/(dashboard)/hooks/useCan";
@@ -15,6 +16,7 @@ type LogsTab = "request logs" | "audit logs" | "deleted keys" | "deleted teams";
 export default function LogsPage() {
   const { accessToken, userRole, userId, token, premiumUser } = useAuthorized();
   const [activeTab, setActiveTab] = useState<LogsTab>("request logs");
+  const customer = useCustomerNative();
   const canViewAuditLogs = useCan("viewAuditLogs");
   const canViewDeletedTeams = useCan("viewDeletedTeams");
 
@@ -35,7 +37,7 @@ export default function LogsPage() {
         <PageTabsList>
           <PageTabsTrigger value="request logs">Request Logs</PageTabsTrigger>
           {canViewAuditLogs && <PageTabsTrigger value="audit logs">Audit Logs</PageTabsTrigger>}
-          <PageTabsTrigger value="deleted keys">Deleted Keys</PageTabsTrigger>
+          {!customer && <PageTabsTrigger value="deleted keys">Deleted Keys</PageTabsTrigger>}
           {canViewDeletedTeams && <PageTabsTrigger value="deleted teams">Deleted Teams</PageTabsTrigger>}
         </PageTabsList>
 
@@ -60,9 +62,11 @@ export default function LogsPage() {
             />
           </PageTabsContent>
         )}
-        <PageTabsContent value="deleted keys" keepMounted>
-          <DeletedKeysPage />
-        </PageTabsContent>
+        {!customer && (
+          <PageTabsContent value="deleted keys" keepMounted>
+            <DeletedKeysPage />
+          </PageTabsContent>
+        )}
         {canViewDeletedTeams && (
           <PageTabsContent value="deleted teams" keepMounted>
             <DeletedTeamsPage />

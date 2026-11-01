@@ -7,11 +7,13 @@ import { buildLoginUrlWithReturn, getLoginUrl, storeReturnUrl } from "@/utils/re
 import { useCallback, useEffect, useMemo } from "react";
 import { effectiveSessionRole, formatUserRole, isViewOnlySessionRole } from "@/utils/roles";
 import { useUIConfig } from "./uiConfig/useUIConfig";
+import { useCustomerNative } from "@/components/account/native/CustomerNativeContext";
 
 const useAuthorized = () => {
+  const customer = useCustomerNative();
   const { data: uiConfig, isLoading: isUIConfigLoading } = useUIConfig();
 
-  const token = typeof document !== "undefined" ? getCookie("token") : null;
+  const token = !customer && typeof document !== "undefined" ? getCookie("token") : null;
 
   const decoded = useMemo(() => decodeToken(token), [token]);
   const isTokenValid = useMemo(() => checkTokenValidity(token), [token]);
@@ -28,6 +30,7 @@ const useAuthorized = () => {
 
   // Single useEffect for all redirect logic
   useEffect(() => {
+    if (customer) return;
     if (isLoading) return;
 
     if (!isAuthorized) {
@@ -36,8 +39,25 @@ const useAuthorized = () => {
       }
       redirectToLogin();
     }
-  }, [isLoading, isAuthorized, token, redirectToLogin]);
+  }, [isLoading, isAuthorized, token, redirectToLogin, customer]);
 
+  if (customer)
+    return {
+      isLoading: false,
+      isAuthorized: true,
+      token: customer.marker,
+      accessToken: customer.marker,
+      userId: customer.profile.user_id,
+      userEmail: customer.profile.email,
+      userRole: "Internal User",
+      userRoleLabel: "Internal User",
+      isViewOnly: false,
+      premiumUser: false,
+      disabledPersonalKeyCreation: false,
+      loginMethod: "customer",
+      showSSOBanner: false,
+      passwordResetRequired: false,
+    };
   return {
     isLoading,
     isAuthorized,

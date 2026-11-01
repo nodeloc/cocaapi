@@ -1,4 +1,8 @@
 "use client";
+
+import { useCustomerNative } from "@/components/account/native/CustomerNativeContext";
+import { errorMessage } from "@/components/account/accountApi";
+
 import { keyKeys } from "@/app/(dashboard)/hooks/keys/useKeys";
 import { useOrganizations } from "@/app/(dashboard)/hooks/organizations/useOrganizations";
 import { useProjects } from "@/app/(dashboard)/hooks/projects/useProjects";
@@ -218,9 +222,11 @@ export const fetchUserModels = async (
  */
 const CreateKey: React.FC<CreateKeyProps> = ({ team, teams, data, addKey, autoOpenCreate, prefillData }) => {
   const { accessToken, userId: userID, userRole, premiumUser } = useAuthorized();
-  const canEditGuardrails = premiumUser || (userRole != null && rolesWithWriteAccess.includes(userRole));
-  const canViewPolicies = useCan("viewPolicies");
-  const canViewPrompts = useCan("viewPrompts");
+  const customer = useCustomerNative();
+  const keyTypeOptions = customer ? KEY_TYPE_OPTIONS.filter((option) => option.value === "llm_api") : KEY_TYPE_OPTIONS;
+  const canEditGuardrails = !customer && (premiumUser || (userRole != null && rolesWithWriteAccess.includes(userRole)));
+  const canViewPolicies = useCan("viewPolicies") && !customer;
+  const canViewPrompts = useCan("viewPrompts") && !customer;
   const { data: organizations, isLoading: isOrganizationsLoading } = useOrganizations();
   const { data: projects, isLoading: isProjectsLoading } = useProjects();
   const { data: uiSettingsData } = useUISettings();
@@ -235,7 +241,7 @@ const CreateKey: React.FC<CreateKeyProps> = ({ team, teams, data, addKey, autoOp
     tpm_limit_type: null,
     rpm_limit_type: null,
     mcp_tool_permissions: {},
-    duration: "",
+    duration: customer ? "30d" : "",
   }));
   const form = useForm<MountedFormValues>({
     mode: "onChange",
@@ -345,16 +351,16 @@ const CreateKey: React.FC<CreateKeyProps> = ({ team, teams, data, addKey, autoOp
       }
     };
 
-    fetchGuardrails();
+    if (!customer) fetchGuardrails();
     if (canViewPolicies) fetchPolicies();
     if (canViewPrompts) fetchPrompts();
-  }, [accessToken, canViewPolicies, canViewPrompts]);
+  }, [accessToken, canViewPolicies, canViewPrompts, customer]);
 
   // Fetch possible user roles when component mounts
   useEffect(() => {
     const fetchPossibleRoles = async () => {
       try {
-        if (accessToken) {
+        if (accessToken && !customer) {
           // Check if roles are cached in session storage
           const cachedRoles = sessionStorage.getItem("possibleUserRoles");
           if (cachedRoles) {
@@ -371,7 +377,7 @@ const CreateKey: React.FC<CreateKeyProps> = ({ team, teams, data, addKey, autoOp
     };
 
     fetchPossibleRoles();
-  }, [accessToken]);
+  }, [accessToken, customer]);
 
   // Auto-open modal and prefill form from URL params (deep link).
   // Guarded by write access so we don't open for read-only users.
@@ -424,7 +430,9 @@ const CreateKey: React.FC<CreateKeyProps> = ({ team, teams, data, addKey, autoOp
 
   // Check if team selection is required
   const isTeamSelectionRequired = modelsToPick.includes("no-default-models");
-  const isFormDisabled = isTeamSelectionRequired && !selectedCreateKeyTeam;
+  const isFormDisabled =
+    (isTeamSelectionRequired && !selectedCreateKeyTeam) ||
+    Boolean(customer && uiSettingsData?.disabled_non_admin_personal_key_creation);
 
   const handleCreate = async (formValues: MountedFormValues) => {
     try {
@@ -650,6 +658,35 @@ const CreateKey: React.FC<CreateKeyProps> = ({ team, teams, data, addKey, autoOp
     }
   };
 
+  const lifecycleSettings = (
+    <Collapsible className="mt-4 mb-4 overflow-hidden rounded-lg border">
+      <CollapsibleTrigger className={SECTION_HEADER_CLASS}>
+        <b>Key Lifecycle</b>
+        <ChevronDown className={SECTION_CHEVRON_CLASS} />
+      </CollapsibleTrigger>
+      <CollapsibleContent className="px-4 pb-3">
+        <div className="mt-4">
+          <MountedFormField name="duration" bare>
+            {(control) => (
+              <KeyLifecycleSettings
+                id={control.id}
+                value={control.value as string | undefined}
+                onChange={control.onChange}
+                autoRotationEnabled={autoRotationEnabled}
+                onAutoRotationChange={setAutoRotationEnabled}
+                rotationInterval={rotationInterval}
+                onRotationIntervalChange={setRotationInterval}
+                isCreateMode={true}
+                allowRotation={!customer}
+                maxExpiryDays={customer ? 365 : undefined}
+              />
+            )}
+          </MountedFormField>
+        </div>
+      </CollapsibleContent>
+    </Collapsible>
+  );
+
   return (
     <div>
       {userRole && rolesWithWriteAccess.includes(userRole) && (
@@ -665,192 +702,205 @@ const CreateKey: React.FC<CreateKeyProps> = ({ team, teams, data, addKey, autoOp
           <MountedFormProvider value={mountedForm}>
             <form onSubmit={handleSubmit}>
               {/* Section 1: Key Ownership */}
-              <div className="mb-8">
-                <h3 className="text-lg font-medium text-foreground mb-4">Key Ownership</h3>
-                <Field className="mb-4">
-                  <FieldLabel>
-                    <span>
-                      Owned By{" "}
-                      <SimpleTooltip content="Select who will own this Virtual Key">
-                        <Info className="ml-1 inline size-3.5 align-text-bottom" />
-                      </SimpleTooltip>
-                    </span>
-                  </FieldLabel>
-                  <RadioGroup
-                    className="flex flex-wrap items-center gap-4"
-                    value={keyOwner}
-                    onValueChange={(value: unknown) => setKeyOwner(String(value))}
-                  >
-                    <label className={KEY_OWNER_LABEL_CLASS}>
-                      <RadioGroupItem value="you" />
-                      You
-                    </label>
-                    <label className={KEY_OWNER_LABEL_CLASS}>
-                      <RadioGroupItem value="service_account" />
-                      Service Account
-                    </label>
-                    {userRole === "Admin" && (
+              {!customer && (
+                <div className="mb-8">
+                  <h3 className="text-lg font-medium text-foreground mb-4">Key Ownership</h3>
+                  <Field className="mb-4">
+                    <FieldLabel>
+                      <span>
+                        Owned By{" "}
+                        <SimpleTooltip content="Select who will own this Virtual Key">
+                          <Info className="ml-1 inline size-3.5 align-text-bottom" />
+                        </SimpleTooltip>
+                      </span>
+                    </FieldLabel>
+                    <RadioGroup
+                      className="flex flex-wrap items-center gap-4"
+                      value={keyOwner}
+                      onValueChange={(value: unknown) => setKeyOwner(String(value))}
+                    >
                       <label className={KEY_OWNER_LABEL_CLASS}>
-                        <RadioGroupItem value="another_user" />
-                        Another User
+                        <RadioGroupItem value="you" />
+                        You
                       </label>
-                    )}
-                    <label className={KEY_OWNER_LABEL_CLASS}>
-                      <RadioGroupItem value="agent" />
-                      Agent <Badge>New</Badge>
-                    </label>
-                  </RadioGroup>
-                </Field>
+                      <label className={KEY_OWNER_LABEL_CLASS}>
+                        <RadioGroupItem value="service_account" />
+                        Service Account
+                      </label>
+                      {userRole === "Admin" && (
+                        <label className={KEY_OWNER_LABEL_CLASS}>
+                          <RadioGroupItem value="another_user" />
+                          Another User
+                        </label>
+                      )}
+                      <label className={KEY_OWNER_LABEL_CLASS}>
+                        <RadioGroupItem value="agent" />
+                        Agent <Badge>New</Badge>
+                      </label>
+                    </RadioGroup>
+                  </Field>
 
-                {keyOwner === "another_user" && (
-                  <MountedFormField
-                    label={
-                      <span>
-                        User ID{" "}
-                        <SimpleTooltip content="The user who will own this key and be responsible for its usage">
-                          <Info className="ml-1 inline size-3.5 align-text-bottom" />
-                        </SimpleTooltip>
-                      </span>
-                    }
-                    name="user_id"
-                    className="mt-4"
-                    required
-                    rules={requiredRule(
-                      keyOwner === "another_user",
-                      `Please input the user ID of the user you are assigning the key to`,
-                    )}
-                  >
-                    {(control) => (
-                      <div>
-                        <div className="mb-2 flex">
-                          <PaginatedSearchSelect
-                            options={userOptions}
-                            value={typeof control.value === "string" ? control.value : undefined}
-                            onValueChange={control.onChange}
-                            onSearchChange={fetchUsers}
-                            isLoading={userSearchLoading}
-                            placeholder="Type email or user ID to search for users"
-                            emptyText="No users found"
-                            loadingText="Searching..."
-                            inputId={control.id}
-                            aria-required={control["aria-required"] === "true" ? true : undefined}
-                            aria-invalid={control["aria-invalid"] === "true" ? true : undefined}
-                            aria-describedby={control["aria-describedby"]}
-                          />
-                          <Button variant="outline" className="ml-2" onClick={() => setIsCreateUserModalVisible(true)}>
-                            Create User
-                          </Button>
+                  {keyOwner === "another_user" && (
+                    <MountedFormField
+                      label={
+                        <span>
+                          User ID{" "}
+                          <SimpleTooltip content="The user who will own this key and be responsible for its usage">
+                            <Info className="ml-1 inline size-3.5 align-text-bottom" />
+                          </SimpleTooltip>
+                        </span>
+                      }
+                      name="user_id"
+                      className="mt-4"
+                      required
+                      rules={requiredRule(
+                        keyOwner === "another_user",
+                        `Please input the user ID of the user you are assigning the key to`,
+                      )}
+                    >
+                      {(control) => (
+                        <div>
+                          <div className="mb-2 flex">
+                            <PaginatedSearchSelect
+                              options={userOptions}
+                              value={typeof control.value === "string" ? control.value : undefined}
+                              onValueChange={control.onChange}
+                              onSearchChange={fetchUsers}
+                              isLoading={userSearchLoading}
+                              placeholder="Type email or user ID to search for users"
+                              emptyText="No users found"
+                              loadingText="Searching..."
+                              inputId={control.id}
+                              aria-required={control["aria-required"] === "true" ? true : undefined}
+                              aria-invalid={control["aria-invalid"] === "true" ? true : undefined}
+                              aria-describedby={control["aria-describedby"]}
+                            />
+                            <Button
+                              variant="outline"
+                              className="ml-2"
+                              onClick={() => setIsCreateUserModalVisible(true)}
+                            >
+                              Create User
+                            </Button>
+                          </div>
+                          <div className="text-xs text-muted-foreground">Search by email or user ID to find users</div>
                         </div>
-                        <div className="text-xs text-muted-foreground">Search by email or user ID to find users</div>
+                      )}
+                    </MountedFormField>
+                  )}
+                  {keyOwner === "agent" && (
+                    <div className="mt-4 p-4 bg-purple-50 border border-purple-200 rounded-md dark:bg-purple-950 dark:border-purple-800">
+                      <div className="mb-3">
+                        <label htmlFor="create-key-agent" className="text-sm font-medium text-foreground">
+                          Select Agent <span className="text-destructive">*</span>
+                        </label>
                       </div>
-                    )}
-                  </MountedFormField>
-                )}
-                {keyOwner === "agent" && (
-                  <div className="mt-4 p-4 bg-purple-50 border border-purple-200 rounded-md dark:bg-purple-950 dark:border-purple-800">
-                    <div className="mb-3">
-                      <label htmlFor="create-key-agent" className="text-sm font-medium text-foreground">
-                        Select Agent <span className="text-destructive">*</span>
-                      </label>
+                      <SearchSelect
+                        inputId="create-key-agent"
+                        placeholder="Select an agent"
+                        emptyText="No agents found"
+                        value={selectedAgentId}
+                        onValueChange={setSelectedAgentId}
+                        options={agentsList.map((a) => ({
+                          label: a.agent_name || a.agent_id,
+                          value: a.agent_id,
+                        }))}
+                      />
+                      <div className="text-xs text-muted-foreground mt-2">
+                        This key will be used by the selected agent to make requests to LiteLLM
+                      </div>
                     </div>
-                    <SearchSelect
-                      inputId="create-key-agent"
-                      placeholder="Select an agent"
-                      emptyText="No agents found"
-                      value={selectedAgentId}
-                      onValueChange={setSelectedAgentId}
-                      options={agentsList.map((a) => ({
-                        label: a.agent_name || a.agent_id,
-                        value: a.agent_id,
-                      }))}
-                    />
-                    <div className="text-xs text-muted-foreground mt-2">
-                      This key will be used by the selected agent to make requests to LiteLLM
-                    </div>
-                  </div>
-                )}
-                <MountedFormField
-                  label={
-                    <span>
-                      Organization{" "}
-                      <SimpleTooltip content="The organization this key belongs to. Selecting an organization filters the available teams.">
-                        <Info className="ml-1 inline size-3.5 align-text-bottom" />
-                      </SimpleTooltip>
-                    </span>
-                  }
-                  name="organization_id"
-                  className="mt-4"
-                >
-                  {(control) => (
-                    <OrganizationDropdown
-                      id={control.id}
-                      value={typeof control.value === "string" ? control.value : null}
-                      organizations={organizations}
-                      loading={isOrganizationsLoading}
-                      disabled={userRole !== "Admin"}
-                      onChange={changeOrganization(control.onChange)}
-                    />
                   )}
-                </MountedFormField>
-                <MountedFormField
-                  label={
-                    <span>
-                      Team{" "}
-                      <SimpleTooltip content="The team this key belongs to, which determines available models and budget limits">
-                        <Info className="ml-1 inline size-3.5 align-text-bottom" />
-                      </SimpleTooltip>
-                    </span>
-                  }
-                  name="team_id"
-                  className="mt-4"
-                  required={keyOwner === "service_account"}
-                  rules={requiredRule(keyOwner === "service_account", "Please select a team for the service account")}
-                  help={keyOwner === "service_account" ? "required" : ""}
-                >
-                  {(control) => (
-                    <TeamDropdown
-                      id={control.id}
-                      value={typeof control.value === "string" ? control.value : null}
-                      onChange={control.onChange}
-                      disabled={selectedProjectId !== null}
-                      organizationId={selectedOrganizationId}
-                      onTeamSelect={selectTeam}
-                    />
-                  )}
-                </MountedFormField>
-                {enableProjectsUI && (
                   <MountedFormField
                     label={
                       <span>
-                        Project{" "}
-                        <SimpleTooltip content="Assign this key to a project. Selecting a project will lock the team to the project's team.">
+                        Organization{" "}
+                        <SimpleTooltip content="The organization this key belongs to. Selecting an organization filters the available teams.">
                           <Info className="ml-1 inline size-3.5 align-text-bottom" />
                         </SimpleTooltip>
                       </span>
                     }
-                    name="project_id"
+                    name="organization_id"
                     className="mt-4"
                   >
                     {(control) => (
-                      <ProjectDropdown
+                      <OrganizationDropdown
                         id={control.id}
                         value={typeof control.value === "string" ? control.value : null}
-                        projects={projects}
-                        teamId={selectedCreateKeyTeam?.team_id}
-                        loading={isProjectsLoading || !teams}
-                        onChange={changeProject(control.onChange)}
+                        organizations={organizations}
+                        loading={isOrganizationsLoading}
+                        disabled={userRole !== "Admin"}
+                        onChange={changeOrganization(control.onChange)}
                       />
                     )}
                   </MountedFormField>
-                )}
-              </div>
+                  <MountedFormField
+                    label={
+                      <span>
+                        Team{" "}
+                        <SimpleTooltip content="The team this key belongs to, which determines available models and budget limits">
+                          <Info className="ml-1 inline size-3.5 align-text-bottom" />
+                        </SimpleTooltip>
+                      </span>
+                    }
+                    name="team_id"
+                    className="mt-4"
+                    required={keyOwner === "service_account"}
+                    rules={requiredRule(keyOwner === "service_account", "Please select a team for the service account")}
+                    help={keyOwner === "service_account" ? "required" : ""}
+                  >
+                    {(control) => (
+                      <TeamDropdown
+                        id={control.id}
+                        value={typeof control.value === "string" ? control.value : null}
+                        onChange={control.onChange}
+                        disabled={selectedProjectId !== null}
+                        organizationId={selectedOrganizationId}
+                        onTeamSelect={selectTeam}
+                      />
+                    )}
+                  </MountedFormField>
+                  {enableProjectsUI && (
+                    <MountedFormField
+                      label={
+                        <span>
+                          Project{" "}
+                          <SimpleTooltip content="Assign this key to a project. Selecting a project will lock the team to the project's team.">
+                            <Info className="ml-1 inline size-3.5 align-text-bottom" />
+                          </SimpleTooltip>
+                        </span>
+                      }
+                      name="project_id"
+                      className="mt-4"
+                    >
+                      {(control) => (
+                        <ProjectDropdown
+                          id={control.id}
+                          value={typeof control.value === "string" ? control.value : null}
+                          projects={projects}
+                          teamId={selectedCreateKeyTeam?.team_id}
+                          loading={isProjectsLoading || !teams}
+                          onChange={changeProject(control.onChange)}
+                        />
+                      )}
+                    </MountedFormField>
+                  )}
+                </div>
+              )}
 
               {/* Show message when team selection is required */}
               {isFormDisabled && (
                 <div className="mb-8 p-4 bg-info/10 border border-info/20 rounded-md">
                   <p className="text-info text-sm">
-                    Please select a team to continue configuring your Virtual Key. If you do not see any teams, please
-                    contact your Proxy Admin to either provide you with access to models or to add you to a team.
+                    {customer ? (
+                      errorMessage(uiSettingsData?.key_creation_reason ?? "personal_key_unavailable")
+                    ) : (
+                      <>
+                        Please select a team to continue configuring your Virtual Key. If you do not see any teams,
+                        please contact your Proxy Admin to either provide you with access to models or to add you to a
+                        team.
+                      </>
+                    )}
                   </p>
                 </div>
               )}
@@ -935,7 +985,7 @@ const CreateKey: React.FC<CreateKeyProps> = ({ team, teams, data, addKey, autoOp
                   >
                     {(control) => (
                       <Select
-                        items={KEY_TYPE_OPTIONS}
+                        items={keyTypeOptions}
                         value={control.value as string | undefined}
                         onValueChange={(value: string | null) =>
                           value != null && changeKeyType(control.onChange)(value)
@@ -950,7 +1000,7 @@ const CreateKey: React.FC<CreateKeyProps> = ({ team, teams, data, addKey, autoOp
                           <SelectValue placeholder="Select key type" />
                         </SelectTrigger>
                         <SelectContent>
-                          {KEY_TYPE_OPTIONS.map((option) => (
+                          {keyTypeOptions.map((option) => (
                             <SelectItem key={option.value} value={option.value}>
                               <div className="py-1">
                                 <div className="font-medium">{option.label}</div>
@@ -966,7 +1016,7 @@ const CreateKey: React.FC<CreateKeyProps> = ({ team, teams, data, addKey, autoOp
               )}
 
               {/* Section 3: Optional Settings */}
-              {!isFormDisabled && (
+              {!isFormDisabled && !customer && (
                 <div className="mb-8">
                   <Collapsible className="mt-4 mb-4 overflow-hidden rounded-lg border">
                     <h3 className="m-0 text-lg font-medium text-foreground">
@@ -1744,30 +1794,7 @@ const CreateKey: React.FC<CreateKeyProps> = ({ team, teams, data, addKey, autoOp
                         </CollapsibleContent>
                       </Collapsible>
 
-                      <Collapsible className="mt-4 mb-4 overflow-hidden rounded-lg border">
-                        <CollapsibleTrigger className={SECTION_HEADER_CLASS}>
-                          <b>Key Lifecycle</b>
-                          <ChevronDown className={SECTION_CHEVRON_CLASS} />
-                        </CollapsibleTrigger>
-                        <CollapsibleContent className="px-4 pb-3">
-                          <div className="mt-4">
-                            <MountedFormField name="duration" bare>
-                              {(control) => (
-                                <KeyLifecycleSettings
-                                  id={control.id}
-                                  value={control.value as string | undefined}
-                                  onChange={control.onChange}
-                                  autoRotationEnabled={autoRotationEnabled}
-                                  onAutoRotationChange={setAutoRotationEnabled}
-                                  rotationInterval={rotationInterval}
-                                  onRotationIntervalChange={setRotationInterval}
-                                  isCreateMode={true}
-                                />
-                              )}
-                            </MountedFormField>
-                          </div>
-                        </CollapsibleContent>
-                      </Collapsible>
+                      {lifecycleSettings}
                       <Collapsible className="mt-4 mb-4 overflow-hidden rounded-lg border">
                         <CollapsibleTrigger className={SECTION_HEADER_CLASS}>
                           <div className="flex items-center gap-2">
@@ -1823,6 +1850,8 @@ const CreateKey: React.FC<CreateKeyProps> = ({ team, teams, data, addKey, autoOp
                   </Collapsible>
                 </div>
               )}
+
+              {customer && !isFormDisabled && lifecycleSettings}
 
               <div style={{ textAlign: "right", marginTop: "10px" }}>
                 <Button type="submit" disabled={isFormDisabled}>

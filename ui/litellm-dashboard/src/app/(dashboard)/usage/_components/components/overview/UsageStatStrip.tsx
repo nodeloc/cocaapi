@@ -1,5 +1,6 @@
 "use client";
 
+import { useCustomerNative } from "@/components/account/native/CustomerNativeContext";
 import React, { useMemo } from "react";
 import type { DailyData } from "@/components/UsagePage/types";
 import { cn } from "@/lib/cva.config";
@@ -24,6 +25,7 @@ export default function UsageStatStrip({
   requestCountsPending,
   budget,
 }: UsageStatStripProps) {
+  const customer = useCustomerNative();
   const daily = useMemo(() => dailyTotals(results), [results]);
   return (
     <div className="grid grid-cols-1 overflow-hidden rounded-xl border bg-card sm:grid-cols-2 lg:grid-cols-4 lg:divide-x">
@@ -57,7 +59,7 @@ export default function UsageStatStrip({
           value={loading ? null : formatCompact(totals.tokens)}
           exact={`${totals.tokens.toLocaleString()} tokens`}
           pending={loading}
-          hint={loading ? undefined : `${formatCompact(totals.cacheReadTokens)} cache read`}
+          hint={loading || customer ? undefined : `${formatCompact(totals.cacheReadTokens)} cache read`}
         />
       </StatCell>
       <StatCell>

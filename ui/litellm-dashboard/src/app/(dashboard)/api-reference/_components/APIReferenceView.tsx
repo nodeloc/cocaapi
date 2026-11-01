@@ -1,5 +1,6 @@
 "use client";
 import React from "react";
+import { useCustomerNative } from "@/components/account/native/CustomerNativeContext";
 import CodeBlock from "@/components/CodeBlock";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import DocLink from "./DocLink";
@@ -12,6 +13,9 @@ interface ApiRefProps {
 }
 
 const APIReferenceView: React.FC<ApiRefProps> = ({ proxySettings }) => {
+  const customer = useCustomerNative();
+  const model = customer ? "YOUR_MODEL_ID" : "gpt-3.5-turbo";
+  const key = customer ? "YOUR_API_KEY" : "<your-master-key>";
   let base_url = "<your_proxy_base_url>";
   const customDocBaseUrl = proxySettings?.LITELLM_UI_API_DOC_BASE_URL;
   if (customDocBaseUrl && customDocBaseUrl.trim()) {
@@ -21,7 +25,7 @@ const APIReferenceView: React.FC<ApiRefProps> = ({ proxySettings }) => {
   }
 
   return (
-    <div className="grid grid-cols-1 gap-2 p-8 h-[80vh] w-full mt-2">
+    <div className="grid grid-cols-1 gap-2 p-8 h-[80vh] w-full min-w-0 mt-2">
       <div className="mb-5">
         {/* Header row with Docs link on the right */}
         <div className="flex items-center justify-between">
@@ -35,7 +39,7 @@ const APIReferenceView: React.FC<ApiRefProps> = ({ proxySettings }) => {
         </p>
 
         <Tabs defaultValue="openai">
-          <TabsList variant="line" className="border-b rounded-none w-full justify-start h-auto p-0">
+          <TabsList variant="line" className="border-b rounded-none w-full justify-start h-auto p-0 overflow-x-auto">
             <TabsTrigger value="openai" className="rounded-none px-4 py-2 flex-none">
               OpenAI Python SDK
             </TabsTrigger>
@@ -56,7 +60,7 @@ client = openai.OpenAI(
 )
 
 response = client.chat.completions.create(
-    model="gpt-3.5-turbo", # model to send to the proxy
+    model="${model}", # model to send to the proxy
     messages = [
         {
             "role": "user",
@@ -79,17 +83,17 @@ from llama_index.embeddings import AzureOpenAIEmbedding
 from llama_index import VectorStoreIndex, SimpleDirectoryReader, ServiceContext
 
 llm = AzureOpenAI(
-    engine="azure-gpt-3.5",               # model_name on litellm proxy
+    engine="${customer ? "YOUR_MODEL_ID" : "azure-gpt-3.5"}",               # model_name on litellm proxy
     temperature=0.0,
     azure_endpoint="${base_url}", # litellm proxy endpoint
-    api_key="<your-master-key>",          # litellm proxy API Key
+    api_key="${key}",          # litellm proxy API Key
     api_version="2023-07-01-preview",
 )
 
 embed_model = AzureOpenAIEmbedding(
-    deployment_name="azure-embedding-model",
+    deployment_name="${customer ? "YOUR_EMBEDDING_MODEL_ID" : "azure-embedding-model"}",
     azure_endpoint="${base_url}",
-    api_key="<your-master-key>",
+    api_key="${key}",
     api_version="2023-07-01-preview",
 )
 
@@ -116,7 +120,7 @@ from langchain.schema import HumanMessage, SystemMessage
 
 chat = ChatOpenAI(
     openai_api_base="${base_url}",
-    model = "gpt-3.5-turbo",
+    model = "${model}",
     temperature=0.1
 )
 

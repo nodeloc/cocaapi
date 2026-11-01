@@ -1,6 +1,7 @@
 "use client";
 
 import { useDebouncedValue } from "@tanstack/react-pacer/debouncer";
+import { useCustomerNative } from "@/components/account/native/CustomerNativeContext";
 import { useQuery, type UseQueryOptions } from "@tanstack/react-query";
 import type { ColumnFiltersState, OnChangeFn, PaginationState, SortingState } from "@tanstack/react-table";
 import moment from "moment";
@@ -47,6 +48,7 @@ interface RequestLogsPanelProps {
 }
 
 export default function RequestLogsPanel({ accessToken, token, userRole, userID, isActive }: RequestLogsPanelProps) {
+  const customer = useCustomerNative();
   const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: PAGE_SIZE });
   const [sorting, setSorting] = useState<SortingState>(DEFAULT_LOGS_SORTING);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -345,7 +347,9 @@ export default function RequestLogsPanel({ accessToken, token, userRole, userID,
         accessToken={accessToken}
         allLogs={rows}
         onSelectLog={handleSelectLog}
-        startTime={moment(startTime).utc().format("YYYY-MM-DD HH:mm:ss")}
+        startTime={moment(customer && displayLog ? displayLog.startTime : startTime)
+          .utc()
+          .format("YYYY-MM-DD HH:mm:ss")}
       />
     </AutoRouterModelGroupsProvider>
   );

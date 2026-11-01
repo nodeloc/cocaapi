@@ -834,6 +834,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/account/api/v1/gateway/keys/{key_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Key */
+        get: operations["key_account_api_v1_gateway_keys__key_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/account/api/v1/gateway/keys/{key_id}/delete": {
         parameters: {
             query?: never;
@@ -32111,11 +32128,15 @@ export interface components {
         };
         /** CreateGatewayKey */
         CreateGatewayKey: {
+            /** Duration */
+            duration?: string | null;
             /**
              * Expires In Days
              * @default 30
              */
             expires_in_days: number;
+            /** Models */
+            models?: string[] | null;
             /** Name */
             name: string;
         };
@@ -33940,6 +33961,8 @@ export interface components {
         GUARDRAIL_DEFINITION_LOCATION: "db" | "config";
         /** GatewayAccess */
         GatewayAccess: {
+            /** Budget Duration */
+            budget_duration?: string | null;
             /** Budget Reset At */
             budget_reset_at: string | null;
             /** Can Create Key */
@@ -33963,12 +33986,69 @@ export interface components {
             completion_tokens: number;
             /** Day */
             day: string;
+            /**
+             * Failed Requests
+             * @default 0
+             */
+            failed_requests: number;
             /** Prompt Tokens */
             prompt_tokens: number;
             /** Requests */
             requests: number;
+            /**
+             * Response Time Ms
+             * @default 0
+             */
+            response_time_ms: number;
             /** Spend Usd */
             spend_usd: number;
+            /**
+             * Successful Requests
+             * @default 0
+             */
+            successful_requests: number;
+            /**
+             * Timed Requests
+             * @default 0
+             */
+            timed_requests: number;
+            /** Total Tokens */
+            total_tokens: number;
+        };
+        /** GatewayDailyModel */
+        GatewayDailyModel: {
+            /** Completion Tokens */
+            completion_tokens: number;
+            /** Day */
+            day: string;
+            /**
+             * Failed Requests
+             * @default 0
+             */
+            failed_requests: number;
+            /** Model */
+            model: string;
+            /** Prompt Tokens */
+            prompt_tokens: number;
+            /** Requests */
+            requests: number;
+            /**
+             * Response Time Ms
+             * @default 0
+             */
+            response_time_ms: number;
+            /** Spend Usd */
+            spend_usd: number;
+            /**
+             * Successful Requests
+             * @default 0
+             */
+            successful_requests: number;
+            /**
+             * Timed Requests
+             * @default 0
+             */
+            timed_requests: number;
             /** Total Tokens */
             total_tokens: number;
         };
@@ -33976,20 +34056,37 @@ export interface components {
         GatewayKey: {
             /** Blocked */
             blocked: boolean;
+            /** Budget Duration */
+            budget_duration?: string | null;
+            /** Budget Reset At */
+            budget_reset_at?: string | null;
             /** Created At */
             created_at: string | null;
             /** Expires At */
             expires_at: string | null;
             /** Id */
             id: string;
+            /** Last Active At */
+            last_active_at?: string | null;
             /** Max Budget Usd */
             max_budget_usd: number | null;
             /** Models */
             models: string[];
             /** Name */
             name: string;
+            /** Rpm Limit */
+            rpm_limit?: number | null;
             /** Spend Usd */
             spend_usd: number;
+            /**
+             * Total Spend Usd
+             * @default 0
+             */
+            total_spend_usd: number;
+            /** Tpd Limit */
+            tpd_limit?: number | null;
+            /** Tpm Limit */
+            tpm_limit?: number | null;
         };
         /** GatewayKeys */
         GatewayKeys: {
@@ -34000,8 +34097,20 @@ export interface components {
         };
         /** GatewayLog */
         GatewayLog: {
+            /**
+             * Completion Tokens
+             * @default 0
+             */
+            completion_tokens: number;
+            /** Ended At */
+            ended_at?: string | null;
             /** Model */
             model: string;
+            /**
+             * Prompt Tokens
+             * @default 0
+             */
+            prompt_tokens: number;
             /** Request Id */
             request_id: string;
             /** Spend Usd */
@@ -34027,14 +34136,34 @@ export interface components {
         GatewayModelUsage: {
             /** Completion Tokens */
             completion_tokens: number;
+            /**
+             * Failed Requests
+             * @default 0
+             */
+            failed_requests: number;
             /** Model */
             model: string;
             /** Prompt Tokens */
             prompt_tokens: number;
             /** Requests */
             requests: number;
+            /**
+             * Response Time Ms
+             * @default 0
+             */
+            response_time_ms: number;
             /** Spend Usd */
             spend_usd: number;
+            /**
+             * Successful Requests
+             * @default 0
+             */
+            successful_requests: number;
+            /**
+             * Timed Requests
+             * @default 0
+             */
+            timed_requests: number;
             /** Total Tokens */
             total_tokens: number;
         };
@@ -34100,12 +34229,32 @@ export interface components {
         GatewayTotals: {
             /** Completion Tokens */
             completion_tokens: number;
+            /**
+             * Failed Requests
+             * @default 0
+             */
+            failed_requests: number;
             /** Prompt Tokens */
             prompt_tokens: number;
             /** Requests */
             requests: number;
+            /**
+             * Response Time Ms
+             * @default 0
+             */
+            response_time_ms: number;
             /** Spend Usd */
             spend_usd: number;
+            /**
+             * Successful Requests
+             * @default 0
+             */
+            successful_requests: number;
+            /**
+             * Timed Requests
+             * @default 0
+             */
+            timed_requests: number;
             /** Total Tokens */
             total_tokens: number;
         };
@@ -34113,6 +34262,11 @@ export interface components {
         GatewayUsage: {
             /** Daily */
             daily: components["schemas"]["GatewayDaily"][];
+            /**
+             * Daily Models
+             * @default []
+             */
+            daily_models: components["schemas"]["GatewayDailyModel"][];
             /** Days */
             days: number;
             /** Models */
@@ -42553,15 +42707,47 @@ export interface components {
              * Format: password
              */
             api_key: string;
+            /**
+             * Messages
+             * @default []
+             */
+            messages: components["schemas"]["PlaygroundMessage"][];
             /** Model */
             model: string;
-            /** Prompt */
+            /**
+             * Prompt
+             * @default
+             */
             prompt: string;
+        };
+        /** PlaygroundMessage */
+        PlaygroundMessage: {
+            /** Content */
+            content: string;
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "system" | "user" | "assistant";
         };
         /** PlaygroundOutput */
         PlaygroundOutput: {
             /** Content */
             content: string;
+            /** Created */
+            created?: number | null;
+            /** Request Id */
+            request_id?: string | null;
+            usage?: components["schemas"]["PlaygroundUsage"] | null;
+        };
+        /** PlaygroundUsage */
+        PlaygroundUsage: {
+            /** Completion Tokens */
+            completion_tokens: number;
+            /** Prompt Tokens */
+            prompt_tokens: number;
+            /** Total Tokens */
+            total_tokens: number;
         };
         /**
          * PluginAuthor
@@ -54667,6 +54853,109 @@ export interface operations {
             };
         };
     };
+    key_account_api_v1_gateway_keys__key_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                key_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GatewayKey"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountErrorView"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountErrorView"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountErrorView"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountErrorView"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountErrorView"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountErrorView"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountErrorView"];
+                };
+            };
+            /** @description Bad Gateway */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountErrorView"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountErrorView"];
+                };
+            };
+        };
+    };
     delete_account_api_v1_gateway_keys__key_id__delete_post: {
         parameters: {
             query?: never;
@@ -54776,6 +55065,14 @@ export interface operations {
                 days?: number;
                 limit?: number;
                 offset?: number;
+                start_time?: string | null;
+                end_time?: string | null;
+                model?: string | null;
+                request_id?: string | null;
+                status?: string | null;
+                search?: string | null;
+                sort_by?: "startTime" | "spend" | "total_tokens" | "request_duration_ms" | "model";
+                sort_order?: "asc" | "desc";
             };
             header?: never;
             path?: never;
@@ -54984,6 +55281,9 @@ export interface operations {
         parameters: {
             query?: {
                 days?: number;
+                start_time?: string | null;
+                end_time?: string | null;
+                timezone_offset?: number;
             };
             header?: never;
             path?: never;

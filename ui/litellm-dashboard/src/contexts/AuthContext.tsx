@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { jwtDecode } from "jwt-decode";
 import { clearTokenCookies, getCookie } from "@/utils/cookieUtils";
 import { isJwtExpired } from "@/utils/jwtUtils";
@@ -37,7 +38,36 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+const ignoreAuthUpdate = () => undefined;
+const customerAuth: AuthContextValue = {
+  authLoading: false,
+  token: null,
+  userID: null,
+  userRole: "",
+  userEmail: null,
+  accessToken: null,
+  premiumUser: false,
+  disabledPersonalKeyCreation: true,
+  showSSOBanner: false,
+  passwordResetRequired: false,
+  setToken: ignoreAuthUpdate,
+  setUserID: ignoreAuthUpdate,
+  setUserRole: ignoreAuthUpdate,
+  setUserEmail: ignoreAuthUpdate,
+  setAccessToken: ignoreAuthUpdate,
+  setPremiumUser: ignoreAuthUpdate,
+  setShowSSOBanner: ignoreAuthUpdate,
+};
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  if (pathname === "/account" || pathname?.startsWith("/account/")) {
+    return <AuthContext.Provider value={customerAuth}>{children}</AuthContext.Provider>;
+  }
+  return <DashboardAuthProvider>{children}</DashboardAuthProvider>;
+}
+
+function DashboardAuthProvider({ children }: { children: React.ReactNode }) {
   const [authLoading, setAuthLoading] = useState(true);
   const [token, setToken] = useState<string | null>(null);
   const [userID, setUserID] = useState<string | null>(null);

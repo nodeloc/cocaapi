@@ -30,6 +30,8 @@ interface KeyLifecycleSettingsProps {
   neverExpire?: boolean;
   onNeverExpireChange?: (checked: boolean) => void;
   id?: string;
+  allowRotation?: boolean;
+  maxExpiryDays?: number;
 }
 
 const hintIcon = (hint: string): React.ReactNode => (
@@ -53,6 +55,8 @@ const KeyLifecycleSettings: React.FC<KeyLifecycleSettingsProps> = ({
   neverExpire = false,
   onNeverExpireChange,
   id,
+  allowRotation = true,
+  maxExpiryDays,
 }) => {
   const isCustomInterval = Boolean(rotationInterval) && !PREDEFINED_INTERVALS.includes(rotationInterval as never);
 
@@ -60,6 +64,8 @@ const KeyLifecycleSettings: React.FC<KeyLifecycleSettingsProps> = ({
   const [customInterval, setCustomInterval] = useState(isCustomInterval ? rotationInterval : "");
 
   const durationId = id ?? "key-lifecycle-duration";
+  const defaultExpiryPlaceholder = isCreateMode ? "e.g., 30d or leave empty to never expire" : "e.g., 30d";
+  const expiryPlaceholder = maxExpiryDays ? `e.g., 30d (maximum ${maxExpiryDays}d)` : defaultExpiryPlaceholder;
 
   const handleIntervalChange = (next: string) => {
     if (next === "custom") {
@@ -93,7 +99,9 @@ const KeyLifecycleSettings: React.FC<KeyLifecycleSettingsProps> = ({
             <div className="flex items-center space-x-1 text-sm font-medium text-foreground">
               <label htmlFor={durationId}>Expire Key</label>
               {hintIcon(
-                "Set when this key should expire. Format: 30s (seconds), 30m (minutes), 30h (hours), 30d (days). Leave empty to keep the current expiry unchanged.",
+                maxExpiryDays
+                  ? `Set when this key expires. Format: 30s, 30m, 30h, 30d. Defaults to 30 days. Maximum ${maxExpiryDays} days.`
+                  : "Set when this key should expire. Format: 30s (seconds), 30m (minutes), 30h (hours), 30d (days). Leave empty to keep the current expiry unchanged.",
               )}
               {!isCreateMode && onNeverExpireChange && (
                 <span className="ml-2 flex items-center gap-2 text-sm font-normal text-muted-foreground">
@@ -112,89 +120,93 @@ const KeyLifecycleSettings: React.FC<KeyLifecycleSettingsProps> = ({
               id={durationId}
               value={value ?? ""}
               onChange={(event) => onChange?.(event.target.value)}
-              placeholder={isCreateMode ? "e.g., 30d or leave empty to never expire" : "e.g., 30d"}
+              placeholder={expiryPlaceholder}
               className="w-full"
               disabled={!isCreateMode && neverExpire}
             />
           </div>
         </div>
 
-        <Separator />
+        {allowRotation && (
+          <>
+            <Separator />
 
-        <div className="space-y-4">
-          <span className="text-sm font-medium text-foreground">Auto-Rotation Settings</span>
+            <div className="space-y-4">
+              <span className="text-sm font-medium text-foreground">Auto-Rotation Settings</span>
 
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <label className="flex items-center space-x-1 text-sm font-medium text-foreground">
-                <span>Enable Auto-Rotation</span>
-                {hintIcon("Key will automatically regenerate at the specified interval for enhanced security.")}
-              </label>
-              <Switch checked={autoRotationEnabled} onCheckedChange={onAutoRotationChange} />
-            </div>
-
-            {autoRotationEnabled && (
-              <div className="space-y-2">
-                <label className="flex items-center space-x-1 text-sm font-medium text-foreground">
-                  <span>Rotation Interval</span>
-                  {hintIcon(
-                    "How often the key should be automatically rotated. Choose the interval that best fits your security requirements.",
-                  )}
-                </label>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div className="space-y-2">
-                  <Select
-                    value={showCustomInput ? "custom" : rotationInterval || null}
-                    onValueChange={(next: string | null) => next !== null && handleIntervalChange(next)}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select interval">
-                        {(selected: string | null) =>
-                          selected === null ? (
-                            "Select interval"
-                          ) : (
-                            <span title={INTERVAL_LABELS[selected] ?? selected}>
-                              {INTERVAL_LABELS[selected] ?? selected}
-                            </span>
-                          )
-                        }
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      {PREDEFINED_INTERVALS.map((interval) => (
-                        <SelectItem key={interval} value={interval} title={INTERVAL_LABELS[interval]}>
-                          {INTERVAL_LABELS[interval]}
-                        </SelectItem>
-                      ))}
-                      <SelectItem value="custom" title={INTERVAL_LABELS.custom}>
-                        {INTERVAL_LABELS.custom}
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  {showCustomInput && (
-                    <div className="space-y-1">
-                      <Input
-                        value={customInterval}
-                        onChange={handleCustomIntervalChange}
-                        placeholder="e.g., 1s, 5m, 2h, 14d"
-                      />
-                      <div className="text-xs text-muted-foreground">
-                        Supported formats: seconds (s), minutes (m), hours (h), days (d)
-                      </div>
-                    </div>
-                  )}
+                  <label className="flex items-center space-x-1 text-sm font-medium text-foreground">
+                    <span>Enable Auto-Rotation</span>
+                    {hintIcon("Key will automatically regenerate at the specified interval for enhanced security.")}
+                  </label>
+                  <Switch checked={autoRotationEnabled} onCheckedChange={onAutoRotationChange} />
                 </div>
-              </div>
-            )}
-          </div>
 
-          {autoRotationEnabled && (
-            <div className="rounded-md bg-info/10 p-3 text-sm text-info">
-              When rotation occurs, you&apos;ll receive a notification with the new key. The old key will be deactivated
-              after a brief grace period.
+                {autoRotationEnabled && (
+                  <div className="space-y-2">
+                    <label className="flex items-center space-x-1 text-sm font-medium text-foreground">
+                      <span>Rotation Interval</span>
+                      {hintIcon(
+                        "How often the key should be automatically rotated. Choose the interval that best fits your security requirements.",
+                      )}
+                    </label>
+                    <div className="space-y-2">
+                      <Select
+                        value={showCustomInput ? "custom" : rotationInterval || null}
+                        onValueChange={(next: string | null) => next !== null && handleIntervalChange(next)}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select interval">
+                            {(selected: string | null) =>
+                              selected === null ? (
+                                "Select interval"
+                              ) : (
+                                <span title={INTERVAL_LABELS[selected] ?? selected}>
+                                  {INTERVAL_LABELS[selected] ?? selected}
+                                </span>
+                              )
+                            }
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent>
+                          {PREDEFINED_INTERVALS.map((interval) => (
+                            <SelectItem key={interval} value={interval} title={INTERVAL_LABELS[interval]}>
+                              {INTERVAL_LABELS[interval]}
+                            </SelectItem>
+                          ))}
+                          <SelectItem value="custom" title={INTERVAL_LABELS.custom}>
+                            {INTERVAL_LABELS.custom}
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+
+                      {showCustomInput && (
+                        <div className="space-y-1">
+                          <Input
+                            value={customInterval}
+                            onChange={handleCustomIntervalChange}
+                            placeholder="e.g., 1s, 5m, 2h, 14d"
+                          />
+                          <div className="text-xs text-muted-foreground">
+                            Supported formats: seconds (s), minutes (m), hours (h), days (d)
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {autoRotationEnabled && (
+                <div className="rounded-md bg-info/10 p-3 text-sm text-info">
+                  When rotation occurs, you&apos;ll receive a notification with the new key. The old key will be
+                  deactivated after a brief grace period.
+                </div>
+              )}
             </div>
-          )}
-        </div>
+          </>
+        )}
       </div>
     </TooltipProvider>
   );

@@ -124,9 +124,11 @@ export default function UsageOverview({
       {topAgents}
       {providerBreakdown}
 
-      <Panel icon={KeyRound} title="Top Virtual Keys">
-        {topKeys}
-      </Panel>
+      {topKeys && (
+        <Panel icon={KeyRound} title="Top Virtual Keys">
+          {topKeys}
+        </Panel>
+      )}
       {gatewayByEndpoint}
     </div>
   );

@@ -1,7 +1,9 @@
+import re
 from datetime import datetime
-from typing import Protocol
+from typing import Final, Literal, Protocol
 
-from pydantic import Field, SecretStr
+from pydantic import Field, SecretStr, model_validator
+from typing_extensions import Self
 
 from litellm.models.commerce_auth import AuthError, FrozenModel
 
@@ -15,6 +17,7 @@ class GatewayAccess(FrozenModel):
     budget_reset_at: datetime | None
     can_create_key: bool
     key_creation_reason: str | None
+    budget_duration: str | None = None
 
 
 class GatewayKey(FrozenModel):
@@ -26,6 +29,13 @@ class GatewayKey(FrozenModel):
     expires_at: datetime | None
     created_at: datetime | None
     blocked: bool
+    budget_duration: str | None = None
+    budget_reset_at: datetime | None = None
+    total_spend_usd: float = 0
+    rpm_limit: int | None = None
+    tpm_limit: int | None = None
+    tpd_limit: int | None = None
+    last_active_at: datetime | None = None
 
 
 class GatewayKeys(FrozenModel):
@@ -36,6 +46,16 @@ class GatewayKeys(FrozenModel):
 class CreateGatewayKey(FrozenModel):
     name: str = Field(min_length=1, max_length=80)
     expires_in_days: int = Field(default=30, ge=1, le=365, strict=True)
+    duration: str | None = Field(default=None, pattern=r"^[1-9][0-9]{0,7}[smhd]$")
+    models: tuple[str, ...] | None = Field(default=None, max_length=100)
+
+    @model_validator(mode="after")
+    def bounded_duration(self) -> Self:
+        if self.duration:
+            match: Final = re.fullmatch(r"([1-9][0-9]*)([smhd])", self.duration)
+            if match and int(match[1]) * {"s": 1, "m": 60, "h": 3600, "d": 86400}[match[2]] > 365 * 86400:
+                raise ValueError("Key expiry cannot exceed 365 days")
+        return self
 
 
 class CreatedGatewayKey(FrozenModel):
@@ -48,6 +68,10 @@ class GatewayTotals(FrozenModel):
     completion_tokens: int
     total_tokens: int
     spend_usd: float
+    successful_requests: int = 0
+    failed_requests: int = 0
+    response_time_ms: float = 0
+    timed_requests: int = 0
 
 
 class GatewayDaily(GatewayTotals):
@@ -58,11 +82,16 @@ class GatewayModelUsage(GatewayTotals):
     model: str
 
 
+class GatewayDailyModel(GatewayModelUsage):
+    day: str
+
+
 class GatewayUsage(FrozenModel):
     days: int
     totals: GatewayTotals
     daily: tuple[GatewayDaily, ...]
     models: tuple[GatewayModelUsage, ...]
+    daily_models: tuple[GatewayDailyModel, ...] = ()
 
 
 class GatewayLog(FrozenModel):
@@ -72,6 +101,9 @@ class GatewayLog(FrozenModel):
     started_at: datetime
     total_tokens: int
     spend_usd: float
+    ended_at: datetime | None = None
+    prompt_tokens: int = 0
+    completion_tokens: int = 0
 
 
 class GatewayLogs(FrozenModel):
@@ -82,11 +114,34 @@ class GatewayLogs(FrozenModel):
 class PlaygroundInput(FrozenModel):
     api_key: SecretStr = Field(min_length=16, max_length=256)
     model: str = Field(min_length=1, max_length=256)
-    prompt: str = Field(min_length=1, max_length=8000)
+    prompt: str = Field(default="", max_length=8000)
+    messages: tuple["PlaygroundMessage", ...] = Field(default=(), max_length=50)
+
+    @model_validator(mode="after")
+    def bounded_conversation(self) -> Self:
+        if not self.prompt.strip() and not self.messages:
+            raise ValueError("A message is required")
+        if sum(len(message.content) for message in self.messages) > 32000:
+            raise ValueError("Conversation is too long")
+        return self
+
+
+class PlaygroundMessage(FrozenModel):
+    role: Literal["system", "user", "assistant"]
+    content: str = Field(min_length=1, max_length=8000)
+
+
+class PlaygroundUsage(FrozenModel):
+    prompt_tokens: int
+    completion_tokens: int
+    total_tokens: int
 
 
 class PlaygroundOutput(FrozenModel):
     content: str
+    request_id: str | None = None
+    created: int | None = None
+    usage: PlaygroundUsage | None = None
 
 
 class NativeGateway(Protocol):

@@ -19,8 +19,9 @@ function unwrap<T>(result: { data?: T; error?: unknown; response: Response }): T
   if (result.data !== undefined && result.response.ok) return result.data;
   const detail =
     result.error && typeof result.error === "object" && "detail" in result.error ? result.error.detail : null;
+  const message = typeof detail === "string" ? errorMessage(detail) : "网关请求失败，请稍后重试。";
   throw new AccountRequestError(
-    typeof detail === "string" ? errorMessage(detail) : "网关请求失败，请稍后重试。",
+    detail === "invalid_request" ? "请检查提交的参数和日期范围。" : message,
     result.response.status,
   );
 }
@@ -29,6 +30,10 @@ export const gatewayApi = {
   access: async () => unwrap(await client.GET("/account/api/v1/gateway/access")),
   keys: async (offset = 0) =>
     unwrap(await client.GET("/account/api/v1/gateway/keys", { params: { query: { offset, limit: 25 } } })),
+  key: async (key_id: string) =>
+    unwrap(await client.GET("/account/api/v1/gateway/keys/{key_id}", { params: { path: { key_id } } })),
+  createNative: async (body: components["schemas"]["CreateGatewayKey"], csrf: string) =>
+    unwrap(await client.POST("/account/api/v1/gateway/keys", { body, headers: { "X-CSRF-Token": csrf } })),
   create: async (name: string, expires_in_days: number, csrf: string) =>
     unwrap(
       await client.POST("/account/api/v1/gateway/keys", {
@@ -43,8 +48,14 @@ export const gatewayApi = {
         headers: { "X-CSRF-Token": csrf },
       }),
     ),
-  usage: async (days = 30) =>
-    unwrap(await client.GET("/account/api/v1/gateway/usage", { params: { query: { days } } })),
+  usage: async (days = 30, start_time?: string, end_time?: string, timezone_offset = 0) =>
+    unwrap(
+      await client.GET("/account/api/v1/gateway/usage", {
+        params: { query: { days, start_time, end_time, timezone_offset } },
+      }),
+    ),
+  nativeLogs: async (query: NonNullable<paths["/account/api/v1/gateway/logs"]["get"]["parameters"]["query"]>) =>
+    unwrap(await client.GET("/account/api/v1/gateway/logs", { params: { query } })),
   logs: async (days = 30, offset = 0) =>
     unwrap(await client.GET("/account/api/v1/gateway/logs", { params: { query: { days, offset, limit: 25 } } })),
   chat: async (body: components["schemas"]["PlaygroundInput"], csrf: string) =>

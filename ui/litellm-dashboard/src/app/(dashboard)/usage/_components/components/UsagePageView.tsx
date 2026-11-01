@@ -1,3 +1,4 @@
+import { useCustomerNative } from "@/components/account/native/CustomerNativeContext";
 /**
  * New Usage Page
  *
@@ -73,6 +74,7 @@ interface UsagePageProps {
 
 const UsagePage: React.FC<UsagePageProps> = ({ teams, organizations }) => {
   const { accessToken, userRole, userId: userID, premiumUser } = useAuthorized();
+  const customer = useCustomerNative();
   const [gatewayActivityData, setGatewayActivityData] = useState<FetchedGatewayActivity | null>(null);
 
   // Create initial dates outside of state to prevent recreation
@@ -92,7 +94,7 @@ const UsagePage: React.FC<UsagePageProps> = ({ teams, organizations }) => {
   const { data: agentsResponse } = useAgents();
   const { data: currentUser } = useCurrentUser();
   const isAdmin = all_admin_roles.includes(userRole || "");
-  const canViewTagUsage = isAdmin || internalUserRoles.includes(userRole || "");
+  const canViewTagUsage = !customer && (isAdmin || internalUserRoles.includes(userRole || ""));
   const isOrgAdmin = useIsOrgAdmin();
   const canViewOrganizationUsage = hasCapability(userRole, "viewOrganizationUsage", isOrgAdmin);
   const canViewAgentUsage = hasCapability(userRole, "viewAgentUsage");
@@ -355,26 +357,32 @@ const UsagePage: React.FC<UsagePageProps> = ({ teams, organizations }) => {
                     <TabsTrigger value="models" className="flex-none px-3">
                       Model Activity
                     </TabsTrigger>
-                    <TabsTrigger value="keys" className="flex-none px-3">
-                      Key Activity
-                    </TabsTrigger>
-                    <TabsTrigger value="mcp" className="flex-none px-3">
-                      MCP Server Activity
-                    </TabsTrigger>
-                    <TabsTrigger value="endpoints" className="flex-none px-3">
-                      Endpoint Activity
-                    </TabsTrigger>
+                    {!customer && (
+                      <>
+                        <TabsTrigger value="keys" className="flex-none px-3">
+                          Key Activity
+                        </TabsTrigger>
+                        <TabsTrigger value="mcp" className="flex-none px-3">
+                          MCP Server Activity
+                        </TabsTrigger>
+                        <TabsTrigger value="endpoints" className="flex-none px-3">
+                          Endpoint Activity
+                        </TabsTrigger>
+                      </>
+                    )}
                   </TabsList>
-                  <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm" onClick={() => setIsAiChatOpen(true)}>
-                      <Sparkles />
-                      Ask AI
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={() => setIsGlobalExportModalOpen(true)}>
-                      <Download />
-                      Export Data
-                    </Button>
-                  </div>
+                  {!customer && (
+                    <div className="flex items-center gap-2">
+                      <Button variant="outline" size="sm" onClick={() => setIsAiChatOpen(true)}>
+                        <Sparkles />
+                        Ask AI
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => setIsGlobalExportModalOpen(true)}>
+                        <Download />
+                        Export Data
+                      </Button>
+                    </div>
+                  )}
                 </div>
                 <TabsContent value="cost" keepMounted>
                   <UsageOverview
@@ -384,12 +392,14 @@ const UsagePage: React.FC<UsagePageProps> = ({ teams, organizations }) => {
                     requestCountsPending={requestCountsPending}
                     budget={currentUser?.max_budget ?? null}
                     topKeys={
-                      <TopKeyView
-                        topKeys={topKeys}
-                        teams={null}
-                        topKeysLimit={topKeysLimit}
-                        setTopKeysLimit={setTopKeysLimit}
-                      />
+                      !customer && (
+                        <TopKeyView
+                          topKeys={topKeys}
+                          teams={null}
+                          topKeysLimit={topKeysLimit}
+                          setTopKeysLimit={setTopKeysLimit}
+                        />
+                      )
                     }
                     gatewayByEndpoint={
                       gatewayActivity && gatewayActivity.by_route.length > 0 ? (
@@ -426,7 +436,9 @@ const UsagePage: React.FC<UsagePageProps> = ({ teams, organizations }) => {
                       ) : null
                     }
                     providerBreakdown={
-                      <SpendByProvider loading={loading} isDateChanging={false} providerSpend={providerSpend} />
+                      !customer && (
+                        <SpendByProvider loading={loading} isDateChanging={false} providerSpend={providerSpend} />
+                      )
                     }
                   />
                 </TabsContent>
@@ -456,7 +468,7 @@ const UsagePage: React.FC<UsagePageProps> = ({ teams, organizations }) => {
                         </InputGroupAddon>
                       )}
                     </InputGroup>
-                    <ModelViewToggle value={modelViewType} onChange={setModelViewType} />
+                    {!customer && <ModelViewToggle value={modelViewType} onChange={setModelViewType} />}
                   </div>
                   {trimmedModelQuery !== "" &&
                   Object.keys(modelMetrics).length > 0 &&
@@ -467,26 +479,31 @@ const UsagePage: React.FC<UsagePageProps> = ({ teams, organizations }) => {
                   ) : (
                     <ActivityMetrics
                       modelMetrics={filteredModelMetrics}
-                      fetchTopApiKeys={dailyActivityRequest ? fetchTopApiKeys : undefined}
+                      hidePromptCachingMetrics={Boolean(customer)}
+                      fetchTopApiKeys={!customer && dailyActivityRequest ? fetchTopApiKeys : undefined}
                     />
                   )}
                 </TabsContent>
-                <TabsContent value="keys" keepMounted>
-                  <KeyActivityPanel
-                    summary={summaryMetrics}
-                    summaryLoading={loading}
-                    fetchKeyPage={fetchKeyPage}
-                    fetchKeyDetail={fetchKeyDetail}
-                    teams={teams}
-                    searchKeys={searchKeys}
-                  />
-                </TabsContent>
-                <TabsContent value="mcp" keepMounted>
-                  <ActivityMetrics modelMetrics={mcpServerMetrics} />
-                </TabsContent>
-                <TabsContent value="endpoints" keepMounted>
-                  <EndpointUsage userSpendData={userSpendData} />
-                </TabsContent>
+                {!customer && (
+                  <>
+                    <TabsContent value="keys" keepMounted>
+                      <KeyActivityPanel
+                        summary={summaryMetrics}
+                        summaryLoading={loading}
+                        fetchKeyPage={fetchKeyPage}
+                        fetchKeyDetail={fetchKeyDetail}
+                        teams={teams}
+                        searchKeys={searchKeys}
+                      />
+                    </TabsContent>
+                    <TabsContent value="mcp" keepMounted>
+                      <ActivityMetrics modelMetrics={mcpServerMetrics} />
+                    </TabsContent>
+                    <TabsContent value="endpoints" keepMounted>
+                      <EndpointUsage userSpendData={userSpendData} />
+                    </TabsContent>
+                  </>
+                )}
               </Tabs>
             </>
           )}
@@ -641,7 +658,9 @@ const UsagePage: React.FC<UsagePageProps> = ({ teams, organizations }) => {
       />
 
       {/* AI Chat Panel */}
-      <UsageAIChatPanel open={isAiChatOpen} onClose={() => setIsAiChatOpen(false)} accessToken={accessToken} />
+      {!customer && (
+        <UsageAIChatPanel open={isAiChatOpen} onClose={() => setIsAiChatOpen(false)} accessToken={accessToken} />
+      )}
     </div>
   );
 };

@@ -1,3 +1,4 @@
+import { dashboardFetch as fetch } from "@/lib/http/customerTransport";
 import { useQuery, UseQueryResult } from "@tanstack/react-query";
 import { getGlobalLitellmHeaderName, getProxyBaseUrl } from "@/components/networking";
 import { createQueryKeys } from "../common/queryKeysFactory";

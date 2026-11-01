@@ -2,6 +2,7 @@
 
 import { Inbox, ShieldAlert } from "lucide-react";
 import React, { useMemo, useState } from "react";
+import { useCustomerNative } from "@/components/account/native/CustomerNativeContext";
 
 import {
   BUDGET_DURATION_FILTER_OPTIONS,
@@ -141,6 +142,7 @@ function DurationFilter({ selected, onChange }: { selected: string[]; onChange: 
 }
 
 function BudgetFilterFields({ get, set }: FilterDraft) {
+  const customer = useCustomerNative();
   const maxBudget = (get("max_budget") as MaxBudgetFilterValue | undefined) ?? {};
   const created = (get("created_at") as CreatedAtFilterValue | undefined) ?? {};
   const unlimitedOnly = maxBudget.unlimitedOnly === true;
@@ -187,34 +189,40 @@ function BudgetFilterFields({ get, set }: FilterDraft) {
           Unlimited only
         </Label>
       </DataTableFilterField>
-      <DataTableFilterField label="Created">
-        <div className="flex items-center gap-2">
-          <Input
-            type="date"
-            value={created.from ?? ""}
-            onChange={(event) => set("created_at", normalizeCreatedAt({ ...created, from: event.target.value }))}
-            aria-label="Created from"
-            data-testid="budget-filter-created-from"
-          />
-          <Input
-            type="date"
-            value={created.to ?? ""}
-            onChange={(event) => set("created_at", normalizeCreatedAt({ ...created, to: event.target.value }))}
-            aria-label="Created to"
-            data-testid="budget-filter-created-to"
-          />
-        </div>
-      </DataTableFilterField>
+      {!customer && (
+        <DataTableFilterField label="Created">
+          <div className="flex items-center gap-2">
+            <Input
+              type="date"
+              value={created.from ?? ""}
+              onChange={(event) => set("created_at", normalizeCreatedAt({ ...created, from: event.target.value }))}
+              aria-label="Created from"
+              data-testid="budget-filter-created-from"
+            />
+            <Input
+              type="date"
+              value={created.to ?? ""}
+              onChange={(event) => set("created_at", normalizeCreatedAt({ ...created, to: event.target.value }))}
+              aria-label="Created to"
+              data-testid="budget-filter-created-to"
+            />
+          </div>
+        </DataTableFilterField>
+      )}
     </>
   );
 }
 
 const BudgetTable: React.FC<BudgetTableProps> = ({ list, canModify, onEditClick, onDeleteClick }) => {
+  const customer = useCustomerNative();
   const [filtersOpen, setFiltersOpen] = useState(false);
 
   const columns = useMemo(
-    () => getBudgetTableColumns({ canModify, onEditClick, onDeleteClick }),
-    [canModify, onEditClick, onDeleteClick],
+    () =>
+      getBudgetTableColumns({ canModify, onEditClick, onDeleteClick }).filter(
+        (column) => !customer || column.id !== "created_at",
+      ),
+    [canModify, onEditClick, onDeleteClick, customer],
   );
 
   const hasQuery = list.searchValue.trim() !== "" || list.columnFilters.length > 0;

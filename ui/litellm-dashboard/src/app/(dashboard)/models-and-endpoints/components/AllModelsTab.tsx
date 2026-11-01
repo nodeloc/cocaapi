@@ -1,5 +1,6 @@
 "use client";
 
+import { useCustomerNative } from "@/components/account/native/CustomerNativeContext";
 import { useModelCostMap } from "@/app/(dashboard)/hooks/models/useModelCostMap";
 import { useTeams } from "@/app/(dashboard)/hooks/teams/useTeams";
 import { useCredentials } from "@/app/(dashboard)/hooks/credentials/useCredentials";
@@ -80,6 +81,7 @@ const AllModelsTab = ({
   setSelectedModelId,
   setSelectedTeamId,
 }: AllModelsTabProps) => {
+  const customer = useCustomerNative();
   const { data: modelCostMapData, isLoading: isLoadingModelCostMap } = useModelCostMap();
   const { accessToken, userId, userRole, isViewOnly } = useAuthorized();
   const { data: teams, isLoading: isLoadingTeams } = useTeams();
@@ -391,11 +393,13 @@ const AllModelsTab = ({
         onOk={handleDeleteModel}
         confirmLoading={deleteLoading}
       />
-      <ModelSettingsModal
-        isVisible={isModelSettingsModalVisible}
-        onCancel={() => setIsModelSettingsModalVisible(false)}
-        onSuccess={() => setIsModelSettingsModalVisible(false)}
-      />
+      {!customer && (
+        <ModelSettingsModal
+          isVisible={isModelSettingsModalVisible}
+          onCancel={() => setIsModelSettingsModalVisible(false)}
+          onSuccess={() => setIsModelSettingsModalVisible(false)}
+        />
+      )}
     </div>
   );
 };
