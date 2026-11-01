@@ -10,6 +10,12 @@
 
 **Spec:** `docs/superpowers/specs/2026-11-01-cocaapi-user-billing-design.md`
 
+## 当前实施进度
+
+2026-11-01 用户指定先实现注册登录与 GitHub、Google、NodeLoc OAuth，因此提前推进 Task 4 的账号部分和 Task 4A。账号首版已部署，钱包、个人 Key、兑换码和支付仍未开始。真实 OAuth 应用和 SMTP 尚未准备，线上注册保持关闭，提供商配置后才显示入口。发布与验证记录见 `deploy/cocaapi/AUTH.md`
+
+本期复用现有 dashboard 工程的组件和静态构建，在 `/account/` 提供独立用户页面与 Cookie 会话，以满足保持现有风格的要求。类型与仓储暂用 `commerce_auth.py` 和 `commerce_auth_repository.py` 单文件组织，后续领域增多时再拆分
+
 ## Global Constraints
 
 以 `v1.106.6` 为开发稳定基线，保留当前分支，不重写历史
@@ -18,7 +24,7 @@
 
 注册初始余额为零，公开注册初始关闭，未验证用户不能创建 Key、兑换或充值
 
-客户与 `LiteLLM_UserTable.user_id` 一对一绑定，不能另建独立密码来源
+客户与 `LiteLLM_UserTable.user_id` 一对一绑定。客户密码的权威来源为 `CommerceCustomer.password_hash`，复用现有 scrypt 原语，原生用户行的 password 保持 NULL，阻止用户中心密码进入原生后台登录流程，不维护两份同步密码
 
 首批 OAuth 提供商固定为 GitHub、Google、NodeLoc，参考 `docs/design/2026-11-01-new-api-reference-and-oauth.md`。同一个客户只使用同一个钱包，不根据相同邮箱自动合并账户
 
@@ -28,7 +34,7 @@
 
 读取规格中的完整状态、异常和验收规则，不将下列任务视为对规则的缩减
 
-本次是规划交付，不执行下列开发、迁移或生产变更。任务按顺序推进，每项完成独立验证与提交，不要求并行代理
+最初规划阶段不执行生产变更；当前已按用户后续指令进入账号开发阶段。除已记录的账号范围外，其余任务仍是待实施计划，不要求并行代理
 
 ## 工程边界与目录
 

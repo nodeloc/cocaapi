@@ -1,6 +1,6 @@
 # CocaAPI 用户与计费产品规格
 
-日期为 2026-11-01，状态为规划稿。本文件取代早期接入调研中的实施顺序，不表示业务功能已经开发或上线
+日期为 2026-11-01，整体计费产品仍为规划稿。用户后续指定的账号首版已部署，真实 OAuth 和 SMTP 验收等待配置，其余功能未上线。当前范围和工程调整见实施计划及 `deploy/cocaapi/AUTH.md`
 
 ## 目标与边界
 
@@ -10,13 +10,13 @@
 
 已确认 fork New API 作为用户、钱包、兑换码与 OAuth 的参考，第一批 OAuth 注册登录平台为 GitHub、Google、NodeLoc。源码参考及提供商核对记录见 `docs/design/2026-11-01-new-api-reference-and-oauth.md`
 
-推荐第一版采用独立中文用户控制台，管理员保留现有 `/ui/`。推荐默认开启邮箱验证，注册余额为零，使用单一美元计价额度。以上为实施默认方案，尚未修改线上配置
+用户中心沿用现有界面风格，管理员保留 `/ui/`。账号首版提供邮箱验证，新用户网关额度为零，发布初始注册关闭。单一美元计价钱包属于后续实施范围
 
 第一版包含邮箱和 OAuth 账号、外部身份绑定、余额账本、API Key、消费预留和结算、兑换码、单次 USDT 充值、模型价格展示及运营管理。套餐订阅、邀请返佣、代理商、提现、自动退款、多币种内部钱包和自建链上监听列入后续版本
 
 ## 当前工程基线
 
-线上使用官方 `v1.106.6` 固定摘要镜像，PostgreSQL、Redis、Caddy 已部署在 `141.98.197.58`。fork 功能分支以较新的 main 为基础，目前自有变更仅包含部署和文档，不能直接假设它与线上代码一致
+线上账号镜像基于官方 `v1.106.6` 固定摘要并加入本期账号模块，PostgreSQL、Redis、Caddy 部署在 `141.98.197.58`。账号分支为 `litellm_account_auth`，原来基于 main 的 `litellm_user_wallet` 保留
 
 开发先以 `v1.106.6` 建立稳定基线，保留现有分支，不重写历史。以有明确来源的提交迁入部署文件与规格，使用新功能分支和自定义镜像发布。升级到更新的 LiteLLM 稳定版另作一次兼容性评估
 
@@ -66,11 +66,11 @@ flowchart LR
 
 后端在 fork 内增加 `commerce` 模块，沿用 Python、FastAPI、Prisma 与现有 PostgreSQL，不增加独立账号数据库或第二套模型路由。后台任务独立进程运行同一镜像，处理事务 outbox、支付复查和待对账请求
 
-前端放在 `ui/cocaapi-console`，采用 React、TypeScript 和 Next.js 静态导出。它与现有管理后台独立构建，由 Caddy 服务静态产物，生产机不运行 Node 开发服务器。依赖版本在实施时选定并提交锁文件，构建在 CI 或开发机完成
+账号首版根据保持现有风格的要求，复用 `ui/litellm-dashboard` 的 React、TypeScript、Next.js 与组件，在 `/account/` 输出独立用户页面。静态产物随网关镜像发布，开发机完成构建，生产机不运行 Node 开发服务器。用户会话和 API 与管理员入口分离
 
 账号 API 使用 `/account/api/v1`，管理 API 使用 `/commerce/admin/v1`，支付回调使用 `/commerce/webhooks/{provider}`。现有 `/v1` 模型接口继续由 LiteLLM 处理，付费用户不能通过其他 LiteLLM 推理路径绕过钱包检查
 
-用户身份复用 `LiteLLM_UserTable.user_id`。新增客户资料与它一对一绑定。密码复用现有哈希和校验原语，用户中心使用单独的受限会话，不向浏览器提供 master key，也不另建可独立修改密码的第二份用户记录
+用户身份复用 `LiteLLM_UserTable.user_id`。新增客户资料与它一对一绑定。客户密码复用现有哈希和校验原语，仅存于 `CommerceCustomer.password_hash`，原生用户 password 为 NULL，以避免原生后台登录绕过用户中心限制。用户中心使用单独的受限会话，不向浏览器提供 master key，也不维护另一份同步密码
 
 ## 注册与登录
 

@@ -57,3 +57,13 @@ docker compose -f compose.yaml -f compose.auth.yaml --profile mail up -d gateway
 在独立 PostgreSQL 上执行账号 API 集成测试，包括注册权限、CSRF、跨域、单次邮件令牌、重置撤销会话、旧快照写入、并发注册、OAuth 状态和回调、邮箱冲突、绑定及最后一种登录方式保护。OIDC 测试使用本地 RSA 签名和模拟 HTTP 边界，覆盖错误签名、issuer、audience、nonce、过期及 userinfo 身份不匹配。前端测试覆盖真实表单提交、显式验证邮箱和 SMTP 未配置状态
 
 浏览器验证使用隔离数据库与私有 SSH 隧道，真实网关双 worker 运行。邮件链接从测试队列读取，不等同于真实 SMTP 发信。没有应用凭据，因此真实 GitHub、Google、NodeLoc 授权和真实邮件投递仍待配置后验收。仓库的托管 CI、Greptile、Veria、Bugbot 未在本地环境运行，不能视为通过
+
+## 2026-11-01 发布记录
+
+运行代码为 `551d604c`，镜像 ID 为 `sha256:c5b33b631671b33352bf9039b78727177a2fe2c2becce40dc1551a911ad3c20a`。服务健康检查通过，首页跳转用户登录页，用户页面与原有管理后台均可通过 HTTPS 访问。公网确认注册请求返回 `registration_closed`，提供商列表为空，邮件功能关闭。管理员登录及 API 的无 Key 401、有管理员 Key 200 行为均通过，生产客户表无测试账户
+
+47 项后端测试和 3 项前端集成测试通过，新增 Python 模块的 Ruff strict、类型纪律检查和 basedpyright 目标 Python 3.10 校验通过，三份 Prisma schema 一致且校验通过。前端类型检查与静态生产构建通过，OpenAPI 类型已重新生成。独立审查发现的问题已修复并补充回归
+
+隔离环境完成浏览器注册、密码登录、邮箱验证、修改密码、重新登录和手机布局检查，原生后台登录及模型列表鉴权也使用最终镜像验证。邮件 worker 已独立启动并连接隔离数据库，内存上限调整为 512 MiB；没有进行真实 SMTP 投递。回调异常路径的授权码已确认不会写入 Uvicorn 访问日志
+
+生产配置为 `/opt/cocaapi/auth.env`，本地编辑副本为 `E:\key\greencloud\cocaapi-auth.env`。升级前后数据库备份和受限配置副本位于 `/opt/cocaapi/backups/auth-20261101T125546Z/`，备份目录已通过 `pg_restore --list` 检查，尚未进行完整恢复演练
