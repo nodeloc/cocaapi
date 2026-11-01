@@ -1,0 +1,98 @@
+name: cocaapi
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: 10m
+    max-file: "3"
+
+services:
+  gateway:
+    image: ghcr.io/berriai/litellm:v1.106.6@sha256:37e2dafb088a7723beb998590682957386dfc83ffea1848486f8e0e5cfac0b06
+    restart: unless-stopped
+    init: true
+    ports:
+      - 127.0.0.1:4000:4000
+    environment:
+      DATABASE_URL: postgresql://cocaapi:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@postgres:5432/cocaapi
+      LITELLM_MASTER_KEY: ${LITELLM_MASTER_KEY:?Set LITELLM_MASTER_KEY}
+      LITELLM_SALT_KEY: ${LITELLM_SALT_KEY:?Set LITELLM_SALT_KEY}
+      UI_USERNAME: ${UI_USERNAME:?Set UI_USERNAME}
+      UI_PASSWORD: ${UI_PASSWORD:?Set UI_PASSWORD}
+      PROXY_BASE_URL: https://cocaapi.com
+      STORE_MODEL_IN_DB: "True"
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?Set REDIS_PASSWORD}
+      NO_DOCS: "True"
+    volumes:
+      - ./config.yaml:/app/config.yaml:ro
+    command:
+      - --config=/app/config.yaml
+      - --host=0.0.0.0
+      - --port=4000
+      - --num_workers=2
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - python3
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:4000/health/readiness', timeout=5)"
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 180s
+    stop_grace_period: 90s
+    mem_limit: 3g
+    logging: *logging
+
+  postgres:
+    image: postgres:16-alpine@sha256:0cefaabd882e42bcb2a2f3dc56d3ce4770560ba62fd7f197f1a2e008fd5731ab
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: cocaapi
+      POSTGRES_USER: cocaapi
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    mem_limit: 1g
+    logging: *logging
+
+  redis:
+    image: redis:7-alpine@sha256:8da19c7399dca900c6822a1cf30f9d2285585e2c4b457ff4095b0f4500054d3f
+    restart: unless-stopped
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?Set REDIS_PASSWORD}
+    command:
+      - sh
+      - -c
+      - 'exec redis-server --appendonly yes --maxmemory 128mb --maxmemory-policy noeviction --requirepass "$$REDIS_PASSWORD"'
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: [CMD-SHELL, 'REDISCLI_AUTH="$$REDIS_PASSWORD" redis-cli ping | grep -q PONG']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    mem_limit: 256m
+    logging: *logging
+
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: 172.30.20.0/24
+
+volumes:
+  postgres_data:
+  redis_data:
