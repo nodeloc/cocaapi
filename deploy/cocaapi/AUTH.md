@@ -64,6 +64,8 @@ docker compose -f compose.yaml -f compose.auth.yaml --profile mail up -d gateway
 
 用户入口为 `https://cocaapi.com/account/login/`，注册页为 `/account/register/`，账号安全页为 `/account/security/`。OAuth 注册无需 SMTP，但没有已验证邮箱的 OAuth 用户需要补充并验证邮箱才能修改安全设置。注册关闭仍允许已有账号登录
 
+用户中心已复用现有管理后台模板，账号、余额、订单和安全设置的布局及发布验证见 [ACCOUNT_UI.md](ACCOUNT_UI.md)
+
 ## 验证范围
 
 在独立 PostgreSQL 上执行账号 API 集成测试，包括注册权限、CSRF、跨域、单次邮件令牌、重置撤销会话、旧快照写入、并发注册、OAuth 状态和回调、邮箱冲突、绑定及最后一种登录方式保护。OIDC 测试使用本地 RSA 签名和模拟 HTTP 边界，覆盖错误签名、issuer、audience、nonce、过期及 userinfo 身份不匹配。前端测试覆盖真实表单提交、显式验证邮箱和 SMTP 未配置状态
