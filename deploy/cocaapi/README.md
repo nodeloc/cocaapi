@@ -2,7 +2,7 @@
 
 服务器为 `141.98.197.58`，运行 Debian 13。服务目录为 `/opt/cocaapi`，Caddy 配置为 `/etc/caddy/Caddyfile`。入口为 `https://cocaapi.com/ui/`，API 地址为 `https://cocaapi.com/v1`
 
-当前部署使用官方 LiteLLM `v1.106.6` 镜像，Compose 中固定了镜像摘要。fork 目前没有用户中心或支付实现，因此此部署只提供 LiteLLM 基础网关和原有管理后台。后续发布自定义应用时，需要构建 fork 镜像并更换 gateway 的镜像引用
+基础网关固定为官方 LiteLLM `v1.106.6` 镜像。账号版本使用 `Dockerfile.auth` 在该固定摘要上构建，复用现有前端组件，新增 `/account/` 用户中心。管理员继续使用 `/ui/`，模型 API 仍为 `/v1`。充值和兑换码属于后续阶段，本次没有实现
 
 ## 配置和凭据
 

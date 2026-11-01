@@ -54,10 +54,14 @@ try {
     stdio: "inherit",
   });
 
-  execFileSync(join(dashboardDir, "node_modules", ".bin", "openapi-typescript"), [specPath, "-o", outPath], {
-    cwd: dashboardDir,
-    stdio: "inherit",
-  });
+  execFileSync(
+    process.execPath,
+    [join(dashboardDir, "node_modules", "openapi-typescript", "bin", "cli.js"), specPath, "-o", outPath],
+    {
+      cwd: dashboardDir,
+      stdio: "inherit",
+    },
+  );
 } finally {
   rmSync(specDir, { recursive: true, force: true });
 }

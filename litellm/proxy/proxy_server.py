@@ -2330,6 +2330,9 @@ def _get_cors_config(
 
 origins, allow_cors_credentials = _get_cors_config()
 
+from litellm.proxy.commerce.account_routes import router as account_router
+
+app.include_router(account_router)
 
 # get current directory
 try:
@@ -2574,6 +2577,9 @@ try:
     )
     # print(f"mounted _next at {server_root_path}/ui/_next")
 
+    account_ui_path: Final = os.path.join(ui_path, "account")
+    if os.path.isdir(account_ui_path):
+        app.mount("/account", StaticFiles(directory=account_ui_path, html=True), name="account")
     app.mount("/ui", StaticFiles(directory=ui_path, html=True), name="ui")
 
     def _restructure_ui_html_files(ui_root: str) -> None:

@@ -297,6 +297,7 @@ model LiteLLM_DeletedTeamTable {
 
 // Track spend, rate limit, budget Users
 model LiteLLM_UserTable {
+    commerce_customer CommerceCustomer?
     verified_subjects LiteLLM_VerifiedSubject[]
 		user_id    String @id
     user_alias String? 
@@ -2002,4 +2003,90 @@ model LiteLLM_LensTraceSignal {
   data          Json
 
   @@id([trace_id, trace_ref])
+}
+
+model CommerceCustomer {
+  user_id String @id
+  email_normalized String? @unique
+  email_verified Boolean @default(false)
+  password_hash String?
+  enabled Boolean @default(true)
+  created_at DateTime @default(now()) @client.Timestamptz(6)
+  user LiteLLM_UserTable @relation(fields: [user_id], references: [user_id], onDelete: Restrict, onUpdate: NoAction)
+  sessions CommerceSession[]
+  actions CommerceActionToken[]
+  identities CommerceExternalIdentity[]
+  flows CommerceOAuthFlow[]
+  mail CommerceMailOutbox[]
+}
+
+model CommerceSession {
+  token_hash String @id
+  user_id String
+  expires_at DateTime @client.Timestamptz(6)
+  auth_at DateTime @client.Timestamptz(6)
+  customer CommerceCustomer @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction)
+  @@index([user_id])
+  @@index([expires_at])
+}
+
+model CommerceActionToken {
+  token_hash String @id
+  user_id String
+  purpose String
+  email String
+  expires_at DateTime @client.Timestamptz(6)
+  used_at DateTime? @client.Timestamptz(6)
+  customer CommerceCustomer @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction)
+  @@index([user_id, purpose])
+  @@index([expires_at])
+}
+
+model CommerceExternalIdentity {
+  id String @id
+  user_id String
+  provider String
+  issuer String
+  subject String
+  name String @default("")
+  created_at DateTime @default(now()) @client.Timestamptz(6)
+  customer CommerceCustomer @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction)
+  @@unique([issuer, subject])
+  @@unique([user_id, provider])
+}
+
+model CommerceOAuthFlow {
+  state_hash String @id
+  browser_hash String
+  provider String
+  intent String
+  nonce String
+  verifier String
+  return_path String
+  expires_at DateTime @client.Timestamptz(6)
+  user_id String?
+  session_hash String?
+  @@index([expires_at])
+  customer CommerceCustomer? @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model CommerceMailOutbox {
+  id String @id
+  user_id String
+  payload String
+  created_at DateTime @default(now()) @client.Timestamptz(6)
+  next_attempt_at DateTime @default(now()) @client.Timestamptz(6)
+  claimed_until DateTime? @client.Timestamptz(6)
+  attempts Int @default(0)
+  delivered_at DateTime? @client.Timestamptz(6)
+  @@index([next_attempt_at])
+  customer CommerceCustomer @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model CommerceAuthRateLimit {
+  key String
+  bucket DateTime @client.Timestamptz(6)
+  attempts Int @default(0)
+  @@id([key, bucket])
+  @@index([bucket])
 }
