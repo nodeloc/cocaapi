@@ -8,6 +8,14 @@ const methods = { registration_enabled: true, email_enabled: true, providers: []
 const fetchMock = vi.fn<typeof fetch>();
 
 describe("customer account forms", () => {
+  it("shows an actionable message for rejected OAuth app credentials", async () => {
+    window.history.replaceState(null, "", "/account/login/?error=provider_credentials_invalid");
+    fetchMock.mockResolvedValue(Response.json(methods));
+    render(<AuthScreen mode="login" />);
+    expect(
+      await screen.findByText("第三方登录的应用凭据无效，请联系管理员检查 Client ID 和 Client Secret。"),
+    ).toBeInTheDocument();
+  });
   beforeEach(() => {
     window.history.replaceState(null, "", "/account/register/");
     fetchMock.mockReset();

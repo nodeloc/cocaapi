@@ -54,21 +54,23 @@ class AccountSettings(FrozenModel):
 
 
 def provider_from_credentials(provider_id: ProviderID, client_id: str, client_secret: str) -> ProviderSettings:
+    normalized_id: Final = client_id.strip()
+    normalized_secret: Final = SecretStr(client_secret.strip())
     match provider_id:
         case "github":
             return ProviderSettings(
                 id=provider_id,
                 label="GitHub",
-                client_id=client_id,
-                client_secret=SecretStr(client_secret),
+                client_id=normalized_id,
+                client_secret=normalized_secret,
                 issuer="https://github.com",
             )
         case "google":
             return ProviderSettings(
                 id=provider_id,
                 label="Google",
-                client_id=client_id,
-                client_secret=SecretStr(client_secret),
+                client_id=normalized_id,
+                client_secret=normalized_secret,
                 issuer="https://accounts.google.com",
                 discovery_url="https://accounts.google.com/.well-known/openid-configuration",
             )
@@ -76,8 +78,8 @@ def provider_from_credentials(provider_id: ProviderID, client_id: str, client_se
             return ProviderSettings(
                 id=provider_id,
                 label="NodeLoc",
-                client_id=client_id,
-                client_secret=SecretStr(client_secret),
+                client_id=normalized_id,
+                client_secret=normalized_secret,
                 issuer="https://www.nodeloc.com",
                 discovery_url="https://www.nodeloc.com/oauth-provider/.well-known/openid-configuration",
             )
@@ -85,8 +87,8 @@ def provider_from_credentials(provider_id: ProviderID, client_id: str, client_se
 
 def _provider(values: Mapping[str, str], provider_id: ProviderID) -> ProviderSettings | None:
     prefix: Final = "COCAAPI_" + provider_id.upper()
-    client_id: Final = values.get(prefix + "_CLIENT_ID", "")
-    client_secret: Final = values.get(prefix + "_CLIENT_SECRET", "")
+    client_id: Final = values.get(prefix + "_CLIENT_ID", "").strip()
+    client_secret: Final = values.get(prefix + "_CLIENT_SECRET", "").strip()
     if not client_id or not client_secret:
         return None
     return provider_from_credentials(provider_id, client_id, client_secret)

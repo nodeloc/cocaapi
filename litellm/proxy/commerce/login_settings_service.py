@@ -90,7 +90,7 @@ class LoginSettingsService:
         self, patch: ProviderConfigurationInput, current: LoginConfiguration
     ) -> ProviderConfiguration | AuthError:
         previous: Final = next(provider for provider in current.providers if provider.id == patch.id)
-        value: Final = patch.client_secret.get_secret_value() if patch.client_secret else ""
+        value: Final = patch.client_secret.get_secret_value().strip() if patch.client_secret else ""
         if patch.clear_secret and value:
             return AuthError("invalid_login_settings", 422)
         secret: Final = "" if patch.clear_secret else self.security.seal(value) if value else previous.encrypted_secret
@@ -145,6 +145,9 @@ class LoginSettingsService:
 
     def resolve_provider(self, provider: ProviderConfiguration) -> ProviderSettings | AuthError:
         secret: Final = self.security.unseal(provider.encrypted_secret)
-        if not secret or not provider.client_id:
+        if not secret:
             return AuthError("login_settings_unavailable", 503)
-        return provider_from_credentials(provider.id, provider.client_id, secret)
+        configured: Final = provider_from_credentials(provider.id, provider.client_id, secret)
+        if not configured.client_id or not configured.client_secret.get_secret_value():
+            return AuthError("login_settings_unavailable", 503)
+        return configured

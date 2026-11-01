@@ -6,7 +6,11 @@ from prisma.errors import RawQueryError
 import uuid
 
 from litellm.models.commerce_auth import AuthError
-from litellm.models.commerce_login_settings import LoginConfigurationInput, LoginConfigurationView
+from litellm.models.commerce_login_settings import (
+    LoginConfigurationInput,
+    LoginConfigurationView,
+    ProviderConfiguration,
+)
 from litellm.proxy.commerce.account_routes import get_service
 from litellm.proxy.commerce.auth_service import AccountService
 from litellm.proxy.commerce.login_settings_service import LoginSettingsService
@@ -209,3 +213,39 @@ async def test_failed_audit_write_rolls_back_settings(wallet_client):
     finally:
         await wallet_client.database.execute_raw(f'DROP TRIGGER login_reject_{token} ON "CommerceAuditEvent"')
         await wallet_client.database.execute_raw(f"DROP FUNCTION login_reject_{token}()")
+
+
+@pytest.mark.asyncio
+async def test_new_secret_trims_pasted_whitespace_and_whitespace_only_preserves_existing(wallet_client):
+    settings = service(wallet_client)
+    await settings.save(
+        LoginConfigurationInput.model_validate(body(secret=" \r\n normalized-secret \t")), "settings-admin"
+    )
+    retained = await settings.save(LoginConfigurationInput.model_validate(body(1, secret=" \r\n\t")), "settings-admin")
+    assert isinstance(retained, LoginConfigurationView)
+    effective = await service(wallet_client).effective()
+    assert not isinstance(effective, AuthError)
+    assert effective.provider("nodeloc").client_secret.get_secret_value() == "normalized-secret"
+
+
+@pytest.mark.asyncio
+async def test_legacy_whitespace_only_secret_fails_closed(wallet_client):
+    settings = service(wallet_client)
+    config = settings.defaults().model_copy(
+        update={
+            "providers": tuple(
+                ProviderConfiguration(
+                    id=provider.id,
+                    enabled=True,
+                    client_id="node-client",
+                    encrypted_secret=settings.security.seal(" \r\n "),
+                )
+                if provider.id == "nodeloc"
+                else provider
+                for provider in settings.defaults().providers
+            )
+        }
+    )
+    await settings.store.save(config.model_dump_json(), 0, "settings-admin", wallet_client.now)
+    result = await settings.effective()
+    assert isinstance(result, AuthError) and result.code == "login_settings_unavailable"

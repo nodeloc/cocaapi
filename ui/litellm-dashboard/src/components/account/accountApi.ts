@@ -34,6 +34,7 @@ const errors: Readonly<Record<string, string>> = {
   invalid_authorization: "授权已过期或浏览器不匹配，请重新登录。",
   authorization_cancelled: "已取消授权，你可以重新选择登录方式。",
   provider_authorization_failed: "第三方授权失败，请稍后重试。",
+  provider_credentials_invalid: "第三方登录的应用凭据无效，请联系管理员检查 Client ID 和 Client Secret。",
   provider_unavailable: "该登录方式暂不可用。",
   reauthentication_required: "请先重新验证身份，再修改账号安全设置。",
   authorization_session_changed: "登录状态已改变，请重新发起绑定。",

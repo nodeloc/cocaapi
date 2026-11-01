@@ -9,7 +9,7 @@ from joserfc.jwk import RSAKey
 from pydantic import SecretStr
 
 from litellm.models.commerce_auth import AuthError, ExternalIdentity, OAuthFlow
-from litellm.proxy.commerce.config import AccountSettings, ProviderSettings
+from litellm.proxy.commerce.config import AccountSettings, ProviderSettings, provider_from_credentials
 from litellm.proxy.commerce.oauth_client import ProviderClient
 from litellm.proxy.commerce.security import AuthSecurity
 
@@ -117,3 +117,46 @@ async def test_oidc_identity_requires_valid_signature_claims_and_matching_userin
     if flow.intent == "reauth":
         assert query["max_age"] == ["0"]
         assert query["prompt"] == ["select_account" if provider_id == "google" else "login"]
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("error", ["invalid_client", "invalid_grant", "access_denied", "whitespace"])
+async def test_provider_token_rejection_is_handled_and_pasted_credentials_are_normalized(error):
+    security = AuthSecurity("unit-test-secret" * 8)
+    provider = provider_from_credentials(
+        "nodeloc",
+        " client \r\n" if error == "whitespace" else "client",
+        " secret \r\n" if error == "whitespace" else "secret",
+    )
+    flow = OAuthFlow(
+        state_hash="test",
+        browser_hash="browser",
+        provider="nodeloc",
+        intent="login",
+        nonce=security.seal("nonce"),
+        verifier=security.seal("x" * 64),
+        return_path="/account/profile/",
+        expires_at=datetime.now(timezone.utc) + timedelta(minutes=10),
+    )
+
+    def upstream(request: httpx.Request) -> httpx.Response:
+        assert request.method == "POST"
+        form = parse_qs(request.content.decode())
+        assert form["client_id"] == ["client"]
+        assert form["client_secret"] == ["secret"]
+        return httpx.Response(
+            400,
+            json={
+                "error": "invalid_grant" if error == "whitespace" else error,
+                "error_description": "must-not-be-echoed",
+            },
+        )
+
+    settings = AccountSettings(secret=SecretStr("unit-test-secret" * 8), providers=(provider,))
+    result = await ProviderClient(settings, security, httpx.MockTransport(upstream)).exchange(
+        provider, "test-code", flow
+    )
+    assert isinstance(result, AuthError)
+    assert result.code == (
+        "provider_credentials_invalid" if error == "invalid_client" else "provider_authorization_failed"
+    )

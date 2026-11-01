@@ -401,6 +401,33 @@ async def test_invalid_callback_redacts_authorization_code_before_access_logging
     assert "sensitive-code" not in response.text
 
 
+@pytest.mark.asyncio
+async def test_invalid_provider_credentials_redirect_without_500_or_token_leak(client):
+    _, _, service = client
+    def rejected(request: httpx2.Request) -> httpx2.Response:
+        assert request.method == "POST"
+        return httpx2.Response(400, json={"error": "invalid_client", "error_description": "private-upstream-details"})
+    app = FastAPI()
+    app.include_router(router)
+    app.dependency_overrides[get_service] = lambda: service
+    app.dependency_overrides[get_oauth_client] = lambda: ProviderClient(service.settings, service.security, httpx2.MockTransport(rejected))
+    @app.middleware("http")
+    async def observe(request: Request, call_next: Callable[[Request], Awaitable[Response]]) -> Response:
+        response = await call_next(request)
+        if request.url.path.endswith("/callback"):
+            response.headers["X-Observed-Query"] = request.scope["query_string"].decode()
+        return response
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url=ORIGIN, headers={"Origin": ORIGIN}) as connection:
+        token = await csrf(connection)
+        started = await connection.post("/account/api/v1/oauth/github/start", headers={"X-CSRF-Token": token}, json={})
+        state = parse_qs(urlsplit(started.json()["authorization_url"]).query)["state"][0]
+        callback = await connection.get("/account/api/v1/oauth/github/callback", params={"state": state, "code": "test-invalid-client-code"})
+        assert callback.status_code == 303
+        assert callback.headers["location"] == "/account/login/?error=provider_credentials_invalid"
+        assert callback.headers["X-Observed-Query"] == ""
+        assert "private-upstream-details" not in callback.text
+
+
 async def wait_for_blocked_verifier(database: Prisma) -> None:
     while True:
         rows = await database.query_raw("""SELECT EXISTS (SELECT 1 FROM pg_stat_activity

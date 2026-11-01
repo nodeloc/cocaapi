@@ -127,6 +127,7 @@ class ProviderClient:
             return url
 
     async def exchange(self, provider: ProviderSettings, code: str, flow: OAuthFlow) -> ExternalIdentity | AuthError:
+        from authlib.integrations.base_client.errors import OAuthError
         from authlib.oauth2.rfc6749.errors import OAuth2Error
         from joserfc.errors import JoseError
         from pydantic import ValidationError
@@ -193,5 +194,10 @@ class ProviderClient:
                     email=str(userinfo.email).lower() if userinfo.email and userinfo.email_verified else None,
                     email_verified=userinfo.email_verified and userinfo.email is not None,
                 )
+        except OAuthError as error:
+            return AuthError(
+                "provider_credentials_invalid" if error.error == "invalid_client" else "provider_authorization_failed",
+                502,
+            )
         except (httpx.HTTPError, OAuth2Error, JoseError, ValidationError, ValueError, KeyError):
             return AuthError("provider_authorization_failed", 502)
