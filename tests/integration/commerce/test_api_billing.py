@@ -464,8 +464,11 @@ async def test_stream_disconnect_retains_hold_instead_of_settling_estimated_part
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize("prompt,expected_status", (
+    ("playground wallet billing", 200), ("invalid-playground-response", 502),
+))
 async def test_customer_playground_uses_the_same_wallet_and_returns_insufficient_balance(
-    wallet_client: WalletClient,
+    wallet_client: WalletClient, prompt: str, expected_status: int,
 ) -> None:
     key: Final = await api_key(wallet_client)
     await wallet_client.database.execute_raw('DELETE FROM "CommerceLoginConfiguration"')
@@ -483,12 +486,17 @@ async def test_customer_playground_uses_the_same_wallet_and_returns_insufficient
         methods: Final = await client.get("/account/api/v1/auth-methods")
         assert methods.status_code == 200, methods.text
         headers: Final = {"Origin": "http://localhost:4400", "X-CSRF-Token": methods.json()["csrf_token"]}
-        payload: Final = {"api_key": key, "model": "wallet-priced-model", "prompt": "playground wallet billing"}
+        payload: Final = {"api_key": key, "model": "wallet-priced-model", "prompt": prompt}
         denied: Final = await client.post("/account/api/v1/gateway/playground", headers=headers, json=payload)
         assert denied.status_code == 402 and "insufficient_balance" in denied.text, denied.text
         await fund(wallet_client, 2_000_000_000)
         response: Final = await client.post("/account/api/v1/gateway/playground", headers=headers, json=payload)
-        assert response.status_code == 200, response.text
+        assert response.status_code == expected_status, response.text
     balance: Final = await WalletRepository(wallet_client.database).balance(wallet_client.session.customer.user_id)
-    assert not isinstance(balance, AuthError) and balance.reserved_units == 0 and balance.debited_units > 0
+    assert not isinstance(balance, AuthError) and balance.reserved_units == 0
+    if expected_status == 502:
+        assert balance.debited_units == 0
+    else:
+        assert balance.debited_units > 0
+        assert response.json()["content"] == "Billing test response"
     assert balance.available_units + balance.debited_units == 2_000_000_000

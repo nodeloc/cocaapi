@@ -7,7 +7,7 @@ import pytest
 import httpx
 from fastapi import HTTPException
 from openai import APIStatusError
-from litellm import ModelResponse
+from litellm import ModelResponse, UnsupportedParamsError
 
 from litellm.models.commerce_auth import AuthError
 from litellm.models.commerce_wallet import CallReservation, WalletChange
@@ -44,6 +44,30 @@ async def reserve(client: WalletClient, units: int, request_id: str) -> CallRese
         key_hash="test-key-hash",
         now=client.now,
     )
+
+
+@pytest.mark.asyncio
+async def test_local_parameter_failure_releases_hold_for_streaming_requests(wallet_client: WalletClient) -> None:
+    await fund(wallet_client, 10_000_000_000)
+    request_id: Final = uuid.uuid4().hex
+    await reserve(wallet_client, 6_000_000_000, request_id)
+    store: Final = WalletRepository(wallet_client.database)
+    await store.mark_call_dispatched(wallet_client.session.customer.user_id, request_id, wallet_client.now)
+    token: Final = _CONTEXT.set(BillingContext(
+        user_id=wallet_client.session.customer.user_id, request_id=request_id, native_request_id="local-parameter-test",
+        store=store, streaming=True,
+    ))
+    try:
+        await WalletBillingHook().async_post_call_failure_hook(
+            request_data={},
+            original_exception=UnsupportedParamsError("unsupported thinking parameter", model="test", llm_provider="openai"),
+            user_api_key_dict=UserAPIKeyAuth(user_id=wallet_client.session.customer.user_id),
+        )
+    finally:
+        _CONTEXT.reset(token)
+    balance: Final = await store.balance(wallet_client.session.customer.user_id)
+    assert not isinstance(balance, AuthError)
+    assert balance.available_units == 10_000_000_000 and balance.reserved_units == 0 and balance.debited_units == 0
 
 
 @pytest.mark.asyncio

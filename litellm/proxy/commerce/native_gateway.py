@@ -1,4 +1,5 @@
 import asyncio
+from contextvars import ContextVar
 from types import MappingProxyType
 from typing import Final
 
@@ -21,7 +22,7 @@ from litellm.proxy.common_utils.user_api_key_cache import (  # pyright: ignore[r
     UserApiKeyCache,
 )
 from litellm.router import Router
-from pydantic import BaseModel, SecretStr, ValidationError
+from pydantic import BaseModel, ConfigDict, SecretStr, ValidationError
 
 
 class NativeModel(BaseModel):
@@ -49,12 +50,47 @@ class NativeChoice(BaseModel):
     model_config = {"frozen": True}
 
 
+class NativeUsage(PlaygroundUsage):
+    model_config = ConfigDict(frozen=True, extra="ignore")
+
+
 class NativeCompletion(BaseModel):
     choices: tuple[NativeChoice, ...]
     id: str | None = None
     created: int | None = None
-    usage: PlaygroundUsage | None = None
+    usage: NativeUsage | None = None
     model_config = {"frozen": True}
+
+
+_PLAYGROUND_CALL: Final[ContextVar[bool]] = ContextVar("cocaapi_playground_call", default=False)
+
+
+def playground_output(payload: object) -> PlaygroundOutput | AuthError:
+    try:
+        result: Final = NativeCompletion.model_validate(payload, from_attributes=True)
+    except ValidationError:
+        return AuthError("model_request_rejected", 502)
+    if not result.choices:
+        return AuthError("model_request_rejected", 502)
+    return PlaygroundOutput(
+        content=result.choices[0].message.content,
+        request_id=result.id,
+        created=result.created,
+        usage=PlaygroundUsage(
+            prompt_tokens=result.usage.prompt_tokens,
+            completion_tokens=result.usage.completion_tokens,
+            total_tokens=result.usage.total_tokens,
+        )
+        if result.usage is not None
+        else None,
+    )
+
+
+def playground_response_error(response: object) -> AuthError | None:
+    if not _PLAYGROUND_CALL.get():
+        return None
+    result: Final = playground_output(response)
+    return result if isinstance(result, AuthError) else None
 
 
 class NativeError(BaseModel):
@@ -184,34 +220,29 @@ class LocalNativeGateway:
         return None
 
     async def chat(self, body: PlaygroundInput) -> PlaygroundOutput | AuthError:
-        response: Final = await self.request(
-            "POST",
-            "/v1/chat/completions",
-            {
-                "model": body.model,
-                "messages": (
-                    [message.model_dump() for message in body.messages]
-                    if body.messages
-                    else [{"role": "user", "content": body.prompt}]
-                ),
-                "max_tokens": 512,
-                "stream": False,
-            },
-            key=body.api_key,
-        )
+        token: Final = _PLAYGROUND_CALL.set(True)
+        try:
+            response: Final = await self.request(
+                "POST",
+                "/v1/chat/completions",
+                {
+                    "model": body.model,
+                    "messages": (
+                        [message.model_dump() for message in body.messages]
+                        if body.messages
+                        else [{"role": "user", "content": body.prompt}]
+                    ),
+                    "max_tokens": 512,
+                    "stream": False,
+                },
+                key=body.api_key,
+            )
+        finally:
+            _PLAYGROUND_CALL.reset(token)
         if isinstance(response, AuthError):
             return response
         try:
-            result: Final = NativeCompletion.model_validate_json(response.content)
-            return (
-                PlaygroundOutput(
-                    content=result.choices[0].message.content,
-                    request_id=result.id,
-                    created=result.created,
-                    usage=result.usage,
-                )
-                if result.choices
-                else AuthError("model_request_rejected", 502)
-            )
-        except ValidationError:
+            payload: Final[object] = response.json()
+        except ValueError:
             return AuthError("model_request_rejected", 502)
+        return playground_output(payload)

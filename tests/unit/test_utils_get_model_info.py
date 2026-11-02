@@ -9,6 +9,7 @@ import pytest
 
 import litellm
 from litellm import get_model_info
+from litellm.exceptions import ModelNotMappedError
 from litellm.llms.bedrock.common_utils import BedrockModelInfo
 from litellm.llms.custom_httpx.http_handler import HTTPHandler
 from litellm.types.utils import ModelInfoBase
@@ -501,3 +502,23 @@ def test_get_model_info_custom_provider():
     get_model_info(
         model="my-custom-llm/my-fake-model"
     )  # 💥 "Exception: This model isn't mapped yet." in v1.56.10
+@pytest.mark.parametrize("stored,requested,compatible", (
+    ("text-completion-openai", "openai", True), ("openai", "text-completion-openai", True),
+    ("anthropic", "openai", False), ("openai", "anthropic", False),
+))
+def test_openai_protocols_keep_the_same_registered_deployment_rates(
+    stored: str, requested: str, compatible: bool
+) -> None:
+    deployment_id: Final = "test-shared-openai-protocol-deployment"
+    litellm.register_model({deployment_id: {
+        "litellm_provider": stored, "input_cost_per_token": 0.001, "output_cost_per_token": 0.002,
+    }}, persist_across_reloads=False)
+    try:
+        if not compatible:
+            with pytest.raises(ModelNotMappedError):
+                litellm.get_model_info(model=deployment_id, custom_llm_provider=requested)
+            return
+        info: Final = litellm.get_model_info(model=deployment_id, custom_llm_provider=requested)
+        assert info["input_cost_per_token"] == 0.001 and info["output_cost_per_token"] == 0.002
+    finally:
+        litellm.model_cost.pop(deployment_id, None)

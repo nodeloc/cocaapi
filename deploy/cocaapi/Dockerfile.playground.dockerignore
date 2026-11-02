@@ -1,0 +1,10 @@
+**
+!litellm/
+!litellm/cost_calculator.py
+!litellm/utils.py
+!litellm/proxy/
+!litellm/proxy/commerce/
+!litellm/proxy/commerce/native_gateway.py
+!litellm/proxy/commerce/billing_hook.py
+!litellm/litellm_core_utils/
+!litellm/litellm_core_utils/litellm_logging.py

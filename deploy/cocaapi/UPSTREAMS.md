@@ -6,12 +6,12 @@
 
 | 截图名称 | CocaAPI 与上游模型 ID | 服务器直连实测 | 当前状态 |
 | --- | --- | --- | --- |
-| DeepSeek V4.1 Flash | `deepseek-v4.1-flash` | HTTP 403，`model_location_not_supported` | 已配置原厂价，保留当前启用开关 |
-| GPT-6 Luna | `gpt-6-luna` | HTTP 403，`model_location_not_supported` | 已配置原厂价，保留当前启用开关 |
-| DeepSeek V4.1 Flash 1017 | `deepseek-v4.1-flash-1017` | HTTP 403，`model_location_not_supported` | 已配置原厂价，保留当前启用开关 |
+| DeepSeek V4.1 Flash | `deepseek-v4.1-flash` | 最新客户 Playground HTTP 200，返回 OK | 已配置原厂价，保留当前启用开关 |
+| GPT-6 Luna | `gpt-6-luna` | 最新客户 Playground HTTP 200，返回 OK | 已配置原厂价，保留当前启用开关 |
+| DeepSeek V4.1 Flash 1017 | `deepseek-v4.1-flash-1017` | 最新客户 Playground HTTP 200，返回 OK | 已配置原厂价，保留当前启用开关 |
 | DeepSeek V4.1 Flash 1017 Uncensored | `deepseek-v4.1-flash-uncensored` | 普通与 SSE 请求 HTTP 200，均返回 OK | 已配置发布方标准价，保留当前启用开关 |
 
-上游 `/v1/models` 鉴权成功，返回 314 个模型，四个 ID 均存在。Uncensored 的实际 ID 不带 `1017`。服务器出口 IP 为 141.98.197.58，DB-IP 自查返回日本，前三个模型仍被上游拒绝，不能据此承诺该出口可用。上游文档将该错误定义为模型地区不支持或地区无法确认，建议联系上游核实；单纯重试、换 Key 或增加余额不能解决，参见 [官方错误说明](https://platform.experientiallabs.ai/docs/errors) 与 [模型地区规则](https://platform.experientiallabs.ai/docs/models)
+上游 `/v1/models` 鉴权成功，返回 314 个模型，四个 ID 均存在。Uncensored 的实际 ID 不带 `1017`。初次接入时前三个模型返回地区限制，最新 Playground 修复验收时四个模型均从同一服务器返回 HTTP 200 / OK，详见本文末尾故障记录。上游地区规则仍以其实际响应为准，参见 [官方错误说明](https://platform.experientiallabs.ai/docs/errors) 与 [模型地区规则](https://platform.experientiallabs.ai/docs/models)
 
 截图中的 Free 标签不等同于 CocaAPI 售价。两次 Uncensored 短请求各报告 11 个输入 Token、2 个输出 Token、费用 0，其中流式请求正常返回结束帧及用量。该测试只说明这两次请求的结果，不构成其他模型、其他请求或后续促销期间的费用承诺
 
@@ -76,3 +76,19 @@ Uncensored 按 [发布方页面](https://platform.experientiallabs.ai/models/dee
 当前镜像为 `cocaapi-official-pricing:20261102`，ID 为 `sha256:5331f6b0f5dff8d9dc4803230512af190fb2d04dd8b524abac99deb153c025cb`。回退基础为兼容钱包计费及品牌的 `cocaapi-dashboard-brand:20261102`，ID 为 `sha256:469c6b6c42f163bb0292893ed0ab10a33cbbe3affa8d21c2715f29cff04fee22`。回退前必须暂停使用新日历及缓存计价的部署，保留当前数据库与 `auth.env`，不能恢复整个数据库覆盖运行期间的账本
 
 发布前备份为 `/opt/cocaapi/backups/official-pricing-20261102T051155Z/`，包含数据库归档、环境、Compose 和 Caddy；归档目录检查通过，没有做完整恢复演练。先通过 4001 预发布验证，再切回 4000 主实例。未变更的认证与计费核心文件摘要和加密 OAuth 配置保持一致，没有新增迁移或改动账户余额、用户预算与授权。托管 CI 未运行
+
+## Playground 502 与扣费修复，2026-11-02
+
+上游成功返回的 `usage` 包含缓存明细、`cost` 和 `is_byok`，客户 Playground 错把它当作禁止额外字段的内部数据校验，导致钱包已经结算而页面最终返回 502。现将外部用量字段兼容解析，再投影为公开的三个 Token 统计字段。仅服务器内部 Playground 请求设置上下文标记，在结算前校验同一份响应投影；确定无法转换时释放全部预扣并返回失败。标记不会从客户端读取，完成及异常后都会恢复，普通 API 和并发请求不受这个校验影响
+
+本地 `UnsupportedParamsError` 在没有输出时释放预扣，包括流式请求。客户端中断、部分流式输出和其他不确定的上游结果仍保留原有复核策略，本次不承诺任意最终 HTTP 失败都自动免费
+
+同时修复上游零成本覆盖平台自定义售价的分支：日志中暂存的零费用需要按明确部署价重新计算；费用计算器在自定义价格场景忽略上游成本 header，包括正数 header。真实缓存命中仍为零，明确免费或 PTU 零价仍按零价计算，已计算的正数内部费用保留。OpenAI Chat 与 text-completion-openai 的报价元数据只在这两个协议标识之间互认，避免依次使用文本补全、Messages 等入口后同一部署报价查找失效；其他提供商的匹配规则未放宽
+
+核对并逐笔退回 12 笔 Playground 转换失败扣费，合计 5202601 纳美元，即 0.005202601 美元。补偿使用 `playground-502-refund:<request_id>` 唯一业务键，保留原扣费流水并新增调整及审计记录；另释放本地参数错误滞留的 6900 纳美元冻结。收据和操作前快照保存在 `/opt/cocaapi/backups/playground-502-20261102T063122Z/`。不得删除原流水或通过整库恢复撤销退款
+
+四个已接入模型通过真实客户 Playground 均返回 HTTP 200 / OK，验收账户按配置价产生正数扣费且没有冻结余额；浏览器原生 Playground 也通过同一链路收到 OK。临时验收 Key 已撤销、会话已清理、账号已停用，未用测试额度已回收，验收账务记录保留。213 项定向测试通过，包括 88 项 Commerce 单元、29 项日志报价、4 项模型报价协议匹配、92 项 API、钱包及账号集成测试。新增用例均先复现对应失败，再验证修复；五个运行模块的严格 Ruff 规则计数没有增加
+
+最终镜像为 `cocaapi-playground-billing:20261102`，ID `sha256:4a783f0131ec2f4613e7b59812987c0ddbe74fbd29a501d6836a65181c3313df`，基于此前客户授权镜像增量覆盖五个模块，界面资源和模型定价配置保留。没有数据库结构迁移。需要回滚时保留当前账本、退款和认证配置，并先开启计费维护，避免恢复原转换失败路径后继续扣费
+
+切换过程中 Caddy 在 reload 后因 `context: internal error: missing cancel error` panic 退出，出现短暂 521，已重新启动并恢复入口。原服务没有自动重启策略，现使用 `caddy-restart.conf` 对应的 `/etc/systemd/system/caddy.service.d/cocaapi-restart.conf` 设置失败后自动重启。当前主网关继续使用 4000，计费维护已关闭

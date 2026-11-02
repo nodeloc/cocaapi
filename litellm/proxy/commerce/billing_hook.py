@@ -249,6 +249,17 @@ class WalletBillingHook(CustomLogger):
         context: Final = _CONTEXT.get()
         if context is None or context.user_id != user_api_key_dict.user_id:
             return
+        from litellm.proxy.commerce.native_gateway import playground_response_error
+
+        error: Final = playground_response_error(response)
+        if error is not None:
+            released: Final = await context.store.settle_call(
+                context.user_id, context.request_id, 0, "failure", utcnow()
+            )
+            if isinstance(released, AuthError):
+                raise HTTPException(503, detail="wallet_billing_unavailable")
+            _CONTEXT.set(replace(context, success_seen=True))
+            raise HTTPException(error.status, detail=error.code)
         _CONTEXT.set(replace(context, success_seen=True))
         try:
             logging_obj: Final = data.get("litellm_logging_obj")
@@ -259,7 +270,9 @@ class WalletBillingHook(CustomLogger):
                 0
                 if cached
                 else logged_cost
-                if logged_cost is not None
+                if logged_cost is not None and not (
+                    logged_cost == 0 and isinstance(logging_obj, Logging) and logging_obj.custom_pricing_for(response)
+                )
                 else logging_obj.response_cost_calculator(result=response)
                 if isinstance(logging_obj, Logging)
                 else None
@@ -293,8 +306,9 @@ class WalletBillingHook(CustomLogger):
         if context is None or context.user_id != user_api_key_dict.user_id or context.success_seen:
             return
         await context.store.release_undispatched_call(context.user_id, context.request_id, utcnow())
-        free_failure: Final = (
-            isinstance(original_exception, APIStatusError) and not context.output_started and not context.streaming
+        free_failure: Final = not context.output_started and (
+            isinstance(original_exception, litellm.UnsupportedParamsError)
+            or (isinstance(original_exception, APIStatusError) and not context.streaming)
         )
         if free_failure:
             await context.store.settle_call(context.user_id, context.request_id, 0, "failure", utcnow())

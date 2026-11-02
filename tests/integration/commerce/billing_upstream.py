@@ -67,6 +67,7 @@ class BillingUpstream(BaseHTTPRequestHandler):
                     "total_tokens": 12,
                     "input_tokens_details": {"cached_tokens": 0},
                     "output_tokens_details": {"reasoning_tokens": 0},
+                    "cost": 0,
                 },
             }
             if body.get("stream"):
@@ -93,10 +94,18 @@ class BillingUpstream(BaseHTTPRequestHandler):
                 {
                     "index": 0,
                     "finish_reason": "stop",
-                    "message": {"role": "assistant", "content": "Billing test response"},
+                    "message": {
+                        "role": "assistant",
+                        "content": None if trigger == "invalid-playground-response" else "Billing test response",
+                    },
                 }
             ],
-            "usage": {"prompt_tokens": 7, "completion_tokens": 5, "total_tokens": 12},
+            "usage": {
+                "prompt_tokens": 7, "completion_tokens": 5, "total_tokens": 12,
+                "prompt_tokens_details": {"cached_tokens": 0},
+                "completion_tokens_details": {"reasoning_tokens": 0},
+                "cost": 0, "is_byok": False,
+            },
         }
         if self.path.endswith("/completions") and not self.path.endswith("/chat/completions"):
             self.send_json(
@@ -182,7 +191,9 @@ def request_trigger(body: Mapping[str, JsonValue]) -> str:
     messages: Final = body.get("messages")
     if not isinstance(messages, list):
         return ""
-    return next((text for message in messages if (text := message_text(message)).startswith(("fail-", "delayed-"))), "")
+    return next(
+        (text for message in messages if (text := message_text(message)).startswith(("fail-", "delayed-", "invalid-"))), ""
+    )
 
 
 def message_text(value: JsonValue) -> str:

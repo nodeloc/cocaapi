@@ -5910,6 +5910,10 @@ def _check_provider_match(model_info: dict, custom_llm_provider: str | None) -> 
     if custom_llm_provider and (
         model_info.get("litellm_provider") is not None and model_info["litellm_provider"] != custom_llm_provider
     ):
+        if custom_llm_provider in {"openai", "text-completion-openai"} and model_info["litellm_provider"] in {
+            "openai", "text-completion-openai"
+        }:
+            return True
         if (
             custom_llm_provider == "vertex_ai"
             and model_info["litellm_provider"].startswith("vertex_ai")

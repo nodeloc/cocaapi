@@ -614,6 +614,28 @@ class TestZeroCostDiagnostic:
     PER_SECOND_PRICING: Final = {"cost_per_second": 0.00042}
     FREE_PRICING: Final = {"input_cost_per_token": 0, "output_cost_per_token": 0}
 
+    @pytest.mark.parametrize("cache_hit,expected", ((False, 0.017), (True, 0.0)))
+    @pytest.mark.parametrize("provider_header", (False, True))
+    def test_provider_zero_does_not_replace_configured_deployment_price(
+        self, cache_hit: bool, expected: float, provider_header: bool
+    ) -> None:
+        deployment_id: Final = "test-provider-zero-priced-deployment"
+        pricing: Final = {"input_cost_per_token": 0.001, "output_cost_per_token": 0.002}
+        litellm.register_model(model_cost={deployment_id: pricing}, persist_across_reloads=False)
+        try:
+            logging_obj: Final = self._logging_obj(pricing, stream=True, deployment_id=deployment_id)
+            response: Final = self._response(
+                litellm.Usage(prompt_tokens=7, completion_tokens=5, total_tokens=12, cost=0),
+                model_id=deployment_id, response_cost=0,
+                **({"additional_headers": {"llm_provider-x-litellm-response-cost": "0"}} if provider_header else {}),
+            )
+            assert logging_obj.response_cost_calculator(result=response, cache_hit=cache_hit) == pytest.approx(expected)
+            logging_obj.model_call_details["cache_hit"] = cache_hit
+            logging_obj._process_hidden_params_and_response_cost(response, 0, 0, build_logging_payload=False)
+            assert logging_obj.model_call_details["response_cost"] == pytest.approx(expected)
+        finally:
+            litellm.model_cost.pop(deployment_id, None)
+
     @pytest.fixture(params=["query_only", "free"])
     def deployment_pricing(self, request: pytest.FixtureRequest) -> Iterator[Mapping[str, float]]:
         pricing: Final = self.QUERY_ONLY_PRICING if request.param == "query_only" else self.FREE_PRICING

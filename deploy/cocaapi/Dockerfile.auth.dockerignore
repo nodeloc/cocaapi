@@ -4,11 +4,14 @@
 !deploy/cocaapi/Dockerfile.auth
 !deploy/cocaapi/auth-requirements.txt
 !litellm/
+!litellm/cost_calculator.py
+!litellm/utils.py
 !litellm/models/
 !litellm/models/commerce_*.py
 !litellm/types/
 !litellm/types/utils.py
 !litellm/litellm_core_utils/
+!litellm/litellm_core_utils/litellm_logging.py
 !litellm/litellm_core_utils/llm_cost_calc/
 !litellm/litellm_core_utils/llm_cost_calc/utils.py
 !litellm/repositories/
