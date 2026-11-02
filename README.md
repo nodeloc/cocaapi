@@ -1,764 +1,137 @@
 <h1 align="center">
-        🚅 LiteLLM
-    </h1>
-    <p align="center">
-        <p align="center">LiteLLM AI Gateway
-        </p>
-        <p align="center">Open Source AI Gateway for 100+ LLMs. Self-hosted. Enterprise-ready. Call any LLM in OpenAI format.</p>
-        <p align="center">
-        <a href="https://render.com/deploy?repo=https://github.com/BerriAI/litellm" target="_blank" rel="nofollow"><img src="https://render.com/images/deploy-to-render-button.svg" alt="Deploy to Render" height="40"></a>
-        <a href="https://railway.com/deploy/RhvhdC?referralCode=7mRv9K&utm_medium=integration&utm_source=template&utm_campaign=generic"><img src="https://railway.com/button.svg" alt="Deploy on Railway" height="40"></a>
-        <a href="https://console.aws.amazon.com/cloudshell/home" target="_blank" rel="nofollow"><img src="./.github/deploy-on-aws.png" alt="Deploy on AWS" height="40"></a>
-        <a href="https://ssh.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https%3A%2F%2Fgithub.com%2FBerriAI%2Fterraform-google-litellm&cloudshell_git_branch=v1.105.0&cloudshell_workspace=examples%2Fdefault&cloudshell_tutorial=TUTORIAL.md&cloudshell_image=gcr.io/ds-artifacts-cloudshell/deploystack_custom_image&shellonly=true" target="_blank" rel="nofollow"><img src="./.github/deploy-on-gcp.png" alt="Deploy on GCP" height="40"></a>
-        </p>
-    </p>
-<h4 align="center"><a href="https://docs.litellm.ai/docs/simple_proxy" target="_blank">LiteLLM Proxy Server (AI Gateway)</a> | <a href="https://docs.litellm.ai/docs/enterprise#hosted-litellm-proxy" target="_blank"> Hosted Proxy</a> | <a href="https://litellm.ai/enterprise"target="_blank">Enterprise Tier</a> | <a href="https://www.litellm.ai/ai-gateway" target="_blank">Website</a></h4>
-<h4 align="center">
-    <a href="https://pypi.org/project/litellm/" target="_blank">
-        <img src="https://img.shields.io/pypi/v/litellm.svg" alt="PyPI Version">
-    </a>
-    <a href="https://github.com/BerriAI/litellm" target="_blank">
-        <img src="https://img.shields.io/github/stars/BerriAI/litellm.svg?style=social" alt="GitHub Stars">
-    </a>
-    <a href="https://www.ycombinator.com/companies/berriai">
-        <img src="https://img.shields.io/badge/Y%20Combinator-W23-orange?style=flat-square" alt="Y Combinator W23">
-    </a>
-    <a href="https://wa.link/huol9n">
-        <img src="https://img.shields.io/static/v1?label=Chat%20on&message=WhatsApp&color=success&logo=WhatsApp&style=flat-square" alt="Whatsapp">
-    </a>
-    <a href="https://discord.gg/wuPM9dRgDw">
-        <img src="https://img.shields.io/static/v1?label=Chat%20on&message=Discord&color=blue&logo=Discord&style=flat-square" alt="Discord">
-    </a>
-    <a href="https://www.litellm.ai/support">
-        <img src="https://img.shields.io/static/v1?label=Chat%20on&message=Slack&color=black&logo=Slack&style=flat-square" alt="Slack">
-    </a>
-    <a href="https://codspeed.io/BerriAI/litellm?utm_source=badge">
-        <img src="https://img.shields.io/endpoint?url=https://codspeed.io/badge.json" alt="CodSpeed"/>
-    </a>
-</h4>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/nodeloc/cocaapi/litellm_account_auth/ui/litellm-dashboard/public/assets/cocaapi/cocaapi-logo-horizontal-white.svg">
+    <img src="https://raw.githubusercontent.com/nodeloc/cocaapi/litellm_account_auth/ui/litellm-dashboard/public/assets/cocaapi/cocaapi-logo-horizontal-black.svg" alt="CocaAPI" width="260">
+  </picture>
+</h1>
 
-<img alt="LiteLLM AI Gateway" src="https://github.com/user-attachments/assets/c5ee0412-6fb5-4fb6-ab5b-bafae4209ca6" />
+<p align="center">面向多用户的 AI API 网关与计费平台</p>
 
----
+<p align="center">
+  <a href="https://cocaapi.com">在线体验</a> ·
+  <a href="https://github.com/nodeloc/cocaapi/tree/litellm_account_auth">CocaAPI 源码</a> ·
+  <a href="https://github.com/nodeloc/cocaapi/blob/litellm_account_auth/deploy/cocaapi/README.md">部署文档</a> ·
+  <a href="https://github.com/nodeloc/cocaapi/blob/litellm_account_auth/LICENSE">许可证</a>
+</p>
 
-## What is LiteLLM
+CocaAPI 基于 [LiteLLM](https://github.com/BerriAI/litellm)，在模型接入、路由与管理后台之上，增加用户注册、OAuth 登录、个人控制台、钱包扣费、兑换码和分组倍率，适合部署需要多用户管理与按量计费的 API 服务
 
-LiteLLM is an open source AI Gateway that gives you a single, unified interface to call 100+ LLM providers — OpenAI, Anthropic, Gemini, Bedrock, Azure, and more — using the OpenAI format.
+**CocaAPI 扩展在 [`litellm_account_auth`](https://github.com/nodeloc/cocaapi/tree/litellm_account_auth) 分支维护**。下方克隆命令已指定该分支；上游 SDK 与网关说明保存在 [LiteLLM 原始 README](https://github.com/nodeloc/cocaapi/blob/litellm_account_auth/README_LITELLM.md)
 
-Use it as a **Python SDK** for direct library integration, or deploy the **AI Gateway (Proxy Server)** as a centralized service for your team or organization.
+## 功能
 
-[**Jump to LiteLLM Proxy (LLM Gateway) Docs**](https://docs.litellm.ai/docs/simple_proxy) <br>
-[**Jump to Supported LLM Providers**](https://docs.litellm.ai/docs/providers)
+| 模块 | 支持内容 |
+| --- | --- |
+| 模型网关 | 复用 LiteLLM 的模型适配、统一 API、路由、预算和限流能力，管理员配置上游与模型 |
+| 注册与登录 | 邮箱注册、验证邮箱、密码登录与重置，GitHub、Google、NodeLoc OAuth 登录及账号绑定 |
+| 用户控制台 | 个人 API Key、模型目录、流式 Playground、用量统计、请求日志和调用限额 |
+| 钱包计费 | USD 余额、调用前预扣、按实际费用结算、差额退回、余额不足拦截和资金流水 |
+| 分组与倍率 | 用户组、模型组、组间调用倍率与禁用规则；新注册用户默认进入普通组 |
+| 兑换码 | 按批次生成、面额、有效期、停用与一次性导出，默认每人每批次限兑一次，可允许多次兑换 |
+| 充值与订单 | 管理员余额调整、充值订单记录与核查；USDT 支付网关预留适配接口 |
+| 管理与权限 | 用户模型授权、Key 权限、预算与速率限制，账户、计费和配置操作审计 |
+| 界面 | 用户后台复用原管理后台组件与样式，统一 CocaAPI 品牌，支持中文 / English 切换与语言记忆 |
 
----
+邮箱注册及邮件找回密码需要配置 SMTP；第三方登录需要配置对应平台的 OAuth 应用。**USDT 支付网关尚未接入，当前不提供真实链上收款**
 
-## Why LiteLLM
+钱包调用目前覆盖文本 Chat、Completions、Responses、Messages 与 Embeddings，具体参数和开放范围见[用户网关文档](https://github.com/nodeloc/cocaapi/blob/litellm_account_auth/deploy/cocaapi/GATEWAY.md)。用户组和模型组叠加倍率与禁用规则，原有账户及 Key 的模型权限、预算和限流继续生效
 
-Managing LLM calls across providers gets complicated fast — different SDKs, auth patterns, request formats, and error types for every model. LiteLLM removes that friction:
+## 快速开始
 
-- **Unified API** — one interface for 100+ LLMs, no provider-specific SDK juggling
-- **Drop-in OpenAI compatibility** — swap providers without rewriting your code
-- **Production-ready gateway** — virtual keys, spend tracking, guardrails, load balancing, and an admin dashboard out of the box
-- **8ms P95 latency** at 1k RPS ([benchmarks](https://docs.litellm.ai/docs/benchmarks))
+以下示例用于 Linux 自托管，需要 Git、Python 3、Docker Compose，以及满足前端 `package.json` 引擎要求的 Node.js 与 npm。完整部署需要构建 CocaAPI 前端和扩展镜像
 
-### OSS Adopters
+```sh
+git clone --branch litellm_account_auth https://github.com/nodeloc/cocaapi.git
+cd cocaapi
 
-<table>
-  <tr>
-    <td><img height="60" alt="Stripe" src="https://github.com/user-attachments/assets/f7296d4f-9fbd-460d-9d05-e4df31697c4b" /></td>
-    <td><img height="60" alt="image" src="https://github.com/user-attachments/assets/436fca71-988b-40bb-b5fe-8450c80fdbd0" /></td>
-    <td><img height="60" alt="Google ADK" src="https://github.com/user-attachments/assets/caf270a2-5aee-45c4-8222-41a2070c4f19" /></td>
-    <td><img height="60" alt="Greptile" src="https://github.com/user-attachments/assets/3db0ae72-0843-4005-a56d-bba1dde2193d" /></td>
-    <td><img height="60" alt="OpenHands" src="https://github.com/user-attachments/assets/a6150c4c-149e-4cae-888b-8b92be6e003f" /></td>
-    <td><h2>Netflix</h2></td>
-    <td><img height="60" alt="OpenAI Agents SDK" src="https://github.com/user-attachments/assets/c02f7be0-8c2e-4d27-aea7-7c024bfaebc0" /></td>
-  </tr>
-</table>
+npm --prefix ui/litellm-dashboard ci
+npm --prefix ui/litellm-dashboard run build
+npm --prefix ui/litellm-dashboard run postbuild
 
----
+docker build -f deploy/cocaapi/Dockerfile.auth -t cocaapi:local .
 
-## Features
-
-<details open>
-<summary><b>LLMs</b> - Call 100+ LLMs (Python SDK + AI Gateway)</summary>
-
-[**All Supported Endpoints**](https://docs.litellm.ai/docs/supported_endpoints) - `/chat/completions`, `/responses`, `/embeddings`, `/images`, `/audio`, `/batches`, `/rerank`, `/a2a`, `/messages` and more.
-
-### Python SDK
-
-```shell
-uv add litellm
+cd deploy/cocaapi
+python3 generate_secrets.py
+cp auth.env.example auth.env
 ```
 
-An independent `litellm-core` distribution provides the Python SDK with the same
-`import litellm` API and runtime dependencies. It has no optional extras, CLI entry
-points, or bundled dashboard. Install one SDK distribution per environment because
-`litellm` and `litellm-core` own overlapping Python files. Use `litellm` for the
-proxy, CLI, and optional extras
+启动前，按[账号配置文档](https://github.com/nodeloc/cocaapi/blob/litellm_account_auth/deploy/cocaapi/AUTH.md)编辑 `.env`、`auth.env` 与 `compose.yaml`
 
-Build and install core from this checkout while its release integration is pending:
+| 配置 | 用途 |
+| --- | --- |
+| `.env` 中的 `COCAAPI_IMAGE=cocaapi:local` | 指定上一步构建的扩展镜像 |
+| `COCAAPI_PUBLIC_URL` 与 `PROXY_BASE_URL` | 改为自己的公开 HTTPS 地址，保持账号回调与后台入口一致 |
+| `COCAAPI_AUTH_SECRET` | 至少 32 字符的独立随机密钥，用于账号会话和认证数据加密 |
+| `COCAAPI_REDEMPTION_SECRET` | 至少 32 字符的另一份独立随机密钥，用于兑换码摘要 |
+| `COCAAPI_TRUSTED_PROXIES` | 按实际反向代理来源配置，默认值对应仓库 Compose 网络 |
 
-```shell
-python scripts/build_core_distribution.py --out-dir dist/core
-python -m pip install dist/core/litellm_core-*.whl
+`generate_secrets.py` 会生成数据库、Redis、管理员和 LiteLLM 密钥，遇到已有 `.env` 时保留原值。`auth.env` 中的认证与兑换码密钥需单独设置，与数据库一同备份。注册开关、OAuth 应用和 SMTP 可按需配置
+
+完成配置后，在 `deploy/cocaapi` 目录启动服务
+
+```sh
+docker compose -f compose.yaml -f compose.auth.yaml config --quiet
+docker compose -f compose.yaml -f compose.auth.yaml up -d
+docker compose -f compose.yaml -f compose.auth.yaml ps
+
+curl --fail http://127.0.0.1:4000/health/readiness
 ```
 
-The builder requires Git, `uv` and the Rust build toolchain. It reads the release version
-from the root `pyproject.toml`, leaves source files unchanged, and produces a wheel
-and a self-contained sdist in `dist/core`. Run installation in a fresh environment
-without `litellm`
+仓库 Compose 将网关绑定在 `127.0.0.1:4000`，通过 HTTPS 反向代理提供公网访问。[部署文档](https://github.com/nodeloc/cocaapi/blob/litellm_account_auth/deploy/cocaapi/README.md)包含域名、备份、升级及检查说明；[账号文档](https://github.com/nodeloc/cocaapi/blob/litellm_account_auth/deploy/cocaapi/AUTH.md)说明邮件 worker 的启用方式
 
-```python
-from litellm import completion
-import os
+首次使用时，管理员配置上游模型、模型价格、用户权限和调用预算。用户取得可用模型权限及余额后，可创建个人 API Key，并通过 API 或 Playground 调用
 
-os.environ["OPENAI_API_KEY"] = "your-openai-key"
-os.environ["ANTHROPIC_API_KEY"] = "your-anthropic-key"
+## 页面入口
 
-# OpenAI
-response = completion(model="openai/gpt-4o", messages=[{"role": "user", "content": "Hello!"}])
+以下路径均相对于自己的部署域名
 
-# Anthropic  
-response = completion(model="anthropic/claude-sonnet-4-20250514", messages=[{"role": "user", "content": "Hello!"}])
-```
+| 入口 | 路径 |
+| --- | --- |
+| 用户登录 / 注册 | `/account/login/`、`/account/register/` |
+| 用户控制台 | `/account/home/` |
+| 个人 API Key | `/account/keys/` |
+| Playground | `/account/playground/` |
+| 余额与充值 / 订单 | `/account/wallet/`、`/account/orders/` |
+| 管理后台 | `/ui/` |
+| 余额、兑换码与订单管理 | `/ui/commerce/` |
+| 登录与注册设置 | `/ui/commerce/settings/` |
+| 用户组、模型组与倍率 | `/ui/commerce/groups/` |
+| 模型 API | `/v1` |
 
-### AI Gateway (Proxy Server)
+## API 调用
 
-[**Getting Started - E2E Tutorial**](https://docs.litellm.ai/docs/proxy/docker_quick_start) - Setup virtual keys, make your first request
+将 `COCAAPI_API_KEY` 设置为用户后台创建的 Key，将域名与 `my-model` 替换为自己的部署地址和管理员公开的模型名。请求支持流式输出，API 和用户 Playground 使用同一钱包计费
 
-```shell
-uv tool install 'litellm[proxy]'
-litellm --model gpt-4o
-```
-
-```python
-import openai
-
-client = openai.OpenAI(api_key="anything", base_url="http://0.0.0.0:4000")
-response = client.chat.completions.create(
-    model="gpt-4o",
-    messages=[{"role": "user", "content": "Hello!"}]
-)
-```
-
-</details>
-
-<details>
-<summary><b>Auto Routing</b> - Choose a model for each prompt (Python SDK + AI Gateway)</summary>
-
-### Python SDK
-
-[**Docs: Autorouter SDK**](https://docs.litellm.ai/docs/autorouter_sdk)
-
-Install with `uv add litellm` and set `OPENAI_API_KEY` for the models below.
-
-```python
-import asyncio
-from litellm import Router
-
-router = Router(model_list=[
-    {"model_name": "fast", "litellm_params": {"model": "openai/gpt-6-luna"}},
-    {"model_name": "capable", "litellm_params": {"model": "openai/gpt-6.1-sol"}},
-    {"model_name": "auto", "litellm_params": {
-        "model": "auto_router/complexity_router",
-        "complexity_router_config": {
-            "classifier_type": "heuristic",
-            "tiers": {"SIMPLE": "fast", "MEDIUM": "fast",
-                      "COMPLEX": "capable", "REASONING": "capable"},
-            "return_raw_model_name": True,
-        },
-        "complexity_router_default_model": "capable",
-    }},
-])
-response = asyncio.run(router.acompletion(
-    model="auto", messages=[{"role": "user", "content": "What is 2+2?"}],
-))
-print(response.model, response.choices[0].message.content)
-```
-
-### AI Gateway (Proxy Server)
-
-[**Create an Auto Router**](https://docs.litellm.ai/docs/auto_router/setup), then call its model name. Replace `auto` and the URL below with yours, and set `LITELLM_API_KEY` to your virtual key.
-
-```shell
-curl http://localhost:4000/v1/chat/completions \
-  -H "Authorization: Bearer $LITELLM_API_KEY" \
+```sh
+curl https://your-domain.example/v1/chat/completions \
+  -H "Authorization: Bearer ${COCAAPI_API_KEY}" \
   -H "Content-Type: application/json" \
-  -d '{"model":"auto","messages":[{"role":"user","content":"What is 2+2?"}]}'
-```
-
-</details>
-
-<details>
-<summary><b>A2A</b> - Invoke A2A Agents (Python SDK + AI Gateway)</summary>
-
-[**Supported Providers**](https://docs.litellm.ai/docs/a2a#add-a2a-agents) - LangGraph, Vertex AI Agent Engine, Azure AI Foundry, Bedrock AgentCore, Pydantic AI
-
-### Python SDK - A2A Protocol
-
-```python
-from litellm.a2a_protocol import A2AClient
-from a2a.types import SendMessageRequest, MessageSendParams
-from uuid import uuid4
-
-client = A2AClient(base_url="http://localhost:10001")
-
-request = SendMessageRequest(
-    id=str(uuid4()),
-    params=MessageSendParams(
-        message={
-            "role": "user",
-            "parts": [{"kind": "text", "text": "Hello!"}],
-            "messageId": uuid4().hex,
-        }
-    )
-)
-response = await client.send_message(request)
-```
-
-### AI Gateway (Proxy Server)
-
-**Step 1.** [Add your Agent to the AI Gateway](https://docs.litellm.ai/docs/a2a#adding-your-agent) — set `protocolVersion` to `1.0` or `0.3` per agent
-
-**Step 2.** Call Agent via A2A SDK (requires `a2a-sdk>=1.1.0`)
-
-```python
-import httpx
-from a2a.client import A2ACardResolver, ClientConfig, ClientFactory
-from a2a.types import Message, Part, Role, SendMessageRequest
-from a2a.utils.constants import TransportProtocol
-from uuid import uuid4
-
-base_url = "http://localhost:4000/a2a/my-agent"  # LiteLLM proxy + agent name
-headers = {"Authorization": "Bearer <your-master-key>"}    # LiteLLM master key or a virtual key
-
-async with httpx.AsyncClient(headers=headers, timeout=60.0) as http_client:
-    resolver = A2ACardResolver(httpx_client=http_client, base_url=base_url)
-    agent_card = await resolver.get_agent_card()
-    config = ClientConfig(
-        httpx_client=http_client,
-        streaming=False,
-        supported_protocol_bindings=[TransportProtocol.JSONRPC, TransportProtocol.HTTP_JSON],
-    )
-    client = ClientFactory(config).create(agent_card)
-
-    request = SendMessageRequest(
-        message=Message(
-            message_id=uuid4().hex,
-            role=Role.ROLE_USER,
-            parts=[Part(text="Hello!")],
-        )
-    )
-    async for event in client.send_message(request):
-        populated = event.ListFields()
-        if populated and populated[0][0].name in ("message", "msg"):
-            print("".join(getattr(p, "text", "") or "" for p in populated[0][1].parts))
-```
-
-[**Docs: A2A Agent Gateway**](https://docs.litellm.ai/docs/a2a)
-
-</details>
-
-<details>
-<summary><b>MCP Tools</b> - Connect MCP servers to any LLM (Python SDK + AI Gateway)</summary>
-
-### Python SDK - MCP Bridge
-
-```python
-from mcp import ClientSession, StdioServerParameters
-from mcp.client.stdio import stdio_client
-from litellm import mcp_client
-import litellm
-
-server_params = StdioServerParameters(command="python", args=["mcp_server.py"])
-
-async with stdio_client(server_params) as (read, write):
-    async with ClientSession(read, write) as session:
-        await session.initialize()
-
-        # Load MCP tools in OpenAI format
-        tools = await mcp_client.load_mcp_tools(session=session, format="openai")
-
-        # Use with any LiteLLM model
-        response = await litellm.acompletion(
-            model="gpt-4o",
-            messages=[{"role": "user", "content": "What's 3 + 5?"}],
-            tools=tools
-        )
-```
-
-### AI Gateway - MCP Gateway
-
-**Step 1.** [Add your MCP Server to the AI Gateway](https://docs.litellm.ai/docs/mcp#adding-your-mcp)
-
-**Step 2.** Call MCP tools via `/chat/completions`
-
-```bash
-curl -X POST 'http://0.0.0.0:4000/v1/chat/completions' \
-  -H 'Authorization: Bearer <your-master-key>' \
-  -H 'Content-Type: application/json' \
   -d '{
-    "model": "gpt-4o",
-    "messages": [{"role": "user", "content": "Summarize the latest open PR"}],
-    "tools": [{
-      "type": "mcp",
-      "server_url": "litellm_proxy/mcp/github",
-      "server_label": "github_mcp",
-      "require_approval": "never"
-    }]
+    "model": "my-model",
+    "messages": [{"role": "user", "content": "你好，请介绍一下自己"}],
+    "max_tokens": 1024,
+    "stream": true
   }'
 ```
 
-### Use with Cursor IDE
-
-```json
-{
-  "mcpServers": {
-    "LiteLLM": {
-      "url": "http://localhost:4000/mcp/",
-      "headers": {
-        "x-litellm-api-key": "Bearer <your-master-key>"
-      }
-    }
-  }
-}
-```
-
-For MCP OAuth, an upstream may advertise dynamic client registration but refuse requests with HTTP 401 or 403. If the provider requires a pre-registered OAuth app, configure its `credentials.client_id` and, when required, `credentials.client_secret` on the MCP server. This skips dynamic registration in the gateway sign-in flow. The provider must approve the app for MCP access; reaching its authorization page does not establish that login or tool calls will succeed
-
-[**Docs: MCP Gateway**](https://docs.litellm.ai/docs/mcp)
-
-</details>
-
-<details>
-<summary><b>Agents</b> - Run Claude Code, Codex, OpenCode, pi or Deep Agents on any model (Python SDK)</summary>
-
-### Python SDK - Agents
-
-```python
-import litellm
-from litellm import Harness, sandbox
-
-result = litellm.agent(
-    Harness.CLAUDE_CODE,  # or Harness.CODEX, Harness.OPENCODE, Harness.PI, Harness.DEEPAGENTS
-    "Find why tests/test_router.py is flaky and fix it.",
-    sandbox=sandbox.local("./repo"),
-    model="litellm_proxy/claude-sonnet-4-5",  # a model group on your AI Gateway
-)
-
-print(result.text, result.cost, [f.path for f in result.files])
-```
-
-Set `LITELLM_PROXY_API_BASE` and `LITELLM_PROXY_API_KEY` and every model call the agent makes goes through your AI Gateway, tagged `harness,claude_code`. Drop the `litellm_proxy/` prefix to call a provider directly. Install `starlette uvicorn` plus the agent's CLI (`claude`, `codex`, `opencode` or `pi`), or `deepagents langchain-litellm` for Deep Agents.
-
-[**Docs: Agent Harnesses**](https://docs.litellm.ai/docs/harness)
-
-</details>
-
-### Supported Providers ([Website Supported Models](https://models.litellm.ai/) | [Docs](https://docs.litellm.ai/docs/providers))
-
-| Provider                                                                            | `/chat/completions` | `/messages` | `/responses` | `/embeddings` | `/image/generations` | `/audio/transcriptions` | `/audio/speech` | `/moderations` | `/batches` | `/rerank` |
-|-------------------------------------------------------------------------------------|---------------------|-------------|--------------|---------------|----------------------|-------------------------|-----------------|----------------|-----------|-----------|
-| [Abliteration (`abliteration`)](https://docs.litellm.ai/docs/providers/abliteration) | ✅ |  |  |  |  |  |  |  |  |  |
-| [AI/ML API (`aiml`)](https://docs.litellm.ai/docs/providers/aiml) | ✅ | ✅ | ✅ | ✅ | ✅ |  |  |  |  |  |
-| [AI21 (`ai21`)](https://docs.litellm.ai/docs/providers/ai21) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-| [AI21 Chat (`ai21_chat`)](https://docs.litellm.ai/docs/providers/ai21) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-| [Aleph Alpha](https://docs.litellm.ai/docs/providers/aleph_alpha) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-| [Amazon Nova](https://docs.litellm.ai/docs/providers/amazon_nova) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-| [Anthropic (`anthropic`)](https://docs.litellm.ai/docs/providers/anthropic) | ✅ | ✅ | ✅ |  |  |  |  |  | ✅ |  |
-| [Anthropic Text (`anthropic_text`)](https://docs.litellm.ai/docs/providers/anthropic) | ✅ | ✅ | ✅ |  |  |  |  |  | ✅ |  |
-| [Anyscale](https://docs.litellm.ai/docs/providers/anyscale) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-| [AssemblyAI (`assemblyai`)](https://docs.litellm.ai/docs/pass_through/assembly_ai) | ✅ | ✅ | ✅ |  |  | ✅ |  |  |  |  |
-| [Auto Router (`auto_router`)](https://docs.litellm.ai/docs/proxy/auto_routing) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-| [AWS - Bedrock (`bedrock`)](https://docs.litellm.ai/docs/providers/bedrock) | ✅ | ✅ | ✅ | ✅ |  |  |  |  |  | ✅ |
-| [AWS - Sagemaker (`sagemaker`)](https://docs.litellm.ai/docs/providers/aws_sagemaker) | ✅ | ✅ | ✅ | ✅ |  |  |  |  |  |  |
-| [Azure (`azure`)](https://docs.litellm.ai/docs/providers/azure) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |  |
-| [Azure AI (`azure_ai`)](https://docs.litellm.ai/docs/providers/azure_ai) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |  |
-| [Azure Text (`azure_text`)](https://docs.litellm.ai/docs/providers/azure) | ✅ | ✅ | ✅ |  |  | ✅ | ✅ | ✅ | ✅ |  |
-| [Baseten (`baseten`)](https://docs.litellm.ai/docs/providers/baseten) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-| [Bytez (`bytez`)](https://docs.litellm.ai/docs/providers/bytez) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-| [Cerebras (`cerebras`)](https://docs.litellm.ai/docs/providers/cerebras) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-| [Clarifai (`clarifai`)](https://docs.litellm.ai/docs/providers/clarifai) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-| [CLF AI Gateway (`clf_ai_gateway`)](https://docs.litellm.ai/docs/providers/clf_ai_gateway) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-| [Cloudflare AI Workers (`cloudflare`)](https://docs.litellm.ai/docs/providers/cloudflare_workers) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-| [Codestral (`codestral`)](https://docs.litellm.ai/docs/providers/codestral) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-| [Cognition (`cognition`)](https://docs.litellm.ai/docs/providers/cognition) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-| [Cohere (`cohere`)](https://docs.litellm.ai/docs/providers/cohere) | ✅ | ✅ | ✅ | ✅ |  |  |  |  |  | ✅ |
-| [Cohere Chat (`cohere_chat`)](https://docs.litellm.ai/docs/providers/cohere) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-| [CometAPI (`cometapi`)](https://docs.litellm.ai/docs/providers/cometapi) | ✅ | ✅ | ✅ | ✅ |  |  |  |  |  |  |
-| [CompactifAI (`compactifai`)](https://docs.litellm.ai/docs/providers/compactifai) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-| [CoralBricks (`coralbricks`)](https://docs.litellm.ai/docs/providers/coralbricks) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-| [Custom (`custom`)](https://docs.litellm.ai/docs/providers/custom_llm_server) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-| [Custom OpenAI (`custom_openai`)](https://docs.litellm.ai/docs/providers/openai_compatible) | ✅ | ✅ | ✅ |  |  | ✅ | ✅ | ✅ | ✅ |  |
-| [Dashscope (`dashscope`)](https://docs.litellm.ai/docs/providers/dashscope) | ✅ | ✅ | ✅ | ✅ |  |  |  |  |  | ✅ |
-| [Databricks (`databricks`)](https://docs.litellm.ai/docs/providers/databricks) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-| [DataRobot (`datarobot`)](https://docs.litellm.ai/docs/providers/datarobot) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-| [Deepgram (`deepgram`)](https://docs.litellm.ai/docs/providers/deepgram) | ✅ | ✅ | ✅ |  |  | ✅ |  |  |  |  |
-| [DeepInfra (`deepinfra`)](https://docs.litellm.ai/docs/providers/deepinfra) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-| [Deepseek (`deepseek`)](https://docs.litellm.ai/docs/providers/deepseek) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-| [Eden AI (`edenai`)](https://docs.litellm.ai/docs/providers/edenai) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |  |  |  |
-| [ElevenLabs (`elevenlabs`)](https://docs.litellm.ai/docs/providers/elevenlabs) | ✅ | ✅ | ✅ |  |  | ✅ | ✅ |  |  |  |
-| [Empower (`empower`)](https://docs.litellm.ai/docs/providers/empower) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-| [eu/jev Decisions API (`eu_jev`)](https://docs.litellm.ai/docs/pass_through/eu_jev) |  |  |  |  |  |  |  |  |  |  |
-| [Fal AI (`fal_ai`)](https://docs.litellm.ai/docs/providers/fal_ai) | ✅ | ✅ | ✅ |  | ✅ |  |  |  |  |  |
-| [Featherless AI (`featherless_ai`)](https://docs.litellm.ai/docs/providers/featherless_ai) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-| [Fireworks AI (`fireworks_ai`)](https://docs.litellm.ai/docs/providers/fireworks_ai) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-| [FriendliAI (`friendliai`)](https://docs.litellm.ai/docs/providers/friendliai) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-| [Galadriel (`galadriel`)](https://docs.litellm.ai/docs/providers/galadriel) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-| [GitHub Copilot (`github_copilot`)](https://docs.litellm.ai/docs/providers/github_copilot) | ✅ | ✅ | ✅ | ✅ |  |  |  |  |  |  |
-| [GitHub Models (`github`)](https://docs.litellm.ai/docs/providers/github) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-| [Google - PaLM](https://docs.litellm.ai/docs/providers/palm) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-| [Google - Vertex AI (`vertex_ai`)](https://docs.litellm.ai/docs/providers/vertex) | ✅ | ✅ | ✅ | ✅ | ✅ |  |  |  |  |  |
-| [Google AI Studio - Gemini (`gemini`)](https://docs.litellm.ai/docs/providers/gemini) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-| [GradientAI (`gradient_ai`)](https://docs.litellm.ai/docs/providers/gradient_ai) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-| [Groq AI (`groq`)](https://docs.litellm.ai/docs/providers/groq) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-| [Heroku (`heroku`)](https://docs.litellm.ai/docs/providers/heroku) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-| [Hosted VLLM (`hosted_vllm`)](https://docs.litellm.ai/docs/providers/vllm) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-| [Huggingface (`huggingface`)](https://docs.litellm.ai/docs/providers/huggingface) | ✅ | ✅ | ✅ | ✅ |  |  |  |  |  | ✅ |
-| [Hyperbolic (`hyperbolic`)](https://docs.litellm.ai/docs/providers/hyperbolic) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-| [IBM - Watsonx.ai (`watsonx`)](https://docs.litellm.ai/docs/providers/watsonx) | ✅ | ✅ | ✅ | ✅ |  |  |  |  |  |  |
-| [Infinity (`infinity`)](https://docs.litellm.ai/docs/providers/infinity) |  |  |  | ✅ |  |  |  |  |  |  |
-| [Jina AI (`jina_ai`)](https://docs.litellm.ai/docs/providers/jina_ai) |  |  |  | ✅ |  |  |  |  |  |  |
-| [Lambda AI (`lambda_ai`)](https://docs.litellm.ai/docs/providers/lambda_ai) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-| [Lemonade (`lemonade`)](https://docs.litellm.ai/docs/providers/lemonade) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-| [LiteLLM Proxy (`litellm_proxy`)](https://docs.litellm.ai/docs/providers/litellm_proxy) | ✅ | ✅ | ✅ | ✅ | ✅ |  |  |  |  |  |
-| [Llamafile (`llamafile`)](https://docs.litellm.ai/docs/providers/llamafile) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-| [LM Studio (`lm_studio`)](https://docs.litellm.ai/docs/providers/lm_studio) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-| [Maritalk (`maritalk`)](https://docs.litellm.ai/docs/providers/maritalk) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-| [Meta - Llama API (`meta_llama`)](https://docs.litellm.ai/docs/providers/meta_llama) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-| [Mistral AI API (`mistral`)](https://docs.litellm.ai/docs/providers/mistral) | ✅ | ✅ | ✅ | ✅ |  |  |  |  |  |  |
-| [ModelScope (`modelscope`)](https://docs.litellm.ai/docs/providers/modelscope) | ✅ | ✅ | ✅ |  | ✅ |  |  |  |  |  |
-| [Moonshot (`moonshot`)](https://docs.litellm.ai/docs/providers/moonshot) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-| [Morph (`morph`)](https://docs.litellm.ai/docs/providers/morph) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-| [Nace (`nace`)](https://console.nace.ai/docs/drex) |  |  |  |  |  |  |  |  |  |  |
-| [Nebius AI Studio (`nebius`)](https://docs.litellm.ai/docs/providers/nebius) | ✅ | ✅ | ✅ | ✅ |  |  |  |  |  |  |
-| [NLP Cloud (`nlp_cloud`)](https://docs.litellm.ai/docs/providers/nlp_cloud) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-| [Novita AI (`novita`)](https://novita.ai/models/llm?utm_source=github_litellm&utm_medium=github_readme&utm_campaign=github_link) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-| [Nscale (`nscale`)](https://docs.litellm.ai/docs/providers/nscale) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-| [Nvidia NIM (`nvidia_nim`)](https://docs.litellm.ai/docs/providers/nvidia_nim) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-| [OCI (`oci`)](https://docs.litellm.ai/docs/providers/oci) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-| [Ollama (`ollama`)](https://docs.litellm.ai/docs/providers/ollama) | ✅ | ✅ | ✅ | ✅ |  |  |  |  |  |  |
-| [Ollama Chat (`ollama_chat`)](https://docs.litellm.ai/docs/providers/ollama) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-| [Oobabooga (`oobabooga`)](https://docs.litellm.ai/docs/providers/openai_compatible) | ✅ | ✅ | ✅ |  |  | ✅ | ✅ | ✅ | ✅ |  |
-| [OpenAI (`openai`)](https://docs.litellm.ai/docs/providers/openai) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |  |
-| [OpenAI-like (`openai_like`)](https://docs.litellm.ai/docs/providers/openai_compatible) |  |  |  | ✅ |  |  |  |  |  |  |
-| [OpenRouter (`openrouter`)](https://docs.litellm.ai/docs/providers/openrouter) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-| [OVHCloud AI Endpoints (`ovhcloud`)](https://docs.litellm.ai/docs/providers/ovhcloud) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-| [Perplexity AI (`perplexity`)](https://docs.litellm.ai/docs/providers/perplexity) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-| [Petals (`petals`)](https://docs.litellm.ai/docs/providers/petals) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-| [Pinstripes (`pinstripes`)](https://docs.litellm.ai/docs/providers/pinstripes) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-| [Predibase (`predibase`)](https://docs.litellm.ai/docs/providers/predibase) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-| [Qianwen AI Platform (`qwen_ai_platform`)](https://docs.litellm.ai/docs/providers/qwencloud) | ✅ | ✅ | ✅ | ✅ | ✅ |  |  |  |  | ✅ |
-| [QwenCloud (`qwencloud`)](https://docs.litellm.ai/docs/providers/qwencloud) | ✅ | ✅ | ✅ | ✅ | ✅ |  |  |  |  | ✅ |
-| [Recraft (`recraft`)](https://docs.litellm.ai/docs/providers/recraft) |  |  |  |  | ✅ |  |  |  |  |  |
-| [Replicate (`replicate`)](https://docs.litellm.ai/docs/providers/replicate) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-| [Sagemaker Chat (`sagemaker_chat`)](https://docs.litellm.ai/docs/providers/aws_sagemaker) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-| [Sail (`sail`)](https://docs.litellm.ai/docs/providers/sail) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-| [Sambanova (`sambanova`)](https://docs.litellm.ai/docs/providers/sambanova) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-| [ScaleDown (`scaledown`)](https://docs.litellm.ai/docs/providers/scaledown) | ✅ |  |  |  |  |  |  |  |  |  |
-| [Snowflake (`snowflake`)](https://docs.litellm.ai/docs/providers/snowflake) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-| [Strands Decider (`strands_decider`)](https://docs.litellm.ai/docs/providers) |  |  |  |  |  |  |  |  |  |  |
-| [Text Completion Codestral (`text-completion-codestral`)](https://docs.litellm.ai/docs/providers/codestral) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-| [Text Completion OpenAI (`text-completion-openai`)](https://docs.litellm.ai/docs/providers/text_completion_openai) | ✅ | ✅ | ✅ |  |  | ✅ | ✅ | ✅ | ✅ |  |
-| [Together AI (`together_ai`)](https://docs.litellm.ai/docs/providers/togetherai) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-| [Topaz (`topaz`)](https://docs.litellm.ai/docs/providers/topaz) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-| [Triton (`triton`)](https://docs.litellm.ai/docs/providers/triton-inference-server) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-| [Typesafe Decisions API (`typesafe`)](https://docs.litellm.ai/docs/providers) |  |  |  |  |  |  |  |  |  |  |
-| [V0 (`v0`)](https://docs.litellm.ai/docs/providers/v0) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-| [Vercel AI Gateway (`vercel_ai_gateway`)](https://docs.litellm.ai/docs/providers/vercel_ai_gateway) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-| [VLLM (`vllm`)](https://docs.litellm.ai/docs/providers/vllm) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-| [Volcengine (`volcengine`)](https://docs.litellm.ai/docs/providers/volcano) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-| [VoyageAI by MongoDB (`voyage`)](https://docs.litellm.ai/docs/providers/voyage) |  |  |  | ✅ |  |  |  |  |  |  |
-| [WandB Inference (`wandb`)](https://docs.litellm.ai/docs/providers/wandb_inference) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-| [Watsonx Text (`watsonx_text`)](https://docs.litellm.ai/docs/providers/watsonx) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-| [xAI (`xai`)](https://docs.litellm.ai/docs/providers/xai) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-| [Xinference (`xinference`)](https://docs.litellm.ai/docs/providers/xinference) |  |  |  | ✅ |  |  |  |  |  |  |
-| [ZeroGPU (`zerogpu`)](https://docs.litellm.ai/docs/providers/zerogpu) | ✅ | ✅ | ✅ |  |  |  |  |  |  |  |
-
-[**Read the Docs**](https://docs.litellm.ai/docs/)
-
----
-
-## Get Started
-
-You can use LiteLLM through either the Proxy Server or Python SDK. Both give you a unified interface to access multiple LLMs (100+ LLMs). Choose the option that best fits your needs:
-
-<table style={{width: '100%', tableLayout: 'fixed'}}>
-<thead>
-<tr>
-<th style={{width: '14%'}}></th>
-<th style={{width: '43%'}}><strong><a href="https://docs.litellm.ai/docs/simple_proxy">LiteLLM AI Gateway</a></strong></th>
-<th style={{width: '43%'}}><strong><a href="https://docs.litellm.ai/docs/python_sdk">LiteLLM Python SDK</a></strong></th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style={{width: '14%'}}><strong>Use Case</strong></td>
-<td style={{width: '43%'}}>Central service (LLM Gateway) to access multiple LLMs</td>
-<td style={{width: '43%'}}>Use LiteLLM directly in your Python code</td>
-</tr>
-<tr>
-<td style={{width: '14%'}}><strong>Who Uses It?</strong></td>
-<td style={{width: '43%'}}>Gen AI Enablement / ML Platform Teams</td>
-<td style={{width: '43%'}}>Developers building LLM projects</td>
-</tr>
-<tr>
-<td style={{width: '14%'}}><strong>Key Features</strong></td>
-<td style={{width: '43%'}}>Centralized API gateway with authentication and authorization, multi-tenant cost tracking and spend management per project/user, per-project customization (logging, guardrails, caching), virtual keys for secure access control, admin dashboard UI for monitoring and management</td>
-<td style={{width: '43%'}}>Direct Python library integration in your codebase, Router with retry/fallback logic across multiple deployments (e.g. Azure/OpenAI) - <a href="https://docs.litellm.ai/docs/routing">Router</a>, application-level load balancing and cost tracking, exception handling with OpenAI-compatible errors, observability callbacks (Lunary, MLflow, Langfuse, etc.)</td>
-</tr>
-</tbody>
-</table>
-
-**Stable Release:** Use docker images with the `-stable` tag. These have undergone 12 hour load tests, before being published. [More information about the release cycle here](https://docs.litellm.ai/docs/proxy/release_cycle)
-
-Support for more providers. Missing a provider or LLM Platform, raise a [feature request](https://github.com/BerriAI/litellm/issues/new?assignees=&labels=enhancement&projects=&template=feature_request.yml&title=%5BFeature%5D%3A+).
-
-### Deploy on AWS or GCP with Terraform
-
-Run the LiteLLM proxy as a production-ready componentized stack (gateway, backend, UI on separate services; managed Postgres + Redis + object store) using the published Terraform modules. Both modules are on the [public Terraform Registry](https://registry.terraform.io/namespaces/BerriAI) — no auth needed.
-
-#### AWS — ECS Fargate + Aurora + ElastiCache + ALB
-
-[![Launch in AWS CloudShell](https://img.shields.io/badge/Launch-AWS_CloudShell-FF9900?logo=amazon-aws&logoColor=white)](https://console.aws.amazon.com/cloudshell/home) — opens an in-browser shell, already authenticated to your AWS account. Once inside, run:
-
-```bash
-git clone https://github.com/BerriAI/litellm.git
-cd litellm/terraform/litellm/aws/examples/default
-cp terraform.tfvars.example terraform.tfvars   # edit region/tenant/env
-terraform init && terraform apply
-```
-
-[Module page →](https://registry.terraform.io/modules/BerriAI/litellm/aws/latest)
-
-Or call the module from your own root config:
-
-```hcl
-# main.tf
-terraform {
-  required_version = ">= 1.6.0"
-  required_providers {
-    aws = { source = "hashicorp/aws", version = "~> 5.60" }
-  }
-}
-
-provider "aws" {
-  region = "us-west-2"
-}
-
-module "litellm" {
-  source  = "BerriAI/litellm/aws"
-  version = "~> 1.89"
-
-  region = "us-west-2"
-  azs    = ["us-west-2a", "us-west-2b"]
-  tenant = "acme"
-  env    = "prod"
-
-  # Production: provide an ACM cert. Without one, set allow_plaintext_alb = true
-  # (dev/trial only).
-  # acm_certificate_arn = "arn:aws:acm:us-west-2:111122223333:certificate/..."
-  allow_plaintext_alb = true
-}
-
-output "litellm_url" {
-  value = module.litellm.alb_dns_name
-}
-```
-
-```bash
-terraform init
-terraform apply
-```
-
-Provider API keys live in AWS Secrets Manager; reference ARNs via `gateway_extra_secrets`. Full input list and architecture diagram on the [registry page](https://registry.terraform.io/modules/BerriAI/litellm/aws/latest?tab=inputs).
-
-#### GCP — Cloud Run + Cloud SQL + Memorystore + HTTPS LB
-
-[![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.png)](https://ssh.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https%3A%2F%2Fgithub.com%2FBerriAI%2Fterraform-google-litellm&cloudshell_git_branch=v1.105.0&cloudshell_workspace=examples%2Fdefault&cloudshell_tutorial=TUTORIAL.md&cloudshell_image=gcr.io/ds-artifacts-cloudshell/deploystack_custom_image&shellonly=true)
-
-Real 1-click. Opens Cloud Shell, clones the [terraform-google-litellm](https://github.com/BerriAI/terraform-google-litellm) module mirror at the latest stable release (a small download instead of the full litellm repo), and walks you through `terraform apply` via a built-in [DeployStack tutorial](./terraform/litellm/gcp/examples/default/TUTORIAL.md). Pick the project, the tutorial sets up the Artifact Registry remote repo, writes `terraform.tfvars` from your answers, and runs apply
-
-[Module page →](https://registry.terraform.io/modules/BerriAI/litellm/google/latest)
-
-To call the module from your own config instead, Cloud Run can't pull from `ghcr.io` directly, so first set up a one-time Artifact Registry remote repo backed by GHCR:
-
-```bash
-gcloud artifacts repositories create litellm \
-  --location=us-central1 \
-  --repository-format=docker \
-  --mode=remote-repository \
-  --remote-docker-repo=https://ghcr.io \
-  --project=my-gcp-project
-```
-
-Then:
-
-```hcl
-# main.tf
-terraform {
-  required_version = ">= 1.6.0"
-  required_providers {
-    google      = { source = "hashicorp/google",      version = "~> 6.10" }
-    google-beta = { source = "hashicorp/google-beta", version = "~> 6.10" }
-  }
-}
-
-provider "google"      { project = "my-gcp-project"; region = "us-central1" }
-provider "google-beta" { project = "my-gcp-project"; region = "us-central1" }
-
-module "litellm" {
-  source  = "BerriAI/litellm/google"
-  version = "~> 1.89"
-
-  project_id = "my-gcp-project"
-  region     = "us-central1"
-  tenant     = "acme"
-  env        = "prod"
-
-  # Replace my-gcp-project with your GCP project ID (same value as project_id above).
-  image_registry = "us-central1-docker.pkg.dev/my-gcp-project/litellm/berriai"
-
-  # Production: provide DNS already pointing at the LB IP for Google-managed certs.
-  # Without one, set allow_plaintext_lb = true (dev/trial only).
-  # lb_domains         = ["proxy.example.com"]
-  allow_plaintext_lb = true
-}
-
-output "litellm_url" {
-  value = module.litellm.load_balancer_url
-}
-```
-
-```bash
-terraform init
-terraform apply
-```
-
-Provider API keys live in Secret Manager; reference resource IDs (e.g. `projects/my-gcp-project/secrets/openai-api-key`) via `gateway_extra_secrets`. Full input list and architecture diagram on the [registry page](https://registry.terraform.io/modules/BerriAI/litellm/google/latest?tab=inputs).
-
-#### Both stacks include
-
-- The full componentized split (gateway / backend / UI as independent services)
-- Managed Postgres (writer + reader) and Redis
-- Versioned object store for proxy state + file uploads
-- An auto-generated `LITELLM_MASTER_KEY` in your cloud's secret manager
-- A one-off migration job that runs `prisma migrate deploy` before the proxy starts
-- The same `proxy_config` surface as the [Helm chart](./helm/litellm/) — pass YAML as a typed map
-
-The Terraform modules live at [`terraform/litellm/aws/`](./terraform/litellm/aws/) and [`terraform/litellm/gcp/`](./terraform/litellm/gcp/) in this repo; the registry entries are read-only mirrors updated on each release.
-
-### Run in Developer Mode
-#### Services
-1. Setup .env file in root
-2. Run dependent services `docker-compose up db prometheus`
-
-#### Backend
-1. Run `make bootstrap`
-2. Start proxy backend: `uv run python litellm/proxy/proxy_cli.py`
-
-#### Frontend
-1. Navigate to `ui/litellm-dashboard` (dependencies were already installed w/ `make bootstrap`)
-2. Start dashboard: `npm run dev`
-
-### Verify Docker Image Signatures
-
-All LiteLLM Docker images published to GHCR are signed with [cosign](https://docs.sigstore.dev/cosign/overview/). Releases are signed with the key introduced in [commit `e82a3c6`](https://github.com/BerriAI/litellm/commit/e82a3c646908ba0a6ee0beddc4310d7a6cac4065).
-
-**Verify using the pinned commit hash (recommended):**
-
-A commit hash is cryptographically immutable, so this is the strongest way to ensure you are using the published signing key:
-
-```bash
-cosign verify \
-  --key https://raw.githubusercontent.com/BerriAI/litellm/e82a3c646908ba0a6ee0beddc4310d7a6cac4065/cosign.pub \
-  ghcr.io/berriai/litellm:<release-tag>
-```
-
-**Verify using a release tag (convenience):**
-
-Tags are protected in this repository and resolve to the same key. This option is easier to read but relies on tag protection rules:
-
-```bash
-cosign verify \
-  --key https://raw.githubusercontent.com/BerriAI/litellm/<release-tag>/cosign.pub \
-  ghcr.io/berriai/litellm:<release-tag>
-```
-
-Replace `<release-tag>` with the version you are deploying (e.g. `v1.83.0-stable`).
-
----
-
-# Enterprise
-For companies that need better security, user management and professional support
-
-[Get an Enterprise License](https://litellm.ai/enterprise)
-[Talk to founders](https://enterprise.litellm.ai/demo)
-
-This covers:
-- ✅ **Features under the [LiteLLM Commercial License](https://docs.litellm.ai/docs/enterprise):**
-- ✅ **Feature Prioritization**
-- ✅ **Custom Integrations**
-- ✅ **Professional Support - Dedicated discord + slack**
-- ✅ **Custom SLAs**
-- ✅ **Secure access with Single Sign-On**
-
-# Contributing
-
-We welcome contributions to LiteLLM! Whether you're fixing bugs, adding features, or improving documentation, we appreciate your help.
-
-If you want to work closely with our team, check out [LiteLLM OSS Champions](https://www.litellm.ai/champions), our program for trusted OSS contributors with their own Slack channel and a voice in the roadmap
-
-## Quick Start for Contributors
-
-This requires uv to be installed.
-
-```bash
-git clone https://github.com/BerriAI/litellm.git
-cd litellm
-make install-dev    # Install development dependencies
-make format         # Format your code
-make lint           # Run all linting checks
-make test-unit      # Run unit tests
-make format-check   # Check formatting only
-```
-
-For detailed contributing guidelines, see [CONTRIBUTING.md](CONTRIBUTING.md).
-
-> **📖 Contributing to documentation?** The LiteLLM docs have moved to a separate repository: [BerriAI/litellm-docs](https://github.com/BerriAI/litellm-docs). Please open doc PRs there. Docs are served at [docs.litellm.ai](https://docs.litellm.ai).
-
-## Code Quality / Linting
-
-LiteLLM follows the [Google Python Style Guide](https://google.github.io/styleguide/pyguide.html).
-
-Our automated checks include:
-- **Ruff** for formatting, linting, and code quality
-- **basedpyright** for type checking
-- **Circular import detection**
-- **Import safety checks**
-
-
-All these checks must pass before your PR can be merged.
-
-
-# Support / talk with founders
-
-- [Schedule Demo 👋](https://calendly.com/d/4mp-gd3-k5k/berriai-1-1-onboarding-litellm-hosted-version)
-- [Community Discord 💭](https://discord.gg/wuPM9dRgDw)
-- [Community Slack 💭](https://www.litellm.ai/support)
-- Our emails ✉️ ishaan@berri.ai / krrish@berri.ai
-
-# Contributors
-
-<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
-<!-- prettier-ignore-start -->
-<!-- markdownlint-disable -->
-
-<!-- markdownlint-restore -->
-<!-- prettier-ignore-end -->
-
-<!-- ALL-CONTRIBUTORS-LIST:END -->
-
-<a href="https://github.com/BerriAI/litellm/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=BerriAI/litellm" />
-</a>
+调用费用先按预计额度预扣，再按实际费用及请求开始时的组间倍率结算。余额不足时拒绝调用；充值和兑换继续遵守已有模型权限与调用限额，不能代替模型授权或提高原生 API 预算
+
+## 文档
+
+| 文档 | 内容 |
+| --- | --- |
+| [部署与维护](https://github.com/nodeloc/cocaapi/blob/litellm_account_auth/deploy/cocaapi/README.md) | 服务配置、启动、备份与升级 |
+| [账号与 OAuth](https://github.com/nodeloc/cocaapi/blob/litellm_account_auth/deploy/cocaapi/AUTH.md) | 注册、登录、SMTP、OAuth 和后台配置 |
+| [用户网关](https://github.com/nodeloc/cocaapi/blob/litellm_account_auth/deploy/cocaapi/GATEWAY.md) | 个人 Key、模型、Playground、用量与日志 |
+| [钱包与支付适配](https://github.com/nodeloc/cocaapi/blob/litellm_account_auth/deploy/cocaapi/WALLET.md) | 余额、兑换码、调用结算与 USDT 接口 |
+| [分组与倍率](https://github.com/nodeloc/cocaapi/blob/litellm_account_auth/deploy/cocaapi/BILLING_GROUPS.md) | 用户分组、模型分组、倍率、禁用与计费快照 |
+| [中英文界面](https://github.com/nodeloc/cocaapi/blob/litellm_account_auth/deploy/cocaapi/I18N.md) | 语言切换、词库维护与前端发布 |
+| [用户界面复用](https://github.com/nodeloc/cocaapi/blob/litellm_account_auth/deploy/cocaapi/ACCOUNT_UI.md) | 原生管理页面与用户后台的组件复用 |
+| [品牌素材](https://github.com/nodeloc/cocaapi/blob/litellm_account_auth/deploy/cocaapi/BRANDING.md) | Logo、主题与静态资源 |
+| [贡献指南](https://github.com/nodeloc/cocaapi/blob/litellm_account_auth/CONTRIBUTING.md) | 开发与贡献约定 |
+
+## 上游与许可证
+
+CocaAPI fork 自 [BerriAI/LiteLLM](https://github.com/BerriAI/litellm)，保留上游版权声明、模型适配与 SDK 实现。[LiteLLM 原始 README](https://github.com/nodeloc/cocaapi/blob/litellm_account_auth/README_LITELLM.md)保留了上游功能介绍和资料入口
+
+本仓库根 [LICENSE](https://github.com/nodeloc/cocaapi/blob/litellm_account_auth/LICENSE) 对其覆盖的内容采用 MIT 许可，并对 `enterprise/` 目录作单独说明。使用和分发时以对应许可证文件为准
