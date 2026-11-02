@@ -1,8 +1,20 @@
-import { translate } from "./language.js";
+import { translate } from "./language.js?v=20261102-motion1";
 
 (function () {
   "use strict";
   const root = document.documentElement;
+  const chartObserver = new IntersectionObserver(
+    (entries) => {
+      entries
+        .filter((entry) => entry.isIntersecting)
+        .forEach((entry) => {
+          entry.target.classList.add("is-visible");
+          chartObserver.unobserve(entry.target);
+        });
+    },
+    { threshold: 0.2 },
+  );
+  chartObserver.observe(document.querySelector(".chart"));
   const themeButtons = document.querySelectorAll("[data-theme-choice]");
   const systemTheme = matchMedia("(prefers-color-scheme: light)");
   const updateTheme = (choice) => {

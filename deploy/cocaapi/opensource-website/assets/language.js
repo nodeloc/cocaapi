@@ -22,7 +22,8 @@ const english = Object.freeze({
   heroNote: "Self-hosted · OpenAI-compatible · Source available",
   terminalDemo: "Workflow illustration",
   providersLabel: "Model providers",
-  providersIntro: "Connect the model services you already use through LiteLLM",
+  providersIntro: "Bring your own keys for",
+  providerMarquee: "Model providers. Hover or focus to pause scrolling",
   providersLink: 'Explore provider adapters <span aria-hidden="true">↗</span>',
   featuresHeading: "From model calls<br>to user services",
   featuresDescription:

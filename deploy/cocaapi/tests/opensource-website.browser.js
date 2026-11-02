@@ -3,6 +3,144 @@ async function verifyOpenSourceWebsite(page, options = {}) {
   const ensure = (condition, message) => {
     if (!condition) throw new Error(message);
   };
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.reload();
+  await page.locator("#providers").scrollIntoViewIfNeeded();
+  await page.mouse.move(0, 0);
+  const providerX = await page
+    .locator(".provider-list > span")
+    .first()
+    .evaluate((element) => element.getBoundingClientRect().x);
+  await page.waitForFunction(
+    (initial) =>
+      Math.abs(
+        document.querySelector(".provider-list > span").getBoundingClientRect()
+          .x - initial,
+      ) > 2,
+    providerX,
+    { timeout: 2500 },
+  );
+  await page.locator(".provider-marquee").hover();
+  const pausedDistance = await page
+    .locator(".provider-list > span")
+    .first()
+    .evaluate(async (element) => {
+      const initial = element.getBoundingClientRect().x;
+      await new Promise((resolve) => setTimeout(resolve, 150));
+      return Math.abs(element.getBoundingClientRect().x - initial);
+    });
+  ensure(pausedDistance < 0.5, "Provider scrolling does not pause on hover");
+  await page.mouse.move(0, 0);
+  await page.locator(".provider-marquee").focus();
+  const focusedDistance = await page
+    .locator(".provider-list > span")
+    .first()
+    .evaluate(async (element) => {
+      const initial = element.getBoundingClientRect().x;
+      await new Promise((resolve) => setTimeout(resolve, 150));
+      return Math.abs(element.getBoundingClientRect().x - initial);
+    });
+  ensure(
+    focusedDistance < 0.5,
+    "Provider scrolling does not pause for keyboard focus",
+  );
+  const motion = await page.evaluate(() => {
+    const track = document.querySelector(".provider-track");
+    const animation = track.getAnimations()[0];
+    animation.pause();
+    animation.currentTime = 0;
+    const first = track
+      .querySelector(".provider-list:first-child > span")
+      .getBoundingClientRect().x;
+    animation.currentTime = animation.effect.getTiming().duration - 1;
+    const repeated = track
+      .querySelector(".provider-list:last-child > span")
+      .getBoundingClientRect().x;
+    const hero = document.querySelector("h1");
+    const entrance = hero.getAnimations()[0];
+    entrance.pause();
+    entrance.currentTime = 0;
+    const initialOpacity = Number(getComputedStyle(hero).opacity);
+    entrance.finish();
+    const finalOpacity = Number(getComputedStyle(hero).opacity);
+    const lines = Array.from(
+      document.querySelectorAll(".terminal-content > p"),
+    );
+    const firstEnd = lines[0]
+      .getAnimations()[0]
+      .effect.getComputedTiming().endTime;
+    lines.forEach((line) => {
+      const effect = line.getAnimations()[0];
+      effect.pause();
+      effect.currentTime = firstEnd;
+    });
+    const firstLine = Number(getComputedStyle(lines[0]).opacity);
+    const lastLine = Number(getComputedStyle(lines[lines.length - 1]).opacity);
+    lines.forEach((line) => line.getAnimations()[0].finish());
+    return {
+      seam: Math.abs(first - repeated),
+      initialOpacity,
+      finalOpacity,
+      firstLine,
+      lastLine,
+    };
+  });
+  ensure(motion.seam < 1, "Provider loop has a visible jump");
+  ensure(
+    motion.initialOpacity === 0 && motion.finalOpacity === 1,
+    "Hero entrance does not fade in",
+  );
+  ensure(
+    motion.firstLine === 1 && motion.lastLine === 0,
+    "Terminal lines do not appear progressively",
+  );
+  await page.locator(".chart").scrollIntoViewIfNeeded();
+  await page.waitForFunction(
+    () => document.querySelector(".chart > span").getAnimations().length > 0,
+  );
+  const chart = await page
+    .locator(".chart > span")
+    .first()
+    .evaluate((element) => {
+      const animation = element.getAnimations()[0];
+      animation.pause();
+      animation.currentTime = 0;
+      const initial = getComputedStyle(element).transform;
+      animation.finish();
+      return { initial, final: getComputedStyle(element).transform };
+    });
+  ensure(chart.initial !== chart.final, "Chart bars do not grow into view");
+  if (await page.evaluate(() => CSS.supports("animation-timeline", "view()"))) {
+    await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+    await page.waitForFunction(
+      () =>
+        Number(
+          getComputedStyle(document.querySelector(".section-heading")).opacity,
+        ) === 0,
+    );
+    await page.locator(".section-heading").first().scrollIntoViewIfNeeded();
+    await page.waitForFunction(
+      () =>
+        Number(
+          getComputedStyle(document.querySelector(".section-heading")).opacity,
+        ) > 0.99,
+    );
+  }
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  ensure(
+    (await page
+      .locator(".provider-track")
+      .evaluate((element) => element.getAnimations().length)) === 0,
+    "Provider scrolling ignores reduced motion",
+  );
+  ensure(
+    (await page
+      .locator("h1")
+      .evaluate((element) => Number(getComputedStyle(element).opacity))) === 1,
+    "Reduced motion hides the headline",
+  );
+  await page.reload();
   const sourceCard = page.locator(".resource-card").first();
   const repository = new URL(await sourceCard.getAttribute("href"));
   const repositoryPath = repository.pathname.split("/").slice(1, 3).join("/");
@@ -323,5 +461,6 @@ async function verifyOpenSourceWebsite(page, options = {}) {
     keyboard: "passed",
     noJavaScript: "passed",
     unavailableStorage: "passed",
+    motion: "passed",
   };
 }

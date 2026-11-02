@@ -22,9 +22,9 @@
     <meta property="og:type" content="website" />
     <title data-i18n="pageTitle">CocaAPI | 开源模型基础设施</title>
     <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="./assets/website.css" />
-    <script src="./assets/theme.js"></script>
-    <script src="./assets/website.js" type="module"></script>
+    <link rel="stylesheet" href="./assets/website.css?v=20261102-motion1" />
+    <script src="./assets/theme.js?v=20261102-motion1"></script>
+    <script src="./assets/website.js?v=20261102-motion1" type="module"></script>
   </head>
   <body>
     <a class="skip-link" href="#main" data-i18n="skip">跳到正文</a>
@@ -152,7 +152,7 @@
         </div>
         <div class="hero-visual">
           <div class="aura" aria-hidden="true">
-            <span></span><span></span><span></span>
+            <span></span><span></span><span></span> <span></span>
           </div>
           <div class="terminal">
             <div class="window-bar">
@@ -206,12 +206,28 @@
         aria-label="模型提供商"
         data-i18n-label="providersLabel"
       >
-        <p data-i18n="providersIntro">通过 LiteLLM 接入你已有的模型服务</p>
-        <div class="provider-list">
-          <span>OpenAI</span><span>Anthropic</span
-          ><span>Google <b>Gemini</b></span
-          ><span>DeepSeek</span><span>Qwen</span><span>Azure <b>AI</b></span
-          ><span>Ollama</span>
+        <p data-i18n="providersIntro">使用你自己的 Key，接入模型服务</p>
+        <div
+          class="provider-marquee"
+          tabindex="0"
+          role="group"
+          aria-label="模型提供商，悬停或聚焦可暂停滚动"
+          data-i18n-label="providerMarquee"
+        >
+          <div class="provider-track">
+            <div class="provider-list">
+              <span>OpenAI</span><span>Anthropic</span
+              ><span>Google <b>Gemini</b></span
+              ><span>DeepSeek</span><span>Qwen</span><span>Azure <b>AI</b></span
+              ><span>Ollama</span>
+            </div>
+            <div class="provider-list" aria-hidden="true">
+              <span>OpenAI</span><span>Anthropic</span
+              ><span>Google <b>Gemini</b></span
+              ><span>DeepSeek</span><span>Qwen</span><span>Azure <b>AI</b></span
+              ><span>Ollama</span>
+            </div>
+          </div>
         </div>
         <a
           href="https://github.com/nodeloc/cocaapi/tree/litellm_account_auth/litellm/llms"

@@ -47,6 +47,10 @@ assert.equal(
 );
 
 const currentAssets = await readdir(new URL("assets/", website));
+const assetVersion = new URL(
+  html.match(/href="([^"]*assets\/website\.css[^"]*)"/)[1],
+  base,
+).search;
 const assetMimeTypes = Object.freeze({
   ".css": "text/css",
   ".js": "javascript",
@@ -55,7 +59,7 @@ const assetMimeTypes = Object.freeze({
   ".woff2": "font/woff2",
 });
 for (const file of currentAssets) {
-  const path = "/assets/" + file;
+  const path = "/assets/" + file + assetVersion;
   const response = await get(path);
   assert.equal(response.status, 200, path);
   assert(

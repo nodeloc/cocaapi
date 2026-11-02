@@ -250,6 +250,9 @@ html[lang="en"] .hero h1 {
 .button:hover {
   transform: translateY(-2px);
 }
+.button:active {
+  transform: scale(0.97);
+}
 .button-primary {
   background: var(--text);
   color: var(--bg);
@@ -315,6 +318,30 @@ html.js .menu-button {
 .hero-copy {
   position: relative;
   z-index: 1;
+}
+.hero-copy > * {
+  animation: rise 1s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.hero-copy > :nth-child(2) {
+  animation-delay: 150ms;
+}
+.hero-copy > :nth-child(3) {
+  animation-delay: 250ms;
+}
+.hero-copy > :nth-child(4) {
+  animation-delay: 300ms;
+}
+.hero-copy > :nth-child(5) {
+  animation-delay: 450ms;
+}
+.hero-copy > :nth-child(6) {
+  animation-delay: 600ms;
+}
+.hero-copy > :nth-child(7) {
+  animation-delay: 700ms;
+}
+.announcement .status-dot {
+  animation: ping 2s cubic-bezier(0.65, 0, 0.35, 1) infinite;
 }
 .announcement {
   display: inline-flex;
@@ -402,32 +429,42 @@ html.js .menu-button {
   width: 100%;
   height: 100%;
   pointer-events: none;
+  animation: breathe 6s cubic-bezier(0.65, 0, 0.35, 1) infinite alternate;
 }
 .aura span {
   position: absolute;
-  width: 58%;
-  height: 60%;
+  width: 55%;
+  height: 55%;
   border-radius: 50%;
   filter: blur(58px);
   opacity: 0.42;
-  animation: breathe 9s ease-in-out infinite alternate;
 }
 .aura span:nth-child(1) {
-  left: 2%;
-  top: 12%;
+  left: 15%;
+  top: 15%;
   background: #ff2d95;
+  animation: orbit-a 5s linear infinite;
 }
 .aura span:nth-child(2) {
-  right: 2%;
+  left: 30%;
   top: 25%;
   background: #00c8ff;
-  animation-delay: -3s;
+  animation: orbit-b 7s linear infinite;
 }
 .aura span:nth-child(3) {
-  left: 24%;
-  bottom: 3%;
+  left: 22%;
+  top: 35%;
   background: #7a5cff;
-  animation-delay: -6s;
+  animation: orbit-a 6s linear infinite reverse;
+}
+.aura span:nth-child(4) {
+  left: 35%;
+  top: 12%;
+  width: 40%;
+  height: 40%;
+  background: #ff8a3d;
+  opacity: 0.3;
+  animation: orbit-b 9s linear infinite reverse;
 }
 .terminal {
   position: relative;
@@ -438,6 +475,7 @@ html.js .menu-button {
   backdrop-filter: blur(20px);
   box-shadow: 0 35px 70px -35px #0009;
   overflow: hidden;
+  animation: rise 1s cubic-bezier(0.16, 1, 0.3, 1) 300ms both;
 }
 .window-bar {
   padding: 13px 16px;
@@ -469,6 +507,30 @@ html.js .menu-button {
   font: 11px/2.2 var(--mono);
   color: var(--muted);
   overflow-wrap: anywhere;
+}
+.terminal-content > p {
+  animation: terminal-line 500ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.terminal-content > :nth-child(1) {
+  animation-delay: 600ms;
+}
+.terminal-content > :nth-child(2) {
+  animation-delay: 1100ms;
+}
+.terminal-content > :nth-child(3) {
+  animation-delay: 1500ms;
+}
+.terminal-content > :nth-child(4) {
+  animation-delay: 1900ms;
+}
+.terminal-content > :nth-child(5) {
+  animation-delay: 2400ms;
+}
+.terminal-content > :nth-child(6) {
+  animation-delay: 2900ms;
+}
+.terminal-content > :nth-child(7) {
+  animation-delay: 3300ms;
 }
 .terminal-break {
   margin-top: 15px;
@@ -502,17 +564,45 @@ html.js .menu-button {
   font-size: 12px;
   color: var(--subtle);
 }
+.provider-marquee {
+  width: 100%;
+  overflow: hidden;
+  mask-image: linear-gradient(
+    90deg,
+    transparent,
+    #000 12%,
+    #000 88%,
+    transparent
+  );
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    transparent,
+    #000 12%,
+    #000 88%,
+    transparent
+  );
+}
+.provider-track {
+  display: flex;
+  width: max-content;
+  animation: marquee 32s linear infinite;
+}
+.provider-marquee:hover .provider-track,
+.provider-marquee:focus .provider-track {
+  animation-play-state: paused;
+}
 .provider-list {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 24px 36px;
-  width: 100%;
+  flex-shrink: 0;
   color: var(--muted);
   font-size: 21px;
   font-weight: 600;
   letter-spacing: -0.04em;
+}
+.provider-list > span {
+  padding: 0 48px;
+  white-space: nowrap;
 }
 .provider-list b {
   font-weight: 400;
@@ -938,6 +1028,46 @@ pre {
   background: var(--chart);
   height: var(--bar);
   border-radius: 3px 3px 0 0;
+  transform-origin: bottom;
+}
+.js .chart:not(.is-visible) span {
+  transform: scaleY(0);
+}
+.chart.is-visible span {
+  animation: bar-grow 1.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.chart span:nth-child(2) {
+  animation-delay: 60ms;
+}
+.chart span:nth-child(3) {
+  animation-delay: 120ms;
+}
+.chart span:nth-child(4) {
+  animation-delay: 180ms;
+}
+.chart span:nth-child(5) {
+  animation-delay: 240ms;
+}
+.chart span:nth-child(6) {
+  animation-delay: 300ms;
+}
+.chart span:nth-child(7) {
+  animation-delay: 360ms;
+}
+.chart span:nth-child(8) {
+  animation-delay: 420ms;
+}
+.chart span:nth-child(9) {
+  animation-delay: 480ms;
+}
+.chart span:nth-child(10) {
+  animation-delay: 540ms;
+}
+.chart span:nth-child(11) {
+  animation-delay: 600ms;
+}
+.chart span:nth-child(12) {
+  animation-delay: 660ms;
 }
 .chart span:last-child {
   background: var(--text);
@@ -1192,12 +1322,106 @@ details[open] summary:after {
 }
 @keyframes breathe {
   from {
-    transform: translate(-8px, -6px) scale(0.9);
-    opacity: 0.36;
+    transform: scale(1);
+    opacity: 0.85;
   }
   to {
-    transform: translate(8px, 6px) scale(1.08);
-    opacity: 0.5;
+    transform: scale(1.04);
+    opacity: 1;
+  }
+}
+@keyframes orbit-a {
+  0% {
+    transform: rotate(0deg) translateX(24%) rotate(0deg) scale(1);
+  }
+  50% {
+    transform: rotate(180deg) translateX(24%) rotate(-180deg) scale(1.2);
+  }
+  100% {
+    transform: rotate(360deg) translateX(24%) rotate(-360deg) scale(1);
+  }
+}
+@keyframes orbit-b {
+  0% {
+    transform: rotate(0deg) translateY(-22%) rotate(0deg) scale(1.1);
+  }
+  50% {
+    transform: rotate(-180deg) translateY(-22%) rotate(180deg) scale(0.9);
+  }
+  100% {
+    transform: rotate(-360deg) translateY(-22%) rotate(360deg) scale(1.1);
+  }
+}
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+    filter: blur(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: blur(0);
+  }
+}
+@keyframes terminal-line {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+@keyframes bar-grow {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+@keyframes ping {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(50, 145, 255, 0.6);
+  }
+  50% {
+    box-shadow: 0 0 0 5px rgba(50, 145, 255, 0);
+  }
+}
+@keyframes reveal {
+  from {
+    opacity: 0;
+    transform: translateY(48px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@supports (animation-timeline: view()) {
+  .section-heading,
+  .feature-grid,
+  .quickstart-grid > .code-card,
+  .api-card,
+  .architecture,
+  .dashboard-copy,
+  .dashboard-demo,
+  .center-heading,
+  .resource-card,
+  .doc-list,
+  .project-section > div,
+  .closing > h2 {
+    animation: reveal linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 100%;
   }
 }
 @keyframes blink {
@@ -1311,8 +1535,9 @@ details[open] summary:after {
   }
   .provider-list {
     font-size: 18px;
-    gap: 22px;
-    justify-content: center;
+  }
+  .provider-list > span {
+    padding: 0 32px;
   }
   .section {
     padding-bottom: 90px;
@@ -1500,7 +1725,9 @@ details[open] summary:after {
   }
   .provider-list {
     font-size: 19px;
-    gap: 18px 25px;
+  }
+  .provider-list > span {
+    padding: 0 24px;
   }
   .providers p {
     font-size: 11px;
@@ -1786,5 +2013,27 @@ details[open] summary:after {
   *:after {
     animation: none !important;
     transition: none !important;
+  }
+  .chart span {
+    transform: none !important;
+  }
+  .provider-marquee {
+    overflow: visible;
+    mask-image: none;
+    -webkit-mask-image: none;
+  }
+  .provider-track {
+    width: 100%;
+  }
+  .provider-list {
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .provider-list > span {
+    padding: 8px 20px;
+  }
+  .provider-list[aria-hidden="true"] {
+    display: none;
   }
 }

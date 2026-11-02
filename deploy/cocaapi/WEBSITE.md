@@ -16,7 +16,7 @@ Geist 与 Geist Mono 的字体文件来自用户附件中的原始 WOFF2，随�
 
 ## 缓存与 Cloudflare
 
-首页及文档使用 `public, no-cache, no-transform`，`/assets/*` 和旧 `/site/*` 静态资源使用一天缓存。后续修改样式或脚本时需更新资源 URL 或清理对应缓存，避免新 HTML 使用浏览器缓存的旧资源
+首页及文档使用 `public, no-cache, no-transform`，`/assets/*` 和旧 `/site/*` 静态资源使用一天缓存。当前样式、主脚本、主题脚本和语言模块带 `v=20261102-motion1` 参数，后续修改时需同步更新资源 URL，避免新 HTML 使用浏览器缓存的旧资源
 
 `no-transform` 用于阻止 Cloudflare 自动注入额外统计脚本，使首页保持自有脚本和严格 CSP。该行为依据 [Cloudflare Web Analytics FAQ](https://developers.cloudflare.com/web-analytics/faq/) 及 [Origin Cache Control](https://developers.cloudflare.com/cache/concepts/cache-control/)。官网 CSP 只在官网路径生效，不覆盖账户与后台自己的策略
 
@@ -70,3 +70,13 @@ node deploy/cocaapi/tests/website.smoke.mjs https://cocaapi.com https://demo.coc
 发布前，更新后的 HTTP 检查通过首页摘要不匹配复现了主域名仍为旧官网的问题。发布后，公网检查通过首页、10 个新版资源及 21 个保留资源的摘要验证，14 个用户页面、6 个受保护读取、管理后台、私有响应头、旧应用路径 308 和 readiness 均正常
 
 公网浏览器通过两种语言、两种主题及 320、375、768、1024、1440px 布局验证。语言保存、SDK 标签与键盘操作、实际剪贴板、手机导航、FAQ、无 JavaScript 和存储不可用降级均通过，浏览器无错误或警告。本次没有模型、钱包、支付或第三方身份登录变更，也没有执行相关写操作
+
+## 2026-11-02 设计稿动效恢复
+
+当前目录为 `/var/www/cocaapi/releases/website-motion-20261102T151152Z`，前一版本为 `/var/www/cocaapi/releases/website-opensource-20261102T144917Z`，备份位于 `/opt/cocaapi/backups/website-motion-20261102T151152Z`。通过校验上传归档、复制前一版本及原子切换软链接发布，Caddy 配置与网关镜像未改变
+
+恢复提供商循环滚动与边缘渐隐、悬停及键盘聚焦暂停、首屏分段淡入、光晕轨道运动、终端逐行出现、区块滚动入场、图表柱条生长、状态点呼吸及按钮按压。英文提供商说明恢复为设计稿的 Bring your own keys for。重复滚动组对辅助技术隐藏，减弱动画模式使用完整的静态换行列表
+
+新增回归在修复前通过提供商位置始终不变复现问题，修复后验证实际位移、悬停和聚焦暂停、循环衔接、首屏透明度、终端行顺序、图表变换、滚动入场与减弱动画降级。公网浏览器在两种语言的 320、375、768、1024、1440px 正常动画模式下逐一验证滚动和无横向溢出，原语言、主题、复制、导航与无 JavaScript 检查继续通过
+
+公网 HTTP 再次通过首页、10 个新版资源和 21 个保留资源的摘要验证，14 个用户页面、6 个受保护读取、管理后台、旧路径跳转及 readiness 正常。新版资源使用统一版本参数，浏览器不会复用先前未带版本参数的 CSS 和脚本
