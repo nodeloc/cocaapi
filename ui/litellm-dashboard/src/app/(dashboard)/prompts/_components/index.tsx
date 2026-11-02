@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import React, { useState, useEffect } from "react";
 
 import { Plus, Upload } from "lucide-react";
@@ -23,9 +25,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 const ALL_ENVIRONMENTS_LABEL = "All Environments";
 
 const ENVIRONMENT_OPTIONS = [
-  { label: "Development", value: "development" },
-  { label: "Staging", value: "staging" },
-  { label: "Production", value: "production" },
+  markUiCopy({ label: "Development", value: "development" }, { label: "Development" }),
+  markUiCopy({ label: "Staging", value: "staging" }, { label: "Staging" }),
+  markUiCopy({ label: "Production", value: "production" }, { label: "Production" }),
 ];
 
 // SelectValue falls back to the raw value unless the root can map it to a label.
@@ -37,6 +39,7 @@ interface PromptsProps {
 }
 
 const PromptsPanel: React.FC<PromptsProps> = ({ accessToken, userRole }) => {
+  useUiLocale();
   const [promptsList, setPromptsList] = useState<PromptSpec[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedEnvironment, setSelectedEnvironment] = useState<string | undefined>(undefined);
@@ -123,7 +126,12 @@ const PromptsPanel: React.FC<PromptsProps> = ({ accessToken, userRole }) => {
     setIsDeleting(true);
     try {
       await deletePromptCall(accessToken, promptToDelete.id, promptToDelete.environment);
-      toast.success(`Prompt "${promptToDelete.name}" deleted successfully from ${promptToDelete.environment}`);
+      toast.success(
+        translateMessage('Prompt "%{0}" deleted successfully from %{1}', [
+          promptToDelete.name,
+          promptToDelete.environment,
+        ]),
+      );
       fetchPrompts(); // Refresh the list
     } catch (error) {
       console.error("Error deleting prompt:", error);
@@ -165,11 +173,11 @@ const PromptsPanel: React.FC<PromptsProps> = ({ accessToken, userRole }) => {
                 <>
                   <Button onClick={handleAddPrompt} disabled={!accessToken}>
                     <Plus />
-                    Add New Prompt
+                    <LocalizedText text={"Add New Prompt"} />
                   </Button>
                   <Button onClick={handleAddPromptFromFile} disabled={!accessToken} variant="secondary">
                     <Upload />
-                    Upload .prompt File
+                    <LocalizedText text={"Upload .prompt File"} />
                   </Button>
                 </>
               )}
@@ -186,7 +194,7 @@ const PromptsPanel: React.FC<PromptsProps> = ({ accessToken, userRole }) => {
                 <SelectItem value={null}>{ALL_ENVIRONMENTS_LABEL}</SelectItem>
                 {ENVIRONMENT_OPTIONS.map((option) => (
                   <SelectItem key={option.value} value={option.value}>
-                    {option.label}
+                    {localizedProperty(option, "label", option.label)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -220,16 +228,23 @@ const PromptsPanel: React.FC<PromptsProps> = ({ accessToken, userRole }) => {
         >
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Delete Prompt</AlertDialogTitle>
+              <AlertDialogTitle>
+                <LocalizedText text={"Delete Prompt"} />
+              </AlertDialogTitle>
               <AlertDialogDescription>
-                Are you sure you want to delete the {promptToDelete.environment} copy of prompt: {promptToDelete.name}?
-                This action cannot be undone.
+                <LocalizedText text={"Are you sure you want to delete the "} />
+                {promptToDelete.environment}
+                <LocalizedText text={" copy of prompt: "} />
+                {promptToDelete.name}
+                <LocalizedText text={"? This action cannot be undone."} />
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+              <AlertDialogCancel disabled={isDeleting}>
+                <LocalizedText text={"Cancel"} />
+              </AlertDialogCancel>
               <Button variant="destructive" onClick={handleDeleteConfirm} disabled={isDeleting}>
-                Delete
+                <LocalizedText text={"Delete"} />
               </Button>
             </AlertDialogFooter>
           </AlertDialogContent>

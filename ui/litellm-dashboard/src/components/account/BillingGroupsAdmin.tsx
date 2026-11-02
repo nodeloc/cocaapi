@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -27,6 +28,7 @@ const samePair = (left: BillingRule, right: BillingRule) =>
   left.user_group_id === right.user_group_id && left.model_group_id === right.model_group_id;
 
 export default function BillingGroupsAdmin() {
+  useUiLocale();
   const { accessToken, userRole, isViewOnly, isAuthorized } = useAuthorized();
   const allowed = isAuthorized && !isViewOnly && isProxyAdminRole(userRole);
   const [saved, setSaved] = useState<BillingGroups | null>(null);
@@ -38,7 +40,12 @@ export default function BillingGroupsAdmin() {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [dirty, setDirty] = useState(false);
-  const fail = (cause: unknown) => setError(cause instanceof Error ? cause.message : "请求失败，请稍后重试。");
+  const fail = (cause: unknown) =>
+    setError(
+      cause instanceof Error
+        ? localizedProperty(cause, "message", cause.message)
+        : translateMessage("请求失败，请稍后重试。"),
+    );
   const load = useCallback(async () => {
     if (!allowed || !accessToken) return;
     const [config, catalog] = await Promise.all([
@@ -83,7 +90,7 @@ export default function BillingGroupsAdmin() {
       setDraft(next);
       setDirty(false);
       setReason("");
-      setMessage("分组配置已保存，后续调用使用新倍率，进行中的调用保留原倍率。");
+      setMessage(translateMessage("分组配置已保存，后续调用使用新倍率，进行中的调用保留原倍率。"));
     } catch (cause) {
       fail(cause);
     } finally {
@@ -92,61 +99,83 @@ export default function BillingGroupsAdmin() {
   };
   const columns = useMemo<ColumnDef<BillingRule>[]>(
     () => [
-      {
-        id: "user",
-        header: "用户组",
-        cell: ({ row }) => draft?.user_groups.find((group) => group.id === row.original.user_group_id)?.name,
-      },
-      {
-        id: "model",
-        header: "模型组",
-        cell: ({ row }) => draft?.model_groups.find((group) => group.id === row.original.model_group_id)?.name,
-      },
-      { accessorKey: "multiplier", header: "倍率", cell: ({ row }) => `${row.original.multiplier} 倍` },
-      {
-        id: "enabled",
-        header: "调用权限",
-        cell: ({ row }) => (
-          <Badge variant={row.original.enabled ? "secondary" : "destructive"}>
-            {row.original.enabled ? "允许" : "禁用"}
-          </Badge>
-        ),
-      },
-      {
-        id: "actions",
-        header: "操作",
-        cell: ({ row }) => (
-          <div className="flex gap-2">
-            <Button type="button" size="sm" variant="outline" disabled={busy} onClick={() => setRule(row.original)}>
-              编辑
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              variant="ghost"
-              disabled={busy}
-              onClick={() => {
-                if (draft) change({ ...draft, rules: draft.rules.filter((item) => !samePair(item, row.original)) });
-              }}
-            >
-              恢复默认
-            </Button>
-          </div>
-        ),
-      },
+      markUiCopy(
+        {
+          id: "user",
+          header: "用户组",
+          cell: ({ row }) => draft?.user_groups.find((group) => group.id === row.original.user_group_id)?.name,
+        },
+        { header: "用户组" },
+      ),
+      markUiCopy(
+        {
+          id: "model",
+          header: "模型组",
+          cell: ({ row }) => draft?.model_groups.find((group) => group.id === row.original.model_group_id)?.name,
+        },
+        { header: "模型组" },
+      ),
+      markUiCopy(
+        { accessorKey: "multiplier", header: "倍率", cell: ({ row }) => `${row.original.multiplier} 倍` },
+        { header: "倍率" },
+      ),
+      markUiCopy(
+        {
+          id: "enabled",
+          header: "调用权限",
+          cell: ({ row }) => (
+            <Badge variant={row.original.enabled ? "secondary" : "destructive"}>
+              {row.original.enabled ? translateMessage("允许") : translateMessage("禁用")}
+            </Badge>
+          ),
+        },
+        { header: "调用权限" },
+      ),
+      markUiCopy(
+        {
+          id: "actions",
+          header: "操作",
+          cell: ({ row }) => (
+            <div className="flex gap-2">
+              <Button type="button" size="sm" variant="outline" disabled={busy} onClick={() => setRule(row.original)}>
+                <LocalizedText text={"编辑"} />
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                disabled={busy}
+                onClick={() => {
+                  if (draft) change({ ...draft, rules: draft.rules.filter((item) => !samePair(item, row.original)) });
+                }}
+              >
+                <LocalizedText text={"恢复默认"} />
+              </Button>
+            </div>
+          ),
+        },
+        { header: "操作" },
+      ),
     ],
     [draft, busy],
   );
-  if (!allowed) return <div className="p-8 text-sm text-muted-foreground">仅完整代理管理员可以配置分组与倍率。</div>;
+  if (!allowed)
+    return (
+      <div className="p-8 text-sm text-muted-foreground">
+        <LocalizedText text={"仅完整代理管理员可以配置分组与倍率。"} />
+      </div>
+    );
   return (
     <CommercePage section="groups">
       <AccountNotice error={error} message={message} />
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-muted-foreground">
-          未配置的组间组合默认允许、1 倍。计费金额为基础费用乘倍率，余额检查与调用限额继续生效。
+          <LocalizedText
+            text={"未配置的组间组合默认允许、1 倍。计费金额为基础费用乘倍率，余额检查与调用限额继续生效。"}
+          />
         </p>
         <Button type="button" variant="outline" disabled={busy} onClick={refresh}>
-          {dirty ? "重新载入（放弃未保存修改）" : "刷新配置"}
+          {dirty ? translateMessage("重新载入（放弃未保存修改）") : translateMessage("刷新配置")}
         </Button>
       </div>
       {draft && (
@@ -155,7 +184,9 @@ export default function BillingGroupsAdmin() {
             <Card>
               <CardHeader className="flex flex-wrap items-center justify-between gap-2">
                 <CardTitle>
-                  <h2>用户组</h2>
+                  <h2>
+                    <LocalizedText text={"用户组"} />
+                  </h2>
                 </CardTitle>
                 <Button
                   type="button"
@@ -169,7 +200,7 @@ export default function BillingGroupsAdmin() {
                     })
                   }
                 >
-                  添加用户组
+                  <LocalizedText text={"添加用户组"} />
                 </Button>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -177,11 +208,11 @@ export default function BillingGroupsAdmin() {
                   <div key={group.id} className="space-y-2 rounded-md border p-3">
                     <div className="flex items-center gap-2">
                       <Label htmlFor={`user-name-${group.id}`} className="shrink-0">
-                        组名
+                        <LocalizedText text={"组名"} />
                       </Label>
                       <Input
                         id={`user-name-${group.id}`}
-                        aria-label={`用户组名称 ${group.name}`}
+                        aria-label={translateMessage("用户组名称 %{0}", [group.name])}
                         required
                         maxLength={80}
                         disabled={busy}
@@ -196,7 +227,9 @@ export default function BillingGroupsAdmin() {
                         }
                       />
                       {group.id === "default" ? (
-                        <Badge variant="secondary">默认组</Badge>
+                        <Badge variant="secondary">
+                          <LocalizedText text={"默认组"} />
+                        </Badge>
                       ) : (
                         <Button
                           type="button"
@@ -212,12 +245,12 @@ export default function BillingGroupsAdmin() {
                             setRule(defaultRule);
                           }}
                         >
-                          删除
+                          <LocalizedText text={"删除"} />
                         </Button>
                       )}
                     </div>
                     <p className="break-all text-xs text-muted-foreground">
-                      {group.id === "default" ? "新注册用户默认加入此组" : group.id}
+                      {group.id === "default" ? translateMessage("新注册用户默认加入此组") : group.id}
                     </p>
                   </div>
                 ))}
@@ -226,7 +259,9 @@ export default function BillingGroupsAdmin() {
             <Card>
               <CardHeader className="flex flex-wrap items-center justify-between gap-2">
                 <CardTitle>
-                  <h2>模型组</h2>
+                  <h2>
+                    <LocalizedText text={"模型组"} />
+                  </h2>
                 </CardTitle>
                 <Button
                   type="button"
@@ -243,7 +278,7 @@ export default function BillingGroupsAdmin() {
                     })
                   }
                 >
-                  添加模型组
+                  <LocalizedText text={"添加模型组"} />
                 </Button>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -251,11 +286,11 @@ export default function BillingGroupsAdmin() {
                   <div key={group.id} className="space-y-3 rounded-md border p-3">
                     <div className="flex items-center gap-2">
                       <Label htmlFor={`model-name-${group.id}`} className="shrink-0">
-                        组名
+                        <LocalizedText text={"组名"} />
                       </Label>
                       <Input
                         id={`model-name-${group.id}`}
-                        aria-label={`模型组名称 ${group.name}`}
+                        aria-label={translateMessage("模型组名称 %{0}", [group.name])}
                         maxLength={80}
                         required
                         disabled={busy}
@@ -270,7 +305,9 @@ export default function BillingGroupsAdmin() {
                         }
                       />
                       {group.id === "default" ? (
-                        <Badge variant="secondary">默认组</Badge>
+                        <Badge variant="secondary">
+                          <LocalizedText text={"默认组"} />
+                        </Badge>
                       ) : (
                         <Button
                           type="button"
@@ -286,22 +323,24 @@ export default function BillingGroupsAdmin() {
                             setRule(defaultRule);
                           }}
                         >
-                          删除
+                          <LocalizedText text={"删除"} />
                         </Button>
                       )}
                     </div>
                     {group.id === "default" ? (
                       <p className="text-xs text-muted-foreground">
-                        自动包含未分配到其他组的模型。每个公开模型只属于一个模型组。
+                        <LocalizedText text={"自动包含未分配到其他组的模型。每个公开模型只属于一个模型组。"} />
                       </p>
                     ) : (
                       <div className="space-y-2">
-                        <Label htmlFor={`model-members-${group.id}`}>组内模型</Label>
+                        <Label htmlFor={`model-members-${group.id}`}>
+                          <LocalizedText text={"组内模型"} />
+                        </Label>
                         <MultiSelect
                           id={`model-members-${group.id}`}
                           disabled={busy}
                           value={group.models}
-                          placeholder="选择已有公开模型"
+                          placeholder={translateMessage("选择已有公开模型")}
                           options={[...new Set([...models, ...group.models])].map((model) => ({
                             value: model,
                             label: model,
@@ -328,7 +367,9 @@ export default function BillingGroupsAdmin() {
           <Card>
             <CardHeader>
               <CardTitle>
-                <h2>组间倍率与禁用</h2>
+                <h2>
+                  <LocalizedText text={"组间倍率与禁用"} />
+                </h2>
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -340,7 +381,9 @@ export default function BillingGroupsAdmin() {
                 }}
               >
                 <div className="space-y-2">
-                  <Label htmlFor="rule-user-group">调用用户组</Label>
+                  <Label htmlFor="rule-user-group">
+                    <LocalizedText text={"调用用户组"} />
+                  </Label>
                   <GroupSelect
                     id="rule-user-group"
                     value={rule.user_group_id}
@@ -350,7 +393,9 @@ export default function BillingGroupsAdmin() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="rule-model-group">调用模型组</Label>
+                  <Label htmlFor="rule-model-group">
+                    <LocalizedText text={"调用模型组"} />
+                  </Label>
                   <GroupSelect
                     id="rule-model-group"
                     value={rule.model_group_id}
@@ -360,7 +405,9 @@ export default function BillingGroupsAdmin() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="rule-multiplier">调用倍率</Label>
+                  <Label htmlFor="rule-multiplier">
+                    <LocalizedText text={"调用倍率"} />
+                  </Label>
                   <Input
                     id="rule-multiplier"
                     required
@@ -379,15 +426,20 @@ export default function BillingGroupsAdmin() {
                     disabled={busy}
                     onCheckedChange={(checked) => setRule({ ...rule, enabled: checked })}
                   />
-                  <Label htmlFor="rule-enabled">允许调用</Label>
+                  <Label htmlFor="rule-enabled">
+                    <LocalizedText text={"允许调用"} />
+                  </Label>
                 </div>
                 <div className="sm:col-span-2 xl:col-span-4">
                   <Button type="submit" variant="outline" disabled={busy || !rule.multiplier.trim()}>
-                    应用规则
+                    <LocalizedText text={"应用规则"} />
                   </Button>
                   <p className="mt-2 text-xs text-muted-foreground">
-                    倍率支持 0 至 1000，最多六位小数。例如 0.8 为八折，2 为两倍；0 仍要求余额大于
-                    0。应用后须保存分组配置才会生效。
+                    <LocalizedText
+                      text={
+                        "倍率支持 0 至 1000，最多六位小数。例如 0.8 为八折，2 为两倍；0 仍要求余额大于 0。应用后须保存分组配置才会生效。"
+                      }
+                    />
                   </p>
                 </div>
               </form>
@@ -397,23 +449,28 @@ export default function BillingGroupsAdmin() {
                 getRowId={(item) => `${item.user_group_id}:${item.model_group_id}`}
                 paginationMode="client"
                 sortingMode="none"
-                noDataMessage="未设置特殊规则，所有组合默认允许、1 倍"
+                noDataMessage={translateMessage("未设置特殊规则，所有组合默认允许、1 倍")}
               />
             </CardContent>
           </Card>
           <Card>
             <CardHeader>
               <CardTitle>
-                <h2>保存配置</h2>
+                <h2>
+                  <LocalizedText text={"保存配置"} />
+                </h2>
               </CardTitle>
             </CardHeader>
             <CardContent>
               <form className="space-y-3" onSubmit={save}>
                 <p className="text-sm text-muted-foreground">
-                  当前版本 {draft.revision}。{dirty ? "有未保存的修改。" : "配置已同步。"}{" "}
-                  删除在用用户组前，须先调整该组用户的归属。
+                  <LocalizedText text={"当前版本 "} />
+                  {draft.revision}。{dirty ? translateMessage("有未保存的修改。") : translateMessage("配置已同步。")}{" "}
+                  <LocalizedText text={"删除在用用户组前，须先调整该组用户的归属。"} />
                 </p>
-                <Label htmlFor="group-config-reason">配置变更原因</Label>
+                <Label htmlFor="group-config-reason">
+                  <LocalizedText text={"配置变更原因"} />
+                </Label>
                 <Input
                   id="group-config-reason"
                   value={reason}
@@ -423,7 +480,7 @@ export default function BillingGroupsAdmin() {
                   onChange={(event) => setReason(event.target.value)}
                 />
                 <Button type="submit" disabled={busy || !dirty || !reason.trim()}>
-                  保存分组配置
+                  <LocalizedText text={"保存分组配置"} />
                 </Button>
               </form>
             </CardContent>

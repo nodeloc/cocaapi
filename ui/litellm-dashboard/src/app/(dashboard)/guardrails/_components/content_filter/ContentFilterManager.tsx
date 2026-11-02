@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, markUiCopy, useUiLocale } from "@/lib/i18n";
 import { TriangleAlert } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { Alert, AlertDescription } from "@/components/shared/Alert";
@@ -74,6 +76,7 @@ const ContentFilterManager: React.FC<ContentFilterManagerProps> = ({
   onDataChange,
   onUnsavedChanges,
 }) => {
+  useUiLocale();
   const [selectedPatterns, setSelectedPatterns] = useState<Pattern[]>([]);
   const [blockedWords, setBlockedWords] = useState<BlockedWord[]>([]);
   const [selectedContentCategories, setSelectedContentCategories] = useState<SelectedContentCategory[]>([]);
@@ -106,12 +109,17 @@ const ContentFilterManager: React.FC<ContentFilterManagerProps> = ({
     }
 
     if (guardrailData?.litellm_params?.blocked_words) {
-      const words = guardrailData.litellm_params.blocked_words.map((w: any, index: number) => ({
-        id: `word-${index}`,
-        keyword: w.keyword,
-        action: w.action || "BLOCK",
-        description: w.description,
-      }));
+      const words = guardrailData.litellm_params.blocked_words.map((w: any, index: number) =>
+        markUiCopy(
+          {
+            id: `word-${index}`,
+            keyword: w.keyword,
+            action: w.action || "BLOCK",
+            description: w.description,
+          },
+          { description: { owner: w, field: "description" } },
+        ),
+      );
       setBlockedWords(words);
       setOriginalBlockedWords(words);
     } else {
@@ -234,14 +242,18 @@ const ContentFilterManager: React.FC<ContentFilterManagerProps> = ({
   return (
     <>
       <div className="my-6 flex items-center gap-4">
-        <span className="shrink-0 font-medium">Content Filter Configuration</span>
+        <span className="shrink-0 font-medium">
+          <LocalizedText text={"Content Filter Configuration"} />
+        </span>
         <Separator className="flex-1" />
       </div>
       {hasUnsavedChanges && (
         <Alert variant="warning" className="mb-4">
           <TriangleAlert />
           <AlertDescription>
-            You have unsaved changes to patterns or keywords. Remember to click &quot;Save Changes&quot; at the bottom.
+            <LocalizedText
+              text={'You have unsaved changes to patterns or keywords. Remember to click "Save Changes" at the bottom.'}
+            />
           </AlertDescription>
         </Alert>
       )}
@@ -311,11 +323,16 @@ export const formatContentFilterDataForAPI = (
       name: p.name,
       action: p.action,
     })),
-    blocked_words: blockedWords.map((w) => ({
-      keyword: w.keyword,
-      action: w.action,
-      description: w.description,
-    })),
+    blocked_words: blockedWords.map((w) =>
+      markUiCopy(
+        {
+          keyword: w.keyword,
+          action: w.action,
+          description: w.description,
+        },
+        { description: { owner: w, field: "description" } },
+      ),
+    ),
   };
   if (categories !== undefined) {
     result.categories = categories.map((c) => ({

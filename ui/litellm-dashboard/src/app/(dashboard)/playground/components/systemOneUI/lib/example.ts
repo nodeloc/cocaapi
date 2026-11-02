@@ -1,3 +1,4 @@
+import { markUiCopy } from "@/lib/i18n";
 import type { DecisionRequest, SystemOneRequest } from "./schemas";
 import type { OpenAIDecisionsRequest } from "./openAIDecisions";
 import { parseJson } from "./validatePayload";
@@ -125,10 +126,19 @@ const leadScoring = {
 } satisfies PresetRequest;
 
 export const DECISION_PRESETS: readonly DecisionPreset[] = [
-  { id: "bug-triage", label: "Triage a bug report", request: bugTriage },
-  { id: "support-routing", label: "Route a support ticket", request: supportRouting },
-  { id: "moderation", label: "Moderate a forum comment", request: moderation },
-  { id: "lead-scoring", label: "Score a sales lead", request: leadScoring },
+  markUiCopy({ id: "bug-triage", label: "Triage a bug report", request: bugTriage }, { label: "Triage a bug report" }),
+  markUiCopy(
+    { id: "support-routing", label: "Route a support ticket", request: supportRouting },
+    { label: "Route a support ticket" },
+  ),
+  markUiCopy(
+    { id: "moderation", label: "Moderate a forum comment", request: moderation },
+    { label: "Moderate a forum comment" },
+  ),
+  markUiCopy(
+    { id: "lead-scoring", label: "Score a sales lead", request: leadScoring },
+    { label: "Score a sales lead" },
+  ),
 ];
 
 const toOpenAIQuestion = (name: string, question: PresetQuestion): OpenAIDecisionsRequest["questions"][number] => {

@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, useUiLocale } from "@/lib/i18n";
 /**
  * Formatted view of tool definition with parameters table and call data
  */
@@ -10,6 +12,7 @@ interface FormattedToolViewProps {
 }
 
 export function FormattedToolView({ tool }: FormattedToolViewProps) {
+  useUiLocale();
   // Parse parameters for table display
   const parameterRows: ParameterRow[] = Object.entries(tool.parameters?.properties || {}).map(
     ([name, schema]: [string, any]) => ({
@@ -26,20 +29,30 @@ export function FormattedToolView({ tool }: FormattedToolViewProps) {
       {/* Description */}
       {tool.description && (
         <div className="mb-4">
-          <span className="whitespace-pre-wrap leading-relaxed">{tool.description}</span>
+          <span className="whitespace-pre-wrap leading-relaxed">
+            {localizedProperty(tool, "description", tool.description)}
+          </span>
         </div>
       )}
 
       {/* Parameters Table */}
       {parameterRows.length > 0 && (
         <div>
-          <span className="mb-2 block text-xs text-muted-foreground">Parameters</span>
+          <span className="mb-2 block text-xs text-muted-foreground">
+            <LocalizedText text={"Parameters"} />
+          </span>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Parameter</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Description</TableHead>
+                <TableHead>
+                  <LocalizedText text={"Parameter"} />
+                </TableHead>
+                <TableHead>
+                  <LocalizedText text={"Type"} />
+                </TableHead>
+                <TableHead>
+                  <LocalizedText text={"Description"} />
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -55,7 +68,9 @@ export function FormattedToolView({ tool }: FormattedToolViewProps) {
                     <code className="text-info">{row.type}</code>
                   </TableCell>
                   <TableCell>
-                    <span className="text-muted-foreground">{row.description}</span>
+                    <span className="text-muted-foreground">
+                      {localizedProperty(row, "description", row.description)}
+                    </span>
                   </TableCell>
                 </TableRow>
               ))}
@@ -67,7 +82,9 @@ export function FormattedToolView({ tool }: FormattedToolViewProps) {
       {/* If tool was called, show the arguments used */}
       {tool.called && tool.callData && (
         <div className="mt-4">
-          <span className="mb-2 block text-xs text-muted-foreground">Called With</span>
+          <span className="mb-2 block text-xs text-muted-foreground">
+            <LocalizedText text={"Called With"} />
+          </span>
           <div className="rounded border border-success/30 bg-success/10 p-3">
             <pre className="m-0 whitespace-pre-wrap break-words text-xs text-foreground">
               {JSON.stringify(tool.callData.arguments, null, 2)}

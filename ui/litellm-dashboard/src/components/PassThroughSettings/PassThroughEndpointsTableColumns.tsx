@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { ColumnDef } from "@tanstack/react-table";
 import { Eye, EyeOff, Info, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
@@ -21,16 +22,19 @@ import type { passThroughItem } from "./PassThroughSettings";
 const CONFIG_ENDPOINT_HINT =
   "This endpoint is defined in the config file and cannot be edited or deleted on the dashboard.";
 
-function HeaderWithTooltip({ title, tooltip }: { title: string; tooltip: string }) {
+function HeaderWithTooltip(cocaCopyProps0: { title: string; tooltip: string }) {
+  const { title, tooltip } = cocaCopyProps0;
+  useUiLocale();
   return (
     <div className="flex items-center gap-1">
-      <span>{title}</span>
+      <span>{localizedProperty(cocaCopyProps0, "title", title)}</span>
       <CellTooltip content={tooltip} trigger={<Info className="size-3.5 cursor-help text-muted-foreground" />} />
     </div>
   );
 }
 
 function HeadersCell({ value }: { value: object }) {
+  useUiLocale();
   const [showHeaders, setShowHeaders] = useState(false);
   const headerString = JSON.stringify(value);
 
@@ -40,7 +44,7 @@ function HeadersCell({ value }: { value: object }) {
       <button
         type="button"
         onClick={() => setShowHeaders(!showHeaders)}
-        aria-label={showHeaders ? "Hide headers" : "Show headers"}
+        aria-label={showHeaders ? translateMessage("Hide headers") : translateMessage("Show headers")}
         className="rounded-sm p-1 hover:bg-muted"
       >
         {showHeaders ? (
@@ -54,8 +58,13 @@ function HeadersCell({ value }: { value: object }) {
 }
 
 function MethodsCell({ methods }: { methods: string[] | undefined }) {
+  useUiLocale();
   if (!methods || methods.length === 0) {
-    return <Badge variant="secondary">ALL</Badge>;
+    return (
+      <Badge variant="secondary">
+        <LocalizedText text={"ALL"} />
+      </Badge>
+    );
   }
   return (
     <div className="flex flex-wrap gap-1">
@@ -75,12 +84,13 @@ interface EndpointRowActionsProps {
 }
 
 function EndpointRowActions({ endpoint, onEndpointClick, onDeleteClick }: EndpointRowActionsProps) {
+  useUiLocale();
   const endpointId = endpoint.id;
   const isFromConfig = endpoint.is_from_config ?? false;
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        aria-label="Open endpoint actions"
+        aria-label={translateMessage("Open endpoint actions")}
         data-testid={`endpoint-actions-${endpointId || endpoint.path}`}
         className={cn(buttonVariants({ variant: "ghost", size: "icon-sm" }), "text-muted-foreground")}
       >
@@ -93,7 +103,7 @@ function EndpointRowActions({ endpoint, onEndpointClick, onDeleteClick }: Endpoi
           onClick={() => !isFromConfig && endpointId && onEndpointClick(endpointId)}
         >
           <Pencil />
-          Edit
+          <LocalizedText text={"Edit"} />
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
@@ -103,7 +113,7 @@ function EndpointRowActions({ endpoint, onEndpointClick, onDeleteClick }: Endpoi
           onClick={() => !isFromConfig && endpointId && onDeleteClick(endpointId)}
         >
           <Trash2 />
-          Delete
+          <LocalizedText text={"Delete"} />
         </DropdownMenuItem>
         {isFromConfig && (
           <div data-testid="endpoint-config-hint" className="px-2 py-1.5 text-xs text-muted-foreground">
@@ -124,68 +134,90 @@ export const getPassThroughEndpointsTableColumns = ({
   onEndpointClick,
   onDeleteClick,
 }: PassThroughEndpointsTableColumnsDeps): ColumnDef<passThroughItem>[] => [
-  {
-    id: "id",
-    accessorKey: "id",
-    meta: { title: "ID" },
-    header: "ID",
-    size: 190,
-    enableSorting: false,
-    cell: ({ row }) => {
-      const endpointId = row.original.id;
-      if (!endpointId || row.original.is_from_config) {
-        return <span className="font-mono text-xs text-muted-foreground">—</span>;
-      }
-      return (
-        <IdentityCell
-          title={endpointId}
-          titleClassName="font-mono text-xs font-normal"
-          onClick={() => onEndpointClick(endpointId)}
-        />
-      );
+  markUiCopy(
+    {
+      id: "id",
+      accessorKey: "id",
+      meta: markUiCopy({ title: "ID" }, { title: "ID" }),
+      header: "ID",
+      size: 190,
+      enableSorting: false,
+      cell: ({ row }) => {
+        const endpointId = row.original.id;
+        if (!endpointId || row.original.is_from_config) {
+          return <span className="font-mono text-xs text-muted-foreground">—</span>;
+        }
+        return (
+          <IdentityCell
+            title={endpointId}
+            titleClassName="font-mono text-xs font-normal"
+            onClick={() => onEndpointClick(endpointId)}
+          />
+        );
+      },
     },
-  },
-  {
-    id: "source",
-    meta: { title: "Source", skeleton: "badge" },
-    header: "Source",
-    size: 100,
-    enableSorting: false,
-    cell: ({ row }) => {
-      const isFromConfig = row.original.is_from_config ?? false;
-      return <StatusBadge tone={isFromConfig ? "neutral" : "info"} label={isFromConfig ? "Config" : "DB"} />;
+    { header: "ID" },
+  ),
+  markUiCopy(
+    {
+      id: "source",
+      meta: markUiCopy({ title: "Source", skeleton: "badge" as const }, { title: "Source" }),
+      header: "Source",
+      size: 100,
+      enableSorting: false,
+      cell: ({ row }) => {
+        const isFromConfig = row.original.is_from_config ?? false;
+        return (
+          <StatusBadge
+            tone={isFromConfig ? "neutral" : "info"}
+            label={isFromConfig ? translateMessage("Config") : translateMessage("DB")}
+          />
+        );
+      },
     },
-  },
-  {
-    id: "path",
-    accessorKey: "path",
-    meta: { title: "Path" },
-    header: "Path",
-    size: 200,
-    enableSorting: false,
-    cell: ({ row }) => (
-      <span className="block max-w-60 truncate text-sm font-medium" title={row.original.path}>
-        {row.original.path}
-      </span>
-    ),
-  },
-  {
-    id: "target",
-    accessorKey: "target",
-    meta: { title: "Target" },
-    header: "Target",
-    size: 240,
-    enableSorting: false,
-    cell: ({ row }) => (
-      <span className="block max-w-72 truncate text-sm" title={row.original.target}>
-        {row.original.target}
-      </span>
-    ),
-  },
+    { header: "Source" },
+  ),
+  markUiCopy(
+    {
+      id: "path",
+      accessorKey: "path",
+      meta: markUiCopy({ title: "Path" }, { title: "Path" }),
+      header: "Path",
+      size: 200,
+      enableSorting: false,
+      cell: ({ row }) => (
+        <span className="block max-w-60 truncate text-sm font-medium" title={row.original.path}>
+          {row.original.path}
+        </span>
+      ),
+    },
+    { header: "Path" },
+  ),
+  markUiCopy(
+    {
+      id: "target",
+      accessorKey: "target",
+      meta: markUiCopy({ title: "Target" }, { title: "Target" }),
+      header: "Target",
+      size: 240,
+      enableSorting: false,
+      cell: ({ row }) => (
+        <span className="block max-w-72 truncate text-sm" title={row.original.target}>
+          {row.original.target}
+        </span>
+      ),
+    },
+    { header: "Target" },
+  ),
   {
     id: "methods",
-    meta: { title: "Methods", skeleton: "chips" },
-    header: () => <HeaderWithTooltip title="Methods" tooltip="HTTP methods supported by this endpoint" />,
+    meta: markUiCopy({ title: "Methods", skeleton: "chips" as const }, { title: "Methods" }),
+    header: () => (
+      <HeaderWithTooltip
+        title={translateMessage("Methods")}
+        tooltip={translateMessage("HTTP methods supported by this endpoint")}
+      />
+    ),
     size: 150,
     enableSorting: false,
     cell: ({ row }) => <MethodsCell methods={row.original.methods} />,
@@ -193,26 +225,41 @@ export const getPassThroughEndpointsTableColumns = ({
   {
     id: "auth",
     accessorKey: "auth",
-    meta: { title: "Authentication", skeleton: "badge" },
-    header: () => <HeaderWithTooltip title="Authentication" tooltip="LiteLLM Virtual Key required to call endpoint" />,
+    meta: markUiCopy({ title: "Authentication", skeleton: "badge" as const }, { title: "Authentication" }),
+    header: () => (
+      <HeaderWithTooltip
+        title={translateMessage("Authentication")}
+        tooltip={translateMessage("LiteLLM Virtual Key required to call endpoint")}
+      />
+    ),
     size: 140,
     enableSorting: false,
     cell: ({ row }) => (
-      <StatusBadge tone={row.original.auth ? "success" : "neutral"} label={row.original.auth ? "Yes" : "No"} />
+      <StatusBadge
+        tone={row.original.auth ? "success" : "neutral"}
+        label={row.original.auth ? translateMessage("Yes") : translateMessage("No")}
+      />
     ),
   },
-  {
-    id: "headers",
-    meta: { title: "Headers" },
-    header: "Headers",
-    size: 180,
-    enableSorting: false,
-    cell: ({ row }) => <HeadersCell value={row.original.headers || {}} />,
-  },
+  markUiCopy(
+    {
+      id: "headers",
+      meta: markUiCopy({ title: "Headers" }, { title: "Headers" }),
+      header: "Headers",
+      size: 180,
+      enableSorting: false,
+      cell: ({ row }) => <HeadersCell value={row.original.headers || {}} />,
+    },
+    { header: "Headers" },
+  ),
   {
     id: "actions",
     meta: { className: "text-right", headerClassName: "text-right" },
-    header: () => <span className="sr-only">Actions</span>,
+    header: () => (
+      <span className="sr-only">
+        <LocalizedText text={"Actions"} />
+      </span>
+    ),
     size: 64,
     enableSorting: false,
     enableHiding: false,

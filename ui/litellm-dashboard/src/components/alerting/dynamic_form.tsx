@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 import React from "react";
 import { useForm } from "react-hook-form";
 import { CircleCheck, Trash2 } from "lucide-react";
@@ -33,6 +35,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
   handleSubmit,
   premiumUser,
 }) => {
+  useUiLocale();
   const form = useForm<AlertingFormValues>({ defaultValues: {} });
 
   const onFinish = (formData: AlertingFormValues) => {
@@ -97,7 +100,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
             <TableCell>
               <Button className="flex items-center justify-center">
                 <a href="https://forms.gle/W3U4PZpJGFHWtHyA9" target="_blank">
-                  ✨ Enterprise Feature
+                  <LocalizedText text={"✨ Enterprise Feature"} />
                 </a>
               </Button>
             </TableCell>
@@ -108,12 +111,16 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
             {value.stored_in_db == true ? (
               <Badge variant="secondary">
                 <CircleCheck />
-                In DB
+                <LocalizedText text={"In DB"} />
               </Badge>
             ) : value.stored_in_db == false ? (
-              <Badge variant="outline">In Config</Badge>
+              <Badge variant="outline">
+                <LocalizedText text={"In Config"} />
+              </Badge>
             ) : (
-              <Badge variant="outline">Not Set</Badge>
+              <Badge variant="outline">
+                <LocalizedText text={"Not Set"} />
+              </Badge>
             )}
           </TableCell>
           <TableCell>
@@ -121,7 +128,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
               type="button"
               variant="ghost"
               size="icon-sm"
-              aria-label={`Reset ${value.field_name}`}
+              aria-label={translateMessage("Reset %{0}", [value.field_name])}
               onClick={() => handleResetField(value.field_name, index)}
               className="text-destructive"
             >
@@ -131,7 +138,9 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
         </TableRow>
       ))}
       <div>
-        <Button type="submit">Update Settings</Button>
+        <Button type="submit">
+          <LocalizedText text={"Update Settings"} />
+        </Button>
       </div>
     </form>
   );

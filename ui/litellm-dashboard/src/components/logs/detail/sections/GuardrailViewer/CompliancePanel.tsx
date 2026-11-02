@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 import React, { useState, useEffect } from "react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
@@ -20,40 +22,46 @@ interface CompliancePanelProps {
 
 // -- Icons --
 
-const CheckIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-    <circle cx="8" cy="8" r="7" stroke="#16A34A" strokeWidth="1.5" fill="#F0FDF4" />
-    <path d="M5 8l2 2 4-4" stroke="#16A34A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-);
+const CheckIcon = () => {
+  useUiLocale();
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+      <circle cx="8" cy="8" r="7" stroke="#16A34A" strokeWidth="1.5" fill="#F0FDF4" />
+      <path d="M5 8l2 2 4-4" stroke="#16A34A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+};
 
-const CrossIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-    <circle cx="8" cy="8" r="7" stroke="#DC2626" strokeWidth="1.5" fill="#FEF2F2" />
-    <path d="M6 6l4 4M10 6l-4 4" stroke="#DC2626" strokeWidth="1.5" strokeLinecap="round" />
-  </svg>
-);
+const CrossIcon = () => {
+  useUiLocale();
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+      <circle cx="8" cy="8" r="7" stroke="#DC2626" strokeWidth="1.5" fill="#FEF2F2" />
+      <path d="M6 6l4 4M10 6l-4 4" stroke="#DC2626" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+};
 
-const SpinnerIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="animate-spin">
-    <circle cx="8" cy="8" r="6" stroke="#D1D5DB" strokeWidth="2" />
-    <path d="M8 2a6 6 0 0 1 6 6" stroke="#6366F1" strokeWidth="2" strokeLinecap="round" />
-  </svg>
-);
+const SpinnerIcon = () => {
+  useUiLocale();
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="animate-spin">
+      <circle cx="8" cy="8" r="6" stroke="#D1D5DB" strokeWidth="2" />
+      <path d="M8 2a6 6 0 0 1 6 6" stroke="#6366F1" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+};
 
 // -- Sub-components --
 
-const ComplianceCard = ({
-  title,
-  data,
-  loading,
-  error,
-}: {
+const ComplianceCard = (cocaCopyProps0: {
   title: string;
   data: ComplianceResponse | null;
   loading: boolean;
   error: string | null;
 }) => {
+  const { title, data, loading, error } = cocaCopyProps0;
+  useUiLocale();
   const [expanded, setExpanded] = useState(false);
 
   return (
@@ -77,7 +85,9 @@ const ComplianceCard = ({
           ) : (
             <CrossIcon />
           )}
-          <span className="font-medium text-sm text-foreground">{title}</span>
+          <span className="font-medium text-sm text-foreground">
+            {localizedProperty(cocaCopyProps0, "title", title)}
+          </span>
         </div>
         <div className="flex items-center gap-2">
           {!loading && !error && data && (
@@ -88,12 +98,12 @@ const ComplianceCard = ({
                   : "bg-destructive/15 text-destructive border border-destructive/20"
               }`}
             >
-              {data.compliant ? "COMPLIANT" : "NON-COMPLIANT"}
+              {data.compliant ? translateMessage("COMPLIANT") : translateMessage("NON-COMPLIANT")}
             </span>
           )}
           {error && (
             <span className="px-2 py-0.5 rounded-sm text-[11px] font-medium bg-muted text-muted-foreground border border-border">
-              UNAVAILABLE
+              <LocalizedText text={"UNAVAILABLE"} />
             </span>
           )}
           <svg
@@ -110,7 +120,11 @@ const ComplianceCard = ({
 
       {expanded && (
         <div className="border-t border-border px-4 py-3">
-          {loading && <p className="text-sm text-muted-foreground">Checking compliance...</p>}
+          {loading && (
+            <p className="text-sm text-muted-foreground">
+              <LocalizedText text={"Checking compliance..."} />
+            </p>
+          )}
           {error && <p className="text-sm text-destructive">{error}</p>}
           {data && (
             <div className="space-y-2">
@@ -137,6 +151,7 @@ const ComplianceCard = ({
 // -- Main Component --
 
 const CompliancePanel: React.FC<CompliancePanelProps> = ({ accessToken, logEntry }) => {
+  useUiLocale();
   const [euAiActData, setEuAiActData] = useState<ComplianceResponse | null>(null);
   const [gdprData, setGdprData] = useState<ComplianceResponse | null>(null);
   const [euAiActLoading, setEuAiActLoading] = useState(false);
@@ -173,11 +188,16 @@ const CompliancePanel: React.FC<CompliancePanelProps> = ({ accessToken, logEntry
   return (
     <div>
       <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">
-        Regulatory Compliance
+        <LocalizedText text={"Regulatory Compliance"} />
       </h4>
       <div className="space-y-3">
-        <ComplianceCard title="EU AI Act" data={euAiActData} loading={euAiActLoading} error={euAiActError} />
-        <ComplianceCard title="GDPR" data={gdprData} loading={gdprLoading} error={gdprError} />
+        <ComplianceCard
+          title={translateMessage("EU AI Act")}
+          data={euAiActData}
+          loading={euAiActLoading}
+          error={euAiActError}
+        />
+        <ComplianceCard title={translateMessage("GDPR")} data={gdprData} loading={gdprLoading} error={gdprError} />
       </div>
     </div>
   );

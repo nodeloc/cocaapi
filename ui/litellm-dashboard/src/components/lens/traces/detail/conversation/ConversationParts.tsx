@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { ChevronRight, Wrench } from "lucide-react";
 import { useState } from "react";
@@ -23,12 +24,16 @@ export function ConversationSteps({
   groups: readonly ConversationGroup[];
   onOpenStep: (id: string) => void;
 }) {
+  useUiLocale();
   return groups.map((group) =>
     group.kind === "item" ? (
       <ConversationStep key={group.item.id} item={group.item} onOpenStep={onOpenStep} />
     ) : (
       <details key={group.id} className="min-w-0 rounded-md border p-3">
-        <summary className="cursor-pointer text-sm font-medium">Subagent: {group.name}</summary>
+        <summary className="cursor-pointer text-sm font-medium">
+          <LocalizedText text={"Subagent: "} />
+          {group.name}
+        </summary>
         <div className="mt-4 min-w-0 space-y-5 border-l pl-3">
           <ConversationSteps groups={group.children} onOpenStep={onOpenStep} />
         </div>
@@ -38,8 +43,9 @@ export function ConversationSteps({
 }
 
 export function ConversationStep({ item, onOpenStep }: { item: ConversationItem; onOpenStep: (id: string) => void }) {
+  useUiLocale();
   return (
-    <section className="min-w-0 space-y-2" aria-label={`Conversation step ${item.span.name}`}>
+    <section className="min-w-0 space-y-2" aria-label={translateMessage("Conversation step %{0}", [item.span.name])}>
       {item.toolResult === undefined && (
         <div className="flex min-w-0 items-center justify-between gap-2 text-xs text-muted-foreground">
           <div className="flex min-w-0 items-center gap-2">
@@ -53,11 +59,11 @@ export function ConversationStep({ item, onOpenStep }: { item: ConversationItem;
           <Button
             variant="ghost"
             size="xs"
-            aria-label={`Inspect step ${item.span.name}`}
+            aria-label={translateMessage("Inspect step %{0}", [item.span.name])}
             onClick={() => onOpenStep(item.span.span_id)}
             className="shrink-0 text-muted-foreground"
           >
-            Inspect step
+            <LocalizedText text={"Inspect step"} />
           </Button>
         </div>
       )}
@@ -71,6 +77,7 @@ export function ConversationStep({ item, onOpenStep }: { item: ConversationItem;
 }
 
 function ConversationTool({ item, onOpenStep }: { item: ConversationItem; onOpenStep: (id: string) => void }) {
+  useUiLocale();
   const [open, setOpen] = useState(item.span.status === "error");
   const failed = item.span.status === "error";
   const summary = toolSummary(item.toolCall?.args);
@@ -80,7 +87,7 @@ function ConversationTool({ item, onOpenStep }: { item: ConversationItem; onOpen
         <button
           type="button"
           aria-expanded={open}
-          aria-label={`${open ? "Collapse" : "Expand"} ${item.span.name} tool call`}
+          aria-label={translateMessage("%{0} %{1} tool call", [open ? "Collapse" : "Expand", item.span.name])}
           onClick={() => setOpen((value) => !value)}
           className="flex min-w-0 flex-1 items-center gap-2 px-3 py-2.5 text-left text-sm hover:bg-muted/40"
         >
@@ -97,17 +104,17 @@ function ConversationTool({ item, onOpenStep }: { item: ConversationItem; onOpen
             )}
           </span>
           <span className={cn("ml-auto shrink-0 text-xs", failed ? "text-destructive" : "text-muted-foreground")}>
-            {failed ? "Failed" : "Completed"}
+            {failed ? translateMessage("Failed") : translateMessage("Completed")}
           </span>
         </button>
         <Button
           variant="ghost"
           size="xs"
-          aria-label={`Inspect step ${item.span.name}`}
+          aria-label={translateMessage("Inspect step %{0}", [item.span.name])}
           onClick={() => onOpenStep(item.span.span_id)}
           className="my-2.5 shrink-0 text-muted-foreground"
         >
-          Inspect
+          <LocalizedText text={"Inspect"} />
         </Button>
       </div>
       {open && (
@@ -117,18 +124,22 @@ function ConversationTool({ item, onOpenStep }: { item: ConversationItem; onOpen
             <p className="text-sm text-destructive">{item.span.error}</p>
           )}
           <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span>Result</span>
+            <span>
+              <LocalizedText text={"Result"} />
+            </span>
             <CopyButton
               variant="action"
               value={item.toolResult ?? ""}
-              label={`Copy ${item.span.name} result`}
+              label={translateMessage("Copy %{0} result", [item.span.name])}
               iconOnly
             />
           </div>
           {item.toolResult ? (
             <ToolOutput result={item.toolResult} failed={failed} />
           ) : (
-            <p className="text-sm text-muted-foreground">No result content recorded.</p>
+            <p className="text-sm text-muted-foreground">
+              <LocalizedText text={"No result content recorded."} />
+            </p>
           )}
         </div>
       )}
@@ -136,13 +147,19 @@ function ConversationTool({ item, onOpenStep }: { item: ConversationItem; onOpen
   );
 }
 
-export function ConversationMessage({ message }: { message: TraceMessage }) {
+export function ConversationMessage(cocaCopyProps0: { message: TraceMessage }) {
+  const { message } = cocaCopyProps0;
+  useUiLocale();
   if (message.role === "system" && (message.content.startsWith("Agent ") || message.content === "Context compacted"))
-    return <p className="text-xs text-muted-foreground">{message.content}</p>;
+    return (
+      <p className="text-xs text-muted-foreground">{localizedProperty(cocaCopyProps0, "message", message).content}</p>
+    );
   if (message.role === "system")
     return (
       <details className="text-sm text-muted-foreground">
-        <summary className="cursor-pointer">Session context</summary>
+        <summary className="cursor-pointer">
+          <LocalizedText text={"Session context"} />
+        </summary>
         <div className="pt-3">
           <Markdown text={message.content} />
         </div>

@@ -1,3 +1,4 @@
+import { markUiCopy } from "@/lib/i18n";
 // Auto-generated from block_investment.csv — do not edit manually.
 // Regenerate: python scripts/generate_compliance_prompts.py --csv ... --output ...
 
@@ -2076,9 +2077,15 @@ export const financialCompliancePrompts: CompliancePrompt[] = [
   },
 ];
 
-export const financialFrameworkMeta = {
-  name: "Topic Blocking",
-  icon: "shield",
-  description:
-    "Content filter guardrails that block messages matching specific prohibited topics while allowing legitimate use of related words in context.",
-};
+export const financialFrameworkMeta = markUiCopy(
+  {
+    name: "Topic Blocking",
+    icon: "shield",
+    description:
+      "Content filter guardrails that block messages matching specific prohibited topics while allowing legitimate use of related words in context.",
+  },
+  {
+    description:
+      "Content filter guardrails that block messages matching specific prohibited topics while allowing legitimate use of related words in context.",
+  },
+);

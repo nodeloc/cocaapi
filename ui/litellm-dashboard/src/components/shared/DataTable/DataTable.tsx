@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import {
   type Cell,
@@ -43,6 +44,7 @@ import {
 import { cn, cva } from "@/lib/cva.config";
 
 import "./columnMeta";
+import { localizedColumns } from "@/lib/i18n/Columns";
 import { DataTablePagination, DEFAULT_PAGE_SIZE_OPTIONS } from "./DataTablePagination";
 import type {
   ColumnPinnedSide,
@@ -197,7 +199,9 @@ interface HeadCellProps<TData> {
   enableColumnResizing: boolean;
 }
 
-function DataTableHeadCell<TData>({ header, size, stickyHeader, enableColumnResizing }: HeadCellProps<TData>) {
+function DataTableHeadCell<TData>(cocaCopyProps0: HeadCellProps<TData>) {
+  const { header, size, stickyHeader, enableColumnResizing } = cocaCopyProps0;
+  useUiLocale();
   const { column } = header;
   const meta = column.columnDef.meta;
   const sticky = computeStickyStyle(column, true, stickyHeader);
@@ -245,6 +249,7 @@ interface BodyCellProps<TData> {
 }
 
 function DataTableBodyCell<TData>({ cell, size, stickyHeader, enableColumnResizing }: BodyCellProps<TData>) {
+  useUiLocale();
   const { column } = cell;
   const meta = column.columnDef.meta;
   const sticky = computeStickyStyle(column, false, stickyHeader);
@@ -284,6 +289,7 @@ function DataTableBodyRow<TData>({
   rowClassName,
   renderSubComponent,
 }: BodyRowProps<TData>) {
+  useUiLocale();
   const clickable = onRowClick !== undefined;
   const cells = row.getVisibleCells();
 
@@ -338,6 +344,7 @@ function MessageRow({
   children: React.ReactNode;
   stretch?: boolean;
 }) {
+  useUiLocale();
   return (
     <TableRow className="hover:bg-transparent">
       <TableCell colSpan={colSpan} className={messageCell({ stretch })}>
@@ -352,13 +359,18 @@ function MessageRow({
 }
 
 function DefaultEmptyState() {
+  useUiLocale();
   return (
     <div className="flex flex-col items-center gap-1 py-6">
       <div className="mb-1 flex size-10 items-center justify-center rounded-lg bg-muted">
         <SearchX className="size-5 text-muted-foreground" />
       </div>
-      <div className="text-sm font-medium text-foreground">No results</div>
-      <div className="text-sm text-muted-foreground">No rows match your search or filters.</div>
+      <div className="text-sm font-medium text-foreground">
+        <LocalizedText text={"No results"} />
+      </div>
+      <div className="text-sm text-muted-foreground">
+        <LocalizedText text={"No rows match your search or filters."} />
+      </div>
     </div>
   );
 }
@@ -366,6 +378,7 @@ function DefaultEmptyState() {
 const SKELETON_WIDTHS = ["w-[58%]", "w-[44%]", "w-[70%]", "w-[50%]", "w-[64%]", "w-[48%]"] as const;
 
 function SkeletonCell<TData>({ column, index }: { column: Column<TData, unknown> | undefined; index: number }) {
+  useUiLocale();
   const meta = column?.columnDef.meta;
   const width = SKELETON_WIDTHS[index % SKELETON_WIDTHS.length];
   const shape = meta?.skeleton;
@@ -403,17 +416,14 @@ function SkeletonCell<TData>({ column, index }: { column: Column<TData, unknown>
   return <Skeleton className={cn("h-3.5", width, meta?.numeric ? "ml-auto" : "")} />;
 }
 
-function SkeletonRows<TData>({
-  rowCount,
-  columns,
-  size,
-  message,
-}: {
+function SkeletonRows<TData>(cocaCopyProps1: {
   rowCount: number;
   columns: readonly Column<TData, unknown>[];
   size: DataTableSize;
   message?: string;
 }) {
+  const { rowCount, columns, size, message } = cocaCopyProps1;
+  useUiLocale();
   const rowKeys = Array.from({ length: Math.max(rowCount, 1) }, (_, index) => index);
   const cells = columns.length > 0 ? columns : [undefined];
   return (
@@ -428,7 +438,7 @@ function SkeletonRows<TData>({
             <TableCell key={column?.id ?? columnKey} className={size === "compact" ? "px-2 py-1" : ""}>
               <SkeletonCell column={column} index={columnKey} />
               {rowKey === 0 && columnKey === 0 && message !== undefined ? (
-                <span className="sr-only">{message}</span>
+                <span className="sr-only">{localizedProperty(cocaCopyProps1, "message", message)}</span>
               ) : null}
             </TableCell>
           ))}
@@ -443,6 +453,7 @@ function useControllable<T>(
   controlledOnChange: OnChangeFn<T> | undefined,
   initial: T,
 ): { value: T; onChange: OnChangeFn<T> } {
+  useUiLocale();
   const [internal, setInternal] = useState<T>(initial);
   if (controlled !== undefined) {
     return { value: controlled, onChange: controlledOnChange ?? noop };
@@ -455,6 +466,7 @@ function usePageClamp(
   rowCount: number | undefined,
   pagination: { value: PaginationState; onChange: OnChangeFn<PaginationState> },
 ): void {
+  useUiLocale();
   const { pageIndex, pageSize } = pagination.value;
   const { onChange } = pagination;
   useEffect(() => {
@@ -468,6 +480,7 @@ function usePageClamp(
 function useDataTableInstance<TData extends RowData, TValue>(
   props: DataTableResolvedProps<TData, TValue>,
 ): Table<TData> {
+  useUiLocale();
   const {
     data,
     columns,
@@ -526,9 +539,10 @@ function useDataTableInstance<TData extends RowData, TValue>(
   const columnPinning = React.useMemo(() => derivePinning(columns), [columns]);
   const expansionGuard = renderSubComponent !== undefined ? getRowCanExpand : undefined;
 
+  const displayColumns = React.useMemo(() => localizedColumns(columns), [columns]);
   const tableOptions: TableOptions<TData> = {
     data,
-    columns,
+    columns: displayColumns,
     state: {
       sorting: sortingState.value,
       pagination: paginationState.value,
@@ -584,6 +598,7 @@ type SettledPageClampOptions = {
 };
 
 function useSettledPageClamp<TData extends RowData>(table: Table<TData>, options: SettledPageClampOptions): void {
+  useUiLocale();
   const { paginationMode, controlled, settled, rowCount, pagination } = options;
   const clientRowCount = paginationMode === "client" ? table.getPrePaginationRowModel().rows.length : 0;
   const clientPageIsClampable = paginationMode === "client" && controlled && clientRowCount > 0;
@@ -595,11 +610,12 @@ function useSettledPageClamp<TData extends RowData>(table: Table<TData>, options
 }
 
 export function DataTable<TData extends RowData, TValue>(props: DataTableProps<TData, TValue>) {
+  useUiLocale();
   const resolved: DataTableResolvedProps<TData, TValue> = props;
 
   const {
     isLoading = false,
-    loadingMessage = "Loading…",
+    loadingMessage = translateMessage("Loading…"),
     skeletonRowCount = 8,
     noDataMessage,
     paginationMode = "none",
@@ -661,7 +677,7 @@ export function DataTable<TData extends RowData, TValue>(props: DataTableProps<T
     if (rows.length === 0) {
       return (
         <MessageRow colSpan={visibleColumnCount} stretch={stretchEmpty}>
-          {noDataMessage ?? <DefaultEmptyState />}
+          {localizedProperty(resolved, "noDataMessage", noDataMessage) ?? <DefaultEmptyState />}
         </MessageRow>
       );
     }

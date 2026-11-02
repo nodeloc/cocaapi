@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { Aperture, ArrowUpRight } from "lucide-react";
 import { useState } from "react";
@@ -18,7 +19,7 @@ const UNMATCHED_REASON: Record<Exclude<NonNullable<Span["spend_match"]>, "matche
   ambiguous: "Recorded identifiers do not select one compatible spend log",
 };
 
-const LENS_TRACE = { label: "Lens trace", icon: <Aperture aria-hidden /> };
+const LENS_TRACE = markUiCopy({ label: "Lens trace", icon: <Aperture aria-hidden /> }, { label: "Lens trace" });
 
 export const unmatchedReason = (span: Span): string | null =>
   span.spend_match && span.spend_match !== "matched" ? UNMATCHED_REASON[span.spend_match] : null;
@@ -32,6 +33,7 @@ export function SpendLogLink({
   accessToken: string;
   traceStartMs: number;
 }) {
+  useUiLocale();
   const [open, setOpen] = useState(false);
   const requestId = span.spend_log_request_id ?? null;
   const logQuery = useSpanRequestLog(accessToken, requestId, traceStartMs + span.start_offset_ms, open);
@@ -41,7 +43,10 @@ export function SpendLogLink({
     if (!reason) return null;
     return (
       <span className="inline-flex items-center gap-1 text-xs text-muted-foreground" title={reason}>
-        Cost <span className="font-medium text-foreground">not matched</span>
+        <LocalizedText text={"Cost "} />
+        <span className="font-medium text-foreground">
+          <LocalizedText text={"not matched"} />
+        </span>
       </span>
     );
   }
@@ -54,15 +59,21 @@ export function SpendLogLink({
         size="xs"
         onClick={() => setOpen(true)}
         title={requestId}
-        aria-label={`Open LiteLLM spend log ${requestId}`}
+        aria-label={translateMessage("Open LiteLLM spend log %{0}", [requestId])}
         className="tabular-nums active:scale-[0.97] motion-reduce:transition-none"
       >
         <img src={litellmMonogram.src} alt="" aria-hidden className="size-3.5" />
-        <span className="font-medium">LiteLLM Spend Log</span>
+        <span className="font-medium">
+          <LocalizedText text={"LiteLLM Spend Log"} />
+        </span>
         {span.spend != null && <span className="text-muted-foreground">{formatCost(span.spend)}</span>}
         <ArrowUpRight data-icon="inline-end" />
       </Button>
-      {missing && <span className="text-xs text-muted-foreground">Spend log not visible in this time range</span>}
+      {missing && (
+        <span className="text-xs text-muted-foreground">
+          <LocalizedText text={"Spend log not visible in this time range"} />
+        </span>
+      )}
       <LogDetailsDrawer
         open={open && Boolean(logQuery.data)}
         onClose={() => setOpen(false)}

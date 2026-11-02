@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { Shield } from "lucide-react";
 
@@ -8,14 +9,19 @@ import { Skeleton } from "@/components/ui/skeleton";
 const CONTENT_WIDTHS = ["w-24", "w-48", "w-60", "w-44", "w-52"];
 
 export default function SSOSettingsLoadingSkeleton() {
+  useUiLocale();
   return (
-    <Card role="status" aria-label="Loading SSO configuration">
+    <Card role="status" aria-label={translateMessage("Loading SSO configuration")}>
       <CardHeader className="flex flex-row items-center justify-between">
         <div className="flex items-center gap-3">
           <Shield className="size-6 text-muted-foreground" />
           <div>
-            <h3 className="text-lg font-semibold text-foreground">SSO Configuration</h3>
-            <p className="text-sm text-muted-foreground">Manage Single Sign-On authentication settings</p>
+            <h3 className="text-lg font-semibold text-foreground">
+              <LocalizedText text={"SSO Configuration"} />
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              <LocalizedText text={"Manage Single Sign-On authentication settings"} />
+            </p>
           </div>
         </div>
         <div className="flex items-center gap-3">

@@ -1,4 +1,5 @@
 "use client";
+import { translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { OnChangeFn, PaginationState } from "@tanstack/react-table";
 import { Database } from "lucide-react";
@@ -26,18 +27,19 @@ interface MemoryTableProps {
 }
 
 function MemoryEmptyState({ hasActiveSearch }: { hasActiveSearch: boolean }) {
+  useUiLocale();
   return (
     <div className="flex flex-col items-center gap-1 py-6">
       <div className="mb-1 flex size-10 items-center justify-center rounded-lg bg-muted">
         <Database className="size-5 text-muted-foreground" />
       </div>
       <div className="text-sm font-medium text-foreground">
-        {hasActiveSearch ? "No matching memories" : "No memories stored yet"}
+        {hasActiveSearch ? translateMessage("No matching memories") : translateMessage("No memories stored yet")}
       </div>
       <div className="text-sm text-muted-foreground">
         {hasActiveSearch
-          ? "No memories match your search."
-          : "Memories your agents store under /v1/memory will appear here."}
+          ? translateMessage("No memories match your search.")
+          : translateMessage("Memories your agents store under /v1/memory will appear here.")}
       </div>
     </div>
   );
@@ -58,6 +60,7 @@ export function MemoryTable({
   onEditClick,
   onDeleteClick,
 }: MemoryTableProps) {
+  useUiLocale();
   const columns = useMemo(() => {
     const columnDeps = { onViewClick, onEditClick, onDeleteClick };
     return getMemoryTableColumns(columnDeps);
@@ -73,7 +76,7 @@ export function MemoryTable({
       onPaginationChange={onPaginationChange}
       rowCount={rowCount}
       isLoading={isLoading}
-      loadingMessage="Loading memories…"
+      loadingMessage={translateMessage("Loading memories…")}
       noDataMessage={<MemoryEmptyState hasActiveSearch={hasActiveSearch} />}
       size="compact"
       toolbar={(table) => (
@@ -81,7 +84,7 @@ export function MemoryTable({
           table={table}
           searchValue={searchValue}
           onSearchChange={onSearchChange}
-          searchPlaceholder="Search by key prefix or memory ID…"
+          searchPlaceholder={translateMessage("Search by key prefix or memory ID…")}
           onRefresh={onRefresh}
           isRefreshing={isRefreshing}
           showViewOptions={false}

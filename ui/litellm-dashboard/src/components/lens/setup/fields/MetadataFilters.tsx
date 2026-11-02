@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { useId } from "react";
 import { Plus, X } from "lucide-react";
@@ -9,6 +10,7 @@ import type { InvestigationInput } from "../investigationSchema";
 import type { ScopeOptions } from "../useMatchingActivity";
 
 export function MetadataFilters({ attributes, keys }: Pick<ScopeOptions, "attributes" | "keys">) {
+  useUiLocale();
   const id = useId();
   const {
     control,
@@ -24,14 +26,14 @@ export function MetadataFilters({ attributes, keys }: Pick<ScopeOptions, "attrib
           <div className="flex gap-2">
             <Input
               {...register(`selection.filters.${index}.key`)}
-              aria-label={`Metadata key ${index + 1}`}
+              aria-label={translateMessage("Metadata key %{0}", [index + 1])}
               list={`${id}-keys`}
-              placeholder="Metadata key"
+              placeholder={translateMessage("Metadata key")}
             />
             <Button
               variant="ghost"
               size="icon"
-              aria-label={`Remove condition ${index + 1}`}
+              aria-label={translateMessage("Remove condition %{0}", [index + 1])}
               onClick={() => remove(index)}
             >
               <X className="size-4" />
@@ -39,18 +41,18 @@ export function MetadataFilters({ attributes, keys }: Pick<ScopeOptions, "attrib
           </div>
           {errors.selection?.filters?.[index]?.key?.message && (
             <p role="alert" className="text-sm text-destructive">
-              {errors.selection.filters[index].key.message}
+              {localizedProperty(errors.selection.filters[index].key, "message")}
             </p>
           )}
           <Input
             {...register(`selection.filters.${index}.value`)}
-            aria-label={`Metadata value ${index + 1}`}
+            aria-label={translateMessage("Metadata value %{0}", [index + 1])}
             list={`${id}-values-${index}`}
-            placeholder="Equals"
+            placeholder={translateMessage("Equals")}
           />
           {errors.selection?.filters?.[index]?.value?.message && (
             <p role="alert" className="text-sm text-destructive">
-              {errors.selection.filters[index].value.message}
+              {localizedProperty(errors.selection.filters[index].value, "message")}
             </p>
           )}
           <datalist id={`${id}-values-${index}`}>
@@ -68,7 +70,8 @@ export function MetadataFilters({ attributes, keys }: Pick<ScopeOptions, "attrib
         ))}
       </datalist>
       <Button variant="outline" size="sm" disabled={filters.length >= 8} onClick={() => append({ key: "", value: "" })}>
-        <Plus className="size-3" /> Add condition
+        <Plus className="size-3" />
+        <LocalizedText text={" Add condition"} />
       </Button>
     </>
   );

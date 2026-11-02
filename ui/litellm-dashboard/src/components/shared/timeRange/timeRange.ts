@@ -1,3 +1,4 @@
+import { markUiCopy } from "@/lib/i18n";
 const HOUR_MS = 60 * 60 * 1000;
 
 export interface TimeWindow {
@@ -6,11 +7,11 @@ export interface TimeWindow {
 }
 
 export const RANGE_PRESETS = [
-  { hours: 1, label: "Last hour" },
-  { hours: 6, label: "Last 6 hours" },
-  { hours: 24, label: "Last 24 hours" },
-  { hours: 168, label: "Last 7 days" },
-  { hours: 720, label: "Last 30 days" },
+  markUiCopy({ hours: 1, label: "Last hour" }, { label: "Last hour" }),
+  markUiCopy({ hours: 6, label: "Last 6 hours" }, { label: "Last 6 hours" }),
+  markUiCopy({ hours: 24, label: "Last 24 hours" }, { label: "Last 24 hours" }),
+  markUiCopy({ hours: 168, label: "Last 7 days" }, { label: "Last 7 days" }),
+  markUiCopy({ hours: 720, label: "Last 30 days" }, { label: "Last 30 days" }),
 ] as const;
 
 export type RangeHours = (typeof RANGE_PRESETS)[number]["hours"];

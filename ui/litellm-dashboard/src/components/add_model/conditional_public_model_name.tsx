@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, useUiLocale } from "@/lib/i18n";
 import React, { useEffect, useMemo } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import { useFormContext, useWatch } from "react-hook-form";
@@ -40,23 +42,39 @@ const ANTHROPIC_1M_HEADERS = JSON.stringify({ extra_headers: { "anthropic-beta":
 
 const publicNameTooltipContent = (
   <div className="flex flex-col gap-2 text-left font-normal">
-    <div>The name you specify in your API calls to LiteLLM Proxy</div>
     <div>
-      <strong>Example:</strong> If you name your public model <code className={tooltipCodeClassName}>example-name</code>
-      , and choose <code className={tooltipCodeClassName}>openai/qwen-plus-latest</code> as the LiteLLM model
+      <LocalizedText text={"The name you specify in your API calls to LiteLLM Proxy"} />
     </div>
     <div>
-      <strong>Usage:</strong> You make an API call to the LiteLLM proxy with{" "}
+      <strong>
+        <LocalizedText text={"Example:"} />
+      </strong>
+      <LocalizedText text={" If you name your public model "} />
+      <code className={tooltipCodeClassName}>example-name</code>
+      <LocalizedText text={", and choose "} />
+      <code className={tooltipCodeClassName}>openai/qwen-plus-latest</code>
+      <LocalizedText text={" as the LiteLLM model"} />
+    </div>
+    <div>
+      <strong>
+        <LocalizedText text={"Usage:"} />
+      </strong>
+      <LocalizedText text={" You make an API call to the LiteLLM proxy with"} />{" "}
       <code className={tooltipCodeClassName}>model = &quot;example-name&quot;</code>
     </div>
     <div>
-      <strong>Result:</strong> LiteLLM sends <code className={tooltipCodeClassName}>qwen-plus-latest</code> to the
-      provider
+      <strong>
+        <LocalizedText text={"Result:"} />
+      </strong>
+      <LocalizedText text={" LiteLLM sends "} />
+      <code className={tooltipCodeClassName}>qwen-plus-latest</code>
+      <LocalizedText text={" to the provider"} />
     </div>
   </div>
 );
 
 const PublicNameInput: React.FC<{ readonly index: number; readonly value: string }> = ({ index, value }) => {
+  useUiLocale();
   const form = useFormContext<MountedFormValues>();
   const selectedProvider = useWatch({ control: form.control, name: "custom_llm_provider" });
 
@@ -94,7 +112,7 @@ const columns: ColumnDef<ModelMapping>[] = [
     accessorKey: "public_name",
     header: () => (
       <span className="flex items-center">
-        Public Model Name
+        <LocalizedText text={"Public Model Name"} />
         <SimpleTooltip content={publicNameTooltipContent} width="500px" />
       </span>
     ),
@@ -105,14 +123,22 @@ const columns: ColumnDef<ModelMapping>[] = [
     accessorKey: "litellm_model",
     header: () => (
       <span className="flex items-center">
-        LiteLLM Model Name
-        <SimpleTooltip content={<div>The model name LiteLLM will send to the LLM API</div>} width="360px" />
+        <LocalizedText text={"LiteLLM Model Name"} />
+        <SimpleTooltip
+          content={
+            <div>
+              <LocalizedText text={"The model name LiteLLM will send to the LLM API"} />
+            </div>
+          }
+          width="360px"
+        />
       </span>
     ),
   },
 ];
 
 const ConditionalPublicModelName: React.FC = () => {
+  useUiLocale();
   const form = useFormContext<MountedFormValues>();
 
   const modelValue = useWatch({ control: form.control, name: "model" }) || [];
@@ -205,7 +231,7 @@ const ConditionalPublicModelName: React.FC = () => {
       name="model_mappings"
       label={
         <span className="flex items-center">
-          Model Mappings
+          <LocalizedText text={"Model Mappings"} />
           <SimpleTooltip content="Map public model names to LiteLLM model names for load balancing" />
         </span>
       }

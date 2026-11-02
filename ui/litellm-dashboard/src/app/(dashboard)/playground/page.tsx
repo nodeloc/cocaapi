@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, useUiLocale } from "@/lib/i18n";
 
 import { useCustomerNative } from "@/components/account/native/CustomerNativeContext";
 import { useState, useEffect } from "react";
@@ -22,6 +23,7 @@ interface ProxySettings {
 }
 
 export default function PlaygroundPage() {
+  useUiLocale();
   const { accessToken, userRole, userId, disabledPersonalKeyCreation, token, isViewOnly } = useAuthorized();
   const customer = useCustomerNative();
   const [proxySettings, setProxySettings] = useState<ProxySettings | undefined>(undefined);
@@ -46,9 +48,13 @@ export default function PlaygroundPage() {
   if (isViewOnly) {
     return (
       <div className="flex h-full w-full flex-col items-center justify-center gap-2 p-8 text-center">
-        <h1 className="text-2xl font-semibold">Access Denied</h1>
+        <h1 className="text-2xl font-semibold">
+          <LocalizedText text={"Access Denied"} />
+        </h1>
         <p className="text-muted-foreground">
-          Your role does not have access to the Playground. Ask your proxy admin for access to test models.
+          <LocalizedText
+            text={"Your role does not have access to the Playground. Ask your proxy admin for access to test models."}
+          />
         </p>
       </div>
     );
@@ -63,21 +69,23 @@ export default function PlaygroundPage() {
       >
         <TabsList variant="line" className="w-full shrink-0 justify-start overflow-x-auto pb-1">
           <TabsTrigger value="chat" className="flex-none">
-            Chat
+            <LocalizedText text={"Chat"} />
           </TabsTrigger>
           {!customer && (
             <>
               <TabsTrigger value="compare" className="flex-none">
-                Compare
+                <LocalizedText text={"Compare"} />
               </TabsTrigger>
               <TabsTrigger value="compliance" className="flex-none">
-                Compliance
+                <LocalizedText text={"Compliance"} />
               </TabsTrigger>
               <TabsTrigger value="system-one" className="flex-none">
-                <BetaBadge>Decisions</BetaBadge>
+                <BetaBadge>
+                  <LocalizedText text={"Decisions"} />
+                </BetaBadge>
               </TabsTrigger>
               <TabsTrigger value="agent-builder" className="flex-none">
-                Agent Builder (Experimental)
+                <LocalizedText text={"Agent Builder (Experimental)"} />
               </TabsTrigger>
             </>
           )}

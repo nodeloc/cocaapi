@@ -1,3 +1,6 @@
+
+"use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 import { canDetachKeyProject, KeyProjectField } from "./KeyProjectField";
 import GuardrailSelector from "@/components/guardrails/GuardrailSelector";
 import { useOrganizations } from "@/app/(dashboard)/hooks/organizations/useOrganizations";
@@ -98,6 +101,7 @@ export function KeyEditView({
   userRole,
   premiumUser = false,
 }: KeyEditViewProps) {
+  useUiLocale();
   const canEditGuardrails = premiumUser || (userRole != null && rolesWithWriteAccess.includes(userRole));
   const canViewPolicies = hasCapability(userRole, "viewPolicies");
   const canViewPrompts = hasCapability(userRole, "viewPrompts");
@@ -371,15 +375,15 @@ export function KeyEditView({
         }}
       >
         <FieldGroup>
-          <FormField control={form.control} name="key_alias" label="Key Alias">
+          <FormField control={form.control} name="key_alias" label={translateMessage("Key Alias")}>
             {(field) => <Input {...field} value={(field.value as string | undefined) ?? ""} />}
           </FormField>
 
           <FormField
             control={form.control}
             name="models"
-            label="Models"
-            description={isModelsDisabled ? "Models field is disabled for this key type" : undefined}
+            label={translateMessage("Models")}
+            description={isModelsDisabled ? translateMessage("Models field is disabled for this key type") : undefined}
           >
             {({ value, onChange, id }) => (
               <MultiSelect
@@ -396,13 +400,13 @@ export function KeyEditView({
                   }
                 }}
                 disabled={isModelsDisabled}
-                placeholder="Select models"
+                placeholder={translateMessage("Select models")}
               />
             )}
           </FormField>
 
           <Field>
-            <FieldLabel htmlFor={keyTypeFieldId}>Key Type</FieldLabel>
+            <FieldLabel htmlFor={keyTypeFieldId}><LocalizedText text={"Key Type"} /></FieldLabel>
             <KeyTypeSelect
               id={keyTypeFieldId}
               value={keyTypeFromRoutes(allowedRoutes)}
@@ -435,7 +439,7 @@ export function KeyEditView({
               <Input
                 {...field}
                 value={(field.value as string | undefined) ?? ""}
-                placeholder="Enter allowed routes (comma-separated). Special values: llm_api_routes, management_routes. Examples: llm_api_routes, /chat/completions, /keys/*. Leave empty to allow all routes"
+                placeholder={translateMessage("Enter allowed routes (comma-separated). Special values: llm_api_routes, management_routes. Examples: llm_api_routes, /chat/completions, /keys/*. Leave empty to allow all routes")}
               />
             )}
           </FormField>
@@ -443,24 +447,24 @@ export function KeyEditView({
           <KeyBudgetNumberField
             control={form.control}
             name="max_budget"
-            label="Max Budget (USD)"
-            placeholder="Enter a numerical value"
+            label={translateMessage("Max Budget (USD)")}
+            placeholder={translateMessage("Enter a numerical value")}
           />
 
           <KeyBudgetNumberField
             control={form.control}
             name="soft_budget"
-            label="Soft Budget (USD)"
-            placeholder="Get alerts when spend crosses this value, without blocking requests"
+            label={translateMessage("Soft Budget (USD)")}
+            placeholder={translateMessage("Get alerts when spend crosses this value, without blocking requests")}
           />
 
-          <FormField control={form.control} name="budget_duration" label="Reset Budget">
+          <FormField control={form.control} name="budget_duration" label={translateMessage("Reset Budget")}>
             {({ value, onChange, id }) => (
               <BudgetDurationDropdown
                 id={id}
                 value={value as string | null}
                 onChange={(next) => onChange(next ?? null)}
-                placeholder="Never resets"
+                placeholder={translateMessage("Never resets")}
               />
             )}
           </FormField>
@@ -542,11 +546,11 @@ export function KeyEditView({
             )}
           </FormField>
 
-          <FormField control={form.control} name="max_parallel_requests" label="Max Parallel Requests">
+          <FormField control={form.control} name="max_parallel_requests" label={translateMessage("Max Parallel Requests")}>
             {({ ref: _ref, ...field }) => <NumericalInput {...field} value={field.value ?? ""} min={0} />}
           </FormField>
 
-          <FormField control={form.control} name="model_tpm_limit" label="Model TPM Limit">
+          <FormField control={form.control} name="model_tpm_limit" label={translateMessage("Model TPM Limit")}>
             {(field) => (
               <Textarea
                 {...field}
@@ -557,7 +561,7 @@ export function KeyEditView({
             )}
           </FormField>
 
-          <FormField control={form.control} name="model_rpm_limit" label="Model RPM Limit">
+          <FormField control={form.control} name="model_rpm_limit" label={translateMessage("Model RPM Limit")}>
             {(field) => (
               <Textarea
                 {...field}
@@ -604,7 +608,7 @@ export function KeyEditView({
             <TagRateLimitEditor value={tagRateLimits} onChange={setTagRateLimits} />
           </Field>
 
-          <FormField control={form.control} name="guardrails" label="Guardrails">
+          <FormField control={form.control} name="guardrails" label={translateMessage("Guardrails")}>
             {({ value, onChange }) =>
               accessToken ? (
                 <GuardrailSelector
@@ -655,14 +659,14 @@ export function KeyEditView({
             </FormField>
           )}
 
-          <FormField control={form.control} name="tags" label="Tags">
+          <FormField control={form.control} name="tags" label={translateMessage("Tags")}>
             {({ value, onChange, id }) => (
               <TagsInput
                 id={id}
                 value={(value as string[] | undefined) ?? []}
                 onValueChange={onChange}
                 options={Object.values(tagsList).map((tag) => ({ value: tag.name, label: tag.name }))}
-                placeholder="Select or enter tags"
+                placeholder={translateMessage("Select or enter tags")}
               />
             )}
           </FormField>
@@ -671,7 +675,7 @@ export function KeyEditView({
             <FormField
               control={form.control}
               name="prompts"
-              label={premiumUser ? "Prompts" : labelWithHint("Prompts", "Setting prompts by key is a premium feature")}
+              label={premiumUser ? translateMessage("Prompts") : labelWithHint("Prompts", "Setting prompts by key is a premium feature")}
             >
               {({ value, onChange, id }) => (
                 <TagsInput
@@ -703,7 +707,7 @@ export function KeyEditView({
               <AccessGroupSelector
                 value={value as string[] | undefined}
                 onChange={onChange}
-                placeholder="Select access groups (optional)"
+                placeholder={translateMessage("Select access groups (optional)")}
               />
             )}
           </FormField>
@@ -713,7 +717,7 @@ export function KeyEditView({
             name="allowed_passthrough_routes"
             label={
               premiumUser
-                ? "Allowed Pass Through Routes"
+                ? translateMessage("Allowed Pass Through Routes")
                 : labelWithHint(
                     "Allowed Pass Through Routes",
                     "Setting allowed pass through routes by key is a premium feature",
@@ -736,24 +740,24 @@ export function KeyEditView({
             )}
           </FormField>
 
-          <FormField control={form.control} name="vector_stores" label="Vector Stores">
+          <FormField control={form.control} name="vector_stores" label={translateMessage("Vector Stores")}>
             {({ value, onChange }) => (
               <VectorStoreSelector
                 onChange={onChange}
                 value={value as string[] | undefined}
                 accessToken={accessToken || ""}
-                placeholder="Select vector stores"
+                placeholder={translateMessage("Select vector stores")}
               />
             )}
           </FormField>
 
-          <FormField control={form.control} name="mcp_servers_and_groups" label="MCP Servers / Access Groups">
+          <FormField control={form.control} name="mcp_servers_and_groups" label={translateMessage("MCP Servers / Access Groups")}>
             {({ value, onChange }) => (
               <MCPServerSelector
                 onChange={onChange}
                 value={value as McpServersAndGroups | undefined}
                 accessToken={accessToken || ""}
-                placeholder="Select MCP servers or access groups (optional)"
+                placeholder={translateMessage("Select MCP servers or access groups (optional)")}
                 allowNoMcpServers
               />
             )}
@@ -779,7 +783,7 @@ export function KeyEditView({
               "Organization",
               "The organization this key belongs to. Selecting an organization filters the available teams.",
             )}
-            description={hasProject ? "Organization is locked because this key belongs to a project" : undefined}
+            description={hasProject ? translateMessage("Organization is locked because this key belongs to a project") : undefined}
           >
             {({ value, onChange, id }) => (
               <OrganizationDropdown
@@ -796,8 +800,8 @@ export function KeyEditView({
           <FormField
             control={form.control}
             name="team_id"
-            label="Team ID"
-            description={hasProject ? "Team is locked because this key belongs to a project" : undefined}
+            label={translateMessage("Team ID")}
+            description={hasProject ? translateMessage("Team is locked because this key belongs to a project") : undefined}
           >
             {({ value, onChange, id }) => (
               <Select
@@ -809,7 +813,7 @@ export function KeyEditView({
                 )}
               >
                 <SelectTrigger id={id} className="w-full">
-                  <SelectValue placeholder="Select team" />
+                  <SelectValue placeholder={translateMessage("Select team")} />
                 </SelectTrigger>
                 <SelectContent>
                   {visibleTeams?.map((t) => (
@@ -833,7 +837,7 @@ export function KeyEditView({
           )}
 
           <Field>
-            <FieldLabel>Router Settings</FieldLabel>
+            <FieldLabel><LocalizedText text={"Router Settings"} /></FieldLabel>
             <RouterSettingsAccordion
               ref={routerSettingsRef}
               accessToken={accessToken || ""}
@@ -842,7 +846,7 @@ export function KeyEditView({
             />
           </Field>
 
-          <FormField control={form.control} name="logging_settings" label="Logging Settings">
+          <FormField control={form.control} name="logging_settings" label={translateMessage("Logging Settings")}>
             {({ value, onChange }) => (
               <EditLoggingSettings
                 value={(value as unknown[] | undefined) ?? []}
@@ -876,13 +880,9 @@ export function KeyEditView({
 
         <div className="sticky z-chrome bg-background p-4 border-t border-border -bottom-6 -inset-x-6">
           <div className="flex justify-end items-center gap-2">
-            <Button type="button" variant="secondary" onClick={onCancel} disabled={isKeySaving}>
-              Cancel
-            </Button>
+            <Button type="button" variant="secondary" onClick={onCancel} disabled={isKeySaving}><LocalizedText text={"Cancel"} /></Button>
             <Button type="submit" disabled={isKeySaving} aria-busy={isKeySaving}>
-              {isKeySaving && <UiLoadingSpinner className="size-4" />}
-              Save Changes
-            </Button>
+              {isKeySaving && <UiLoadingSpinner className="size-4" />}<LocalizedText text={"Save Changes"} /></Button>
           </div>
         </div>
       </form>

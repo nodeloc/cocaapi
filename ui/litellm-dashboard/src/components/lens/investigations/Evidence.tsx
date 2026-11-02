@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, useUiLocale } from "@/lib/i18n";
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -25,6 +26,7 @@ export interface EvidenceViewProps {
 
 /** The original trace step or logged request a piece of evidence points at, filling the panel. */
 export function EvidenceView({ lensId, evidence, backLabel, onBack }: EvidenceViewProps) {
+  useUiLocale();
   const target = evidenceTarget(evidence.id);
   return (
     <div className="flex min-h-0 flex-1 flex-col" data-testid="evidence-view">
@@ -55,6 +57,7 @@ function EvidenceBody({
   evidence: EvidenceRef;
   onBack?: () => void;
 }) {
+  useUiLocale();
   if (target?.source === "traces")
     return (
       <TraceEvidence
@@ -65,7 +68,11 @@ function EvidenceBody({
       />
     );
   if (target?.source === "requests") return <RequestEvidence lensId={lensId} evidenceId={evidence.id} />;
-  return <p className="p-4 text-sm text-muted-foreground">This evidence is no longer available.</p>;
+  return (
+    <p className="p-4 text-sm text-muted-foreground">
+      <LocalizedText text={"This evidence is no longer available."} />
+    </p>
+  );
 }
 
 export function TraceEvidence({
@@ -79,6 +86,7 @@ export function TraceEvidence({
   initialSpanId: string | null;
   onBack: () => void;
 }) {
+  useUiLocale();
   const selection = useLocalRunSelection(initialSpanId);
   const accessToken = useLensAccessToken();
   return (
@@ -94,6 +102,7 @@ export function TraceEvidence({
 }
 
 function RequestEvidence({ lensId, evidenceId }: { lensId: string; evidenceId: string }) {
+  useUiLocale();
   const api = useLensApi();
   const [offset, setOffset] = useState(0);
   const request = { lensId, evidenceId, requestOffset: offset, source: "requests" };
@@ -101,27 +110,39 @@ function RequestEvidence({ lensId, evidenceId }: { lensId: string; evidenceId: s
   return (
     <div className="min-h-0 flex-1 overflow-y-auto">
       <header className="border-b px-4 py-4">
-        <h2 className="text-sm font-semibold">Request evidence</h2>
-        <p className="text-xs text-muted-foreground">Original logged input and output</p>
+        <h2 className="text-sm font-semibold">
+          <LocalizedText text={"Request evidence"} />
+        </h2>
+        <p className="text-xs text-muted-foreground">
+          <LocalizedText text={"Original logged input and output"} />
+        </p>
       </header>
       <div className="space-y-3 p-4">
-        {evidence.isLoading && <p role="status">Loading request…</p>}
-        {evidence.error && <p role="alert">{evidence.error.message}</p>}
+        {evidence.isLoading && (
+          <p role="status">
+            <LocalizedText text={"Loading request…"} />
+          </p>
+        )}
+        {evidence.error && <p role="alert">{localizedProperty(evidence.error, "message")}</p>}
         {evidence.data?.parts.map((p) => (
           <pre className="text-xs break-words whitespace-pre-wrap" key={p.span_id}>
             {p.content}
           </pre>
         ))}
-        {evidence.data?.parts.length === 0 && <p>Request was not found or is past retention</p>}
+        {evidence.data?.parts.length === 0 && (
+          <p>
+            <LocalizedText text={"Request was not found or is past retention"} />
+          </p>
+        )}
         <div className="flex flex-wrap gap-2">
           {offset > 0 && (
             <Button variant="outline" onClick={() => setOffset(Math.max(0, offset - SECTION))}>
-              Previous section
+              <LocalizedText text={"Previous section"} />
             </Button>
           )}
           {evidence.data?.parts.some((p) => p.truncated) && (
             <Button variant="outline" onClick={() => setOffset(offset === 0 ? 1 : offset + SECTION)}>
-              Next section
+              <LocalizedText text={"Next section"} />
             </Button>
           )}
         </div>

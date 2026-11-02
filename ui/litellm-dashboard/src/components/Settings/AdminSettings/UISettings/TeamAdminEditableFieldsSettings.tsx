@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { Controller } from "react-hook-form";
 import { z } from "zod";
@@ -24,6 +25,7 @@ const editableFieldsSchema = z.object({ team_admin_editable_team_fields: z.array
 type SaveEditableFields = ReturnType<typeof useUpdateUISettings>["mutate"];
 
 export default function TeamAdminEditableFieldsSettings() {
+  useUiLocale();
   const { accessToken } = useAuthorized();
   const { data, isLoading } = useUISettings();
   const { mutate: saveSettings, isPending } = useUpdateUISettings(accessToken);
@@ -35,16 +37,21 @@ export default function TeamAdminEditableFieldsSettings() {
     <Card>
       <CardHeader>
         <div className="flex items-center gap-2">
-          <CardTitle>Team admin editable fields</CardTitle>
+          <CardTitle>
+            <LocalizedText text={"Team admin editable fields"} />
+          </CardTitle>
           <Badge variant={enabledFields.length > 0 ? "secondary" : "outline"}>
             {enabledFields.length > 0
-              ? `${enabledFields.length} field${enabledFields.length !== 1 ? "s" : ""} enabled`
-              : "Team admins cannot edit team settings"}
+              ? translateMessage("%{0} field%{1} enabled", [
+                  enabledFields.length,
+                  enabledFields.length !== 1 ? "s" : "",
+                ])
+              : translateMessage("Team admins cannot edit team settings")}
           </Badge>
         </div>
         <CardDescription>
-          {data?.field_schema?.properties?.team_admin_editable_team_fields?.description ??
-            "Team settings fields a team admin may change on the teams they administer."}
+          {localizedProperty(data?.field_schema?.properties?.team_admin_editable_team_fields, "description") ??
+            translateMessage("Team settings fields a team admin may change on the teams they administer.")}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -77,6 +84,7 @@ function TeamAdminEditableFieldsForm({
   isPending,
   saveSettings,
 }: TeamAdminEditableFieldsFormProps) {
+  useUiLocale();
   const form = useZodForm(editableFieldsSchema, {
     defaultValues: { team_admin_editable_team_fields: [...enabledFields] },
   });
@@ -84,7 +92,7 @@ function TeamAdminEditableFieldsForm({
     saveSettings(values, {
       onSuccess: () => {
         form.reset(values);
-        toast.success("Team admin editable fields updated successfully");
+        toast.success(translateMessage("Team admin editable fields updated successfully"));
       },
       onError: (error) => {
         toast.fromError(error);
@@ -95,7 +103,9 @@ function TeamAdminEditableFieldsForm({
   if (supportedFields.length === 0) {
     return (
       <p className="text-sm italic text-muted-foreground">
-        This proxy version does not support enabling any team settings fields for team admins yet.
+        <LocalizedText
+          text={"This proxy version does not support enabling any team settings fields for team admins yet."}
+        />
       </p>
     );
   }
@@ -130,7 +140,7 @@ function TeamAdminEditableFieldsForm({
       />
       <div className="flex justify-end">
         <Button type="submit" disabled={isPending || !form.formState.isDirty}>
-          {isPending ? "Saving..." : "Save"}
+          {isPending ? translateMessage("Saving...") : translateMessage("Save")}
         </Button>
       </div>
     </form>

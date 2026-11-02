@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, useUiLocale } from "@/lib/i18n";
 
 import { useId, type ComponentProps, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
@@ -14,6 +15,7 @@ export type OnboardingSetupProps = Omit<ComponentProps<"section">, "children"> &
 };
 
 export function OnboardingSetup({ state, action, includeTracing = true, className, ...props }: OnboardingSetupProps) {
+  useUiLocale();
   const { readOnly, canInvestigate } = useOnboarding();
   const titleId = useId();
   return (
@@ -26,10 +28,10 @@ export function OnboardingSetup({ state, action, includeTracing = true, classNam
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 id={titleId} className="text-2xl font-semibold tracking-tight">
-            Get Lens running
+            <LocalizedText text={"Get Lens running"} />
           </h2>
           <p className="mt-2 text-sm leading-6 text-muted-foreground">
-            Each step checks your connection, so you’ll see when it’s working.
+            <LocalizedText text={"Each step checks your connection, so you’ll see when it’s working."} />
           </p>
         </div>
         {action}
@@ -37,15 +39,18 @@ export function OnboardingSetup({ state, action, includeTracing = true, classNam
       <OnboardingSteps state={state} includeTracing={includeTracing} />
       {state.error && (
         <div role="alert" className="mt-4 flex flex-wrap items-center gap-3 text-sm text-destructive">
-          <p>Could not check setup. {state.error}</p>
+          <p>
+            <LocalizedText text={"Could not check setup. "} />
+            {state.error}
+          </p>
           <Button variant="outline" size="sm" onClick={state.refresh} disabled={state.checking}>
-            Retry
+            <LocalizedText text={"Retry"} />
           </Button>
         </div>
       )}
       {(readOnly || !canInvestigate) && (
         <p className="mt-4 text-sm text-muted-foreground">
-          A gateway administrator can connect a worker and run investigations.
+          <LocalizedText text={"A gateway administrator can connect a worker and run investigations."} />
         </p>
       )}
     </section>

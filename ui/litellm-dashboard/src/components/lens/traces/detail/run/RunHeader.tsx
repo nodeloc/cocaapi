@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, getIntlLocale, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import {
   ArrowLeft,
@@ -42,17 +43,18 @@ type Summary = Trace["summary"];
 
 function statusLabel(failed: boolean, errors: number): string {
   if (errors === 0) return failed ? "Errors recorded" : "Recorded";
-  const stepErrors = `${errors.toLocaleString()} step ${errors === 1 ? "error" : "errors"}`;
+  const stepErrors = `${errors.toLocaleString(getIntlLocale())} step ${errors === 1 ? "error" : "errors"}`;
   return failed ? stepErrors : `Recorded · ${stepErrors}`;
 }
 
 /** One pill for how the run went, so a failure is stated once instead of as a pill, a stat and a red icon. */
 function StatusPill({ summary }: { summary: Summary }) {
+  useUiLocale();
   const failed = summary.status === "error";
   const label = statusLabel(failed, summary.error_count);
   return (
     <span
-      title="Status of received spans. More spans may still arrive."
+      title={translateMessage("Status of received spans. More spans may still arrive.")}
       className={cn(
         "inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 font-medium",
         failed ? "bg-destructive/10 text-destructive" : "bg-trace-ok text-trace-ok-glyph",
@@ -66,10 +68,11 @@ function StatusPill({ summary }: { summary: Summary }) {
 
 /** Duration, steps, tokens and cost as one quiet line; cost is left out when nothing was priced. */
 function Totals({ summary }: { summary: Summary }) {
+  useUiLocale();
   const cost = runCost(summary);
   const parts = [
     fmtMs(summary.duration_ms),
-    `${summary.span_count.toLocaleString()} steps`,
+    `${summary.span_count.toLocaleString(getIntlLocale())} steps`,
     `${fmtTok(summary.input_tokens + summary.output_tokens)} tokens`,
     cost && [cost.label, cost.partial?.long].filter(Boolean).join(" · "),
   ].filter(Boolean);
@@ -77,22 +80,24 @@ function Totals({ summary }: { summary: Summary }) {
 }
 
 function RunIcon({ summary }: { summary: Summary }) {
+  useUiLocale();
   const framework = traceFramework(summary);
   if (!framework) return <SpanIcon type="agent" size="lg" />;
   return (
     <span
       className="inline-flex h-6 shrink-0 items-center gap-1.5 rounded-md border border-border px-1.5 text-xs text-muted-foreground"
       data-testid="run-framework"
-      title={framework.label}
+      title={localizedProperty(framework, "label", framework.label)}
     >
       <FrameworkLogo framework={framework} />
-      {traceAgentNames(summary).join(", ") || framework.label}
+      {traceAgentNames(summary).join(", ") || localizedProperty(framework, "label", framework.label)}
     </span>
   );
 }
 
 /** "Copy for agent" up front; the link and dataset actions sit behind its chevron. */
 function RunActions({ summary, handoff }: { summary: Summary; handoff: TraceHandoff }) {
+  useUiLocale();
   const canAddToDataset = useCanAddToDataset();
   const [copied, setCopied] = useState(false);
   const [addingToDataset, setAddingToDataset] = useState(false);
@@ -107,12 +112,17 @@ function RunActions({ summary, handoff }: { summary: Summary; handoff: TraceHand
           onClick={async () => setCopied(await copyToClipboard(handoff.text, handoff.copied))}
         >
           {copied ? <Check className="size-3" /> : <Copy className="size-3" />}
-          {copied ? "Copied" : "Copy for agent"}
+          {copied ? translateMessage("Copied") : translateMessage("Copy for agent")}
         </Button>
         <DropdownMenu>
           <DropdownMenuTrigger
             render={
-              <Button variant="outline" size="icon-xs" className="h-7 w-7 shadow-none" aria-label="More run actions" />
+              <Button
+                variant="outline"
+                size="icon-xs"
+                className="h-7 w-7 shadow-none"
+                aria-label={translateMessage("More run actions")}
+              />
             }
           >
             <ChevronDown className="size-3" />
@@ -124,12 +134,12 @@ function RunActions({ summary, handoff }: { summary: Summary; handoff: TraceHand
               }
             >
               <Link />
-              Copy link
+              <LocalizedText text={"Copy link"} />
             </DropdownMenuItem>
             {canAddToDataset && (
               <DropdownMenuItem onClick={() => setAddingToDataset(true)}>
                 <DatabaseZap />
-                Add run to dataset
+                <LocalizedText text={"Add run to dataset"} />
               </DropdownMenuItem>
             )}
           </DropdownMenuContent>
@@ -172,12 +182,13 @@ export function RunHeader({
   onLiveChange,
   signals = [],
 }: RunHeaderProps) {
+  useUiLocale();
   const { summary } = trace;
   return (
     <header className="flex shrink-0 flex-col gap-2 border-b bg-background px-4 pt-3 pb-2.5">
       <div className="flex min-w-0 items-center gap-2">
         {!embedded && (
-          <Button variant="ghost" size="icon-xs" onClick={onBack} aria-label="Back to runs">
+          <Button variant="ghost" size="icon-xs" onClick={onBack} aria-label={translateMessage("Back to runs")}>
             <ArrowLeft className="size-4" />
           </Button>
         )}
@@ -185,7 +196,7 @@ export function RunHeader({
         <h1 className="min-w-0 shrink truncate text-base font-semibold">{traceDisplayName(summary)}</h1>
         {summary.source?.user && <RunUser user={summary.source.user} />}
         {summary.source && <RunSourceLink source={summary.source} />}
-        <IdChip value={summary.trace_id} label="Copy trace ID" />
+        <IdChip value={summary.trace_id} label={translateMessage("Copy trace ID")} />
         <div className="ml-auto flex shrink-0 items-center gap-0.5">
           <Button
             variant="ghost"
@@ -193,8 +204,12 @@ export function RunHeader({
             aria-pressed={live}
             disabled={!canLive}
             onClick={onLiveChange}
-            aria-label="Live updates"
-            title={live ? "Live: refreshes every 30s. Click to pause." : "Paused. Click to follow live."}
+            aria-label={translateMessage("Live updates")}
+            title={
+              live
+                ? translateMessage("Live: refreshes every 30s. Click to pause.")
+                : translateMessage("Paused. Click to follow live.")
+            }
             className="text-muted-foreground"
           >
             <span
@@ -203,15 +218,15 @@ export function RunHeader({
                 live ? "bg-trace-ok-glyph motion-safe:animate-pulse" : "bg-muted-foreground/50",
               )}
             />
-            Live
+            <LocalizedText text={"Live"} />
           </Button>
           <Button
             variant="ghost"
             size="icon-xs"
             disabled={refreshing}
             onClick={onRefresh}
-            aria-label="Refresh run"
-            title="Refresh"
+            aria-label={translateMessage("Refresh run")}
+            title={translateMessage("Refresh")}
             className="mr-1 text-muted-foreground"
           >
             <RefreshCw className={cn("size-3.5", refreshing && "animate-spin")} />
@@ -223,14 +238,14 @@ export function RunHeader({
         <StatusPill summary={summary} />
         {signals.length > 0 && <SignalPills flags={signals} showScore className="flex-wrap" />}
         <Totals summary={summary} />
-        <TabsList aria-label="Trace view" className="ml-auto group-data-horizontal/tabs:h-7">
+        <TabsList aria-label={translateMessage("Trace view")} className="ml-auto group-data-horizontal/tabs:h-7">
           <TabsTrigger value="steps" className="gap-1.5 px-2.5 text-xs">
             <ListTree className="size-3.5" />
-            Steps
+            <LocalizedText text={"Steps"} />
           </TabsTrigger>
           <TabsTrigger value="thread" className="gap-1.5 px-2.5 text-xs">
             <MessagesSquare className="size-3.5" />
-            Thread
+            <LocalizedText text={"Thread"} />
           </TabsTrigger>
         </TabsList>
       </div>

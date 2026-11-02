@@ -1,4 +1,6 @@
 "use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
+
 
 import { ArrowRight, ArrowUpRight, Check, Copy, KeyRound, Loader2, Send } from "lucide-react";
 import { useState } from "react";
@@ -91,6 +93,7 @@ function CodeBlock({
   wrap?: boolean;
   copyLabel?: string;
 }) {
+  useUiLocale();
   const [copied, setCopied] = useState(false);
   useTimeout(() => setCopied(false), copied ? COPIED_RESET_MS : null);
   const copy = async () => setCopied(await copyToClipboard(code));
@@ -120,6 +123,7 @@ function CodeBlock({
 }
 
 function FileLabel({ children }: { children: React.ReactNode }) {
+  useUiLocale();
   return <span className="text-xs text-foreground">{children}</span>;
 }
 
@@ -134,6 +138,7 @@ function LineTabs<T extends string>({
   onChange: (v: T) => void;
   logos?: Partial<Record<T, string>>;
 }) {
+  useUiLocale();
   return (
     <div role="tablist" className="flex h-9 items-end gap-3">
       {options.map((option) => (
@@ -158,10 +163,12 @@ function LineTabs<T extends string>({
   );
 }
 
-function Step({ title, children }: { title: React.ReactNode; children: React.ReactNode }) {
+function Step(cocaCopyProps0: { title: React.ReactNode; children: React.ReactNode }) {
+  const { title, children } = cocaCopyProps0;
+  useUiLocale();
   return (
     <section className="mt-6">
-      <h3 className="mb-3 text-sm font-medium text-foreground">{title}</h3>
+      <h3 className="mb-3 text-sm font-medium text-foreground">{localizedProperty(cocaCopyProps0, "title", title)}</h3>
       {children}
     </section>
   );
@@ -205,6 +212,7 @@ function SendTestTrace({
   tracingKey: string | null;
   onOpenTrace: (trace: TraceSummary) => void;
 }) {
+  useUiLocale();
   const [state, setState] = useState<SendState>({ kind: "idle" });
   const send = async () => {
     setState({ kind: "sending" });
@@ -221,7 +229,7 @@ function SendTestTrace({
       };
       await client.post("/v1/traces", options);
     } catch {
-      setState({ kind: "failed", message: "Could not send the test trace." });
+      setState(markUiCopy({ kind: "failed" as const, message: "Could not send the test trace." }, {"message": "Could not send the test trace."}));
       return;
     }
     setState({ kind: "waiting" });
@@ -229,17 +237,15 @@ function SendTestTrace({
     setState(
       trace
         ? { kind: "ready", trace }
-        : { kind: "failed", message: "Sent, but it has not shown up yet. Check again in a moment." },
+        : markUiCopy({ kind: "failed" as const, message: "Sent, but it has not shown up yet. Check again in a moment." }, {"message": "Sent, but it has not shown up yet. Check again in a moment."}),
     );
   };
   if (state.kind === "ready") {
     return (
       <div className="flex flex-wrap items-center gap-3">
         <span role="status" className="inline-flex items-center gap-1 text-sm text-emerald-700 dark:text-emerald-400">
-          <Check aria-hidden="true" className="size-4" /> Test trace received
-        </span>
-        <Button onClick={() => onOpenTrace(state.trace)}>
-          View trace <ArrowRight aria-hidden="true" className="size-4" />
+          <Check aria-hidden="true" className="size-4" /><LocalizedText text={" Test trace received"} /></span>
+        <Button onClick={() => onOpenTrace(state.trace)}><LocalizedText text={"View trace "} /><ArrowRight aria-hidden="true" className="size-4" />
         </Button>
       </div>
     );
@@ -255,7 +261,7 @@ function SendTestTrace({
         )}
         {SEND_LABEL[state.kind]}
       </Button>
-      {state.kind === "failed" && <p className="text-sm text-destructive">{state.message}</p>}
+      {state.kind === "failed" && <p className="text-sm text-destructive">{localizedProperty(state, "message", state.message)}</p>}
     </div>
   );
 }
@@ -271,26 +277,24 @@ function TraceReceipt({
   checking: boolean;
   onCheck: () => void;
 }) {
+  useUiLocale();
   const missingAfterCheck = checked && !checking && !connected;
   return (
-    <section className="mt-6 border-t pt-6" aria-label="Trace connection status">
+    <section className="mt-6 border-t pt-6" aria-label={translateMessage("Trace connection status")}>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <p role="status" className="text-sm font-medium">
-            {connected ? "Traces connected" : "Waiting for your first trace"}
+            {connected ? translateMessage("Traces connected") : translateMessage("Waiting for your first trace")}
           </p>
-          <p className="mt-1 text-sm text-muted-foreground">Run your agent once. Its traces will appear here.</p>
+          <p className="mt-1 text-sm text-muted-foreground"><LocalizedText text={"Run your agent once. Its traces will appear here."} /></p>
         </div>
         <Button variant="outline" onClick={onCheck} disabled={checking}>
           {checking && <Loader2 aria-hidden="true" className="size-4 animate-spin" />}
-          {checking ? "Checking…" : "Check for traces"}
+          {checking ? translateMessage("Checking…") : translateMessage("Check for traces")}
         </Button>
       </div>
       {missingAfterCheck && (
-        <p className="mt-3 text-sm leading-6 text-muted-foreground">
-          No traces received yet. Check the Lens URL and tracing key in your agent’s environment, then check its logs
-          for export errors.
-        </p>
+        <p className="mt-3 text-sm leading-6 text-muted-foreground"><LocalizedText text={"No traces received yet. Check the Lens URL and tracing key in your agent’s environment, then check its logs for export errors."} /></p>
       )}
     </section>
   );
@@ -305,6 +309,7 @@ function TracingKey({
   tracingKey: string | null;
   onCreated: (key: string) => void;
 }) {
+  useUiLocale();
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState("");
   const [pendingActivation, setPendingActivation] = useState(false);
@@ -320,7 +325,7 @@ function TracingKey({
       setPendingActivation(!result.active);
       onCreated(result.key);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Could not create a key");
+      setError(cause instanceof Error ? localizedProperty(cause, "message", cause.message) : translateMessage("Could not create a key"));
     } finally {
       setCreating(false);
     }
@@ -329,16 +334,10 @@ function TracingKey({
     return (
       <div className="space-y-2">
         {pendingActivation && (
-          <p role="status" className="text-sm text-muted-foreground">
-            Key saved. Lens has not confirmed it yet. Once the service is connected, keys sync within 30 seconds.
-          </p>
+          <p role="status" className="text-sm text-muted-foreground"><LocalizedText text={"Key saved. Lens has not confirmed it yet. Once the service is connected, keys sync within 30 seconds."} /></p>
         )}
-        <CodeBlock code={tracingKey} display={maskSecret(tracingKey)} tabs={<FileLabel>Your tracing key</FileLabel>} />
-        <p className="text-sm text-muted-foreground">
-          Hidden for safety. Copy copies the full key, and the environment step below includes it. This key can only
-          send traces and check delivery. Your agent still needs its own key for model calls. Save this key before
-          leaving the page.
-        </p>
+        <CodeBlock code={tracingKey} display={maskSecret(tracingKey)} tabs={<FileLabel><LocalizedText text={"Your tracing key"} /></FileLabel>} />
+        <p className="text-sm text-muted-foreground"><LocalizedText text={"Hidden for safety. Copy copies the full key, and the environment step below includes it. This key can only send traces and check delivery. Your agent still needs its own key for model calls. Save this key before leaving the page."} /></p>
       </div>
     );
   }
@@ -349,16 +348,15 @@ function TracingKey({
           <Loader2 aria-hidden="true" className="size-4 animate-spin" />
         ) : (
           <KeyRound aria-hidden="true" className="size-4" />
-        )}
-        Generate tracing key
-      </Button>
-      <span className="text-sm text-muted-foreground">Use a dedicated Lens key for tracing.</span>
+        )}<LocalizedText text={"Generate tracing key"} /></Button>
+      <span className="text-sm text-muted-foreground"><LocalizedText text={"Use a dedicated Lens key for tracing."} /></span>
       {error && <p className="text-sm text-destructive">{error}</p>}
     </div>
   );
 }
 
 function EndpointValue({ value }: { value: string }) {
+  useUiLocale();
   const [copied, setCopied] = useState(false);
   useTimeout(() => setCopied(false), copied ? COPIED_RESET_MS : null);
   const copy = async () => setCopied(await copyToClipboard(value));
@@ -380,13 +378,12 @@ function EndpointValue({ value }: { value: string }) {
 }
 
 function Endpoints({ proxyUrl, children }: { proxyUrl: string; children?: React.ReactNode }) {
+  useUiLocale();
   return (
     <section className="mt-6" aria-labelledby="otel-endpoints">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h3 id="otel-endpoints" className="inline-flex items-center gap-2 text-sm font-medium">
-          <img src={otelLogo.src} alt="" className="size-5" />
-          Connection details
-        </h3>
+          <img src={otelLogo.src} alt="" className="size-5" /><LocalizedText text={"Connection details"} /></h3>
         {children}
       </div>
       <dl className="mt-3 grid gap-x-6 gap-y-3 rounded-md border bg-muted/30 p-4 md:grid-cols-2">
@@ -431,6 +428,7 @@ interface ConnectAgentProps {
 }
 
 export function useLensService(accessToken: string) {
+  useUiLocale();
   return useQuery({
     queryKey: ["lens-service", accessToken],
     queryFn: () => apiClient.get<components["schemas"]["ServiceConnection"]>("/lens/service", { accessToken }),
@@ -447,6 +445,7 @@ function EnableTracing({
   checking: boolean;
   onCheck: () => void;
 }) {
+  useUiLocale();
   const configured = connection.configured ?? connection.connected;
   let message = "Lens is connected. Set its public tracing address so your agents know where to send traces.";
   if (!configured) {
@@ -460,19 +459,15 @@ function EnableTracing({
   }
   return (
     <div className="space-y-4">
-      <p className="text-sm font-medium">{configured ? "Check the Lens connection" : "Install Lens"}</p>
+      <p className="text-sm font-medium">{configured ? translateMessage("Check the Lens connection") : translateMessage("Install Lens")}</p>
       <p className="text-sm leading-6 text-muted-foreground">{message}</p>
       {!configured && (
         <p className="text-sm text-muted-foreground">
           {connection.release ? (
-            <>
-              Use Lens <code>{connection.release}</code> to match this LiteLLM deployment.
-            </>
+            <><LocalizedText text={"Use Lens "} /><code>{connection.release}</code><LocalizedText text={" to match this LiteLLM deployment."} /></>
           ) : (
-            "Use Lens from the same release as this LiteLLM deployment."
-          )}{" "}
-          The deployment connects the services and supplies trace storage.
-        </p>
+            translateMessage("Use Lens from the same release as this LiteLLM deployment.")
+          )}{" "}<LocalizedText text={"The deployment connects the services and supplies trace storage."} /></p>
       )}
       <div className="flex flex-wrap gap-3">
         <a
@@ -480,21 +475,19 @@ function EnableTracing({
           href={`${DEPLOYMENT_URL}#using-helm`}
           target="_blank"
           rel="noreferrer"
-        >
-          Helm setup <ArrowUpRight aria-hidden="true" className="size-3.5" />
+        ><LocalizedText text={"Helm setup "} /><ArrowUpRight aria-hidden="true" className="size-3.5" />
         </a>
         <a
           className="inline-flex items-center gap-1 text-sm underline underline-offset-4"
           href={`${DEPLOYMENT_URL}#using-docker`}
           target="_blank"
           rel="noreferrer"
-        >
-          Docker setup <ArrowUpRight aria-hidden="true" className="size-3.5" />
+        ><LocalizedText text={"Docker setup "} /><ArrowUpRight aria-hidden="true" className="size-3.5" />
         </a>
       </div>
       <Button variant="outline" onClick={onCheck} disabled={checking}>
         {checking && <Loader2 aria-hidden="true" className="size-4 animate-spin" />}
-        {checking ? "Checking…" : "Check setup"}
+        {checking ? translateMessage("Checking…") : translateMessage("Check setup")}
       </Button>
     </div>
   );
@@ -511,6 +504,7 @@ function CodingAgentSetup({
   guide: FrameworkGuide;
   model: string;
 }) {
+  useUiLocale();
   const [codingAgent, setCodingAgent] = useState<CodingAgent>("Claude Code");
   const [copied, setCopied] = useState<string | null>(null);
   const command = codingAgentCommand(codingAgent, codingAgentPrompt(proxyUrl, traceUrl, guide, model));
@@ -520,9 +514,7 @@ function CodingAgentSetup({
   };
   return (
     <section className="mt-6" aria-labelledby="connect-project">
-      <h3 id="connect-project" className="text-sm font-medium">
-        Connect your project
-      </h3>
+      <h3 id="connect-project" className="text-sm font-medium"><LocalizedText text={"Connect your project"} /></h3>
       <div className="mt-3 overflow-hidden rounded-md border">
         <div className="border-b bg-muted/30 px-4">
           <LineTabs
@@ -536,20 +528,17 @@ function CodingAgentSetup({
           />
         </div>
         <div className="p-4">
-          <p className="text-sm leading-6 text-muted-foreground">
-            Run the setup command in your agent’s project. It uses <code className="text-xs">LITELLM_TRACING_KEY</code>{" "}
-            for traces and keeps your model key separate.
-          </p>
+          <p className="text-sm leading-6 text-muted-foreground"><LocalizedText text={"Run the setup command in your agent’s project. It uses "} /><code className="text-xs">LITELLM_TRACING_KEY</code>{" "}<LocalizedText text={"for traces and keeps your model key separate."} /></p>
           <Button className="mt-3" onClick={() => void copy()}>
             {copied === command ? (
               <Check aria-hidden="true" className="size-4" />
             ) : (
               <Copy aria-hidden="true" className="size-4" />
             )}
-            {copied === command ? "Copied" : "Copy setup command"}
+            {copied === command ? translateMessage("Copied") : translateMessage("Copy setup command")}
           </Button>
           <details className="mt-3">
-            <summary className="w-fit cursor-pointer text-xs text-muted-foreground">View command</summary>
+            <summary className="w-fit cursor-pointer text-xs text-muted-foreground"><LocalizedText text={"View command"} /></summary>
             <pre className="mt-3 max-h-56 overflow-auto whitespace-pre-wrap rounded-md bg-muted/40 p-3 text-xs leading-5">
               <code>{command}</code>
             </pre>
@@ -576,6 +565,7 @@ function ConnectAgent({
   tracingKey,
   setTracingKey,
 }: ConnectAgentProps) {
+  useUiLocale();
   const proxyUrl = getProxyBaseUrl().replace(/\/$/, "");
   const connection = useLensService(accessToken);
   const traceUrl = connection.data?.url ?? "";
@@ -589,26 +579,20 @@ function ConnectAgent({
     return (
       <p role="status" className="text-sm text-muted-foreground">
         {connection.isPending
-          ? "Checking Lens connection…"
-          : "Set LITELLM_LENS_PUBLIC_URL on LiteLLM to the Lens address your agents can reach, then restart LiteLLM."}
+          ? translateMessage("Checking Lens connection…")
+          : translateMessage("Set LITELLM_LENS_PUBLIC_URL on LiteLLM to the Lens address your agents can reach, then restart LiteLLM.")}
       </p>
     );
   return (
     <>
       {!connection.data?.connected && (
-        <p role="alert" className="text-sm text-destructive">
-          The Lens service is unavailable. Check the service URL and shared secret.
-        </p>
+        <p role="alert" className="text-sm text-destructive"><LocalizedText text={"The Lens service is unavailable. Check the service URL and shared secret."} /></p>
       )}
       {connection.data?.connected && !connection.data.status.storage_ready && (
-        <p role="alert" className="text-sm text-destructive">
-          Lens is connected, but ClickHouse is unavailable.
-        </p>
+        <p role="alert" className="text-sm text-destructive"><LocalizedText text={"Lens is connected, but ClickHouse is unavailable."} /></p>
       )}
       <div className="mt-6 space-y-2">
-        <label id="tracing-framework" className="block text-sm font-medium">
-          Your agent framework
-        </label>
+        <label id="tracing-framework" className="block text-sm font-medium"><LocalizedText text={"Your agent framework"} /></label>
         <Select
           value={framework}
           onValueChange={(value) => {
@@ -618,36 +602,36 @@ function ConnectAgent({
           <SelectTrigger aria-labelledby="tracing-framework" className="w-full">
             <SelectValue>
               <img src={guide.logo} alt="" className="size-4 shrink-0 object-contain" />
-              {guide.label}
+              {localizedProperty(guide, "label", guide.label)}
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
             {FRAMEWORKS.map((f) => (
               <SelectItem key={f.id} value={f.id}>
                 <img src={f.logo} alt="" className="size-4 shrink-0 object-contain" />
-                {f.label}
+                {localizedProperty(f, "label", f.label)}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
       </div>
 
-      <Step title="Create a tracing key">
+      <Step title={translateMessage("Create a tracing key")}>
         {canMintTracingKey && !readOnly ? (
           <TracingKey accessToken={accessToken} tracingKey={tracingKey} onCreated={setTracingKey} />
         ) : (
-          <p className="text-sm text-muted-foreground">Ask your proxy admin for a dedicated Lens tracing key.</p>
+          <p className="text-sm text-muted-foreground"><LocalizedText text={"Ask your proxy admin for a dedicated Lens tracing key."} /></p>
         )}
       </Step>
       <div className="mt-6 border-t pt-6">
         {install && (
-          <Step title="Install dependencies">
+          <Step title={translateMessage("Install dependencies")}>
             <CodeBlock
               code={install}
               wrap
               tabs={
                 guide.language === "typescript" ? (
-                  <FileLabel>npm</FileLabel>
+                  <FileLabel><LocalizedText text={"npm"} /></FileLabel>
                 ) : (
                   <LineTabs value={installer} options={["pip", "uv"]} onChange={setInstaller} />
                 )
@@ -656,42 +640,34 @@ function ConnectAgent({
           </Step>
         )}
         {guide.plugin && (
-          <Step title="Enable the plugin">
-            <p className="text-sm leading-6 text-muted-foreground">
-              Install and enable the{" "}
+          <Step title={translateMessage("Enable the plugin")}>
+            <p className="text-sm leading-6 text-muted-foreground"><LocalizedText text={"Install and enable the"} />{" "}
               <a className="underline underline-offset-4" href={guide.plugin.url} target="_blank" rel="noreferrer">
-                {guide.plugin.label}
+                {localizedProperty(guide.plugin, "label")}
               </a>
               . {guide.plugin.instruction}
             </p>
           </Step>
         )}
-        <Step title="Configure environment">
+        <Step title={translateMessage("Configure environment")}>
           <p className="mb-3 text-sm leading-6 text-muted-foreground">
             {tracingKey ? (
-              <>
-                Tracing uses the key above. Set <code>LITELLM_API_KEY</code> to a key with model access.
-              </>
+              <><LocalizedText text={"Tracing uses the key above. Set "} /><code>LITELLM_API_KEY</code><LocalizedText text={" to a key with model access."} /></>
             ) : (
-              <>
-                Set <code>LITELLM_TRACING_KEY</code> to a Lens tracing key and keep <code>LITELLM_API_KEY</code> for
-                model calls.
-              </>
+              <><LocalizedText text={"Set "} /><code>LITELLM_TRACING_KEY</code><LocalizedText text={" to a Lens tracing key and keep "} /><code>LITELLM_API_KEY</code><LocalizedText text={" for model calls."} /></>
             )}
           </p>
           <CodeBlock
             copyLabel="Copy tracing configuration"
             code={tracingEnvSnippet(traceUrl, tracingKey)}
             display={tracingEnvSnippet(traceUrl, tracingKey && maskSecret(tracingKey))}
-            tabs={<FileLabel>Shell</FileLabel>}
+            tabs={<FileLabel><LocalizedText text={"Shell"} /></FileLabel>}
             wrap
           />
         </Step>
-        <Step title="Run your agent">
+        <Step title={translateMessage("Run your agent")}>
           <p className="mb-3 text-sm leading-6 text-muted-foreground">
-            {guide.existingModel ? "Keep your existing model settings. " : "Save and run this example. "}
-            Replace <code>research_agent</code> with your agent’s name.
-            {!guide.existingModel && " Use a model configured on this proxy."}
+            {guide.existingModel ? translateMessage("Keep your existing model settings. ") : translateMessage("Save and run this example. ")}<LocalizedText text={"Replace "} /><code>research_agent</code><LocalizedText text={" with your agent’s name."} />{!guide.existingModel && translateMessage(" Use a model configured on this proxy.")}
           </p>
           <CodeBlock code={quickstart} tabs={<FileLabel>{guide.fileName}</FileLabel>} wrap />
           {guide.note && <p className="mt-3 text-sm leading-6 text-muted-foreground">{guide.note}</p>}
@@ -699,7 +675,7 @@ function ConnectAgent({
             <div className="mt-3">
               <CodeBlock
                 code={guide.language === "typescript" ? "npx tsx agent.mts" : "python agent.py"}
-                tabs={<FileLabel>Shell</FileLabel>}
+                tabs={<FileLabel><LocalizedText text={"Shell"} /></FileLabel>}
               />
             </div>
           )}
@@ -708,8 +684,7 @@ function ConnectAgent({
             className="mt-3 inline-flex items-center gap-1 text-sm underline underline-offset-4"
             target="_blank"
             rel="noreferrer"
-          >
-            View in docs <ArrowUpRight aria-hidden="true" className="size-3.5" />
+          ><LocalizedText text={"View in docs "} /><ArrowUpRight aria-hidden="true" className="size-3.5" />
           </a>
         </Step>
       </div>
@@ -749,6 +724,7 @@ export function TracingSetupFields({
   readOnly = false,
   canMintTracingKey = false,
 }: TracingSetupProps) {
+  useUiLocale();
   const [framework, setFramework] = useState(FRAMEWORKS[0].id);
   const [installer, setInstaller] = useState<Installer>("pip");
   const [tracingKey, setTracingKey] = useState<string | null>(null);
@@ -761,19 +737,13 @@ export function TracingSetupFields({
   };
   if (connection.isPending)
     return (
-      <p role="status" className="text-sm text-muted-foreground">
-        Checking Lens connection…
-      </p>
+      <p role="status" className="text-sm text-muted-foreground"><LocalizedText text={"Checking Lens connection…"} /></p>
     );
   if (!connection.data)
     return (
       <div className="space-y-3">
-        <p role="alert" className="text-sm text-muted-foreground">
-          Could not check the Lens connection.
-        </p>
-        <Button variant="outline" onClick={check}>
-          Try again
-        </Button>
+        <p role="alert" className="text-sm text-muted-foreground"><LocalizedText text={"Could not check the Lens connection."} /></p>
+        <Button variant="outline" onClick={check}><LocalizedText text={"Try again"} /></Button>
       </div>
     );
   if (!connection.data.connected || !connection.data.status.storage_ready || !connection.data.url)
@@ -799,6 +769,7 @@ export function TracingSetupFields({
 }
 
 export function TracingSetupCard(props: TracingSetupProps) {
+  useUiLocale();
   const connection = useLensService(props.accessToken);
   const enabled = Boolean(connection.data?.connected && connection.data.status.storage_ready && connection.data.url);
 
@@ -812,21 +783,20 @@ export function TracingSetupCard(props: TracingSetupProps) {
           ) : (
             <span aria-hidden="true" className="size-1.5 rounded-full bg-muted-foreground/50" />
           )}
-          {enabled ? "Tracing enabled" : "Setup required"}
+          {enabled ? translateMessage("Tracing enabled") : translateMessage("Setup required")}
         </span>
         <a
           className="ml-auto inline-flex shrink-0 items-center gap-1 text-sm underline underline-offset-4"
           href={DOCS_URL}
           target="_blank"
           rel="noreferrer"
-        >
-          Docs <ArrowUpRight aria-hidden="true" className="size-3.5" />
+        ><LocalizedText text={"Docs "} /><ArrowUpRight aria-hidden="true" className="size-3.5" />
         </a>
       </div>
       <p className="mt-2 text-sm leading-6 text-muted-foreground">
         {enabled
-          ? "Send your agent’s runs to LiteLLM to see its inputs, outputs, and tool calls."
-          : "Connect Lens to start recording your agent’s runs."}
+          ? translateMessage("Send your agent’s runs to LiteLLM to see its inputs, outputs, and tool calls.")
+          : translateMessage("Connect Lens to start recording your agent’s runs.")}
       </p>
       <TracingSetupFields {...props} />
     </div>

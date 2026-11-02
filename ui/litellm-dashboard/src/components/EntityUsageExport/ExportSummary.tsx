@@ -1,3 +1,5 @@
+"use client";
+import { getIntlLocale, translateMessage, useUiLocale } from "@/lib/i18n";
 import React from "react";
 import type { DateRangePickerValue } from "@/components/shared/date_picker_types";
 
@@ -7,10 +9,12 @@ interface ExportSummaryProps {
 }
 
 const ExportSummary: React.FC<ExportSummaryProps> = ({ dateRange, selectedFilters }) => {
+  useUiLocale();
   return (
     <div className="text-sm text-muted-foreground">
-      {dateRange.from?.toLocaleDateString()} - {dateRange.to?.toLocaleDateString()}
-      {selectedFilters.length > 0 && ` · ${selectedFilters.length} filter${selectedFilters.length > 1 ? "s" : ""}`}
+      {dateRange.from?.toLocaleDateString(getIntlLocale())} - {dateRange.to?.toLocaleDateString(getIntlLocale())}
+      {selectedFilters.length > 0 &&
+        translateMessage(" · %{0} filter%{1}", [selectedFilters.length, selectedFilters.length > 1 ? "s" : ""])}
     </div>
   );
 };

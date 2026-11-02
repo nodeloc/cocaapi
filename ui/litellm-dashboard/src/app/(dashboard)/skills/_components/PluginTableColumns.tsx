@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { ColumnDef } from "@tanstack/react-table";
 import { Copy, MoreHorizontal, Trash2 } from "lucide-react";
@@ -31,12 +32,13 @@ const CATEGORY_BADGE_CLASS: Record<ReturnType<typeof getCategoryBadgeColor>, str
 };
 
 function PluginCategoryBadge({ category }: { category?: string }) {
+  useUiLocale();
   return (
     <Badge
       variant="outline"
       className={cn("whitespace-nowrap font-normal", CATEGORY_BADGE_CLASS[getCategoryBadgeColor(category)])}
     >
-      {category || "Uncategorized"}
+      {category || translateMessage("Uncategorized")}
     </Badge>
   );
 }
@@ -48,10 +50,11 @@ interface PluginRowActionsProps {
 }
 
 function PluginRowActions({ plugin, isAdmin, onDeleteClick }: PluginRowActionsProps) {
+  useUiLocale();
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        aria-label="Open skill actions"
+        aria-label={translateMessage("Open skill actions")}
         data-testid={`plugin-actions-${plugin.name}`}
         className={cn(buttonVariants({ variant: "ghost", size: "icon-sm" }), "text-muted-foreground")}
       >
@@ -63,7 +66,7 @@ function PluginRowActions({ plugin, isAdmin, onDeleteClick }: PluginRowActionsPr
           onClick={() => void copyToClipboard(plugin.id, "Skill ID copied")}
         >
           <Copy />
-          Copy skill ID
+          <LocalizedText text={"Copy skill ID"} />
         </DropdownMenuItem>
         {isAdmin && (
           <>
@@ -74,7 +77,7 @@ function PluginRowActions({ plugin, isAdmin, onDeleteClick }: PluginRowActionsPr
               onClick={() => onDeleteClick(plugin.name, plugin.name)}
             >
               <Trash2 />
-              Delete
+              <LocalizedText text={"Delete"} />
             </DropdownMenuItem>
           </>
         )}
@@ -97,8 +100,8 @@ export const getPluginTableColumns = ({
   {
     id: "name",
     accessorKey: "name",
-    meta: { title: "Skill Name" },
-    header: ({ column }) => <DataTableSortHeader column={column} title="Skill Name" />,
+    meta: markUiCopy({ title: "Skill Name" }, { title: "Skill Name" }),
+    header: ({ column }) => <DataTableSortHeader column={column} title={translateMessage("Skill Name")} />,
     size: 220,
     enableSorting: true,
     cell: ({ row }) => (
@@ -110,57 +113,72 @@ export const getPluginTableColumns = ({
       />
     ),
   },
-  {
-    id: "version",
-    accessorKey: "version",
-    meta: { title: "Version" },
-    header: "Version",
-    size: 100,
-    enableSorting: false,
-    cell: ({ row }) => <span className="text-sm text-muted-foreground">{row.original.version || "N/A"}</span>,
-  },
-  {
-    id: "description",
-    accessorKey: "description",
-    meta: { title: "Description" },
-    header: "Description",
-    size: 300,
-    enableSorting: false,
-    cell: ({ row }) => {
-      const description = row.original.description;
-      return (
-        <span className="block max-w-72 truncate text-sm text-muted-foreground" title={description ?? undefined}>
-          {description || "No description"}
-        </span>
-      );
+  markUiCopy(
+    {
+      id: "version",
+      accessorKey: "version",
+      meta: markUiCopy({ title: "Version" }, { title: "Version" }),
+      header: "Version",
+      size: 100,
+      enableSorting: false,
+      cell: ({ row }) => <span className="text-sm text-muted-foreground">{row.original.version || "N/A"}</span>,
     },
-  },
-  {
-    id: "category",
-    accessorKey: "category",
-    meta: { title: "Category", skeleton: "badge" },
-    header: "Category",
-    size: 150,
-    enableSorting: false,
-    cell: ({ row }) => <PluginCategoryBadge category={row.original.category ?? undefined} />,
-  },
-  {
-    id: "enabled",
-    accessorKey: "enabled",
-    meta: { title: "Public", skeleton: "badge" },
-    header: "Public",
-    size: 100,
-    enableSorting: false,
-    cell: ({ row }) => (
-      <StatusBadge tone={row.original.enabled ? "success" : "neutral"} label={row.original.enabled ? "Yes" : "No"} />
-    ),
-  },
+    { header: "Version" },
+  ),
+  markUiCopy(
+    {
+      id: "description",
+      accessorKey: "description",
+      meta: markUiCopy({ title: "Description" }, { title: "Description" }),
+      header: "Description",
+      size: 300,
+      enableSorting: false,
+      cell: ({ row }) => {
+        const description = row.original.description;
+        return (
+          <span className="block max-w-72 truncate text-sm text-muted-foreground" title={description ?? undefined}>
+            {description || translateMessage("No description")}
+          </span>
+        );
+      },
+    },
+    { header: "Description" },
+  ),
+  markUiCopy(
+    {
+      id: "category",
+      accessorKey: "category",
+      meta: markUiCopy({ title: "Category", skeleton: "badge" as const }, { title: "Category" }),
+      header: "Category",
+      size: 150,
+      enableSorting: false,
+      cell: ({ row }) => <PluginCategoryBadge category={row.original.category ?? undefined} />,
+    },
+    { header: "Category" },
+  ),
+  markUiCopy(
+    {
+      id: "enabled",
+      accessorKey: "enabled",
+      meta: markUiCopy({ title: "Public", skeleton: "badge" as const }, { title: "Public" }),
+      header: "Public",
+      size: 100,
+      enableSorting: false,
+      cell: ({ row }) => (
+        <StatusBadge
+          tone={row.original.enabled ? "success" : "neutral"}
+          label={row.original.enabled ? translateMessage("Yes") : translateMessage("No")}
+        />
+      ),
+    },
+    { header: "Public" },
+  ),
   {
     id: "created_at",
     accessorKey: "created_at",
     sortingFn: "datetime",
-    meta: { title: "Created At" },
-    header: ({ column }) => <DataTableSortHeader column={column} title="Created At" />,
+    meta: markUiCopy({ title: "Created At" }, { title: "Created At" }),
+    header: ({ column }) => <DataTableSortHeader column={column} title={translateMessage("Created At")} />,
     size: 160,
     enableSorting: true,
     cell: ({ row }) => <DateCell value={row.original.created_at} />,
@@ -168,7 +186,11 @@ export const getPluginTableColumns = ({
   {
     id: "actions",
     meta: { className: "text-right", headerClassName: "text-right" },
-    header: () => <span className="sr-only">Actions</span>,
+    header: () => (
+      <span className="sr-only">
+        <LocalizedText text={"Actions"} />
+      </span>
+    ),
     size: 64,
     enableSorting: false,
     enableHiding: false,

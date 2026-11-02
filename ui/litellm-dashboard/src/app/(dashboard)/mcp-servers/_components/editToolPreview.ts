@@ -1,3 +1,4 @@
+import { markUiCopy } from "@/lib/i18n";
 import { AUTH_TYPE, TRANSPORT } from "@/components/mcp_tools/types";
 import { AUTH_TYPES_REQUIRING_AUTH_VALUE, reduceStaticHeaders } from "./createServerPayload";
 
@@ -57,11 +58,17 @@ export const getEditToolPreview = (
   );
   const needsSavedCredential = AUTH_TYPES_REQUIRING_AUTH_VALUE.includes(config.auth_type) && !config.credentials;
   if (changedOrigin && (needsSavedCredential || reusesHeader)) {
-    return {
-      kind: "incomplete",
-      message:
-        "The server origin changed. Enter credentials and replace or remove saved static headers to preview tools.",
-    };
+    return markUiCopy(
+      {
+        kind: "incomplete" as const,
+        message:
+          "The server origin changed. Enter credentials and replace or remove saved static headers to preview tools.",
+      },
+      {
+        message:
+          "The server origin changed. Enter credentials and replace or remove saved static headers to preview tools.",
+      },
+    );
   }
   return { kind: "preview", config };
 };

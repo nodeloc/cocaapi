@@ -1,4 +1,5 @@
 "use client";
+import { localizedProperty, useUiLocale } from "@/lib/i18n";
 
 import * as React from "react";
 import * as RechartsPrimitive from "recharts";
@@ -27,6 +28,7 @@ type ChartContextProps = {
 const ChartContext = React.createContext<ChartContextProps | null>(null);
 
 function useChart() {
+  useUiLocale();
   const context = React.useContext(ChartContext);
 
   if (!context) {
@@ -47,6 +49,7 @@ const ChartContainer = React.forwardRef<
     };
   }
 >(({ id, className, children, config, initialDimension = INITIAL_DIMENSION, ...props }, ref) => {
+  useUiLocale();
   const uniqueId = React.useId();
   const chartId = `chart-${id ?? uniqueId.replace(/:/g, "")}`;
 
@@ -76,6 +79,7 @@ const cssVarName = (key: string) => key.replace(/[^a-zA-Z0-9_-]/g, "_");
 const cssColorValue = (color: string) => color.replace(/[;{}<>]/g, "");
 
 const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
+  useUiLocale();
   const colorConfig = Object.entries(config).filter(([, config]) => config.theme ?? config.color);
 
   if (!colorConfig.length) {
@@ -136,6 +140,7 @@ const ChartTooltipContent = React.forwardRef<
     },
     ref,
   ) => {
+    useUiLocale();
     const { config } = useChart();
 
     const tooltipLabel = React.useMemo(() => {
@@ -226,7 +231,9 @@ const ChartTooltipContent = React.forwardRef<
                       >
                         <div className="grid gap-1.5">
                           {nestLabel ? tooltipLabel : null}
-                          <span className="text-muted-foreground">{itemConfig?.label ?? item.name}</span>
+                          <span className="text-muted-foreground">
+                            {localizedProperty(itemConfig, "label", itemConfig?.label) ?? item.name}
+                          </span>
                         </div>
                         {item.value != null && (
                           <span className="font-mono font-medium text-foreground tabular-nums">
@@ -255,6 +262,7 @@ const ChartLegendContent = React.forwardRef<
     nameKey?: string;
   } & RechartsPrimitive.DefaultLegendContentProps
 >(({ className, hideIcon = false, payload, verticalAlign = "bottom", nameKey }, ref) => {
+  useUiLocale();
   const { config } = useChart();
 
   if (!payload?.length) {
@@ -291,7 +299,7 @@ const ChartLegendContent = React.forwardRef<
                   }}
                 />
               )}
-              {itemConfig?.label}
+              {localizedProperty(itemConfig, "label", itemConfig?.label)}
             </div>
           );
         })}

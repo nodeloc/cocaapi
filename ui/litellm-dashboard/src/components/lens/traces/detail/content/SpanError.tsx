@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, getIntlLocale, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { useQuery, type UseQueryOptions } from "@tanstack/react-query";
 import { TriangleAlert } from "lucide-react";
@@ -29,11 +30,15 @@ export const errorHeadline = (error: string): string =>
 const errorReason = (headline: string): string => /^([A-Za-z_][\w.]*)\(/.exec(headline)?.[1] ?? "error";
 
 export function ErrorBlock({ span }: { span: Span }) {
+  useUiLocale();
   const source = errorSource(span);
   if (!source) return null;
   const headline = errorHeadline(span.error ?? "") || "Span reported an error status.";
   return (
-    <section aria-label="Error" className="rounded-lg border border-destructive/40 bg-destructive/5 px-3.5 py-3">
+    <section
+      aria-label={translateMessage("Error")}
+      className="rounded-lg border border-destructive/40 bg-destructive/5 px-3.5 py-3"
+    >
       <div className="flex items-center gap-2 text-sm font-semibold text-destructive">
         <TriangleAlert className="size-4" />
         {ERROR_SOURCE_LABEL[source]} · {errorReason(headline)}
@@ -54,6 +59,7 @@ interface DiagnosticProps {
 
 /** The full stored error, fetched only on request and paged section by section. */
 export function StoredDiagnostic({ accessToken, traceId, traceRef, span }: DiagnosticProps) {
+  useUiLocale();
   const traces = useTracesApi(accessToken);
   const [opened, setOpened] = useState(false);
   const [cursor, setCursor] = useState<string | null>(null);
@@ -69,28 +75,33 @@ export function StoredDiagnostic({ accessToken, traceId, traceRef, span }: Diagn
   const query = useQuery(queryOptions);
   const failure = query.error ? classifyTraceReadFailure(query.error) : null;
   return (
-    <section aria-label="Stored diagnostic" className="flex flex-col items-start gap-2">
-      {span.error_truncated && <p className="text-xs text-muted-foreground">Error preview truncated</p>}
+    <section aria-label={translateMessage("Stored diagnostic")} className="flex flex-col items-start gap-2">
+      {span.error_truncated && (
+        <p className="text-xs text-muted-foreground">
+          <LocalizedText text={"Error preview truncated"} />
+        </p>
+      )}
       {!opened && (
         <Button variant="outline" size="xs" onClick={() => setOpened(true)}>
-          View stored diagnostic
+          <LocalizedText text={"View stored diagnostic"} />
         </Button>
       )}
       {opened && query.isPending && (
         <p role="status" className="text-xs text-muted-foreground">
-          Loading diagnostic…
+          <LocalizedText text={"Loading diagnostic…"} />
         </p>
       )}
       {failure && (
         <div role="alert" className="flex items-center gap-2 text-xs">
-          Could not load diagnostic: {failure.message}
+          <LocalizedText text={"Could not load diagnostic: "} />
+          {localizedProperty(failure, "message", failure.message)}
           {isRetryableTraceRead(failure) || !cursor ? (
             <Button variant="outline" size="xs" onClick={() => query.refetch()}>
-              Retry
+              <LocalizedText text={"Retry"} />
             </Button>
           ) : (
             <Button variant="outline" size="xs" onClick={() => setCursor(null)}>
-              Back to beginning
+              <LocalizedText text={"Back to beginning"} />
             </Button>
           )}
         </div>
@@ -101,18 +112,19 @@ export function StoredDiagnostic({ accessToken, traceId, traceRef, span }: Diagn
             <TextBody text={query.data.message} format="code" />
           </div>
           <p className="text-xs text-muted-foreground">
-            {cursor ? "Continuation" : "Beginning"} of stored diagnostic ({query.data.total_chars.toLocaleString()}{" "}
-            characters)
+            {cursor ? translateMessage("Continuation") : translateMessage("Beginning")}
+            <LocalizedText text={" of stored diagnostic ("} />
+            {query.data.total_chars.toLocaleString(getIntlLocale())} <LocalizedText text={"characters)"} />
           </p>
           <div className="flex gap-2">
             {query.data.next_cursor && (
               <Button variant="outline" size="xs" onClick={() => setCursor(query.data.next_cursor)}>
-                Next section
+                <LocalizedText text={"Next section"} />
               </Button>
             )}
             {cursor && (
               <Button variant="outline" size="xs" onClick={() => setCursor(null)}>
-                Back to beginning
+                <LocalizedText text={"Back to beginning"} />
               </Button>
             )}
           </div>

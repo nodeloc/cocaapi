@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import { LoaderCircle } from "lucide-react";
 import React from "react";
 
@@ -53,9 +55,10 @@ const ModelRetrySettingsTab = ({
   handleSaveRetrySettings,
   isSaving = false,
 }: ModelRetrySettingsTabProps) => {
+  useUiLocale();
   const isGlobalScope = selectedModelGroup === "global";
   const scopeItems = [
-    { value: "global", label: "Global Default" },
+    markUiCopy({ value: "global", label: "Global Default" }, { label: "Global Default" }),
     ...availableModelGroups.map((group) => ({ value: group, label: group })),
   ];
 
@@ -86,7 +89,9 @@ const ModelRetrySettingsTab = ({
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
-        <Label htmlFor="retry-policy-scope">Retry Policy Scope:</Label>
+        <Label htmlFor="retry-policy-scope">
+          <LocalizedText text={"Retry Policy Scope:"} />
+        </Label>
         <div className="w-48">
           <Select
             items={scopeItems}
@@ -99,7 +104,7 @@ const ModelRetrySettingsTab = ({
             <SelectContent>
               {scopeItems.map((item) => (
                 <SelectItem key={item.value} value={item.value}>
-                  {item.label}
+                  {localizedProperty(item, "label", item.label)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -109,16 +114,21 @@ const ModelRetrySettingsTab = ({
 
       {isGlobalScope ? (
         <div>
-          <h2 className="text-lg font-semibold">Global Retry Policy</h2>
+          <h2 className="text-lg font-semibold">
+            <LocalizedText text={"Global Retry Policy"} />
+          </h2>
           <p className="text-sm text-muted-foreground">
-            Default retry settings applied to all model groups unless overridden
+            <LocalizedText text={"Default retry settings applied to all model groups unless overridden"} />
           </p>
         </div>
       ) : (
         <div>
-          <h2 className="text-lg font-semibold">Retry Policy for {selectedModelGroup}</h2>
+          <h2 className="text-lg font-semibold">
+            <LocalizedText text={"Retry Policy for "} />
+            {selectedModelGroup}
+          </h2>
           <p className="text-sm text-muted-foreground">
-            Model-specific retry settings. Falls back to global defaults if not set.
+            <LocalizedText text={"Model-specific retry settings. Falls back to global defaults if not set."} />
           </p>
         </div>
       )}
@@ -134,14 +144,17 @@ const ModelRetrySettingsTab = ({
                 <td className="text-sm">
                   <span>{exceptionType}</span>
                   {!isGlobalScope && (
-                    <span className="ml-2 text-xs text-muted-foreground">(Global: {inheritedValue})</span>
+                    <span className="ml-2 text-xs text-muted-foreground">
+                      <LocalizedText text={"(Global: "} />
+                      {inheritedValue})
+                    </span>
                   )}
                 </td>
                 <td className="flex items-center gap-2">
                   <Input
                     className="w-28"
                     type="number"
-                    aria-label={`${exceptionType} retry count`}
+                    aria-label={translateMessage("%{0} retry count", [exceptionType])}
                     min={0}
                     step={1}
                     value={isGlobalScope ? inheritedValue : hasOverride ? override : ""}
@@ -150,7 +163,7 @@ const ModelRetrySettingsTab = ({
                   />
                   {!isGlobalScope && hasOverride && (
                     <Button variant="ghost" size="xs" onClick={() => setModelOverride(retryPolicyKey, null)}>
-                      Reset
+                      <LocalizedText text={"Reset"} />
                     </Button>
                   )}
                 </td>
@@ -161,7 +174,7 @@ const ModelRetrySettingsTab = ({
       </table>
       <Button onClick={handleSaveRetrySettings} disabled={isSaving}>
         {isSaving && <LoaderCircle className="animate-spin" />}
-        Save
+        <LocalizedText text={"Save"} />
       </Button>
     </div>
   );

@@ -1,4 +1,6 @@
 "use client";
+import { LocalizedText, getIntlLocale, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
+
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CircleHelp } from "lucide-react";
@@ -57,10 +59,10 @@ interface PtuEditField {
 }
 
 const PTU_EDIT_FIELDS: PtuEditField[] = [
-  { name: PTU_COUNT_FIELD, label: "PTU Count", input: "number", placeholder: "e.g. 15", isCount: true },
-  { name: PTU_RATE_FIELD, label: "Cost per PTU / Hour (USD)", input: "number", placeholder: "e.g. 2.00" },
-  { name: PTU_START_FIELD, label: "PTU Effective From (UTC)", input: "datetime" },
-  { name: PTU_END_FIELD, label: "PTU Effective To (UTC)", input: "datetime" },
+  markUiCopy({ name: PTU_COUNT_FIELD, label: "PTU Count", input: "number", placeholder: "e.g. 15", isCount: true }, {"label": "PTU Count", "placeholder": "e.g. 15"}),
+  markUiCopy({ name: PTU_RATE_FIELD, label: "Cost per PTU / Hour (USD)", input: "number", placeholder: "e.g. 2.00" }, {"label": "Cost per PTU / Hour (USD)", "placeholder": "e.g. 2.00"}),
+  markUiCopy({ name: PTU_START_FIELD, label: "PTU Effective From (UTC)", input: "datetime" }, {"label": "PTU Effective From (UTC)"}),
+  markUiCopy({ name: PTU_END_FIELD, label: "PTU Effective To (UTC)", input: "datetime" }, {"label": "PTU Effective To (UTC)"}),
 ];
 
 export type TouchedPricingField = "input_cost" | "output_cost" | "cache_read_cost" | "cache_write_cost";
@@ -172,12 +174,12 @@ const buildSchema = (ptuEnabled: boolean, isFieldTouched: (field: TouchedPricing
     }
 
     if (!isPositiveWholePtuCount(values.ptu_count)) {
-      reject("ptu_count", `PTU Count must be a whole number between 1 and ${MAX_PTU_COUNT.toLocaleString()}`);
+      reject("ptu_count", `PTU Count must be a whole number between 1 and ${MAX_PTU_COUNT.toLocaleString(getIntlLocale())}`);
     }
     if (!isNonNegativePtuRate(values.cost_per_ptu_per_hour)) {
       reject(
         "cost_per_ptu_per_hour",
-        `Cost per PTU / Hour must be between 0 and ${MAX_COST_PER_PTU_PER_HOUR.toLocaleString()}`,
+        `Cost per PTU / Hour must be between 0 and ${MAX_COST_PER_PTU_PER_HOUR.toLocaleString(getIntlLocale())}`,
       );
     }
     if (isFilledPtuValue(values.ptu_count) !== isFilledPtuValue(values.cost_per_ptu_per_hour)) {
@@ -297,39 +299,40 @@ interface ModelInfoEditFormProps {
   teams: Team[] | null;
 }
 
-const Display: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+const Display: React.FC<{ children: React.ReactNode }> = ({ children }) => { useUiLocale(); return ((
   <div className="mt-1 rounded-sm bg-muted p-2">{children}</div>
-);
+)); };
 
 const FIELD_LABEL_CLASS = "text-sm font-medium text-foreground";
 
 const FieldLabel: React.FC<{ htmlFor?: string; children: React.ReactNode }> = ({ htmlFor, children }) =>
-  htmlFor === undefined ? (
+  { useUiLocale(); return (htmlFor === undefined ? (
     <p className={FIELD_LABEL_CLASS}>{children}</p>
   ) : (
     <label htmlFor={htmlFor} className={FIELD_LABEL_CLASS}>
       {children}
     </label>
-  );
+  )); };
 
-const Hint: React.FC<{ text: string }> = ({ text }) => (
+const Hint: React.FC<{ text: string }> = ({ text }) => { useUiLocale(); return ((
   <Tooltip>
     <TooltipTrigger
       render={<CircleHelp className="ml-1 inline size-3.5 shrink-0 cursor-help text-muted-foreground" />}
     />
     <TooltipContent className="max-w-xs">{text}</TooltipContent>
   </Tooltip>
-);
+)); };
 
-const DocsHint: React.FC<{ text: string; href: string }> = ({ text, href }) => (
+const DocsHint: React.FC<{ text: string; href: string }> = ({ text, href }) => { useUiLocale(); return ((
   <a href={href} target="_blank" rel="noopener noreferrer" onClick={(event) => event.stopPropagation()}>
     <Hint text={text} />
   </a>
-);
+)); };
 
 const ChipList: React.FC<{ values: unknown; emptyLabel: string }> = ({ values, emptyLabel }) => {
+  useUiLocale();
   if (!values) {
-    return <>Not Set</>;
+    return <><LocalizedText text={"Not Set"} /></>;
   }
   if (!Array.isArray(values)) {
     return <>{String(values)}</>;
@@ -368,6 +371,7 @@ const ModelInfoEditForm: React.FC<ModelInfoEditFormProps> = ({
   healthCheckModelOptions,
   teams,
 }) => {
+  useUiLocale();
   // Neither RHF's blur-based touchedFields nor its resettable dirtyFields matches antd's touched-on-change.
   const touchedRef = React.useRef<ReadonlySet<string>>(new Set<string>());
   const isFieldTouched = React.useCallback((field: TouchedPricingField) => touchedRef.current.has(field), []);
@@ -403,7 +407,7 @@ const ModelInfoEditForm: React.FC<ModelInfoEditFormProps> = ({
           {({ value, ...control }) => <Input {...control} value={(value as string) ?? ""} placeholder={placeholder} />}
         </FormField>
       ) : (
-        <Display>{(stored as string) || "Not Set"}</Display>
+        <Display>{(stored as string) || translateMessage("Not Set")}</Display>
       )}
     </div>
   );
@@ -416,7 +420,7 @@ const ModelInfoEditForm: React.FC<ModelInfoEditFormProps> = ({
           {({ value, ...control }) => <NumericalInput {...control} value={value ?? ""} placeholder={placeholder} />}
         </FormField>
       ) : (
-        <Display>{(stored as string) || "Not Set"}</Display>
+        <Display>{(stored as string) || translateMessage("Not Set")}</Display>
       )}
     </div>
   );
@@ -481,7 +485,7 @@ const ModelInfoEditForm: React.FC<ModelInfoEditFormProps> = ({
             {ptuCostAttributionEnabled &&
               PTU_EDIT_FIELDS.map((ptuField) => (
                 <div key={ptuField.name}>
-                  <FieldLabel htmlFor={ptuField.name}>{ptuField.label}</FieldLabel>
+                  <FieldLabel htmlFor={ptuField.name}>{localizedProperty(ptuField, "label", ptuField.label)}</FieldLabel>
                   {isEditing ? (
                     <FormField control={form.control} name={ptuField.name as ModelEditFieldName}>
                       {({ value, onChange, ...control }) =>
@@ -491,7 +495,7 @@ const ModelInfoEditForm: React.FC<ModelInfoEditFormProps> = ({
                             id={ptuField.name}
                             onChange={onChange}
                             value={value ?? ""}
-                            placeholder={ptuField.placeholder}
+                            placeholder={localizedProperty(ptuField, "placeholder", ptuField.placeholder)}
                             step={ptuField.isCount ? 1 : undefined}
                             min={ptuField.isCount ? 1 : 0}
                           />
@@ -509,7 +513,7 @@ const ModelInfoEditForm: React.FC<ModelInfoEditFormProps> = ({
                     <Display>
                       {(ptuField.input === "datetime"
                         ? formatPtuUtcDisplay(localModelData?.model_info?.[ptuField.name])
-                        : localModelData?.model_info?.[ptuField.name]) ?? "Not Set"}
+                        : localModelData?.model_info?.[ptuField.name]) ?? translateMessage("Not Set")}
                     </Display>
                   )}
                 </div>
@@ -554,7 +558,7 @@ const ModelInfoEditForm: React.FC<ModelInfoEditFormProps> = ({
             )}
 
             <div>
-              <FieldLabel>Model Access Groups</FieldLabel>
+              <FieldLabel><LocalizedText text={"Model Access Groups"} /></FieldLabel>
               {isEditing ? (
                 tagsField(
                   "model_access_group",
@@ -569,9 +573,7 @@ const ModelInfoEditForm: React.FC<ModelInfoEditFormProps> = ({
             </div>
 
             <div>
-              <FieldLabel>
-                Guardrails
-                <DocsHint
+              <FieldLabel><LocalizedText text={"Guardrails"} /><DocsHint
                   text="Apply safety guardrails to this model to filter content or enforce policies"
                   href="https://docs.litellm.ai/docs/proxy/guardrails/quick_start"
                 />
@@ -590,9 +592,7 @@ const ModelInfoEditForm: React.FC<ModelInfoEditFormProps> = ({
             </div>
 
             <div>
-              <FieldLabel>
-                Attached Knowledge Bases (RAG)
-                <DocsHint
+              <FieldLabel><LocalizedText text={"Attached Knowledge Bases (RAG)"} /><DocsHint
                   text="Vector stores used for RAG. Every request to this model will automatically retrieve context from these knowledge bases."
                   href="https://docs.litellm.ai/docs/completion/knowledgebase"
                 />
@@ -604,7 +604,7 @@ const ModelInfoEditForm: React.FC<ModelInfoEditFormProps> = ({
                       value={value as string[] | undefined}
                       onChange={onChange}
                       accessToken={accessToken || ""}
-                      placeholder="Select knowledge bases (optional)"
+                      placeholder={translateMessage("Select knowledge bases (optional)")}
                     />
                   )}
                 </FormField>
@@ -619,7 +619,7 @@ const ModelInfoEditForm: React.FC<ModelInfoEditFormProps> = ({
             </div>
 
             <div>
-              <FieldLabel>Tags</FieldLabel>
+              <FieldLabel><LocalizedText text={"Tags"} /></FieldLabel>
               {isEditing ? (
                 tagsField(
                   "tags",
@@ -634,14 +634,14 @@ const ModelInfoEditForm: React.FC<ModelInfoEditFormProps> = ({
             </div>
 
             <div>
-              <FieldLabel>Existing Credentials</FieldLabel>
+              <FieldLabel><LocalizedText text={"Existing Credentials"} /></FieldLabel>
               {isEditing ? (
                 <FormField control={form.control} name="litellm_credential_name">
                   {({ id, value, onChange }) => (
                     <>
                       <SearchSelect
                         inputId={id}
-                        placeholder="Select or search for existing credentials"
+                        placeholder={translateMessage("Select or search for existing credentials")}
                         options={credentialOptions(credentialsList)}
                         value={(value as string | null) ?? ""}
                         allowClear={false}
@@ -668,7 +668,7 @@ const ModelInfoEditForm: React.FC<ModelInfoEditFormProps> = ({
 
             {isWildcardModel && (
               <div>
-                <FieldLabel>Health Check Model</FieldLabel>
+                <FieldLabel><LocalizedText text={"Health Check Model"} /></FieldLabel>
                 {isEditing ? (
                   <FormField control={form.control} name="health_check_model">
                     {({ id, value, onChange, onBlur }) => (
@@ -678,13 +678,13 @@ const ModelInfoEditForm: React.FC<ModelInfoEditFormProps> = ({
                         onValueChange={onChange}
                       >
                         <SelectTrigger id={id} className="w-full" onBlur={onBlur}>
-                          <SelectValue placeholder="Select existing health check model" />
+                          <SelectValue placeholder={translateMessage("Select existing health check model")} />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value={null}>None</SelectItem>
+                          <SelectItem value={null}><LocalizedText text={"None"} /></SelectItem>
                           {healthCheckModelOptions.map((option) => (
                             <SelectItem key={option.value} value={option.value}>
-                              {option.label}
+                              {localizedProperty(option, "label", option.label)}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -692,7 +692,7 @@ const ModelInfoEditForm: React.FC<ModelInfoEditFormProps> = ({
                     )}
                   </FormField>
                 ) : (
-                  <Display>{localModelData.model_info?.health_check_model || "Not Set"}</Display>
+                  <Display>{localModelData.model_info?.health_check_model || translateMessage("Not Set")}</Display>
                 )}
               </div>
             )}
@@ -735,29 +735,28 @@ const ModelInfoEditForm: React.FC<ModelInfoEditFormProps> = ({
               </>
             ) : (
               <div>
-                <FieldLabel>Cache Control</FieldLabel>
+                <FieldLabel><LocalizedText text={"Cache Control"} /></FieldLabel>
                 <Display>
                   {localModelData.litellm_params?.cache_control_injection_points ? (
                     <div>
-                      <p>Enabled</p>
+                      <p><LocalizedText text={"Enabled"} /></p>
                       <div className="mt-2">
                         {localModelData.litellm_params.cache_control_injection_points.map((point: any, i: number) => (
-                          <div key={i} className="mb-1 text-sm text-muted-foreground">
-                            Location: {point.location},{point.role && <span> Role: {point.role}</span>}
-                            {point.index !== undefined && <span> Index: {point.index}</span>}
+                          <div key={i} className="mb-1 text-sm text-muted-foreground"><LocalizedText text={"Location: "} />{point.location},{point.role && <span><LocalizedText text={" Role: "} />{point.role}</span>}
+                            {point.index !== undefined && <span><LocalizedText text={" Index: "} />{point.index}</span>}
                           </div>
                         ))}
                       </div>
                     </div>
                   ) : (
-                    "Disabled"
+                    translateMessage("Disabled")
                   )}
                 </Display>
               </div>
             )}
 
             <div>
-              <FieldLabel>Model Info</FieldLabel>
+              <FieldLabel><LocalizedText text={"Model Info"} /></FieldLabel>
               {isEditing ? (
                 <FormField control={form.control} name="model_info">
                   {({ value, ...control }) => (
@@ -779,9 +778,7 @@ const ModelInfoEditForm: React.FC<ModelInfoEditFormProps> = ({
             </div>
 
             <div>
-              <FieldLabel>
-                LiteLLM Params
-                <DocsHint
+              <FieldLabel><LocalizedText text={"LiteLLM Params"} /><DocsHint
                   text="Optional litellm params used for making a litellm.completion() call. Some params are automatically added by LiteLLM."
                   href="https://docs.litellm.ai/docs/completion/input"
                 />
@@ -807,7 +804,7 @@ const ModelInfoEditForm: React.FC<ModelInfoEditFormProps> = ({
             </div>
 
             <div>
-              <FieldLabel>Team</FieldLabel>
+              <FieldLabel><LocalizedText text={"Team"} /></FieldLabel>
               {isEditing ? (
                 <FormField control={form.control} name="team_id">
                   {({ id, value, onChange, onBlur }) => (
@@ -818,7 +815,7 @@ const ModelInfoEditForm: React.FC<ModelInfoEditFormProps> = ({
                 <Display>
                   {teamAlias
                     ? `${teamAlias} (${localModelData.model_info?.team_id})`
-                    : localModelData.model_info?.team_id || "Not Set"}
+                    : localModelData.model_info?.team_id || translateMessage("Not Set")}
                 </Display>
               )}
             </div>
@@ -826,13 +823,9 @@ const ModelInfoEditForm: React.FC<ModelInfoEditFormProps> = ({
 
           {isEditing && (
             <div className="mt-6 flex justify-end gap-2">
-              <Button type="submit" variant="secondary" onClick={cancel} disabled={isSaving}>
-                Cancel
-              </Button>
+              <Button type="submit" variant="secondary" onClick={cancel} disabled={isSaving}><LocalizedText text={"Cancel"} /></Button>
               <Button type="submit" disabled={isSaving} aria-busy={isSaving}>
-                {isSaving && <UiLoadingSpinner className="size-4" />}
-                Save Changes
-              </Button>
+                {isSaving && <UiLoadingSpinner className="size-4" />}<LocalizedText text={"Save Changes"} /></Button>
             </div>
           )}
         </div>

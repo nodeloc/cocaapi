@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import React, { useState } from "react";
 import { FormProvider, useForm, useWatch } from "react-hook-form";
 import { ChevronDown, Info } from "lucide-react";
@@ -117,6 +119,7 @@ const CreateMCPServer: React.FC<CreateMCPServerProps> = ({
   onBackToDiscovery,
   stdioEnabled = true,
 }) => {
+  useUiLocale();
   const form = useForm<MountedFormValues>({ mode: "onChange", defaultValues: CREATE_DEFAULTS });
   const registry = useMountRegistry();
   const [isLoading, setIsLoading] = useState(false);
@@ -217,30 +220,36 @@ const CreateMCPServer: React.FC<CreateMCPServerProps> = ({
       }
       const staticHeaders = reduceStaticHeaders(values.static_headers);
 
-      return {
-        server_id: undefined,
-        server_name: values.server_name,
-        alias: values.alias,
-        description: values.description,
-        url,
-        transport: transport === TRANSPORT.OPENAPI ? "http" : transport,
-        auth_type: isClientForwardedTokenMode(values.auth_type) ? values.auth_type : AUTH_TYPE.OAUTH2,
-        // Mirror getCredentials: merge the ref-held DCR client for oauth2 so a re-authorize reuses the
-        // registered client (useMcpOAuthFlow keys reuse off credentials.client_id) instead of re-DCRing;
-        // the client-forwarded modes carry only the declared app.
-        credentials: isClientForwardedTokenMode(values.auth_type)
-          ? preservedAdminCredentials(values.credentials)
-          : { ...((values.credentials as Record<string, unknown> | undefined) ?? {}), ...(dcrClientRef.current ?? {}) },
-        issuer: values.issuer,
-        authorization_url: values.authorization_url,
-        token_url: values.token_url,
-        registration_url: values.registration_url,
-        mcp_access_groups: values.mcp_access_groups,
-        static_headers: staticHeaders,
-        command: values.command,
-        args: values.args,
-        env: values.env,
-      };
+      return markUiCopy(
+        {
+          server_id: undefined,
+          server_name: values.server_name,
+          alias: values.alias,
+          description: values.description,
+          url,
+          transport: transport === TRANSPORT.OPENAPI ? "http" : transport,
+          auth_type: isClientForwardedTokenMode(values.auth_type) ? values.auth_type : AUTH_TYPE.OAUTH2,
+          // Mirror getCredentials: merge the ref-held DCR client for oauth2 so a re-authorize reuses the
+          // registered client (useMcpOAuthFlow keys reuse off credentials.client_id) instead of re-DCRing;
+          // the client-forwarded modes carry only the declared app.
+          credentials: isClientForwardedTokenMode(values.auth_type)
+            ? preservedAdminCredentials(values.credentials)
+            : {
+                ...((values.credentials as Record<string, unknown> | undefined) ?? {}),
+                ...(dcrClientRef.current ?? {}),
+              },
+          issuer: values.issuer,
+          authorization_url: values.authorization_url,
+          token_url: values.token_url,
+          registration_url: values.registration_url,
+          mcp_access_groups: values.mcp_access_groups,
+          static_headers: staticHeaders,
+          command: values.command,
+          args: values.args,
+          env: values.env,
+        },
+        { description: { owner: values, field: "description" } },
+      );
     },
     onTokenReceived: (token, registeredClient) => {
       setOauthAccessToken(token?.access_token ?? null);
@@ -256,7 +265,9 @@ const CreateMCPServer: React.FC<CreateMCPServerProps> = ({
         // edit form's onTokenReceived early return.
         setAuthorizedIdentity(getOAuthAuthorizationIdentity(allFieldsValue(form)));
         toast.success(
-          "Token held for this browser session. Tools can now be previewed and configured; the token is not saved to LiteLLM.",
+          translateMessage(
+            "Token held for this browser session. Tools can now be previewed and configured; the token is not saved to LiteLLM.",
+          ),
         );
         return;
       }
@@ -283,7 +294,9 @@ const CreateMCPServer: React.FC<CreateMCPServerProps> = ({
       // its own credential write.
       setAuthorizedIdentity(getOAuthAuthorizationIdentity(allFieldsValue(form)));
 
-      toast.success("OAuth authorization successful! Please click 'Create MCP Server' to save the configuration.");
+      toast.success(
+        translateMessage("OAuth authorization successful! Please click 'Create MCP Server' to save the configuration."),
+      );
     },
     onBeforeRedirect: persistCreateUiState,
     flowSource: "create",
@@ -482,11 +495,17 @@ const CreateMCPServer: React.FC<CreateMCPServerProps> = ({
         }
 
         if (isAdmin) {
-          toast.success("MCP Server created successfully");
+          toast.success(translateMessage("MCP Server created successfully"));
         } else {
-          toast.success("MCP Server submitted for admin review", {
-            description: "Once an admin approves it, the server will appear in your MCP Servers list.",
-          });
+          toast.success(
+            translateMessage("MCP Server submitted for admin review"),
+            markUiCopy(
+              {
+                description: "Once an admin approves it, the server will appear in your MCP Servers list.",
+              },
+              { description: "Once an admin approves it, the server will appear in your MCP Servers list." },
+            ),
+          );
         }
         form.reset(CREATE_DEFAULTS);
         setCostConfig({});
@@ -640,9 +659,9 @@ const CreateMCPServer: React.FC<CreateMCPServerProps> = ({
                 &#8592;
               </Button>
             )}
-            <img src={mcpLogoImg} alt="MCP Logo" className="size-5 object-contain" />
+            <img src={mcpLogoImg} alt={translateMessage("MCP Logo")} className="size-5 object-contain" />
             <DialogTitle className="text-xl font-semibold">
-              {isAdmin ? "Add New MCP Server" : "Submit MCP Server for Review"}
+              {isAdmin ? translateMessage("Add New MCP Server") : translateMessage("Submit MCP Server for Review")}
             </DialogTitle>
           </div>
         </DialogHeader>
@@ -653,15 +672,18 @@ const CreateMCPServer: React.FC<CreateMCPServerProps> = ({
               <form onSubmit={handleSubmit} className="space-y-6">
                 {!isAdmin && (
                   <div className="rounded-md bg-info/10 border border-info/20 px-4 py-3 text-sm text-info">
-                    Your submission will be sent for admin review. Once approved, the server will appear in your MCP
-                    Servers list. The request must be made with a team-scoped API key.
+                    <LocalizedText
+                      text={
+                        "Your submission will be sent for admin review. Once approved, the server will appear in your MCP Servers list. The request must be made with a team-scoped API key."
+                      }
+                    />
                   </div>
                 )}
                 <div className="grid grid-cols-1 gap-6">
                   <MountedFormField
                     label={
                       <span className="text-sm font-medium text-foreground flex items-center">
-                        MCP Server Name
+                        <LocalizedText text={"MCP Server Name"} />
                         <SimpleTooltip content="Best practice: Use a descriptive name that indicates the server's purpose (e.g., 'GitHub_MCP', 'Email_Service'). Cannot contain spaces or hyphens; use underscores instead. Names must comply with SEP-986 and will be rejected if invalid (https://modelcontextprotocol.io/specification/2025-11-25/server/tools#tool-names).">
                           <Info className="ml-2 size-4 text-info hover:text-info/80 cursor-help" />
                         </SimpleTooltip>
@@ -673,7 +695,7 @@ const CreateMCPServer: React.FC<CreateMCPServerProps> = ({
                     {(control) => (
                       <Input
                         {...textControl(control)}
-                        placeholder="e.g., GitHub_MCP, Zapier_MCP, etc."
+                        placeholder={translateMessage("e.g., GitHub_MCP, Zapier_MCP, etc.")}
                         className="rounded-lg border-border focus:border-info focus:ring-ring"
                       />
                     )}
@@ -682,7 +704,7 @@ const CreateMCPServer: React.FC<CreateMCPServerProps> = ({
                   <MountedFormField
                     label={
                       <span className="text-sm font-medium text-foreground flex items-center">
-                        Alias
+                        <LocalizedText text={"Alias"} />
                         <SimpleTooltip content="A short, unique identifier for this server. Defaults to the server name if not provided. Cannot contain spaces or hyphens; use underscores instead.">
                           <Info className="ml-2 size-4 text-info hover:text-info/80 cursor-help" />
                         </SimpleTooltip>
@@ -694,7 +716,7 @@ const CreateMCPServer: React.FC<CreateMCPServerProps> = ({
                     {(control) => (
                       <Input
                         {...textControl(control)}
-                        placeholder="e.g., GitHub_MCP, Zapier_MCP, etc."
+                        placeholder={translateMessage("e.g., GitHub_MCP, Zapier_MCP, etc.")}
                         className="rounded-lg border-border focus:border-info focus:ring-ring"
                         onChange={(event) => {
                           control.onChange(event);
@@ -705,13 +727,17 @@ const CreateMCPServer: React.FC<CreateMCPServerProps> = ({
                   </MountedFormField>
 
                   <MountedFormField
-                    label={<span className="text-sm font-medium text-foreground">Description</span>}
+                    label={
+                      <span className="text-sm font-medium text-foreground">
+                        <LocalizedText text={"Description"} />
+                      </span>
+                    }
                     name="description"
                   >
                     {(control) => (
                       <Input
                         {...textControl(control)}
-                        placeholder="Brief description of what this server does"
+                        placeholder={translateMessage("Brief description of what this server does")}
                         className="rounded-lg border-border focus:border-info focus:ring-ring"
                       />
                     )}
@@ -720,7 +746,11 @@ const CreateMCPServer: React.FC<CreateMCPServerProps> = ({
                   <MCPLogoSelector value={logoUrl} onChange={setLogoUrl} />
 
                   <MountedFormField
-                    label={<span className="text-sm font-medium text-foreground">GitHub / Source URL</span>}
+                    label={
+                      <span className="text-sm font-medium text-foreground">
+                        <LocalizedText text={"GitHub / Source URL"} />
+                      </span>
+                    }
                     name="source_url"
                   >
                     {(control) => (
@@ -733,7 +763,11 @@ const CreateMCPServer: React.FC<CreateMCPServerProps> = ({
                   </MountedFormField>
 
                   <MountedFormField
-                    label={<span className="text-sm font-medium text-foreground">Transport Type</span>}
+                    label={
+                      <span className="text-sm font-medium text-foreground">
+                        <LocalizedText text={"Transport Type"} />
+                      </span>
+                    }
                     name="transport"
                     required
                     rules={{ validate: { required: requiredRule("Please select a transport type") } }}
@@ -745,7 +779,7 @@ const CreateMCPServer: React.FC<CreateMCPServerProps> = ({
                         onValueChange={handleTransportSelected(control.onChange)}
                       >
                         <SelectTrigger {...selectTriggerControl(control)} className="w-full rounded-lg">
-                          <SelectValue placeholder="Select transport" />
+                          <SelectValue placeholder={translateMessage("Select transport")} />
                         </SelectTrigger>
                         <SelectContent>
                           <TransportSelectItems stdioEnabled={stdioEnabled} />
@@ -757,7 +791,11 @@ const CreateMCPServer: React.FC<CreateMCPServerProps> = ({
                   {/* URL field - only show for HTTP and SSE */}
                   {(transportType === "http" || transportType === "sse") && (
                     <MountedFormField
-                      label={<span className="text-sm font-medium text-foreground">MCP Server URL</span>}
+                      label={
+                        <span className="text-sm font-medium text-foreground">
+                          <LocalizedText text={"MCP Server URL"} />
+                        </span>
+                      }
                       name="url"
                       required
                       rules={{
@@ -797,7 +835,7 @@ const CreateMCPServer: React.FC<CreateMCPServerProps> = ({
                   <MountedFormField
                     label={
                       <span className="text-sm font-medium text-foreground flex items-center">
-                        Max Concurrent Requests (optional)
+                        <LocalizedText text={"Max Concurrent Requests (optional)"} />
                         <SimpleTooltip content="Maximum number of tool calls LiteLLM will run against this server at the same time. Additional calls wait for a free slot. Leave blank for no limit.">
                           <Info className="ml-2 size-4 text-info hover:text-info/80 cursor-help" />
                         </SimpleTooltip>
@@ -810,7 +848,7 @@ const CreateMCPServer: React.FC<CreateMCPServerProps> = ({
                         {...numberControl(control, 0)}
                         min={1}
                         step={1}
-                        placeholder="e.g. 10"
+                        placeholder={translateMessage("e.g. 10")}
                         className="w-full rounded-lg"
                       />
                     )}
@@ -819,7 +857,7 @@ const CreateMCPServer: React.FC<CreateMCPServerProps> = ({
                   <MountedFormField
                     label={
                       <span className="text-sm font-medium text-foreground flex items-center">
-                        RPM limit (all callers)
+                        <LocalizedText text={"RPM limit (all callers)"} />
                         <SimpleTooltip content="Max requests per minute to this server across all keys and teams. Leave empty for no limit">
                           <Info className="ml-2 size-4 text-info hover:text-info/80 cursor-help" />
                         </SimpleTooltip>
@@ -832,7 +870,7 @@ const CreateMCPServer: React.FC<CreateMCPServerProps> = ({
                         {...numberControl(control, 0)}
                         min={0}
                         step={1}
-                        placeholder="e.g. 60"
+                        placeholder={translateMessage("e.g. 60")}
                         className="w-full rounded-lg"
                       />
                     )}
@@ -842,12 +880,14 @@ const CreateMCPServer: React.FC<CreateMCPServerProps> = ({
                   {transportType !== "stdio" && transportType !== "" && (
                     <Collapsible defaultOpen className="mb-4">
                       <CollapsibleTrigger className="group flex w-full items-center justify-between gap-4 py-2 text-left">
-                        <span className="text-sm font-semibold text-foreground">Authentication settings</span>
+                        <span className="text-sm font-semibold text-foreground">
+                          <LocalizedText text={"Authentication settings"} />
+                        </span>
                         <ChevronDown className="size-4 text-muted-foreground transition-transform group-data-[panel-open]:rotate-180" />
                       </CollapsibleTrigger>
                       <CollapsibleContent keepMounted className="space-y-6 pt-2">
                         <MountedFormField
-                          label="Authentication"
+                          label={translateMessage("Authentication")}
                           name="auth_type"
                           required
                           rules={{ validate: { required: requiredRule("Please select an auth type") } }}
@@ -855,12 +895,12 @@ const CreateMCPServer: React.FC<CreateMCPServerProps> = ({
                           {(control) => (
                             <Select {...selectControl<string>(control)} items={AUTH_TYPE_ITEMS}>
                               <SelectTrigger {...selectTriggerControl(control)} className="w-full rounded-lg">
-                                <SelectValue placeholder="Select auth type" />
+                                <SelectValue placeholder={translateMessage("Select auth type")} />
                               </SelectTrigger>
                               <SelectContent>
                                 {AUTH_TYPE_ITEMS.map((item) => (
                                   <SelectItem key={item.value} value={item.value}>
-                                    {item.label}
+                                    {localizedProperty(item, "label", item.label)}
                                   </SelectItem>
                                 ))}
                               </SelectContent>
@@ -886,7 +926,7 @@ const CreateMCPServer: React.FC<CreateMCPServerProps> = ({
                           <MountedFormField
                             label={
                               <span className="text-sm font-medium text-foreground flex items-center">
-                                Authentication Value
+                                <LocalizedText text={"Authentication Value"} />
                                 <SimpleTooltip content="Token, password, or header value to send with each request for the selected auth type.">
                                   <Info className="ml-2 size-4 text-info hover:text-info/80 cursor-help" />
                                 </SimpleTooltip>
@@ -902,7 +942,7 @@ const CreateMCPServer: React.FC<CreateMCPServerProps> = ({
                             {(control) => (
                               <PasswordInput
                                 {...textControl(control)}
-                                placeholder="Enter token or secret"
+                                placeholder={translateMessage("Enter token or secret")}
                                 groupClassName="rounded-lg border-border focus:border-info focus:ring-ring"
                               />
                             )}
@@ -1000,11 +1040,11 @@ const CreateMCPServer: React.FC<CreateMCPServerProps> = ({
 
                 <div className="flex items-center justify-end space-x-3 pt-6 border-t border-border">
                   <Button variant="secondary" onClick={handleCancel}>
-                    Cancel
+                    <LocalizedText text={"Cancel"} />
                   </Button>
                   <Button type="submit" disabled={isLoading} aria-busy={isLoading}>
                     {isLoading && <UiLoadingSpinner className="size-4" />}
-                    {isLoading ? "Creating..." : "Add MCP Server"}
+                    {isLoading ? translateMessage("Creating...") : translateMessage("Add MCP Server")}
                   </Button>
                 </div>
               </form>

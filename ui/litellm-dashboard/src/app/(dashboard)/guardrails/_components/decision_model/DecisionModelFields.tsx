@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { Info, Plus, X } from "lucide-react";
 import React from "react";
@@ -37,25 +38,31 @@ export interface DecisionModelFieldsProps {
 }
 
 const ACTION_ITEMS = [
-  { label: "Block", value: "block" },
-  { label: "Log only", value: "log" },
+  markUiCopy({ label: "Block", value: "block" }, { label: "Block" }),
+  markUiCopy({ label: "Log only", value: "log" }, { label: "Log only" }),
 ];
 
-const ProviderLogo: React.FC<{ provider: string }> = ({ provider }) => (
-  <Logo provider={provider} label={getProviderLogoAndName(provider).displayName} className="size-4 shrink-0" />
-);
+const ProviderLogo: React.FC<{ provider: string }> = ({ provider }) => {
+  useUiLocale();
+  return <Logo provider={provider} label={getProviderLogoAndName(provider).displayName} className="size-4 shrink-0" />;
+};
 
 const NoDecisionModels: React.FC<{ providerFilter: string | null }> = ({ providerFilter }) => {
+  useUiLocale();
   const source = providerFilter ? ` from the ${getProviderLogoAndName(providerFilter).displayName} provider` : "";
   return (
-    <Alert variant="info" role="note" aria-label="No decision models">
+    <Alert variant="info" role="note" aria-label={translateMessage("No decision models")}>
       <Info />
-      <AlertTitle>No decision models yet</AlertTitle>
+      <AlertTitle>
+        <LocalizedText text={"No decision models yet"} />
+      </AlertTitle>
       <AlertDescription>
         <p>
-          Add a decision model{source} to use this guardrail. A model shows up here once its mode is evaluation.{" "}
+          <LocalizedText text={"Add a decision model"} />
+          {source}
+          <LocalizedText text={" to use this guardrail. A model shows up here once its mode is evaluation."} />{" "}
           <a href={uiHref("models-and-endpoints")} target="_blank" rel="noopener noreferrer">
-            Add a model
+            <LocalizedText text={"Add a model"} />
           </a>
         </p>
       </AlertDescription>
@@ -67,22 +74,25 @@ const ThresholdSlider: React.FC<{
   value: number;
   onChange: (value: number) => void;
   "aria-label": string;
-}> = ({ value, onChange, "aria-label": ariaLabel }) => (
-  <div className="flex items-center gap-2">
-    <Slider
-      aria-label={ariaLabel}
-      min={0}
-      max={1}
-      step={0.01}
-      value={[value]}
-      onValueChange={(next) => onChange(Array.isArray(next) ? next[0] ?? 0 : next)}
-      className="min-w-[120px] flex-1 **:data-[slot=slider-track]:bg-muted-foreground/25"
-    />
-    <span className="w-9 whitespace-nowrap text-right text-xs tabular-nums text-muted-foreground">
-      {value.toFixed(2)}
-    </span>
-  </div>
-);
+}> = ({ value, onChange, "aria-label": ariaLabel }) => {
+  useUiLocale();
+  return (
+    <div className="flex items-center gap-2">
+      <Slider
+        aria-label={ariaLabel}
+        min={0}
+        max={1}
+        step={0.01}
+        value={[value]}
+        onValueChange={(next) => onChange(Array.isArray(next) ? next[0] ?? 0 : next)}
+        className="min-w-[120px] flex-1 **:data-[slot=slider-track]:bg-muted-foreground/25"
+      />
+      <span className="w-9 whitespace-nowrap text-right text-xs tabular-nums text-muted-foreground">
+        {value.toFixed(2)}
+      </span>
+    </div>
+  );
+};
 
 const DecisionModelFields: React.FC<DecisionModelFieldsProps> = ({
   accessToken,
@@ -93,6 +103,7 @@ const DecisionModelFields: React.FC<DecisionModelFieldsProps> = ({
   onChecksChange,
   control,
 }) => {
+  useUiLocale();
   const selectedModel = asText(useWatch({ control, name: "decision_model" }));
   const duplicateNames = duplicateDecisionCheckNames(checks);
   const providerByModel = new Map(decisionModels.map((option) => [option.model, option.provider]));
@@ -107,9 +118,15 @@ const DecisionModelFields: React.FC<DecisionModelFieldsProps> = ({
   return (
     <div className="space-y-5">
       <div className="rounded-md border border-success/20 bg-success/10 px-3.5 py-2.5 text-[13px] text-success">
-        The <strong>Decision Model</strong> answers yes/no questions about each request (pre_call, during_call) or
-        response (post_call). A question whose probability reaches its threshold blocks the call, or is recorded when
-        set to Log only.
+        <LocalizedText text={"The "} />
+        <strong>
+          <LocalizedText text={"Decision Model"} />
+        </strong>
+        <LocalizedText
+          text={
+            " answers yes/no questions about each request (pre_call, during_call) or response (post_call). A question whose probability reaches its threshold blocks the call, or is recorded when set to Log only."
+          }
+        />
       </div>
 
       <GuardrailField
@@ -134,11 +151,17 @@ const DecisionModelFields: React.FC<DecisionModelFieldsProps> = ({
               id={id}
               aria-invalid={ariaInvalid}
               aria-describedby={ariaDescribedBy}
-              placeholder={decisionModels.length > 0 ? "Select a decision model" : "No decision models yet"}
+              placeholder={
+                decisionModels.length > 0
+                  ? translateMessage("Select a decision model")
+                  : translateMessage("No decision models yet")
+              }
               className="w-full"
             />
             <ComboboxContent>
-              <ComboboxEmpty>No matching models</ComboboxEmpty>
+              <ComboboxEmpty>
+                <LocalizedText text={"No matching models"} />
+              </ComboboxEmpty>
               <ComboboxList>
                 {(model: string) => {
                   const provider = providerByModel.get(model);
@@ -160,10 +183,15 @@ const DecisionModelFields: React.FC<DecisionModelFieldsProps> = ({
       {decisionModels.length === 0 && <NoDecisionModels providerFilter={providerFilter} />}
 
       <Field>
-        <FieldLabel>Questions</FieldLabel>
+        <FieldLabel>
+          <LocalizedText text={"Questions"} />
+        </FieldLabel>
         <p className="m-0 text-xs text-muted-foreground">
-          Yes/no questions the decision model answers about the text. Block stops the call once a score reaches the
-          threshold, and Log only records it.
+          <LocalizedText
+            text={
+              "Yes/no questions the decision model answers about the text. Block stops the call once a score reaches the threshold, and Log only records it."
+            }
+          />
         </p>
         {checks.map((check, index) => {
           const position = index + 1;
@@ -172,30 +200,38 @@ const DecisionModelFields: React.FC<DecisionModelFieldsProps> = ({
               <button
                 type="button"
                 onClick={() => removeCheck(check.id)}
-                aria-label={`Remove question ${position}`}
+                aria-label={translateMessage("Remove question %{0}", [position])}
                 className="absolute top-2 right-2 p-1 text-muted-foreground transition-colors hover:text-destructive"
               >
                 <X className="size-4" />
               </button>
               <div>
-                <span className="mb-1 block text-xs font-medium text-muted-foreground">Name</span>
+                <span className="mb-1 block text-xs font-medium text-muted-foreground">
+                  <LocalizedText text={"Name"} />
+                </span>
                 <Input
-                  aria-label={`Question ${position} name`}
-                  placeholder="Name (e.g. invoice_policy)"
+                  aria-label={translateMessage("Question %{0} name", [position])}
+                  placeholder={translateMessage("Name (e.g. invoice_policy)")}
                   className="bg-background"
                   value={check.name}
                   onChange={(event) => updateCheck(check.id, { name: event.target.value })}
                 />
                 {duplicateNames.has(check.name.trim()) && (
-                  <p className="m-0 mt-1 text-xs text-destructive">Another question already uses this name</p>
+                  <p className="m-0 mt-1 text-xs text-destructive">
+                    <LocalizedText text={"Another question already uses this name"} />
+                  </p>
                 )}
               </div>
               <div>
-                <span className="mb-1 block text-xs font-medium text-muted-foreground">Question</span>
+                <span className="mb-1 block text-xs font-medium text-muted-foreground">
+                  <LocalizedText text={"Question"} />
+                </span>
                 <Textarea
-                  aria-label={`Question ${position}`}
+                  aria-label={translateMessage("Question %{0}", [position])}
                   rows={2}
-                  placeholder="The question the decision model answers, e.g. Does the text ask about invoices?"
+                  placeholder={translateMessage(
+                    "The question the decision model answers, e.g. Does the text ask about invoices?",
+                  )}
                   className="w-full resize-none bg-background"
                   value={check.instructions}
                   onChange={(event) => updateCheck(check.id, { instructions: event.target.value })}
@@ -203,7 +239,9 @@ const DecisionModelFields: React.FC<DecisionModelFieldsProps> = ({
               </div>
               <div className="flex items-end gap-6">
                 <div className="w-32">
-                  <span className="mb-1 block text-xs font-medium text-muted-foreground">Action</span>
+                  <span className="mb-1 block text-xs font-medium text-muted-foreground">
+                    <LocalizedText text={"Action"} />
+                  </span>
                   <Select
                     items={ACTION_ITEMS}
                     value={check.action}
@@ -211,23 +249,28 @@ const DecisionModelFields: React.FC<DecisionModelFieldsProps> = ({
                       next && updateCheck(check.id, { action: next as "block" | "log" })
                     }
                   >
-                    <SelectTrigger className="w-full bg-background" aria-label={`Question ${position} action`}>
+                    <SelectTrigger
+                      className="w-full bg-background"
+                      aria-label={translateMessage("Question %{0} action", [position])}
+                    >
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       {ACTION_ITEMS.map((item) => (
                         <SelectItem key={item.value} value={item.value}>
-                          {item.label}
+                          {localizedProperty(item, "label", item.label)}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="w-56">
-                  <span className="mb-1 block text-xs font-medium text-muted-foreground">Threshold</span>
+                  <span className="mb-1 block text-xs font-medium text-muted-foreground">
+                    <LocalizedText text={"Threshold"} />
+                  </span>
                   <div className="flex h-9 items-center">
                     <ThresholdSlider
-                      aria-label={`Question ${position} threshold`}
+                      aria-label={translateMessage("Question %{0} threshold", [position])}
                       value={check.threshold}
                       onChange={(next) => updateCheck(check.id, { threshold: next })}
                     />
@@ -240,7 +283,7 @@ const DecisionModelFields: React.FC<DecisionModelFieldsProps> = ({
         <div>
           <Button variant="outline" size="sm" onClick={addCheck}>
             <Plus className="size-3" />
-            Add question
+            <LocalizedText text={"Add question"} />
           </Button>
         </div>
       </Field>

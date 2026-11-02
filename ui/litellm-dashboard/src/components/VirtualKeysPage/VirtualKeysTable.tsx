@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { useKeyInfo } from "@/app/(dashboard)/hooks/keys/useKeyInfo";
 import { useKeys } from "@/app/(dashboard)/hooks/keys/useKeys";
@@ -37,28 +38,36 @@ interface VirtualKeysTableProps {
 const FILTER_COLUMNS = ["team_id", "org_id", "user_id", "key_hash", "status"] as const;
 type FilterColumn = (typeof FILTER_COLUMNS)[number];
 
-const FILTER_LABELS: Record<FilterColumn, string> = {
-  team_id: "Team",
-  org_id: "Organization",
-  user_id: "User ID",
-  key_hash: "Key ID",
-  status: "Status",
-};
+const FILTER_LABELS: Record<FilterColumn, string> = markUiCopy(
+  {
+    team_id: "Team",
+    org_id: "Organization",
+    user_id: "User ID",
+    key_hash: "Key ID",
+    status: "Status" as const,
+  },
+  { team_id: "Team", org_id: "Organization", user_id: "User ID", key_hash: "Key ID", status: "Status" },
+);
 
 const KEY_STATUS_VALUES = ["active", "expired", "revoked", "deleted"] as const;
 type KeyStatusFilter = (typeof KEY_STATUS_VALUES)[number];
 const ALL_STATUSES = "all";
 
-const KEY_STATUS_LABELS: Record<KeyStatusFilter, string> = {
-  active: "Active",
-  expired: "Expired",
-  revoked: "Revoked (blocked)",
-  deleted: "Deleted",
-};
+const KEY_STATUS_LABELS: Record<KeyStatusFilter, string> = markUiCopy(
+  {
+    active: "Active",
+    expired: "Expired",
+    revoked: "Revoked (blocked)",
+    deleted: "Deleted",
+  },
+  { active: "Active", expired: "Expired", revoked: "Revoked (blocked)", deleted: "Deleted" },
+);
 
 const STATUS_FILTER_ITEMS = [
-  { value: ALL_STATUSES, label: "All statuses" },
-  ...KEY_STATUS_VALUES.map((value) => ({ value, label: KEY_STATUS_LABELS[value] })),
+  markUiCopy({ value: ALL_STATUSES, label: "All statuses" }, { label: "All statuses" }),
+  ...KEY_STATUS_VALUES.map((value) =>
+    markUiCopy({ value, label: KEY_STATUS_LABELS[value] }, { label: { owner: KEY_STATUS_LABELS, field: value } }),
+  ),
 ];
 
 const isKeyStatusFilter = (value: unknown): value is KeyStatusFilter =>
@@ -88,6 +97,7 @@ const appliedFilter = (filters: ColumnFiltersState, column: FilterColumn): strin
 };
 
 export function VirtualKeysTable({ headerActions }: VirtualKeysTableProps) {
+  useUiLocale();
   const { data: fetchedOrganizations } = useOrganizations();
   const organizations = useMemo(() => fetchedOrganizations ?? [], [fetchedOrganizations]);
   const { data: fetchedTeams } = useAllTeams();
@@ -213,7 +223,11 @@ export function VirtualKeysTable({ headerActions }: VirtualKeysTableProps) {
 
   if (selectedKeyId) {
     if (!selectedKey && !selectedKeyLoadFailed) {
-      return <div className="p-4 text-sm text-muted-foreground">Loading key...</div>;
+      return (
+        <div className="p-4 text-sm text-muted-foreground">
+          <LocalizedText text={"Loading key..."} />
+        </div>
+      );
     }
     return (
       <div className="w-full h-full overflow-hidden">
@@ -234,9 +248,11 @@ export function VirtualKeysTable({ headerActions }: VirtualKeysTableProps) {
       <PageHeader>
         <PageHeaderTitle>
           <KeyRound />
-          Virtual Keys
+          <LocalizedText text={"Virtual Keys"} />
         </PageHeaderTitle>
-        <PageHeaderDescription>Every key that authenticates requests to the gateway.</PageHeaderDescription>
+        <PageHeaderDescription>
+          <LocalizedText text={"Every key that authenticates requests to the gateway."} />
+        </PageHeaderDescription>
         {headerActions != null && <PageHeaderControls>{headerActions}</PageHeaderControls>}
       </PageHeader>
       <DataTable
@@ -259,8 +275,8 @@ export function VirtualKeysTable({ headerActions }: VirtualKeysTableProps) {
         columnResizeMode="onChange"
         isLoading={isPending || isPlaceholderData}
         isError={isError}
-        loadingMessage="Loading keys..."
-        noDataMessage="No keys found"
+        loadingMessage={translateMessage("Loading keys...")}
+        noDataMessage={translateMessage("No keys found")}
         fillHeight
         size="compact"
         toolbar={(table) => (
@@ -269,7 +285,7 @@ export function VirtualKeysTable({ headerActions }: VirtualKeysTableProps) {
               table={table}
               searchValue={searchInput}
               onSearchChange={setSearch}
-              searchPlaceholder="Search by key alias or ID…"
+              searchPlaceholder={translateMessage("Search by key alias or ID…")}
               onRefresh={() => refetch?.()}
               isRefreshing={isFetching}
               onOpenFilters={() => setFiltersOpen(true)}
@@ -280,56 +296,56 @@ export function VirtualKeysTable({ headerActions }: VirtualKeysTableProps) {
               table={table}
               open={filtersOpen}
               onOpenChange={setFiltersOpen}
-              title="Filters"
-              description="Narrow down virtual keys"
+              title={translateMessage("Filters")}
+              description={translateMessage("Narrow down virtual keys")}
             >
               {({ get, set }) => (
                 <>
-                  <DataTableFilterField label="Team">
+                  <DataTableFilterField label={translateMessage("Team")}>
                     <SearchSelect
                       options={teamOptions}
                       value={(get("team_id") as string) || undefined}
                       onValueChange={(value) => set("team_id", value ?? undefined)}
-                      placeholder="Select a team…"
-                      emptyText="No teams found"
+                      placeholder={translateMessage("Select a team…")}
+                      emptyText={translateMessage("No teams found")}
                     />
                   </DataTableFilterField>
-                  <DataTableFilterField label="Organization">
+                  <DataTableFilterField label={translateMessage("Organization")}>
                     <SearchSelect
                       options={orgOptions}
                       value={(get("org_id") as string) || undefined}
                       onValueChange={(value) => set("org_id", value ?? undefined)}
-                      placeholder="Select an organization…"
-                      emptyText="No organizations found"
+                      placeholder={translateMessage("Select an organization…")}
+                      emptyText={translateMessage("No organizations found")}
                     />
                   </DataTableFilterField>
-                  <DataTableFilterField label="User ID">
+                  <DataTableFilterField label={translateMessage("User ID")}>
                     <Input
                       value={(get("user_id") as string) ?? ""}
                       onChange={(event) => set("user_id", event.target.value)}
-                      placeholder="Enter User ID…"
+                      placeholder={translateMessage("Enter User ID…")}
                     />
                   </DataTableFilterField>
-                  <DataTableFilterField label="Key ID">
+                  <DataTableFilterField label={translateMessage("Key ID")}>
                     <Input
                       value={(get("key_hash") as string) ?? ""}
                       onChange={(event) => set("key_hash", event.target.value)}
-                      placeholder="Enter Key ID…"
+                      placeholder={translateMessage("Enter Key ID…")}
                     />
                   </DataTableFilterField>
-                  <DataTableFilterField label="Status">
+                  <DataTableFilterField label={translateMessage("Status")}>
                     <Select
                       items={STATUS_FILTER_ITEMS}
                       value={(get("status") as string) || ALL_STATUSES}
                       onValueChange={(value) => set("status", value === ALL_STATUSES ? undefined : value)}
                     >
-                      <SelectTrigger className="w-full" aria-label="Status">
-                        <SelectValue placeholder="All statuses" />
+                      <SelectTrigger className="w-full" aria-label={translateMessage("Status")}>
+                        <SelectValue placeholder={translateMessage("All statuses")} />
                       </SelectTrigger>
                       <SelectContent>
                         {STATUS_FILTER_ITEMS.map((item) => (
                           <SelectItem key={item.value} value={item.value}>
-                            {item.label}
+                            {localizedProperty(item, "label", item.label)}
                           </SelectItem>
                         ))}
                       </SelectContent>

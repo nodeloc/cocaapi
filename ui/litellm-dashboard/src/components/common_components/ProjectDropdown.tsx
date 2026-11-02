@@ -1,3 +1,5 @@
+"use client";
+import { translateMessage, useUiLocale } from "@/lib/i18n";
 import React from "react";
 import { SearchSelect } from "@/components/shared/SearchSelect";
 import { ProjectResponse } from "@/app/(dashboard)/hooks/projects/useProjects";
@@ -22,6 +24,7 @@ const ProjectDropdown: React.FC<ProjectDropdownProps> = ({
   teamId,
   id,
 }) => {
+  useUiLocale();
   const filtered = teamId ? projects?.filter((p) => p.team_id === teamId) : projects;
 
   return (
@@ -37,8 +40,8 @@ const ProjectDropdown: React.FC<ProjectDropdownProps> = ({
       }
       value={value}
       onValueChange={(projectId) => onChange?.(projectId)}
-      placeholder="Search or select a project"
-      emptyText={loading ? "Loading projects…" : "No projects found"}
+      placeholder={translateMessage("Search or select a project")}
+      emptyText={loading ? translateMessage("Loading projects…") : translateMessage("No projects found")}
       disabled={disabled}
       inputId={id}
     />

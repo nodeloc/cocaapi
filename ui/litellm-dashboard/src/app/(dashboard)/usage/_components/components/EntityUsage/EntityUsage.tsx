@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, getIntlLocale, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import useTeams from "@/app/(dashboard)/hooks/useTeams";
 import { StackedUsageChart, type StackedUsageScale } from "@/components/shared/charts";
 import { DataTable } from "@/components/shared/DataTable";
@@ -60,12 +62,12 @@ const TILE_TRENDS: Readonly<Record<string, string>> = {
   "Total Tokens": "tokens",
 };
 const GRANULARITY_OPTIONS = [
-  { value: "day", label: "Daily" },
-  { value: "week", label: "Weekly" },
+  markUiCopy({ value: "day", label: "Daily" }, { label: "Daily" }),
+  markUiCopy({ value: "week", label: "Weekly" }, { label: "Weekly" }),
 ] as const satisfies readonly { value: Granularity; label: string }[];
 const SCALE_OPTIONS = [
-  { value: "linear", label: "Linear" },
-  { value: "log", label: "Log" },
+  markUiCopy({ value: "linear", label: "Linear" }, { label: "Linear" }),
+  markUiCopy({ value: "log", label: "Log" }, { label: "Log" }),
 ] as const satisfies readonly { value: StackedUsageScale; label: string }[];
 const QUIET_HEADER = { headerClassName: "font-normal" };
 const FLAT_COST_KEY = "flat_cost";
@@ -82,6 +84,7 @@ const withFlatCost = (series: Series, results: readonly DailyData[]): Series => 
 };
 
 function ShareBar({ value, max }: { value: number; max: number }) {
+  useUiLocale();
   return (
     <div aria-hidden="true" className="h-1 w-full min-w-16 overflow-hidden rounded-full bg-muted">
       <div
@@ -93,6 +96,7 @@ function ShareBar({ value, max }: { value: number; max: number }) {
 }
 
 function StatCell({ children, trend, className }: { children: ReactNode; trend?: ReactNode; className?: string }) {
+  useUiLocale();
   return (
     <div className={cn("flex min-w-0 flex-col justify-between gap-3 bg-card px-4 pt-3.5 pb-3", className)}>
       <div className="min-w-0">{children}</div>
@@ -132,6 +136,7 @@ const EntityUsage: React.FC<EntityUsageProps> = ({
   dateValue,
   isOrgAdmin = false,
 }) => {
+  useUiLocale();
   const { teams } = useTeams();
   const teamList = useMemo(() => teams ?? [], [teams]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -364,36 +369,51 @@ const EntityUsage: React.FC<EntityUsageProps> = ({
         meta: QUIET_HEADER,
         cell: ({ row }) => <span className="font-medium text-foreground">{row.original.metadata.alias}</span>,
       },
-      {
-        header: "Share",
-        id: "share",
-        meta: { ...QUIET_HEADER, className: "w-40" },
-        cell: ({ row }) => <ShareBar value={row.original.metrics.spend} max={maxEntitySpend} />,
-      },
-      {
-        header: "Spend",
-        accessorKey: "metrics.spend",
-        meta: { numeric: true, ...QUIET_HEADER },
-        cell: ({ row }) => <MoneyCell value={row.original.metrics.spend} decimals={4} />,
-      },
-      {
-        header: "Successful",
-        accessorKey: "metrics.successful_requests",
-        meta: { numeric: true, className: "text-success", ...QUIET_HEADER },
-        cell: ({ row }) => row.original.metrics.successful_requests.toLocaleString(),
-      },
-      {
-        header: "Failed",
-        accessorKey: "metrics.failed_requests",
-        meta: { numeric: true, className: "text-destructive", ...QUIET_HEADER },
-        cell: ({ row }) => row.original.metrics.failed_requests.toLocaleString(),
-      },
-      {
-        header: "Tokens",
-        accessorKey: "metrics.total_tokens",
-        meta: { numeric: true, ...QUIET_HEADER },
-        cell: ({ row }) => row.original.metrics.total_tokens.toLocaleString(),
-      },
+      markUiCopy(
+        {
+          header: "Share",
+          id: "share",
+          meta: { ...QUIET_HEADER, className: "w-40" },
+          cell: ({ row }) => <ShareBar value={row.original.metrics.spend} max={maxEntitySpend} />,
+        },
+        { header: "Share" },
+      ),
+      markUiCopy(
+        {
+          header: "Spend",
+          accessorKey: "metrics.spend",
+          meta: { numeric: true, ...QUIET_HEADER },
+          cell: ({ row }) => <MoneyCell value={row.original.metrics.spend} decimals={4} />,
+        },
+        { header: "Spend" },
+      ),
+      markUiCopy(
+        {
+          header: "Successful",
+          accessorKey: "metrics.successful_requests",
+          meta: { numeric: true, className: "text-success", ...QUIET_HEADER },
+          cell: ({ row }) => row.original.metrics.successful_requests.toLocaleString(getIntlLocale()),
+        },
+        { header: "Successful" },
+      ),
+      markUiCopy(
+        {
+          header: "Failed",
+          accessorKey: "metrics.failed_requests",
+          meta: { numeric: true, className: "text-destructive", ...QUIET_HEADER },
+          cell: ({ row }) => row.original.metrics.failed_requests.toLocaleString(getIntlLocale()),
+        },
+        { header: "Failed" },
+      ),
+      markUiCopy(
+        {
+          header: "Tokens",
+          accessorKey: "metrics.total_tokens",
+          meta: { numeric: true, ...QUIET_HEADER },
+          cell: ({ row }) => row.original.metrics.total_tokens.toLocaleString(getIntlLocale()),
+        },
+        { header: "Tokens" },
+      ),
     ],
     [capitalizedEntityLabel, maxEntitySpend],
   );
@@ -401,18 +421,21 @@ const EntityUsage: React.FC<EntityUsageProps> = ({
   const chev = "size-3 text-muted-foreground";
   const expandIcon = showCostBreakdown ? <ChevronDown className={chev} /> : <ChevronRight className={chev} />;
 
-  const tileLabel = ({ title, tooltip, expandable }: SummaryTile) => (
-    <>
-      <span>{title}</span>
-      {tooltip ? (
-        <Tooltip>
-          <TooltipTrigger render={<Info className="size-3.5 text-muted-foreground hover:text-foreground" />} />
-          <TooltipContent>{tooltip}</TooltipContent>
-        </Tooltip>
-      ) : null}
-      {expandable ? expandIcon : null}
-    </>
-  );
+  const tileLabel = (cocaCopyProps0: SummaryTile) => {
+    const { title, tooltip, expandable } = cocaCopyProps0;
+    return (
+      <>
+        <span>{localizedProperty(cocaCopyProps0, "title", title)}</span>
+        {tooltip ? (
+          <Tooltip>
+            <TooltipTrigger render={<Info className="size-3.5 text-muted-foreground hover:text-foreground" />} />
+            <TooltipContent>{localizedProperty(cocaCopyProps0, "tooltip", tooltip)}</TooltipContent>
+          </Tooltip>
+        ) : null}
+        {expandable ? expandIcon : null}
+      </>
+    );
+  };
 
   const renderSummaryTile = (tile: SummaryTile, index: number) => {
     const trendKey = TILE_TRENDS[tile.title];
@@ -459,7 +482,10 @@ const EntityUsage: React.FC<EntityUsageProps> = ({
   ) : (
     <div className="grid gap-3">
       <section className="grid gap-2">
-        <h2 className="text-sm font-medium text-foreground">{capitalizedEntityLabel} Spend Overview</h2>
+        <h2 className="text-sm font-medium text-foreground">
+          {capitalizedEntityLabel}
+          <LocalizedText text={" Spend Overview"} />
+        </h2>
         <div className="grid grid-cols-2 gap-px overflow-hidden rounded-xl border bg-border lg:grid-cols-5">
           {summaryTiles.map(renderSummaryTile)}
         </div>
@@ -478,22 +504,25 @@ const EntityUsage: React.FC<EntityUsageProps> = ({
         <header className="flex flex-wrap items-start justify-between gap-3 px-5 pt-4">
           <div>
             <h3 className="text-sm font-medium text-foreground">
-              {METRIC_TITLE[breakdown.metric]} by {modelViewType === "groups" ? "model" : "deployment"}
+              {METRIC_TITLE[breakdown.metric]}
+              <LocalizedText text={" by "} />
+              {modelViewType === "groups" ? translateMessage("model") : translateMessage("deployment")}
             </h3>
             <p className="text-xs text-muted-foreground">
-              {granularity === "day" ? "Daily" : "Weekly"} {breakdown.metric}, top 8 stacked
-              {stackFlatCost ? ", flat cost on top" : ""}
+              {granularity === "day" ? translateMessage("Daily") : translateMessage("Weekly")} {breakdown.metric}
+              <LocalizedText text={", top 8 stacked"} />
+              {stackFlatCost ? translateMessage(", flat cost on top") : ""}
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <BreakdownControls state={breakdown} onChange={setBreakdown} showDimension={false} />
             <Segmented
-              label="Bucket size"
+              label={translateMessage("Bucket size")}
               value={granularity}
               options={GRANULARITY_OPTIONS}
               onChange={setGranularity}
             />
-            <Segmented label="Scale" value={scale} options={SCALE_OPTIONS} onChange={setScale} />
+            <Segmented label={translateMessage("Scale")} value={scale} options={SCALE_OPTIONS} onChange={setScale} />
           </div>
         </header>
         <div className="px-3 pt-4 pb-2">
@@ -524,13 +553,14 @@ const EntityUsage: React.FC<EntityUsageProps> = ({
 
       <Panel
         icon={Layers}
-        title={`Spend Per ${capitalizedEntityLabel}`}
+        title={translateMessage("Spend Per %{0}", [capitalizedEntityLabel])}
         action={
           <a
             href="https://docs.litellm.ai/docs/proxy/enterprise#spend-tracking"
             className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
           >
-            Track cost per {entityType}
+            <LocalizedText text={"Track cost per "} />
+            {entityType}
             <ExternalLink aria-hidden="true" className="size-3" />
           </a>
         }
@@ -540,7 +570,7 @@ const EntityUsage: React.FC<EntityUsageProps> = ({
           data={entityRows}
           getRowId={(row) => row.metadata.id}
           maxBodyHeight={280}
-          noDataMessage={`No ${entityType} spend data`}
+          noDataMessage={translateMessage("No %{0} spend data", [entityType])}
           size="compact"
         />
       </Panel>
@@ -555,7 +585,7 @@ const EntityUsage: React.FC<EntityUsageProps> = ({
       )}
 
       <div className="grid gap-3 lg:grid-cols-2">
-        <Panel icon={KeyRound} title="Top Virtual Keys">
+        <Panel icon={KeyRound} title={translateMessage("Top Virtual Keys")}>
           <TopKeyView
             topKeys={getTopAPIKeys(spendData.results, topKeysLimit)}
             teams={null}
@@ -566,7 +596,7 @@ const EntityUsage: React.FC<EntityUsageProps> = ({
         </Panel>
         <Panel
           icon={Boxes}
-          title={entityType === "agent" ? "Top Agents" : modelViewTitle}
+          title={entityType === "agent" ? translateMessage("Top Agents") : modelViewTitle}
           action={<ModelViewToggle value={modelViewType} onChange={setModelViewType} />}
         >
           <TopModelView
@@ -578,7 +608,7 @@ const EntityUsage: React.FC<EntityUsageProps> = ({
       </div>
 
       {showAgentBreakdown && (
-        <Panel icon={Bot} title="Top Agents Driving Spend">
+        <Panel icon={Bot} title={translateMessage("Top Agents Driving Spend")}>
           {agentLoading ? (
             <ChartLoader />
           ) : (
@@ -591,55 +621,67 @@ const EntityUsage: React.FC<EntityUsageProps> = ({
         </Panel>
       )}
 
-      <Panel icon={Server} title="Provider Usage">
+      <Panel icon={Server} title={translateMessage("Provider Usage")}>
         <ProviderSpendBreakdown rows={providerSpend} />
       </Panel>
     </div>
   );
 
   const tabs: readonly { key: string; label: string; content: ReactNode }[] = [
-    { key: "cost", label: "Cost", content: costPanel },
-    {
-      key: "models",
-      label: entityType === "agent" ? "Request / Token Consumption" : "Model Activity",
-      content: (
-        <>
-          <div className="mb-3 flex justify-end">
-            <ModelViewToggle value={modelViewType} onChange={setModelViewType} />
-          </div>
-          <ActivityMetrics
-            modelMetrics={modelMetrics}
-            hidePromptCachingMetrics={entityType === "agent"}
-            fetchTopApiKeys={request ? fetchTopApiKeys : undefined}
-          />
-        </>
-      ),
-    },
+    markUiCopy({ key: "cost", label: "Cost", content: costPanel }, { label: "Cost" }),
+    markUiCopy(
+      {
+        key: "models",
+        label: entityType === "agent" ? "Request / Token Consumption" : "Model Activity",
+        content: (
+          <>
+            <div className="mb-3 flex justify-end">
+              <ModelViewToggle value={modelViewType} onChange={setModelViewType} />
+            </div>
+            <ActivityMetrics
+              modelMetrics={modelMetrics}
+              hidePromptCachingMetrics={entityType === "agent"}
+              fetchTopApiKeys={request ? fetchTopApiKeys : undefined}
+            />
+          </>
+        ),
+      },
+      { label: ["Request / Token Consumption", "Model Activity"] },
+    ),
     ...(showAgentBreakdown
       ? [
-          {
-            key: "agents",
-            label: "Agent Activity",
-            content: <ActivityMetrics modelMetrics={agentMetrics} />,
-          },
+          markUiCopy(
+            {
+              key: "agents",
+              label: "Agent Activity",
+              content: <ActivityMetrics modelMetrics={agentMetrics} />,
+            },
+            { label: "Agent Activity" },
+          ),
         ]
       : []),
-    {
-      key: "keys",
-      label: "Key Activity",
-      content: (
-        <KeyActivityPanel
-          summary={summaryMetrics}
-          summaryLoading={loading}
-          fetchKeyPage={fetchKeyPage}
-          fetchKeyDetail={fetchKeyDetail}
-          searchKeys={searchKeys}
-          teams={teamList}
-          hidePromptCachingMetrics={entityType === "agent"}
-        />
-      ),
-    },
-    { key: "endpoints", label: "Endpoint Activity", content: <EndpointUsage userSpendData={spendData} /> },
+    markUiCopy(
+      {
+        key: "keys",
+        label: "Key Activity",
+        content: (
+          <KeyActivityPanel
+            summary={summaryMetrics}
+            summaryLoading={loading}
+            fetchKeyPage={fetchKeyPage}
+            fetchKeyDetail={fetchKeyDetail}
+            searchKeys={searchKeys}
+            teams={teamList}
+            hidePromptCachingMetrics={entityType === "agent"}
+          />
+        ),
+      },
+      { label: "Key Activity" },
+    ),
+    markUiCopy(
+      { key: "endpoints", label: "Endpoint Activity", content: <EndpointUsage userSpendData={spendData} /> },
+      { label: "Endpoint Activity" },
+    ),
   ];
 
   return (
@@ -647,16 +689,22 @@ const EntityUsage: React.FC<EntityUsageProps> = ({
       {failed && (
         <Alert variant="error">
           <AlertDescription className="text-inherit">
-            Fetching spend data failed, so the totals below may be empty rather than final. Reload the page to try
-            again.
+            <LocalizedText
+              text={
+                "Fetching spend data failed, so the totals below may be empty rather than final. Reload the page to try again."
+              }
+            />
           </AlertDescription>
         </Alert>
       )}
       {showAgentBreakdown && agentFailed && (
         <Alert variant="error">
           <AlertDescription className="text-inherit">
-            Fetching agent data failed, so the totals below may be empty rather than final. Reload the page to try
-            again.
+            <LocalizedText
+              text={
+                "Fetching agent data failed, so the totals below may be empty rather than final. Reload the page to try again."
+              }
+            />
           </AlertDescription>
         </Alert>
       )}
@@ -681,11 +729,14 @@ const EntityUsage: React.FC<EntityUsageProps> = ({
       </div>
       <Tabs defaultValue={tabs[0].key} className="gap-3">
         <TabsList variant="line">
-          {tabs.map(({ key, label }) => (
-            <TabsTrigger key={key} value={key} className="flex-none px-3">
-              {label}
-            </TabsTrigger>
-          ))}
+          {tabs.map((cocaCopyProps1) => {
+            const { key, label } = cocaCopyProps1;
+            return (
+              <TabsTrigger key={key} value={key} className="flex-none px-3">
+                {localizedProperty(cocaCopyProps1, "label", label)}
+              </TabsTrigger>
+            );
+          })}
         </TabsList>
         {tabs.map(({ key, content }) => (
           <TabsContent key={key} value={key} keepMounted>

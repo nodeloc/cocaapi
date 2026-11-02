@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 import { CocaApiLogo } from "@/components/common_components/CocaApiLogo";
 import React from "react";
 import { CircleAlert, Info } from "lucide-react";
@@ -28,6 +30,7 @@ const onboardingSchema = z.object({
 type OnboardingFormValues = z.infer<typeof onboardingSchema>;
 
 export function OnboardingFormBody({ variant, userEmail, isPending, claimError, onSubmit }: OnboardingFormBodyProps) {
+  useUiLocale();
   const form = useZodForm(onboardingSchema, { defaultValues: { password: "" } });
   const emailFieldId = React.useId();
   const isResetPassword = variant === "reset_password";
@@ -45,24 +48,28 @@ export function OnboardingFormBody({ variant, userEmail, isPending, claimError, 
           <h3 className="text-2xl font-semibold text-foreground">{actionLabel}</h3>
           <p className="text-sm text-foreground">
             {isResetPassword
-              ? "Reset your password to access Admin UI."
-              : "Claim your user account to login to Admin UI."}
+              ? translateMessage("Reset your password to access Admin UI.")
+              : translateMessage("Claim your user account to login to Admin UI.")}
           </p>
 
           {variant === "signup" && (
             <Alert className="mt-4" variant="info">
               <Info />
-              <AlertTitle>SSO</AlertTitle>
+              <AlertTitle>
+                <LocalizedText text={"SSO"} />
+              </AlertTitle>
               <AlertDescription>
                 <div className="flex justify-between items-center">
-                  <span>SSO is under the Enterprise Tier.</span>
+                  <span>
+                    <LocalizedText text={"SSO is under the Enterprise Tier."} />
+                  </span>
                   <a
                     className={cn(buttonVariants({ size: "sm" }))}
                     href="https://forms.gle/W3U4PZpJGFHWtHyA9"
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    Get Free Trial
+                    <LocalizedText text={"Get Free Trial"} />
                   </a>
                 </div>
               </AlertDescription>
@@ -72,15 +79,21 @@ export function OnboardingFormBody({ variant, userEmail, isPending, claimError, 
           <form className="mt-10 mb-5" onSubmit={form.handleSubmit(handleSubmit)}>
             <FieldGroup>
               <Field>
-                <FieldLabel htmlFor={emailFieldId}>Email Address</FieldLabel>
+                <FieldLabel htmlFor={emailFieldId}>
+                  <LocalizedText text={"Email Address"} />
+                </FieldLabel>
                 <Input id={emailFieldId} type="email" value={userEmail} readOnly disabled />
               </Field>
 
               <FormField
                 control={form.control}
                 name="password"
-                label="Password"
-                description={isResetPassword ? "Enter your new password" : "Create a password for your account"}
+                label={translateMessage("Password")}
+                description={
+                  isResetPassword
+                    ? translateMessage("Enter your new password")
+                    : translateMessage("Create a password for your account")
+                }
               >
                 {({ ref, ...field }) => <PasswordInput {...field} ref={ref} />}
               </FormField>
@@ -95,7 +108,9 @@ export function OnboardingFormBody({ variant, userEmail, isPending, claimError, 
 
             <div className="mt-10">
               <Button type="submit" variant="outline" disabled={isPending}>
-                {isPending && <UiLoadingSpinner className="size-4" role="img" aria-label="loading" />}
+                {isPending && (
+                  <UiLoadingSpinner className="size-4" role="img" aria-label={translateMessage("loading")} />
+                )}
                 {actionLabel}
               </Button>
             </div>

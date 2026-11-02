@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import React from "react";
 import { ArrowLeftIcon, SaveIcon, ClockIcon, LoaderCircleIcon } from "lucide-react";
 import PromptCodeSnippets from "./PromptCodeSnippets";
@@ -7,9 +9,9 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const ENVIRONMENT_ITEMS = [
-  { value: "development", label: "Development" },
-  { value: "staging", label: "Staging" },
-  { value: "production", label: "Production" },
+  markUiCopy({ value: "development", label: "Development" }, { label: "Development" }),
+  markUiCopy({ value: "staging", label: "Staging" }, { label: "Staging" }),
+  markUiCopy({ value: "production", label: "Production" }, { label: "Production" }),
 ] as const;
 
 interface PromptEditorHeaderProps {
@@ -48,15 +50,16 @@ const PromptEditorHeader: React.FC<PromptEditorHeaderProps> = ({
   environment,
   onEnvironmentChange,
 }) => {
+  useUiLocale();
   return (
     <div className="bg-background border-b border-border px-6 py-3 flex items-center justify-between">
       <div className="flex items-center space-x-3">
         <Button variant="ghost" onClick={onBack} size="sm">
           <ArrowLeftIcon />
-          Back
+          <LocalizedText text={"Back"} />
         </Button>
         <Input
-          aria-label="Prompt name"
+          aria-label={translateMessage("Prompt name")}
           value={promptName}
           onChange={(e) => onNameChange(e.target.value)}
           className="text-base font-medium border-none shadow-none"
@@ -68,19 +71,23 @@ const PromptEditorHeader: React.FC<PromptEditorHeaderProps> = ({
           value={environment}
           onValueChange={(value) => onEnvironmentChange(String(value))}
         >
-          <SelectTrigger size="sm" className="w-[140px]" aria-label="Environment">
+          <SelectTrigger size="sm" className="w-[140px]" aria-label={translateMessage("Environment")}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
             {ENVIRONMENT_ITEMS.map((item) => (
               <SelectItem key={item.value} value={item.value}>
-                {item.label}
+                {localizedProperty(item, "label", item.label)}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
-        <Badge variant="secondary">Draft</Badge>
-        <span className="text-xs text-muted-foreground">Unsaved changes</span>
+        <Badge variant="secondary">
+          <LocalizedText text={"Draft"} />
+        </Badge>
+        <span className="text-xs text-muted-foreground">
+          <LocalizedText text={"Unsaved changes"} />
+        </span>
       </div>
       <div className="flex items-center space-x-2">
         <PromptCodeSnippets
@@ -95,12 +102,12 @@ const PromptEditorHeader: React.FC<PromptEditorHeaderProps> = ({
         {editMode && onShowHistory && (
           <Button variant="outline" onClick={onShowHistory}>
             <ClockIcon />
-            History
+            <LocalizedText text={"History"} />
           </Button>
         )}
         <Button onClick={onSave} disabled={isSaving}>
           {isSaving ? <LoaderCircleIcon className="animate-spin" /> : <SaveIcon />}
-          {editMode ? "Update" : "Save"}
+          {editMode ? translateMessage("Update") : translateMessage("Save")}
         </Button>
       </div>
     </div>

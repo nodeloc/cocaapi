@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, useUiLocale } from "@/lib/i18n";
 
 import type { TreeRow } from "../../tree";
 import type { Trace } from "../../types";
@@ -14,10 +15,11 @@ interface DetailPaneProps extends SpanTabProps {
 
 /** Right pane of the run view: switches on the selected tree row. */
 export function DetailPane({ trace, row, accessToken, spanTab, onSpanTabChange, onClose }: DetailPaneProps) {
+  useUiLocale();
   if (!row || row.kind === "load-more") {
     return (
       <div className="grid h-full place-items-center bg-background text-sm text-muted-foreground">
-        Select a span to inspect it.
+        <LocalizedText text={"Select a span to inspect it."} />
       </div>
     );
   }

@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, useUiLocale } from "@/lib/i18n";
 import { cn } from "@/lib/cva.config";
 import type { Priority } from "../model/inbox";
 
@@ -22,10 +24,12 @@ const PILL: Readonly<Record<Priority, string>> = {
 };
 
 export function PriorityDot({ priority, className }: { priority: Priority; className?: string }) {
+  useUiLocale();
   return <span aria-hidden="true" className={cn("size-1.5 shrink-0 rounded-full", DOT[priority], className)} />;
 }
 
 export function PriorityPill({ priority }: { priority: Priority }) {
+  useUiLocale();
   return (
     <span
       className={cn(
@@ -34,7 +38,8 @@ export function PriorityPill({ priority }: { priority: Priority }) {
       )}
     >
       <PriorityDot priority={priority} />
-      {PRIORITY_LABEL[priority]} priority
+      {PRIORITY_LABEL[priority]}
+      <LocalizedText text={" priority"} />
     </span>
   );
 }

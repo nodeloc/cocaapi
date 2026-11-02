@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, useUiLocale } from "@/lib/i18n";
 
 import { Controller, useFormContext, useWatch } from "react-hook-form";
 import { Switch } from "@/components/ui/switch";
@@ -8,16 +9,19 @@ import { AnalysisAccessFields } from "./AnalysisAccessFields";
 import type { WorkerFormInput } from "./workerSchema";
 
 export function WorkerForm({ editingWorker }: { editingWorker: string | null }) {
+  useUiLocale();
   const { control } = useFormContext<WorkerFormInput>();
   const useExisting = useWatch({ control, name: "useExisting" });
   return (
     <div className="min-w-0 space-y-5">
       {useExisting ? <AnalysisKeyPicker /> : <AnalysisAccessFields />}
       <details className="text-sm" open={editingWorker ? true : undefined}>
-        <summary className="cursor-pointer font-medium">Advanced options</summary>
+        <summary className="cursor-pointer font-medium">
+          <LocalizedText text={"Advanced options"} />
+        </summary>
         <div className="mt-4 space-y-5">
           <label className="flex items-center justify-between gap-4">
-            Use an existing virtual key
+            <LocalizedText text={"Use an existing virtual key"} />
             <Controller
               control={control}
               name="useExisting"

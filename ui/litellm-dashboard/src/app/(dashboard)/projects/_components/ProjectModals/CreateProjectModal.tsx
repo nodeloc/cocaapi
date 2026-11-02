@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { useState } from "react";
 import { FolderPlus } from "lucide-react";
@@ -19,6 +20,7 @@ interface CreateProjectModalProps {
 }
 
 function CreateProjectForm({ onClose }: { onClose: () => void }) {
+  useUiLocale();
   const form = useZodForm(projectFormSchema, { defaultValues: emptyProjectFormValues });
   const createMutation = useCreateProject();
   const [advancedOpen, setAdvancedOpen] = useState(false);
@@ -31,12 +33,12 @@ function CreateProjectForm({ onClose }: { onClose: () => void }) {
 
     createMutation.mutate(params, {
       onSuccess: () => {
-        toast.success("Project created successfully");
+        toast.success(translateMessage("Project created successfully"));
         form.reset(emptyProjectFormValues);
         onClose();
       },
       onError: (error) => {
-        toast.error(error.message || "Failed to create project");
+        toast.error(localizedProperty(error, "message", error.message) || translateMessage("Failed to create project"));
       },
     });
   });
@@ -52,11 +54,11 @@ function CreateProjectForm({ onClose }: { onClose: () => void }) {
 
       <div className="mt-6 flex justify-end gap-2 border-t border-border pt-4">
         <Button type="button" variant="outline" onClick={handleCancel}>
-          Cancel
+          <LocalizedText text={"Cancel"} />
         </Button>
         <Button type="button" onClick={() => void handleSubmit()} disabled={createMutation.isPending}>
           {createMutation.isPending ? <UiLoadingSpinner /> : <FolderPlus />}
-          Create Project
+          <LocalizedText text={"Create Project"} />
         </Button>
       </div>
     </form>
@@ -64,11 +66,14 @@ function CreateProjectForm({ onClose }: { onClose: () => void }) {
 }
 
 export function CreateProjectModal({ isOpen, onClose }: CreateProjectModalProps) {
+  useUiLocale();
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-[720px]">
         <DialogHeader>
-          <DialogTitle className="text-lg">Create New Project</DialogTitle>
+          <DialogTitle className="text-lg">
+            <LocalizedText text={"Create New Project"} />
+          </DialogTitle>
         </DialogHeader>
         <CreateProjectForm onClose={onClose} />
       </DialogContent>

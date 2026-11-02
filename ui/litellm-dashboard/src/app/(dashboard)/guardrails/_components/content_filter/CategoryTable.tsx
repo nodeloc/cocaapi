@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import React from "react";
 import { Trash2 } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -30,80 +32,90 @@ const CategoryTable: React.FC<CategoryTableProps> = ({
   onRemove,
   readOnly = false,
 }) => {
+  useUiLocale();
   const columns: ColumnDef<ContentCategory>[] = [
-    {
-      header: "Category",
-      accessorKey: "display_name",
-      cell: ({ row }) => {
-        const { category, display_name: displayName } = row.original;
-        return (
-          <div>
-            <span className="font-semibold">{displayName}</span>
-            {displayName !== category && <div className="text-xs text-muted-foreground">{category}</div>}
-          </div>
-        );
+    markUiCopy(
+      {
+        header: "Category",
+        accessorKey: "display_name",
+        cell: ({ row }) => {
+          const { category, display_name: displayName } = row.original;
+          return (
+            <div>
+              <span className="font-semibold">{displayName}</span>
+              {displayName !== category && <div className="text-xs text-muted-foreground">{category}</div>}
+            </div>
+          );
+        },
       },
-    },
-    {
-      header: "Severity Threshold",
-      accessorKey: "severity_threshold",
-      size: 180,
-      cell: ({ row }) => {
-        const { id, severity_threshold: severity } = row.original;
-        if (readOnly) {
-          return <Badge variant={severity === "high" ? "destructive" : "secondary"}>{severity.toUpperCase()}</Badge>;
-        }
-        return (
-          <Select
-            items={SEVERITY_ITEMS}
-            value={severity}
-            onValueChange={(value: string | null) =>
-              value && onSeverityChange?.(id, value as "high" | "medium" | "low")
-            }
-          >
-            <SelectTrigger size="sm" className="w-[150px]" aria-label="Severity Threshold">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {SEVERITY_ITEMS.map((item) => (
-                <SelectItem key={item.value} value={item.value}>
-                  {item.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        );
+      { header: "Category" },
+    ),
+    markUiCopy(
+      {
+        header: "Severity Threshold",
+        accessorKey: "severity_threshold",
+        size: 180,
+        cell: ({ row }) => {
+          const { id, severity_threshold: severity } = row.original;
+          if (readOnly) {
+            return <Badge variant={severity === "high" ? "destructive" : "secondary"}>{severity.toUpperCase()}</Badge>;
+          }
+          return (
+            <Select
+              items={SEVERITY_ITEMS}
+              value={severity}
+              onValueChange={(value: string | null) =>
+                value && onSeverityChange?.(id, value as "high" | "medium" | "low")
+              }
+            >
+              <SelectTrigger size="sm" className="w-[150px]" aria-label={translateMessage("Severity Threshold")}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {SEVERITY_ITEMS.map((item) => (
+                  <SelectItem key={item.value} value={item.value}>
+                    {localizedProperty(item, "label", item.label)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          );
+        },
       },
-    },
-    {
-      header: "Action",
-      accessorKey: "action",
-      size: 150,
-      cell: ({ row }) => {
-        const { action, id } = row.original;
-        if (readOnly) {
-          return <Badge variant={action === "BLOCK" ? "destructive" : "secondary"}>{action}</Badge>;
-        }
-        return (
-          <Select
-            items={ACTION_ITEMS}
-            value={action}
-            onValueChange={(value: string | null) => value && onActionChange?.(id, value as "BLOCK" | "MASK")}
-          >
-            <SelectTrigger size="sm" className="w-[120px]" aria-label="Action">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {ACTION_ITEMS.map((item) => (
-                <SelectItem key={item.value} value={item.value}>
-                  {item.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        );
+      { header: "Severity Threshold" },
+    ),
+    markUiCopy(
+      {
+        header: "Action",
+        accessorKey: "action",
+        size: 150,
+        cell: ({ row }) => {
+          const { action, id } = row.original;
+          if (readOnly) {
+            return <Badge variant={action === "BLOCK" ? "destructive" : "secondary"}>{action}</Badge>;
+          }
+          return (
+            <Select
+              items={ACTION_ITEMS}
+              value={action}
+              onValueChange={(value: string | null) => value && onActionChange?.(id, value as "BLOCK" | "MASK")}
+            >
+              <SelectTrigger size="sm" className="w-[120px]" aria-label={translateMessage("Action")}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {ACTION_ITEMS.map((item) => (
+                  <SelectItem key={item.value} value={item.value}>
+                    {localizedProperty(item, "label", item.label)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          );
+        },
       },
-    },
+      { header: "Action" },
+    ),
   ];
 
   if (!readOnly) {
@@ -114,14 +126,18 @@ const CategoryTable: React.FC<CategoryTableProps> = ({
       cell: ({ row }) => (
         <Button variant="ghost" size="sm" onClick={() => onRemove?.(row.original.id)}>
           <Trash2 />
-          Delete
+          <LocalizedText text={"Delete"} />
         </Button>
       ),
     });
   }
 
   if (categories.length === 0) {
-    return <div className="py-10 text-center text-muted-foreground">No categories configured.</div>;
+    return (
+      <div className="py-10 text-center text-muted-foreground">
+        <LocalizedText text={"No categories configured."} />
+      </div>
+    );
   }
 
   return <DataTable data={categories} columns={columns} getRowId={(row) => row.id} size="compact" />;

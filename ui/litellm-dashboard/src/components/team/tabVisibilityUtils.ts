@@ -1,3 +1,4 @@
+import { markUiCopy } from "@/lib/i18n";
 /**
  * Team info tab configuration and permission logic.
  * Extracted for testability - permission rules can be unit tested in isolation.
@@ -12,14 +13,24 @@ export const TEAM_INFO_TAB_KEYS = {
   SETTINGS: "settings",
 } as const;
 
-export const TEAM_INFO_TAB_LABELS: Record<string, string> = {
-  [TEAM_INFO_TAB_KEYS.OVERVIEW]: "Overview",
-  [TEAM_INFO_TAB_KEYS.MY_USER]: "My User",
-  [TEAM_INFO_TAB_KEYS.VIRTUAL_KEYS]: "Virtual Keys",
-  [TEAM_INFO_TAB_KEYS.MEMBERS]: "Members",
-  [TEAM_INFO_TAB_KEYS.MEMBER_PERMISSIONS]: "Member Permissions",
-  [TEAM_INFO_TAB_KEYS.SETTINGS]: "Settings",
-};
+export const TEAM_INFO_TAB_LABELS: Record<string, string> = markUiCopy(
+  {
+    [TEAM_INFO_TAB_KEYS.OVERVIEW]: "Overview",
+    [TEAM_INFO_TAB_KEYS.MY_USER]: "My User",
+    [TEAM_INFO_TAB_KEYS.VIRTUAL_KEYS]: "Virtual Keys",
+    [TEAM_INFO_TAB_KEYS.MEMBERS]: "Members",
+    [TEAM_INFO_TAB_KEYS.MEMBER_PERMISSIONS]: "Member Permissions",
+    [TEAM_INFO_TAB_KEYS.SETTINGS]: "Settings",
+  },
+  {
+    [TEAM_INFO_TAB_KEYS.OVERVIEW]: "Overview",
+    [TEAM_INFO_TAB_KEYS.MY_USER]: "My User",
+    [TEAM_INFO_TAB_KEYS.VIRTUAL_KEYS]: "Virtual Keys",
+    [TEAM_INFO_TAB_KEYS.MEMBERS]: "Members",
+    [TEAM_INFO_TAB_KEYS.MEMBER_PERMISSIONS]: "Member Permissions",
+    [TEAM_INFO_TAB_KEYS.SETTINGS]: "Settings",
+  },
+);
 
 /**
  * Returns the list of tab keys that should be visible based on permissions.

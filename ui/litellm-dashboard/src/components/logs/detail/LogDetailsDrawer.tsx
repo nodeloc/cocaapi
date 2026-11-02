@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 import { useEffect, useMemo, useState } from "react";
 import { Bot, Check, Copy, Sparkles, Wrench } from "lucide-react";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
@@ -54,6 +56,7 @@ interface TraceEventRowProps {
 const TRACE_EVENT_ICON_CLASS = "text-muted-foreground shrink-0";
 
 function TraceEventIcon({ callType, isAutoRouted }: { callType: string; isAutoRouted: boolean }) {
+  useUiLocale();
   if (MCP_CALL_TYPES.includes(callType)) return <Wrench size={12} className={TRACE_EVENT_ICON_CLASS} />;
   if (AGENT_CALL_TYPES.includes(callType)) return <Bot size={12} className={TRACE_EVENT_ICON_CLASS} />;
   if (isAutoRouted) return <AutoRouterIcon size={12} className={TRACE_EVENT_ICON_CLASS} />;
@@ -61,6 +64,7 @@ function TraceEventIcon({ callType, isAutoRouted }: { callType: string; isAutoRo
 }
 
 function TraceEventRow({ row, isSelected, onClick }: TraceEventRowProps) {
+  useUiLocale();
   const isAutoRouted = useIsAutoRoutedModelGroup(row.model_group);
   const durationValue =
     row.request_duration_ms != null
@@ -122,6 +126,7 @@ export function LogDetailsDrawer({
   startTime,
   backTo,
 }: LogDetailsDrawerProps) {
+  useUiLocale();
   const isSessionMode = Boolean(sessionId);
   const [selectedSessionRequestId, setSelectedSessionRequestId] = useState<string | null>(null);
   const [sessionSortMode, setSessionSortMode] = useState<SessionLogSortMode>("duration");
@@ -314,7 +319,9 @@ export function LogDetailsDrawer({
         style={{ width: DRAWER_WIDTH }}
       >
         <SheetTitle className="sr-only">
-          {logEntry?.request_id ? `Request ${logEntry.request_id} details` : "Request details"}
+          {logEntry?.request_id
+            ? translateMessage("Request %{0} details", [logEntry.request_id])
+            : translateMessage("Request details")}
         </SheetTitle>
         <div style={{ height: "100%" }} className="flex relative">
           {!isSidebarCollapsed && (
@@ -330,7 +337,7 @@ export function LogDetailsDrawer({
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <div className="text-[10px] uppercase tracking-wide text-muted-foreground">
-                      {isSessionMode ? "Session" : "Trace"}
+                      {isSessionMode ? translateMessage("Session") : translateMessage("Trace")}
                     </div>
                     <div className="font-mono text-[12px] text-foreground leading-tight flex items-center gap-1">
                       <span className="truncate">{leftPanelDisplayId}</span>
@@ -396,10 +403,10 @@ export function LogDetailsDrawer({
                   >
                     <TabsList className="w-full">
                       <TabsTrigger value="duration" className="text-[11px]">
-                        Duration
+                        <LocalizedText text={"Duration"} />
                       </TabsTrigger>
                       <TabsTrigger value="start_time" className="text-[11px]">
-                        Start time
+                        <LocalizedText text={"Start time"} />
                       </TabsTrigger>
                     </TabsList>
                   </Tabs>

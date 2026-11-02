@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SimpleTooltip } from "@/components/ui/tooltip";
 import { Switch } from "@/components/ui/switch";
@@ -58,6 +60,7 @@ export const tierEffortRows = ({
     .filter(({ model, options }) => options.length > 0 || canEditFastMode(model, fastModeByModel, paramsByModel));
 
 const TierModelEffortRows: React.FC<TierModelEffortRowsProps> = (props) => {
+  useUiLocale();
   const { tierLabel, paramsByModel, onEffortChange, fastModeByModel, onFastModeChange } = props;
   const rows = tierEffortRows(props);
   if (rows.length === 0) return null;
@@ -65,7 +68,9 @@ const TierModelEffortRows: React.FC<TierModelEffortRowsProps> = (props) => {
     <div className="mt-2 space-y-1">
       {rows.some(({ options }) => options.length > 0) && (
         <div className="flex items-center gap-1">
-          <span className="text-xs font-medium text-muted-foreground">Reasoning effort</span>
+          <span className="text-xs font-medium text-muted-foreground">
+            <LocalizedText text={"Reasoning effort"} />
+          </span>
           <SimpleTooltip
             content={`Sent as reasoning_effort on requests this tier routes to the model, overriding the caller's value. Default leaves the request untouched.`}
           >
@@ -82,7 +87,7 @@ const TierModelEffortRows: React.FC<TierModelEffortRowsProps> = (props) => {
             {options.length > 0 && (
               <Select
                 items={[
-                  { value: PROVIDER_DEFAULT, label: "Default" },
+                  markUiCopy({ value: PROVIDER_DEFAULT, label: "Default" }, { label: "Default" }),
                   ...options.map((option) => ({ value: option, label: option })),
                 ]}
                 value={effort ?? PROVIDER_DEFAULT}
@@ -93,12 +98,14 @@ const TierModelEffortRows: React.FC<TierModelEffortRowsProps> = (props) => {
                 <SelectTrigger
                   size="sm"
                   className="w-36"
-                  aria-label={`Reasoning effort for ${model} in the ${tierLabel} tier`}
+                  aria-label={translateMessage("Reasoning effort for %{0} in the %{1} tier", [model, tierLabel])}
                 >
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value={PROVIDER_DEFAULT}>Default</SelectItem>
+                  <SelectItem value={PROVIDER_DEFAULT}>
+                    <LocalizedText text={"Default"} />
+                  </SelectItem>
                   {options.map((option) => (
                     <SelectItem key={option} value={option}>
                       {option}
@@ -111,14 +118,14 @@ const TierModelEffortRows: React.FC<TierModelEffortRowsProps> = (props) => {
               <SimpleTooltip content="Fast mode has higher pricing and requires an eligible provider account. Off removes this tier's speed override and inherits the request or provider default">
                 <label
                   className="flex items-center gap-2 text-xs"
-                  aria-label={`Fast mode for ${model} in the ${tierLabel} tier`}
+                  aria-label={translateMessage("Fast mode for %{0} in the %{1} tier", [model, tierLabel])}
                 >
                   <Switch
                     size="sm"
                     checked={paramsByModel?.[model]?.speed === "fast"}
                     onCheckedChange={(enabled) => onFastModeChange(model, enabled)}
                   />
-                  Fast mode
+                  <LocalizedText text={"Fast mode"} />
                 </label>
               </SimpleTooltip>
             )}

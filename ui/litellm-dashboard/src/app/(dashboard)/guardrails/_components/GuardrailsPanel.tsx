@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import { parseAsString, useQueryState } from "nuqs";
 import React, { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -34,6 +36,7 @@ interface GuardrailsResponse {
 }
 
 const GuardrailsPanel: React.FC<GuardrailsPanelProps> = ({ accessToken, userRole }) => {
+  useUiLocale();
   const [guardrailsList, setGuardrailsList] = useState<Guardrail[]>([]);
   const [isAddModalVisible, setIsAddModalVisible] = useState(false);
   const [isCustomCodeModalVisible, setIsCustomCodeModalVisible] = useState(false);
@@ -109,7 +112,7 @@ const GuardrailsPanel: React.FC<GuardrailsPanelProps> = ({ accessToken, userRole
     setIsDeleting(true);
     try {
       await deleteGuardrailCall(accessToken, guardrailToDelete.guardrail_id);
-      toast.success(`Guardrail "${guardrailToDelete.guardrail_name}" deleted successfully`);
+      toast.success(translateMessage('Guardrail "%{0}" deleted successfully', [guardrailToDelete.guardrail_name]));
       await fetchGuardrails();
     } catch (error) {
       console.error("Error deleting guardrail:", error);
@@ -138,18 +141,18 @@ const GuardrailsPanel: React.FC<GuardrailsPanelProps> = ({ accessToken, userRole
           {isAdmin && (
             <>
               <TabsTrigger value="garden" className="flex-none">
-                Guardrail Garden
+                <LocalizedText text={"Guardrail Garden"} />
               </TabsTrigger>
               <TabsTrigger value="guardrails" className="flex-none">
-                Guardrails
+                <LocalizedText text={"Guardrails"} />
               </TabsTrigger>
               <TabsTrigger value="playground" className="flex-none" disabled={!accessToken}>
-                Test Playground
+                <LocalizedText text={"Test Playground"} />
               </TabsTrigger>
             </>
           )}
           <TabsTrigger value="submitted" className="flex-none">
-            Submitted Guardrails
+            <LocalizedText text={"Submitted Guardrails"} />
           </TabsTrigger>
         </TabsList>
 
@@ -164,17 +167,17 @@ const GuardrailsPanel: React.FC<GuardrailsPanelProps> = ({ accessToken, userRole
                 <DropdownMenu>
                   <DropdownMenuTrigger disabled={!accessToken} className={cn(buttonVariants({ variant: "default" }))}>
                     <Plus />
-                    Add New Guardrail
+                    <LocalizedText text={"Add New Guardrail"} />
                     <ChevronDown />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="start" className="w-56">
                     <DropdownMenuItem onClick={handleAddGuardrail}>
                       <Plus />
-                      Add Provider Guardrail
+                      <LocalizedText text={"Add Provider Guardrail"} />
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={handleAddCustomCodeGuardrail}>
                       <Code />
-                      Create Custom Code Guardrail
+                      <LocalizedText text={"Create Custom Code Guardrail"} />
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -212,18 +215,27 @@ const GuardrailsPanel: React.FC<GuardrailsPanelProps> = ({ accessToken, userRole
 
               <DeleteResourceModal
                 isOpen={isDeleteModalOpen}
-                title="Delete Guardrail"
-                message={`Are you sure you want to delete guardrail: ${guardrailToDelete?.guardrail_name}? This action cannot be undone.`}
+                title={translateMessage("Delete Guardrail")}
+                message={translateMessage(
+                  "Are you sure you want to delete guardrail: %{0}? This action cannot be undone.",
+                  [guardrailToDelete?.guardrail_name],
+                )}
                 resourceInformationTitle="Guardrail Information"
                 resourceInformation={[
-                  { label: "Name", value: guardrailToDelete?.guardrail_name },
-                  { label: "ID", value: guardrailToDelete?.guardrail_id, code: true },
-                  { label: "Provider", value: providerDisplayName },
-                  { label: "Mode", value: formatGuardrailMode(guardrailToDelete?.litellm_params.mode) },
-                  {
-                    label: "Default On",
-                    value: guardrailToDelete?.litellm_params.default_on ? "Yes" : "No",
-                  },
+                  markUiCopy({ label: "Name", value: guardrailToDelete?.guardrail_name }, { label: "Name" }),
+                  markUiCopy({ label: "ID", value: guardrailToDelete?.guardrail_id, code: true }, { label: "ID" }),
+                  markUiCopy({ label: "Provider", value: providerDisplayName }, { label: "Provider" }),
+                  markUiCopy(
+                    { label: "Mode", value: formatGuardrailMode(guardrailToDelete?.litellm_params.mode) },
+                    { label: "Mode" },
+                  ),
+                  markUiCopy(
+                    {
+                      label: "Default On",
+                      value: guardrailToDelete?.litellm_params.default_on ? "Yes" : "No",
+                    },
+                    { label: "Default On" },
+                  ),
                 ]}
                 onCancel={handleDeleteCancel}
                 onOk={handleDeleteConfirm}

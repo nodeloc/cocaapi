@@ -1,3 +1,4 @@
+import { markUiCopy } from "@/lib/i18n";
 type Metadata = Record<string, unknown> | null | undefined;
 
 type FormValues = Record<string, unknown>;
@@ -50,16 +51,23 @@ export const estimateChecks = {
       typeof value !== "string" || value.trim() === "" ? true : parsePerModelEstimates(value) !== null,
     message: INVALID_PER_MODEL_MESSAGE,
   },
-  positive: {
-    isValid: (value: unknown): boolean =>
-      value === "" || value === null || value === undefined ? true : isPositiveInteger(Number(value)),
-    message: "Enter a positive integer",
-  },
+  positive: markUiCopy(
+    {
+      isValid: (value: unknown): boolean =>
+        value === "" || value === null || value === undefined ? true : isPositiveInteger(Number(value)),
+      message: "Enter a positive integer",
+    },
+    { message: "Enter a positive integer" },
+  ),
 };
 
-const asValidatorRule = ({ isValid, message }: { isValid: (value: unknown) => boolean; message: string }) => ({
-  validator: (_: unknown, value: unknown) => (isValid(value) ? Promise.resolve() : Promise.reject(new Error(message))),
-});
+const asValidatorRule = (cocaCopyProps0: { isValid: (value: unknown) => boolean; message: string }) => {
+  const { isValid, message } = cocaCopyProps0;
+  return {
+    validator: (_: unknown, value: unknown) =>
+      isValid(value) ? Promise.resolve() : Promise.reject(new Error(message)),
+  };
+};
 
 export const estimateRules = {
   perModel: asValidatorRule(estimateChecks.perModel),

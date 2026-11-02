@@ -1,3 +1,4 @@
+import { markUiCopy } from "@/lib/i18n";
 import { zodFunction } from "openai/helpers/zod";
 import { z } from "zod";
 import { apiClient } from "@/components/networking";
@@ -157,19 +158,25 @@ export function createLiteAdminOperations(context: OperationContext) {
           active();
           if (!outcome.ok) {
             if (action) {
-              const result: ActionResult = {
-                status: "unknown",
-                message: "The change could not be verified. Check the resource before trying again.",
-              };
+              const result: ActionResult = markUiCopy(
+                {
+                  status: "unknown" as const,
+                  message: "The change could not be verified. Check the resource before trying again.",
+                },
+                { message: "The change could not be verified. Check the resource before trying again." },
+              );
               context.onResult(action, result);
               throw new Error(result.message);
             }
-            return {
-              operation: name,
-              success: false,
-              status: outcome.error instanceof ApiError ? outcome.error.status : undefined,
-              message: "The gateway could not complete this lookup.",
-            };
+            return markUiCopy(
+              {
+                operation: name,
+                success: false,
+                status: outcome.error instanceof ApiError ? outcome.error.status : undefined,
+                message: "The gateway could not complete this lookup.",
+              },
+              { message: "The gateway could not complete this lookup." },
+            );
           }
           const key = name === "key_create" || name === "user_create" ? generatedKey(outcome.value) : undefined;
           if (action) context.onResult(action, { status: "completed", ...(key ? { key } : {}) });

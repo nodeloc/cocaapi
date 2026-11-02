@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { ColumnDef } from "@tanstack/react-table";
 import { MoreHorizontal, Trash2, Wallet } from "lucide-react";
@@ -41,13 +42,14 @@ interface AccessGroupRowActionsProps {
 }
 
 function AccessGroupRowActions({ accessGroup, canWrite, onSetBudget, onClearBudget }: AccessGroupRowActionsProps) {
+  useUiLocale();
   const hasBudget = accessGroup.budget != null;
   const blocked = writeBlockedReason(accessGroup, canWrite);
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        aria-label={`Open budget actions for ${accessGroup.access_group}`}
+        aria-label={translateMessage("Open budget actions for %{0}", [accessGroup.access_group])}
         data-testid={`access-group-actions-${accessGroup.access_group}`}
         className={cn(buttonVariants({ variant: "ghost", size: "icon-sm" }), "text-muted-foreground")}
       >
@@ -61,17 +63,17 @@ function AccessGroupRowActions({ accessGroup, canWrite, onSetBudget, onClearBudg
           onClick={() => onSetBudget(accessGroup)}
         >
           <Wallet />
-          {hasBudget ? "Edit budget" : "Set budget"}
+          {hasBudget ? translateMessage("Edit budget") : translateMessage("Set budget")}
         </DropdownMenuItem>
         <DropdownMenuItem
           variant="destructive"
           disabled={blocked !== undefined || !hasBudget}
           data-testid="access-group-action-clear-budget"
-          title={blocked ?? (hasBudget ? undefined : "This access group has no budget to clear")}
+          title={blocked ?? (hasBudget ? undefined : translateMessage("This access group has no budget to clear"))}
           onClick={() => onClearBudget(accessGroup)}
         >
           <Trash2 />
-          Clear budget
+          <LocalizedText text={"Clear budget"} />
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -92,8 +94,8 @@ export const getAccessGroupBudgetColumns = ({
   {
     id: "access_group",
     accessorKey: "access_group",
-    meta: { title: "Access Group" },
-    header: ({ column }) => <DataTableSortHeader column={column} title="Access Group" />,
+    meta: markUiCopy({ title: "Access Group" }, { title: "Access Group" }),
+    header: ({ column }) => <DataTableSortHeader column={column} title={translateMessage("Access Group")} />,
     size: 220,
     enableSorting: true,
     cell: ({ row }) => (
@@ -102,19 +104,22 @@ export const getAccessGroupBudgetColumns = ({
       </span>
     ),
   },
-  {
-    id: "models",
-    meta: { title: "Models", skeleton: "chips" },
-    header: "Models",
-    size: 280,
-    enableSorting: false,
-    cell: ({ row }) => <ModelsCell models={row.original.model_names} />,
-  },
+  markUiCopy(
+    {
+      id: "models",
+      meta: markUiCopy({ title: "Models", skeleton: "chips" as const }, { title: "Models" }),
+      header: "Models",
+      size: 280,
+      enableSorting: false,
+      cell: ({ row }) => <ModelsCell models={row.original.model_names} />,
+    },
+    { header: "Models" },
+  ),
   {
     id: "deployment_count",
     accessorKey: "deployment_count",
-    meta: { title: "Deployments", numeric: true },
-    header: ({ column }) => <DataTableSortHeader column={column} title="Deployments" />,
+    meta: markUiCopy({ title: "Deployments", numeric: true }, { title: "Deployments" }),
+    header: ({ column }) => <DataTableSortHeader column={column} title={translateMessage("Deployments")} />,
     size: 120,
     enableSorting: true,
     cell: ({ row }) => row.original.deployment_count,
@@ -122,8 +127,8 @@ export const getAccessGroupBudgetColumns = ({
   {
     id: "spend",
     accessorKey: "spend",
-    meta: { title: "Shared Spend" },
-    header: ({ column }) => <DataTableSortHeader column={column} title="Shared Spend" />,
+    meta: markUiCopy({ title: "Shared Spend" }, { title: "Shared Spend" }),
+    header: ({ column }) => <DataTableSortHeader column={column} title={translateMessage("Shared Spend")} />,
     size: 180,
     enableSorting: true,
     cell: ({ row }) => (
@@ -134,22 +139,29 @@ export const getAccessGroupBudgetColumns = ({
       />
     ),
   },
-  {
-    id: "budget_duration",
-    meta: { title: "Resets" },
-    header: "Resets",
-    size: 110,
-    enableSorting: false,
-    cell: ({ row }) => (
-      <span className="text-sm text-muted-foreground">
-        {getBudgetDurationLabel(row.original.budget?.budget_duration)}
-      </span>
-    ),
-  },
+  markUiCopy(
+    {
+      id: "budget_duration",
+      meta: markUiCopy({ title: "Resets" }, { title: "Resets" }),
+      header: "Resets",
+      size: 110,
+      enableSorting: false,
+      cell: ({ row }) => (
+        <span className="text-sm text-muted-foreground">
+          {getBudgetDurationLabel(row.original.budget?.budget_duration)}
+        </span>
+      ),
+    },
+    { header: "Resets" },
+  ),
   {
     id: "actions",
     meta: { className: "text-right", headerClassName: "text-right" },
-    header: () => <span className="sr-only">Actions</span>,
+    header: () => (
+      <span className="sr-only">
+        <LocalizedText text={"Actions"} />
+      </span>
+    ),
     size: 64,
     enableSorting: false,
     enableHiding: false,

@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, getIntlLocale, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 import { type FC, type KeyboardEvent, type MouseEvent } from "react";
 import { Check, CircleAlert, Ellipsis, Trash2, Zap } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -56,6 +58,7 @@ const MCPServerCard: FC<MCPServerCardProps> = ({
   onDelete,
   stdioEnabled = true,
 }) => {
+  useUiLocale();
   const alias = server.alias || server.server_name || "";
   const name = server.server_name || alias || server.server_id;
   // Logo is sourced exclusively from the admin-set `mcp_info.logo_url`.
@@ -162,7 +165,7 @@ const MCPServerCard: FC<MCPServerCardProps> = ({
                     type="button"
                     onClick={stop}
                     onKeyDown={stop}
-                    aria-label="Server actions"
+                    aria-label={translateMessage("Server actions")}
                     className="-mr-1 -mt-1 inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
                   >
                     <Ellipsis className="size-5" />
@@ -179,7 +182,7 @@ const MCPServerCard: FC<MCPServerCardProps> = ({
                     }}
                   >
                     <Zap />
-                    Test Connection
+                    <LocalizedText text={"Test Connection"} />
                   </DropdownMenuItem>
                 )}
                 {onRecheckHealth && onDelete && <DropdownMenuSeparator />}
@@ -192,7 +195,7 @@ const MCPServerCard: FC<MCPServerCardProps> = ({
                     }}
                   >
                     <Trash2 />
-                    Delete
+                    <LocalizedText text={"Delete"} />
                   </DropdownMenuItem>
                 )}
               </DropdownMenuContent>
@@ -229,7 +232,7 @@ const MCPServerCard: FC<MCPServerCardProps> = ({
                 render={
                   <Badge variant="outline">
                     <CircleAlert />
-                    stdio disabled
+                    <LocalizedText text={"stdio disabled"} />
                   </Badge>
                 }
               />
@@ -242,13 +245,16 @@ const MCPServerCard: FC<MCPServerCardProps> = ({
                 render={
                   <Badge variant="outline">
                     <CircleAlert />
-                    OAuth flow not set
+                    <LocalizedText text={"OAuth flow not set"} />
                   </Badge>
                 }
               />
               <TooltipContent>
-                This OAuth server has no flow set (Machine-to-Machine vs Interactive). Open it and choose an OAuth Flow
-                Type so LiteLLM authenticates it as you intend.
+                <LocalizedText
+                  text={
+                    "This OAuth server has no flow set (Machine-to-Machine vs Interactive). Open it and choose an OAuth Flow Type so LiteLLM authenticates it as you intend."
+                  }
+                />
               </TooltipContent>
             </Tooltip>
           )}
@@ -257,11 +263,13 @@ const MCPServerCard: FC<MCPServerCardProps> = ({
               render={
                 <Badge variant="outline">
                   <span className={cn("h-1.5 w-1.5 rounded-full", networkAccess.dotClassName)} />
-                  {networkAccess.label}
+                  {localizedProperty(networkAccess, "label", networkAccess.label)}
                 </Badge>
               }
             />
-            <TooltipContent>{networkAccess.description}</TooltipContent>
+            <TooltipContent>
+              {localizedProperty(networkAccess, "description", networkAccess.description)}
+            </TooltipContent>
           </Tooltip>
           {accessGroups.slice(0, 2).map((g) => (
             <Tooltip key={g}>
@@ -294,13 +302,17 @@ const MCPServerCard: FC<MCPServerCardProps> = ({
                     render={
                       <span className="inline-flex items-center gap-1 font-semibold text-destructive">
                         <CircleAlert className="size-3.5" />
-                        {missing.length} user field
-                        {missing.length === 1 ? "" : "s"} missing
+                        {missing.length}
+                        <LocalizedText text={" user field"} />
+                        {missing.length === 1 ? "" : translateMessage("s")}
+                        <LocalizedText text={" missing"} />
                       </span>
                     }
                   />
                   <TooltipContent>
-                    <div className="mb-1 font-semibold">Missing user fields:</div>
+                    <div className="mb-1 font-semibold">
+                      <LocalizedText text={"Missing user fields:"} />
+                    </div>
                     <ul className="ml-3">
                       {missing.map((m) => (
                         <li key={m}>• {m}</li>
@@ -317,7 +329,7 @@ const MCPServerCard: FC<MCPServerCardProps> = ({
                       onOpenFillFields();
                     }}
                   >
-                    Set
+                    <LocalizedText text={"Set"} />
                   </Button>
                 )}
               </div>
@@ -348,11 +360,12 @@ const HealthChip: FC<HealthChipProps> = ({
   error,
   dotClass,
 }) => {
+  useUiLocale();
   if (isLoadingHealth || isRechecking) {
     return (
       <Badge variant="outline" className="text-muted-foreground">
         <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-muted-foreground" />
-        Checking
+        <LocalizedText text={"Checking"} />
       </Badge>
     );
   }
@@ -379,44 +392,68 @@ const HealthChip: FC<HealthChipProps> = ({
         }
       />
       <TooltipContent side="top" className="max-w-xs">
-        <div className="mb-1 font-semibold">Health: {status}</div>
+        <div className="mb-1 font-semibold">
+          <LocalizedText text={"Health: "} />
+          {status}
+        </div>
         {status === "reachable" && <div className="mb-1 text-xs">{MCP_REACHABLE_DESCRIPTION}</div>}
-        {lastCheck && <div className="mb-1 text-xs">Last check: {new Date(lastCheck).toLocaleString()}</div>}
+        {lastCheck && (
+          <div className="mb-1 text-xs">
+            <LocalizedText text={"Last check: "} />
+            {new Date(lastCheck).toLocaleString(getIntlLocale())}
+          </div>
+        )}
         {error && (
           <div className="text-xs">
-            <div className="mb-1 font-medium">Error</div>
+            <div className="mb-1 font-medium">
+              <LocalizedText text={"Error"} />
+            </div>
             <div className="wrap-break-word">{error}</div>
           </div>
         )}
-        {!hasHealthData && <div className="text-xs">No health data</div>}
-        {onRecheck && <div className="mt-1 text-xs">Click to recheck</div>}
+        {!hasHealthData && (
+          <div className="text-xs">
+            <LocalizedText text={"No health data"} />
+          </div>
+        )}
+        {onRecheck && (
+          <div className="mt-1 text-xs">
+            <LocalizedText text={"Click to recheck"} />
+          </div>
+        )}
       </TooltipContent>
     </Tooltip>
   );
 };
 
-const UserFieldsRow: FC<{ onUpdate?: () => void }> = ({ onUpdate }) => (
-  <div className="flex items-center justify-between gap-2 text-xs">
-    <span className="text-muted-foreground">Per-user credentials</span>
-    <div className="flex items-center gap-2">
-      <Badge variant="outline">
-        <Check /> Set
-      </Badge>
-      {onUpdate && (
-        <Button
-          variant="link"
-          size="sm"
-          onClick={(e) => {
-            stop(e);
-            onUpdate();
-          }}
-        >
-          Update
-        </Button>
-      )}
+const UserFieldsRow: FC<{ onUpdate?: () => void }> = ({ onUpdate }) => {
+  useUiLocale();
+  return (
+    <div className="flex items-center justify-between gap-2 text-xs">
+      <span className="text-muted-foreground">
+        <LocalizedText text={"Per-user credentials"} />
+      </span>
+      <div className="flex items-center gap-2">
+        <Badge variant="outline">
+          <Check />
+          <LocalizedText text={" Set"} />
+        </Badge>
+        {onUpdate && (
+          <Button
+            variant="link"
+            size="sm"
+            onClick={(e) => {
+              stop(e);
+              onUpdate();
+            }}
+          >
+            <LocalizedText text={"Update"} />
+          </Button>
+        )}
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 interface ByokRowProps {
   connected: boolean;
@@ -424,13 +461,17 @@ interface ByokRowProps {
 }
 
 const ByokRow: FC<ByokRowProps> = ({ connected, onConnect }) => {
+  useUiLocale();
   if (connected) {
     return (
       <div className="flex items-center justify-between gap-2 text-xs">
-        <span className="text-muted-foreground">BYOK credential</span>
+        <span className="text-muted-foreground">
+          <LocalizedText text={"BYOK credential"} />
+        </span>
         <div className="flex items-center gap-2">
           <Badge variant="outline">
-            <Check /> Connected
+            <Check />
+            <LocalizedText text={" Connected"} />
           </Badge>
           {onConnect && (
             <Button
@@ -441,7 +482,7 @@ const ByokRow: FC<ByokRowProps> = ({ connected, onConnect }) => {
                 onConnect();
               }}
             >
-              Update
+              <LocalizedText text={"Update"} />
             </Button>
           )}
         </div>
@@ -450,7 +491,9 @@ const ByokRow: FC<ByokRowProps> = ({ connected, onConnect }) => {
   }
   return (
     <div className="flex items-center justify-between gap-2 text-xs">
-      <span className="text-muted-foreground">BYOK credential</span>
+      <span className="text-muted-foreground">
+        <LocalizedText text={"BYOK credential"} />
+      </span>
       {onConnect ? (
         <Button
           size="sm"
@@ -459,7 +502,7 @@ const ByokRow: FC<ByokRowProps> = ({ connected, onConnect }) => {
             onConnect();
           }}
         >
-          Connect
+          <LocalizedText text={"Connect"} />
         </Button>
       ) : (
         <span className="text-muted-foreground">—</span>

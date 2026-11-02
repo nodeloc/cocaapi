@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { useCustomerNative } from "@/components/account/native/CustomerNativeContext";
 import { useModelCostMap } from "@/app/(dashboard)/hooks/models/useModelCostMap";
@@ -81,6 +82,7 @@ const AllModelsTab = ({
   setSelectedModelId,
   setSelectedTeamId,
 }: AllModelsTabProps) => {
+  useUiLocale();
   const customer = useCustomerNative();
   const { data: modelCostMapData, isLoading: isLoadingModelCostMap } = useModelCostMap();
   const { accessToken, userId, userRole, isViewOnly } = useAuthorized();
@@ -230,7 +232,7 @@ const AllModelsTab = ({
 
   const teamOptions = useMemo(
     () => [
-      { value: PERSONAL_TEAM_VALUE, label: "Personal" },
+      markUiCopy({ value: PERSONAL_TEAM_VALUE, label: "Personal" }, { label: "Personal" }),
       ...(teams ?? [])
         .filter((team) => team.team_id)
         .map((team) => ({ value: team.team_id, label: team.team_alias ? team.team_alias : team.team_id })),
@@ -253,7 +255,7 @@ const AllModelsTab = ({
     try {
       setDeleteLoading(true);
       await modelDeleteCall(accessToken, deleteModalModelId);
-      toast.success("Model deleted successfully");
+      toast.success(translateMessage("Model deleted successfully"));
       queryClient.invalidateQueries({ queryKey: ["models", "list"] });
       refetchModels();
     } catch (error) {
@@ -271,7 +273,7 @@ const AllModelsTab = ({
       try {
         setPausingModelId(modelId);
         await modelPatchUpdateCall(accessToken, { blocked }, modelId);
-        toast.success(blocked ? "Model paused" : "Model resumed");
+        toast.success(blocked ? translateMessage("Model paused") : translateMessage("Model resumed"));
         // invalidateQueries already schedules a refetch for active observers
         // on this key — no need to also call refetchModels() (would double-fetch).
         queryClient.invalidateQueries({ queryKey: ["models", "list"] });
@@ -342,17 +344,19 @@ const AllModelsTab = ({
             <Info className="mt-0.5 size-3.5 shrink-0" />
             {selectedTeamValue === PERSONAL_TEAM_VALUE ? (
               <span>
-                To access these models, create a Virtual Key without selecting a team on the{" "}
+                <LocalizedText text={"To access these models, create a Virtual Key without selecting a team on the"} />{" "}
                 <a href={uiHref("api-keys")} className="font-medium text-info hover:underline">
-                  Virtual Keys page
+                  <LocalizedText text={"Virtual Keys page"} />
                 </a>
                 .
               </span>
             ) : (
               <span>
-                To access these models, create a Virtual Key and select Team as &quot;{teamAccessLabel}&quot; on the{" "}
+                <LocalizedText text={'To access these models, create a Virtual Key and select Team as "'} />
+                {teamAccessLabel}
+                <LocalizedText text={'" on the'} />{" "}
                 <a href={uiHref("api-keys")} className="font-medium text-info hover:underline">
-                  Virtual Keys page
+                  <LocalizedText text={"Virtual Keys page"} />
                 </a>
                 .
               </span>
@@ -363,29 +367,41 @@ const AllModelsTab = ({
 
       <DeleteResourceModal
         isOpen={!!deleteModalModelId}
-        title="Delete Model"
+        title={translateMessage("Delete Model")}
         alertMessage="This action cannot be undone."
-        message="Are you sure you want to delete this model?"
+        message={translateMessage("Are you sure you want to delete this model?")}
         resourceInformationTitle="Model Information"
         resourceInformation={
           modelToDelete
             ? [
-                {
-                  label: "Model Name",
-                  value: modelToDelete.model_name || "Not Set",
-                },
-                {
-                  label: "LiteLLM Model Name",
-                  value: modelToDelete.litellm_model_name || "Not Set",
-                },
-                {
-                  label: "Provider",
-                  value: modelToDelete.provider || "Not Set",
-                },
-                {
-                  label: "Created By",
-                  value: modelToDelete.model_info?.created_by || "Not Set",
-                },
+                markUiCopy(
+                  {
+                    label: "Model Name",
+                    value: modelToDelete.model_name || "Not Set",
+                  },
+                  { label: "Model Name" },
+                ),
+                markUiCopy(
+                  {
+                    label: "LiteLLM Model Name",
+                    value: modelToDelete.litellm_model_name || "Not Set",
+                  },
+                  { label: "LiteLLM Model Name" },
+                ),
+                markUiCopy(
+                  {
+                    label: "Provider",
+                    value: modelToDelete.provider || "Not Set",
+                  },
+                  { label: "Provider" },
+                ),
+                markUiCopy(
+                  {
+                    label: "Created By",
+                    value: modelToDelete.model_info?.created_by || "Not Set",
+                  },
+                  { label: "Created By" },
+                ),
               ]
             : []
         }

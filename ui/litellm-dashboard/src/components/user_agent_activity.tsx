@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import React, { useState, useEffect } from "react";
 import { Bot, Users } from "lucide-react";
 import {
@@ -24,14 +26,14 @@ type ActivityView = "active-users" | "per-user";
 type ActivePeriod = "dau" | "wau" | "mau";
 
 const VIEW_OPTIONS = [
-  { value: "active-users", label: "Active users" },
-  { value: "per-user", label: "Per user" },
+  markUiCopy({ value: "active-users", label: "Active users" }, { label: "Active users" }),
+  markUiCopy({ value: "per-user", label: "Per user" }, { label: "Per user" }),
 ] as const satisfies readonly { value: ActivityView; label: string }[];
 
 const PERIOD_OPTIONS = [
-  { value: "dau", label: "DAU" },
-  { value: "wau", label: "WAU" },
-  { value: "mau", label: "MAU" },
+  markUiCopy({ value: "dau", label: "DAU" }, { label: "DAU" }),
+  markUiCopy({ value: "wau", label: "WAU" }, { label: "WAU" }),
+  markUiCopy({ value: "mau", label: "MAU" }, { label: "MAU" }),
 ] as const satisfies readonly { value: ActivePeriod; label: string }[];
 
 const SUMMARY_SLOTS = 4;
@@ -92,11 +94,12 @@ interface ActiveUserChart {
 }
 
 function ActiveUsersChart({ chart }: { chart: ActiveUserChart }) {
+  useUiLocale();
   if (chart.loading) return <ChartSkeleton className="h-72" />;
   if (chart.tags.length === 0) {
     return (
       <div className="flex h-72 items-center justify-center rounded-lg border border-dashed text-sm text-muted-foreground">
-        No active users in this period
+        <LocalizedText text={"No active users in this period"} />
       </div>
     );
   }
@@ -132,6 +135,7 @@ const UserAgentActivity: React.FC<UserAgentActivityProps> = ({
   onDateChange,
   initialTags,
 }) => {
+  useUiLocale();
   const anchor = useComboboxAnchor();
   // Maximum number of categories to show in charts to prevent color palette overflow
   const MAX_CATEGORIES = 10;
@@ -418,30 +422,39 @@ const UserAgentActivity: React.FC<UserAgentActivityProps> = ({
   const monthlyChartData = generateMonthlyChartData();
 
   const activeUserCharts: readonly ActiveUserChart[] = [
-    {
-      value: "dau",
-      title: "Daily Active Users - Last 7 Days",
-      loading: dauLoading,
-      data: dailyChartData,
-      index: "date",
-      tags: allDauTags,
-    },
-    {
-      value: "wau",
-      title: "Weekly Active Users - Last 7 Weeks",
-      loading: wauLoading,
-      data: weeklyChartData,
-      index: "week",
-      tags: allWauTags,
-    },
-    {
-      value: "mau",
-      title: "Monthly Active Users - Last 7 Months",
-      loading: mauLoading,
-      data: monthlyChartData,
-      index: "month",
-      tags: allMauTags,
-    },
+    markUiCopy(
+      {
+        value: "dau",
+        title: "Daily Active Users - Last 7 Days",
+        loading: dauLoading,
+        data: dailyChartData,
+        index: "date",
+        tags: allDauTags,
+      },
+      { title: "Daily Active Users - Last 7 Days" },
+    ),
+    markUiCopy(
+      {
+        value: "wau",
+        title: "Weekly Active Users - Last 7 Weeks",
+        loading: wauLoading,
+        data: weeklyChartData,
+        index: "week",
+        tags: allWauTags,
+      },
+      { title: "Weekly Active Users - Last 7 Weeks" },
+    ),
+    markUiCopy(
+      {
+        value: "mau",
+        title: "Monthly Active Users - Last 7 Months",
+        loading: mauLoading,
+        data: monthlyChartData,
+        index: "month",
+        tags: allMauTags,
+      },
+      { title: "Monthly Active Users - Last 7 Months" },
+    ),
   ];
 
   const summaryRows = (summaryData.results || []).slice(0, SUMMARY_SLOTS);
@@ -450,11 +463,13 @@ const UserAgentActivity: React.FC<UserAgentActivityProps> = ({
     <div className="grid gap-3">
       <Panel
         icon={Bot}
-        title="Summary by User Agent"
+        title={translateMessage("Summary by User Agent")}
         subtitle="Performance metrics for different user agents"
         action={
           <div className="flex w-full items-center gap-2 sm:w-96">
-            <label className="shrink-0 text-xs text-muted-foreground">Filter by User Agents</label>
+            <label className="shrink-0 text-xs text-muted-foreground">
+              <LocalizedText text={"Filter by User Agents"} />
+            </label>
             <Combobox
               multiple
               items={availableTags}
@@ -471,11 +486,16 @@ const UserAgentActivity: React.FC<UserAgentActivityProps> = ({
                     ))
                   }
                 </ComboboxValue>
-                <ComboboxChipsInput placeholder="All User Agents" aria-label="All User Agents" />
-                {selectedTags.length > 0 && <ComboboxClear aria-label="Clear user agent filter" />}
+                <ComboboxChipsInput
+                  placeholder={translateMessage("All User Agents")}
+                  aria-label={translateMessage("All User Agents")}
+                />
+                {selectedTags.length > 0 && <ComboboxClear aria-label={translateMessage("Clear user agent filter")} />}
               </ComboboxChips>
               <ComboboxContent anchor={anchor}>
-                <ComboboxEmpty>No user agents found</ComboboxEmpty>
+                <ComboboxEmpty>
+                  <LocalizedText text={"No user agents found"} />
+                </ComboboxEmpty>
                 <ComboboxList>
                   {(tag: string) => {
                     const userAgent = extractUserAgent(tag);
@@ -521,7 +541,11 @@ const UserAgentActivity: React.FC<UserAgentActivityProps> = ({
             {Array.from({ length: Math.max(0, SUMMARY_SLOTS - summaryRows.length) }).map((_, index) => (
               <SummaryCell
                 key={`empty-${index}`}
-                name={<h4 className="truncate text-sm font-medium text-muted-foreground">No Data</h4>}
+                name={
+                  <h4 className="truncate text-sm font-medium text-muted-foreground">
+                    <LocalizedText text={"No Data"} />
+                  </h4>
+                }
                 successRequests="-"
                 totalTokens="-"
                 totalCost="-"
@@ -534,21 +558,35 @@ const UserAgentActivity: React.FC<UserAgentActivityProps> = ({
       {/* DAU/WAU/MAU vs Per User Usage. Every view stays mounted so switching does not reset its state. */}
       <Panel
         icon={Users}
-        title={activityView === "active-users" ? "DAU, WAU & MAU per Agent" : "Per User Usage (Last 30 Days)"}
+        title={
+          activityView === "active-users"
+            ? translateMessage("DAU, WAU & MAU per Agent")
+            : translateMessage("Per User Usage (Last 30 Days)")
+        }
         subtitle={activityView === "active-users" ? "Active users across different time periods" : "Usage per end user"}
         action={
           <>
             {activityView === "active-users" && (
-              <Segmented label="Active users period" value={period} options={PERIOD_OPTIONS} onChange={setPeriod} />
+              <Segmented
+                label={translateMessage("Active users period")}
+                value={period}
+                options={PERIOD_OPTIONS}
+                onChange={setPeriod}
+              />
             )}
-            <Segmented label="Activity view" value={activityView} options={VIEW_OPTIONS} onChange={setActivityView} />
+            <Segmented
+              label={translateMessage("Activity view")}
+              value={activityView}
+              options={VIEW_OPTIONS}
+              onChange={setActivityView}
+            />
           </>
         }
       >
         <div hidden={activityView !== "active-users"}>
           {activeUserCharts.map((chart) => (
             <div key={chart.value} hidden={period !== chart.value}>
-              <h4 className="mb-2 text-xs text-muted-foreground">{chart.title}</h4>
+              <h4 className="mb-2 text-xs text-muted-foreground">{localizedProperty(chart, "title", chart.title)}</h4>
               <ActiveUsersChart chart={chart} />
             </div>
           ))}
@@ -576,10 +614,11 @@ function SummaryCell({
   totalTokens: string;
   totalCost: string;
 }) {
+  useUiLocale();
   const rows = [
-    { label: "Success Requests", value: successRequests },
-    { label: "Total Tokens", value: totalTokens },
-    { label: "Total Cost", value: totalCost },
+    markUiCopy({ label: "Success Requests", value: successRequests }, { label: "Success Requests" }),
+    markUiCopy({ label: "Total Tokens", value: totalTokens }, { label: "Total Tokens" }),
+    markUiCopy({ label: "Total Cost", value: totalCost }, { label: "Total Cost" }),
   ];
   return (
     <div className="min-w-0 border-b px-4 py-3.5 last:border-b-0 lg:border-b-0">
@@ -587,7 +626,7 @@ function SummaryCell({
       <dl className="mt-3 grid gap-1.5">
         {rows.map((row) => (
           <div key={row.label} className="flex items-baseline justify-between gap-3">
-            <dt className="text-xs text-muted-foreground">{row.label}</dt>
+            <dt className="text-xs text-muted-foreground">{localizedProperty(row, "label", row.label)}</dt>
             <dd className="text-sm font-semibold tracking-tight tabular-nums text-foreground">{row.value}</dd>
           </div>
         ))}

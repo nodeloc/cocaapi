@@ -1,4 +1,5 @@
 "use client";
+import { translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { Tabs as TabsPrimitive } from "@base-ui/react/tabs";
 import { Settings } from "lucide-react";
@@ -18,12 +19,13 @@ export function LensModeSwitch({
   activity: InvestigationActivity;
   workers: LensList["workers"] | null;
 }) {
+  useUiLocale();
   const connected = useWorkerConnected(workers);
   const settingsTitle = connected ? "Worker connected" : "Connect worker";
   const tabs = Object.entries(LENS_TABS).filter(([view]) => view !== "settings" || workers);
   return (
     <TabsPrimitive.List
-      aria-label="Lens"
+      aria-label={translateMessage("Lens")}
       className="relative inline-flex h-8 max-w-full items-center gap-0.5 rounded-lg bg-muted/60 p-0.5"
     >
       <TabsPrimitive.Indicator className="absolute top-0.5 bottom-0.5 left-(--active-tab-left) w-(--active-tab-width) rounded-md bg-card shadow-sm transition-[left,width] duration-200 motion-reduce:transition-none" />

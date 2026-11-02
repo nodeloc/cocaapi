@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import {
   useMCPToolSearchSettings,
@@ -48,6 +49,7 @@ const labelWithHint = (label: string, hint: string): React.ReactNode => (
 );
 
 export default function MCPToolSearchSettings({ accessToken }: MCPToolSearchSettingsProps) {
+  useUiLocale();
   const { data, isLoading, isError, error } = useMCPToolSearchSettings();
   const { mutate: updateSettings, isPending: isUpdating } = useUpdateMCPToolSearchSettings();
   const form = useForm<ToolSearchFormValues>({ defaultValues: DEFAULT_FORM_VALUES });
@@ -73,14 +75,20 @@ export default function MCPToolSearchSettings({ accessToken }: MCPToolSearchSett
     updateSettings(formToPayload(formValues), {
       onSuccess: () => {
         form.reset(formValues);
-        toast.success("Settings updated successfully. Changes will be applied across all pods within 10 seconds.");
+        toast.success(
+          translateMessage("Settings updated successfully. Changes will be applied across all pods within 10 seconds."),
+        );
       },
       onError: (saveError) => toast.fromError(saveError),
     });
   };
 
   if (!accessToken) {
-    return <div className="p-6 text-center text-muted-foreground">Please log in to configure tool search.</div>;
+    return (
+      <div className="p-6 text-center text-muted-foreground">
+        <LocalizedText text={"Please log in to configure tool search."} />
+      </div>
+    );
   }
 
   if (isLoading) {
@@ -96,8 +104,12 @@ export default function MCPToolSearchSettings({ accessToken }: MCPToolSearchSett
   if (isError) {
     return (
       <Alert variant="error" className="mb-6">
-        <AlertTitle>Could not load MCP tool search settings</AlertTitle>
-        {error instanceof Error && <AlertDescription>{error.message}</AlertDescription>}
+        <AlertTitle>
+          <LocalizedText text={"Could not load MCP tool search settings"} />
+        </AlertTitle>
+        {error instanceof Error && (
+          <AlertDescription>{localizedProperty(error, "message", error.message)}</AlertDescription>
+        )}
       </Alert>
     );
   }
@@ -106,12 +118,17 @@ export default function MCPToolSearchSettings({ accessToken }: MCPToolSearchSett
     <div className="w-full">
       <Alert variant="info" className="mb-6">
         <Info />
-        <AlertTitle>Native MCP Tool Search</AlertTitle>
+        <AlertTitle>
+          <LocalizedText text={"Native MCP Tool Search"} />
+        </AlertTitle>
         <AlertDescription>
-          Controls the <code>mcp_tool_search</code> virtual tool that native MCP clients call to discover tools. With an
-          embedding model set, tools are ranked by the meaning of their name and description, so a query like
-          &quot;FX&quot; finds a &quot;foreign exchange rates&quot; tool. Without one, keyword matching is used. Callers
-          only ever see tools their key, team and server permissions already allow.
+          <LocalizedText text={"Controls the "} />
+          <code>mcp_tool_search</code>
+          <LocalizedText
+            text={
+              ' virtual tool that native MCP clients call to discover tools. With an embedding model set, tools are ranked by the meaning of their name and description, so a query like "FX" finds a "foreign exchange rates" tool. Without one, keyword matching is used. Callers only ever see tools their key, team and server permissions already allow.'
+            }
+          />
         </AlertDescription>
       </Alert>
 
@@ -119,7 +136,9 @@ export default function MCPToolSearchSettings({ accessToken }: MCPToolSearchSett
         <form onSubmit={(event) => event.preventDefault()} noValidate>
           <Card className="mb-4">
             <CardHeader className="border-b">
-              <CardTitle>Ranking</CardTitle>
+              <CardTitle>
+                <LocalizedText text={"Ranking"} />
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <FieldGroup>
@@ -138,8 +157,16 @@ export default function MCPToolSearchSettings({ accessToken }: MCPToolSearchSett
                       value={value}
                       onValueChange={onChange}
                       allowClear
-                      placeholder={loadingModels ? "Loading models..." : "Keyword matching (no embedding model)"}
-                      emptyText={loadingModels ? "Loading..." : "No embedding models available"}
+                      placeholder={
+                        loadingModels
+                          ? translateMessage("Loading models...")
+                          : translateMessage("Keyword matching (no embedding model)")
+                      }
+                      emptyText={
+                        loadingModels
+                          ? translateMessage("Loading...")
+                          : translateMessage("No embedding models available")
+                      }
                       disabled={isUpdating || loadingModels}
                     />
                   )}
@@ -206,7 +233,9 @@ export default function MCPToolSearchSettings({ accessToken }: MCPToolSearchSett
 
           <Card className="mb-4">
             <CardHeader className="border-b">
-              <CardTitle>Core Tools</CardTitle>
+              <CardTitle>
+                <LocalizedText text={"Core Tools"} />
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <FieldGroup>
@@ -223,7 +252,7 @@ export default function MCPToolSearchSettings({ accessToken }: MCPToolSearchSett
                       id={id}
                       ref={ref}
                       value={value}
-                      placeholder={"my_server-get_rates\nmy_server-list_accounts"}
+                      placeholder={translateMessage("my_server-get_rates\nmy_server-list_accounts")}
                       onChange={(event) => onChange(event.target.value)}
                       onBlur={onBlur}
                       disabled={isUpdating}
@@ -241,7 +270,7 @@ export default function MCPToolSearchSettings({ accessToken }: MCPToolSearchSett
               disabled={!isDirty || isUpdating}
             >
               {isUpdating ? <UiLoadingSpinner className="size-4" /> : <Save />}
-              Save Settings
+              <LocalizedText text={"Save Settings"} />
             </Button>
           </div>
         </form>

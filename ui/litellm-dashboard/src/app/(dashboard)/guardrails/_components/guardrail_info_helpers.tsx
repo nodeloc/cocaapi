@@ -1,3 +1,4 @@
+import { markUiCopy } from "@/lib/i18n";
 import aimSecurityLogo from "../../../../../public/assets/logos/aim_security.jpeg";
 import aktoLogo from "../../../../../public/assets/logos/akto.svg";
 import aliceLogo from "../../../../../public/assets/logos/alice.svg";
@@ -132,9 +133,12 @@ export const normalizeLoggingOnlyScopeChoice = (
 ): LoggingOnlyScopeChoice => (directionalScopeSupported || choice === "default" ? choice : "default");
 
 const LOGGING_ONLY_SCOPE_OPTIONS: LoggingOnlyScopeOption[] = [
-  { label: "Default (request and response)", value: "default" },
-  { label: "Input only (request)", value: "input" },
-  { label: "Output only (response)", value: "output" },
+  markUiCopy(
+    { label: "Default (request and response)", value: "default" },
+    { label: "Default (request and response)" },
+  ),
+  markUiCopy({ label: "Input only (request)", value: "input" }, { label: "Input only (request)" }),
+  markUiCopy({ label: "Output only (response)", value: "output" }, { label: "Output only (response)" }),
 ];
 
 export const loggingOnlyScopeToChoice = (v: string | null | undefined): LoggingOnlyScopeChoice =>
@@ -389,9 +393,9 @@ export const GUARDRAIL_STREAM_SCOPES = ["both", "streaming", "non_streaming"] as
 export type GuardrailStreamScope = (typeof GUARDRAIL_STREAM_SCOPES)[number];
 
 export const STREAM_SCOPE_OPTIONS: { value: GuardrailStreamScope; label: string }[] = [
-  { value: "both", label: "Streaming and non-streaming" },
-  { value: "streaming", label: "Streaming only" },
-  { value: "non_streaming", label: "Non-streaming only" },
+  markUiCopy({ value: "both", label: "Streaming and non-streaming" }, { label: "Streaming and non-streaming" }),
+  markUiCopy({ value: "streaming", label: "Streaming only" }, { label: "Streaming only" }),
+  markUiCopy({ value: "non_streaming", label: "Non-streaming only" }, { label: "Non-streaming only" }),
 ];
 
 export const isGuardrailStreamScope = (value: unknown): value is GuardrailStreamScope =>

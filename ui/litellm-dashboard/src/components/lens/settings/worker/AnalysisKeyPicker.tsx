@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { analysisKeysQuery, type Key } from "../../data/queries";
 
@@ -18,6 +19,7 @@ import {
 } from "@/components/ui/combobox";
 
 export function AnalysisKeyPicker() {
+  useUiLocale();
   const { control } = useFormContext<WorkerFormInput>();
   const value = useWatch({ control, name: "analysisKey" });
   const api = useLensApi();
@@ -35,7 +37,9 @@ export function AnalysisKeyPicker() {
     : choices;
   return (
     <div className="space-y-2">
-      <p className="text-sm">Charge analysis to</p>
+      <p className="text-sm">
+        <LocalizedText text={"Charge analysis to"} />
+      </p>
       <div className="flex flex-wrap items-start gap-2">
         <div className="min-w-0 flex-1">
           <Controller
@@ -65,9 +69,14 @@ export function AnalysisKeyPicker() {
                   }}
                   onValueChange={handleValueChange}
                 >
-                  <ComboboxInput aria-label="Charge analysis to" placeholder="Search existing keys" />
+                  <ComboboxInput
+                    aria-label={translateMessage("Charge analysis to")}
+                    placeholder={translateMessage("Search existing keys")}
+                  />
                   <ComboboxContent>
-                    <ComboboxEmpty>{loading ? "Loading keys…" : "No matching keys"}</ComboboxEmpty>
+                    <ComboboxEmpty>
+                      {loading ? translateMessage("Loading keys…") : translateMessage("No matching keys")}
+                    </ComboboxEmpty>
                     <ComboboxList>
                       {(key: Key) => (
                         <ComboboxItem key={key.token} value={key}>
@@ -85,7 +94,7 @@ export function AnalysisKeyPicker() {
       {choice && <AnalysisKeyDetails keyId={choice.token} />}
       {keyPages.error && (
         <p role="alert" className="text-sm text-destructive">
-          {keyPages.error.message}
+          {localizedProperty(keyPages.error, "message")}
         </p>
       )}
     </div>

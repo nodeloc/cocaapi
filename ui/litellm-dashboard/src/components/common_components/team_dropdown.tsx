@@ -1,3 +1,5 @@
+"use client";
+import { translateMessage, useUiLocale } from "@/lib/i18n";
 import React, { useEffect, useMemo, useState } from "react";
 import { PaginatedSearchSelect } from "@/components/shared/PaginatedSearchSelect";
 import { useInfiniteTeams } from "@/app/(dashboard)/hooks/teams/useTeams";
@@ -26,6 +28,7 @@ const TeamDropdown: React.FC<TeamDropdownProps> = ({
   id,
   filterTeam,
 }) => {
+  useUiLocale();
   const [search, setSearch] = useState("");
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isFetchNextPageError, isLoading } = useInfiniteTeams(
@@ -95,9 +98,9 @@ const TeamDropdown: React.FC<TeamDropdownProps> = ({
         hasNextPage={hasNextPage}
         isLoading={isLoading}
         isFetchingNextPage={isFetchingNextPage}
-        placeholder="Search or select a team"
-        emptyText="No teams found"
-        loadingText="Loading teams…"
+        placeholder={translateMessage("Search or select a team")}
+        emptyText={translateMessage("No teams found")}
+        loadingText={translateMessage("Loading teams…")}
         disabled={disabled}
         inputId={id}
       />

@@ -1,4 +1,5 @@
 "use client";
+import { localizedProperty, useUiLocale } from "@/lib/i18n";
 
 import * as React from "react";
 import {
@@ -45,6 +46,7 @@ const MountedFormContext = React.createContext<MountedFormContextValue>({
 export const MountedFormProvider = MountedFormContext.Provider;
 
 export const useMountRegistry = (): MountRegistry => {
+  useUiLocale();
   const counts = React.useRef<Map<string, { readonly name: MountedFieldName; readonly count: number }>>(new Map());
   return React.useMemo(
     () => ({
@@ -95,6 +97,7 @@ export const projectMountedValues = (
 };
 
 export const useMountedName = (name: MountedFieldName): void => {
+  useUiLocale();
   const { registry } = React.useContext(MountedFormContext);
   React.useEffect(() => registry.register(name), [registry, name]);
 };
@@ -125,17 +128,9 @@ export interface MountedFormFieldProps {
   readonly children: (control: MountedFieldControlProps) => React.ReactNode;
 }
 
-export const MountedFormField: React.FC<MountedFormFieldProps> = ({
-  name,
-  label,
-  help,
-  required,
-  rules,
-  defaultValue,
-  bare,
-  className,
-  children,
-}) => {
+export const MountedFormField: React.FC<MountedFormFieldProps> = (cocaCopyProps0) => {
+  const { name, label, help, required, rules, defaultValue, bare, className, children } = cocaCopyProps0;
+  useUiLocale();
   const { control } = React.useContext(MountedFormContext);
   const path = fieldKey(name);
   useMountedName(name);
@@ -162,7 +157,9 @@ export const MountedFormField: React.FC<MountedFormFieldProps> = ({
 
     return (
       <Field data-invalid={invalid || undefined} className={className}>
-        {label !== undefined && <FieldLabel htmlFor={path}>{label}</FieldLabel>}
+        {label !== undefined && (
+          <FieldLabel htmlFor={path}>{localizedProperty(cocaCopyProps0, "label", label)}</FieldLabel>
+        )}
         {children(controlProps)}
         {hasHelp ? (
           <FieldDescription id={helpId}>{help}</FieldDescription>

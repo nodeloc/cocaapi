@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import {
   Breadcrumb,
@@ -27,11 +28,13 @@ import { useMediaQuery } from "usehooks-ts";
 import { Ellipsis } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTitle, PopoverTrigger } from "@/components/ui/popover";
+import { LanguageSwitcher } from "@/lib/i18n/LanguageSwitcher";
 import { CommandPaletteTrigger } from "@/components/CommandPalette/CommandPaletteTrigger";
 
 // Top bar for the dashboard shell. Sits only over the content column (the brand
 // lives in the sidebar header); mirrors the design's breadcrumb-left / tools-right layout.
 export function DashboardHeader({ navigationTrigger }: { navigationTrigger?: ReactNode }) {
+  useUiLocale();
   const { title } = getBreadcrumb(usePathname());
   const isDesktop = useMediaQuery("(min-width: 768px)", { initializeWithValue: false });
   const [mobileToolsOpen, setMobileToolsOpen] = useState(false);
@@ -58,12 +61,13 @@ export function DashboardHeader({ navigationTrigger }: { navigationTrigger?: Rea
           </BreadcrumbItem>
           <BreadcrumbSeparator className="max-md:hidden" />
           <BreadcrumbItem className="min-w-0">
-            <BreadcrumbPage className="truncate">{title}</BreadcrumbPage>
+            <BreadcrumbPage className="truncate">{translateMessage(title)}</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
 
       <CommandPaletteTrigger />
+      <LanguageSwitcher />
 
       <div className="flex flex-none items-center gap-1 max-md:hidden">
         {showWorkerSwitch && (
@@ -84,11 +88,17 @@ export function DashboardHeader({ navigationTrigger }: { navigationTrigger?: Rea
         <CommandPaletteTrigger mobile />
         <NotificationsBell />
         <Popover open={!isDesktop && mobileToolsOpen} onOpenChange={setMobileToolsOpen}>
-          <PopoverTrigger render={<Button variant="ghost" size="icon" className="size-11" aria-label="More options" />}>
+          <PopoverTrigger
+            render={
+              <Button variant="ghost" size="icon" className="size-11" aria-label={translateMessage("More options")} />
+            }
+          >
             <Ellipsis />
           </PopoverTrigger>
           <PopoverContent align="end" className="max-w-[calc(100vw-2rem)]">
-            <PopoverTitle>Gateway tools</PopoverTitle>
+            <PopoverTitle>
+              <LocalizedText text={"Gateway tools"} />
+            </PopoverTitle>
             <ViewSwitcher />
             {showWorkerSwitch && <WorkerDropdown onWorkerSwitch={handleWorkerSwitch} />}
             <div className="flex flex-wrap items-center gap-2">

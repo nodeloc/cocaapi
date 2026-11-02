@@ -1,4 +1,6 @@
 "use client";
+import { LocalizedText, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
+
 import { useKeys } from "@/app/(dashboard)/hooks/keys/useKeys";
 import { SimpleTooltip } from "@/components/ui/tooltip";
 import {
@@ -45,6 +47,7 @@ interface TeamVirtualKeysTableProps {
 const DEFAULT_SORTING: SortingState = [{ id: "created_at", desc: true }];
 
 export function TeamVirtualKeysTable({ teamId, teamAlias, organization }: TeamVirtualKeysTableProps) {
+  useUiLocale();
   const [selectedKey, setSelectedKey] = useState<KeyResponse | null>(null);
   const [sorting, setSorting] = useState<SortingState>(DEFAULT_SORTING);
   const [tablePagination, setTablePagination] = useState<PaginationState>({
@@ -137,8 +140,10 @@ export function TeamVirtualKeysTable({ teamId, teamAlias, organization }: TeamVi
       {
         id: "token",
         accessorKey: "token",
-        meta: { title: "Key ID" },
-        header: ({ column }) => <DataTableSortHeader column={column} title="Key ID" variant="header-cycle" />,
+        meta: markUiCopy({ title: "Key ID" }, { title: "Key ID" }),
+        header: ({ column }) => (
+          <DataTableSortHeader column={column} title={translateMessage("Key ID")} variant="header-cycle" />
+        ),
         size: 120,
         enableSorting: true,
         cell: (info) => (
@@ -148,8 +153,10 @@ export function TeamVirtualKeysTable({ teamId, teamAlias, organization }: TeamVi
       {
         id: "key_alias",
         accessorKey: "key_alias",
-        meta: { title: "Key Alias" },
-        header: ({ column }) => <DataTableSortHeader column={column} title="Key Alias" variant="header-cycle" />,
+        meta: markUiCopy({ title: "Key Alias" }, { title: "Key Alias" }),
+        header: ({ column }) => (
+          <DataTableSortHeader column={column} title={translateMessage("Key Alias")} variant="header-cycle" />
+        ),
         size: 150,
         enableSorting: true,
         cell: (info) => {
@@ -161,132 +168,159 @@ export function TeamVirtualKeysTable({ teamId, teamAlias, organization }: TeamVi
           );
         },
       },
-      {
-        id: "key_name",
-        accessorKey: "key_name",
-        header: "Secret Key",
-        size: 120,
-        enableSorting: false,
-        cell: (info) => <span className="font-mono text-xs">{info.getValue() as string}</span>,
-      },
-      {
-        id: "organization_id",
-        accessorKey: "organization_id",
-        header: "Organization ID",
-        size: 140,
-        enableSorting: false,
-        cell: (info) => {
-          const orgId = info.getValue() as string | null;
-          if (!orgId) return "-";
-          return (
-            <SimpleTooltip content={orgId}>
-              <IdentityCell title={orgId} titleClassName={ENTITY_CELL_TITLE_CLASSES} href={orgDetailHref(orgId)} />
-            </SimpleTooltip>
-          );
+      markUiCopy(
+        {
+          id: "key_name",
+          accessorKey: "key_name",
+          header: "Secret Key",
+          size: 120,
+          enableSorting: false,
+          cell: (info) => <span className="font-mono text-xs">{info.getValue() as string}</span>,
         },
-      },
-      {
-        id: "user_email",
-        accessorKey: "user",
-        header: "User Email",
-        size: 160,
-        enableSorting: false,
-        cell: (info) => {
-          const user = info.getValue() as { user_email?: string } | undefined;
-          const value = user?.user_email;
-          const userId = info.row.original.user_id;
-          return (
-            <SimpleTooltip content={value}>
-              <IdentityCell
-                title={value ?? "-"}
-                titleClassName={ENTITY_CELL_TITLE_CLASSES}
-                href={value && userId ? userDetailHref(userId) : undefined}
-              />
-            </SimpleTooltip>
-          );
+        { header: "Secret Key" },
+      ),
+      markUiCopy(
+        {
+          id: "organization_id",
+          accessorKey: "organization_id",
+          header: "Organization ID",
+          size: 140,
+          enableSorting: false,
+          cell: (info) => {
+            const orgId = info.getValue() as string | null;
+            if (!orgId) return "-";
+            return (
+              <SimpleTooltip content={orgId}>
+                <IdentityCell title={orgId} titleClassName={ENTITY_CELL_TITLE_CLASSES} href={orgDetailHref(orgId)} />
+              </SimpleTooltip>
+            );
+          },
         },
-      },
-      {
-        id: "user_id",
-        accessorKey: "user_id",
-        header: "User ID",
-        size: 70,
-        enableSorting: false,
-        cell: (info) => {
-          const userId = info.getValue() as string | null;
-          if (userId === DEFAULT_PROXY_ADMIN_USER_ID) {
-            return <DefaultProxyAdminTag userId={userId} />;
-          }
-          return (
-            <SimpleTooltip content={userId}>
-              <IdentityCell
-                title={userId ?? "-"}
-                titleClassName={ENTITY_CELL_TITLE_CLASSES}
-                href={userId ? userDetailHref(userId) : undefined}
-              />
-            </SimpleTooltip>
-          );
+        { header: "Organization ID" },
+      ),
+      markUiCopy(
+        {
+          id: "user_email",
+          accessorKey: "user",
+          header: "User Email",
+          size: 160,
+          enableSorting: false,
+          cell: (info) => {
+            const user = info.getValue() as { user_email?: string } | undefined;
+            const value = user?.user_email;
+            const userId = info.row.original.user_id;
+            return (
+              <SimpleTooltip content={value}>
+                <IdentityCell
+                  title={value ?? "-"}
+                  titleClassName={ENTITY_CELL_TITLE_CLASSES}
+                  href={value && userId ? userDetailHref(userId) : undefined}
+                />
+              </SimpleTooltip>
+            );
+          },
         },
-      },
+        { header: "User Email" },
+      ),
+      markUiCopy(
+        {
+          id: "user_id",
+          accessorKey: "user_id",
+          header: "User ID",
+          size: 70,
+          enableSorting: false,
+          cell: (info) => {
+            const userId = info.getValue() as string | null;
+            if (userId === DEFAULT_PROXY_ADMIN_USER_ID) {
+              return <DefaultProxyAdminTag userId={userId} />;
+            }
+            return (
+              <SimpleTooltip content={userId}>
+                <IdentityCell
+                  title={userId ?? "-"}
+                  titleClassName={ENTITY_CELL_TITLE_CLASSES}
+                  href={userId ? userDetailHref(userId) : undefined}
+                />
+              </SimpleTooltip>
+            );
+          },
+        },
+        { header: "User ID" },
+      ),
       {
         id: "created_at",
         accessorKey: "created_at",
-        meta: { title: "Created At" },
-        header: ({ column }) => <DataTableSortHeader column={column} title="Created At" variant="header-cycle" />,
+        meta: markUiCopy({ title: "Created At" }, { title: "Created At" }),
+        header: ({ column }) => (
+          <DataTableSortHeader column={column} title={translateMessage("Created At")} variant="header-cycle" />
+        ),
         size: 120,
         enableSorting: true,
         cell: (info) => <DateCell value={info.getValue() as string | null} precision="date" />,
       },
-      {
-        id: "created_by",
-        accessorKey: "created_by",
-        header: "Created By",
-        size: 130,
-        enableSorting: false,
-        cell: (info) => {
-          const userId = info.getValue() as string | null;
-          if (!userId) return "-";
-          const { created_by_user } = info.row.original;
-          return (
-            <UserPopoverCell
-              userAlias={created_by_user?.user_alias ?? null}
-              userEmail={created_by_user?.user_email ?? null}
-              userId={userId}
-              width={130}
-            />
-          );
+      markUiCopy(
+        {
+          id: "created_by",
+          accessorKey: "created_by",
+          header: "Created By",
+          size: 130,
+          enableSorting: false,
+          cell: (info) => {
+            const userId = info.getValue() as string | null;
+            if (!userId) return "-";
+            const { created_by_user } = info.row.original;
+            return (
+              <UserPopoverCell
+                userAlias={created_by_user?.user_alias ?? null}
+                userEmail={created_by_user?.user_email ?? null}
+                userId={userId}
+                width={130}
+              />
+            );
+          },
         },
-      },
+        { header: "Created By" },
+      ),
       {
         id: "updated_at",
         accessorKey: "updated_at",
-        meta: { title: "Updated At" },
-        header: ({ column }) => <DataTableSortHeader column={column} title="Updated At" variant="header-cycle" />,
+        meta: markUiCopy({ title: "Updated At" }, { title: "Updated At" }),
+        header: ({ column }) => (
+          <DataTableSortHeader column={column} title={translateMessage("Updated At")} variant="header-cycle" />
+        ),
         size: 120,
         enableSorting: true,
         cell: (info) => <DateCell value={info.getValue() as string | null} precision="date" fallback="Never" />,
       },
-      {
-        id: "last_active",
-        accessorKey: "last_active",
-        header: "Last Active",
-        size: 130,
-        enableSorting: false,
-        cell: (info) => <DateCell value={info.getValue() as string | null} precision="date" fallback="Unknown" />,
-      },
-      {
-        id: "expires",
-        accessorKey: "expires",
-        header: "Expires",
-        size: 120,
-        enableSorting: false,
-        cell: (info) => <DateCell value={info.getValue() as string | null} precision="date" fallback="Never" />,
-      },
+      markUiCopy(
+        {
+          id: "last_active",
+          accessorKey: "last_active",
+          header: "Last Active",
+          size: 130,
+          enableSorting: false,
+          cell: (info) => <DateCell value={info.getValue() as string | null} precision="date" fallback="Unknown" />,
+        },
+        { header: "Last Active" },
+      ),
+      markUiCopy(
+        {
+          id: "expires",
+          accessorKey: "expires",
+          header: "Expires",
+          size: 120,
+          enableSorting: false,
+          cell: (info) => <DateCell value={info.getValue() as string | null} precision="date" fallback="Never" />,
+        },
+        { header: "Expires" },
+      ),
       {
         id: "spend",
         accessorKey: "spend",
-        meta: { title: "Spend (USD)", numeric: true },
-        header: ({ column }) => <DataTableSortHeader column={column} title="Spend (USD)" variant="header-cycle" />,
+        meta: markUiCopy({ title: "Spend (USD)", numeric: true }, { title: "Spend (USD)" }),
+        header: ({ column }) => (
+          <DataTableSortHeader column={column} title={translateMessage("Spend (USD)")} variant="header-cycle" />
+        ),
         size: 100,
         enableSorting: true,
         cell: (info) => <MoneyCell value={info.getValue() as number | null} decimals={4} />,
@@ -294,131 +328,160 @@ export function TeamVirtualKeysTable({ teamId, teamAlias, organization }: TeamVi
       {
         id: "max_budget",
         accessorKey: "max_budget",
-        meta: { title: "Budget (USD)", numeric: true },
-        header: ({ column }) => <DataTableSortHeader column={column} title="Budget (USD)" variant="header-cycle" />,
+        meta: markUiCopy({ title: "Budget (USD)", numeric: true }, { title: "Budget (USD)" }),
+        header: ({ column }) => (
+          <DataTableSortHeader column={column} title={translateMessage("Budget (USD)")} variant="header-cycle" />
+        ),
         size: 110,
         enableSorting: true,
         cell: (info) => (
-          <MoneyCell value={info.getValue() as number | null} decimals={0} emptyText="Unlimited" showZero />
+          <MoneyCell
+            value={info.getValue() as number | null}
+            decimals={0}
+            emptyText={translateMessage("Unlimited")}
+            showZero
+          />
         ),
       },
-      {
-        id: "budget_reset_at",
-        accessorKey: "budget_reset_at",
-        header: "Budget Reset",
-        size: 130,
-        enableSorting: false,
-        cell: (info) => <DateCell value={info.getValue() as string | null} fallback="Never" />,
-      },
-      {
-        id: "models",
-        accessorKey: "models",
-        header: "Models",
-        size: 200,
-        enableSorting: false,
-        cell: (info) => {
-          const models = info.getValue() as string[];
-          const scope = deriveKeyModelScope(info.row.original.allowed_routes, info.row.original.key_type);
-          const emptyModelsBadge = !scope.hasModelAccess ? (
-            <SimpleTooltip content={`Scoped to ${scope.label} routes; this key cannot call any models`}>
-              <Badge variant="secondary" className="mb-1">
-                No model access
+      markUiCopy(
+        {
+          id: "budget_reset_at",
+          accessorKey: "budget_reset_at",
+          header: "Budget Reset",
+          size: 130,
+          enableSorting: false,
+          cell: (info) => <DateCell value={info.getValue() as string | null} fallback="Never" />,
+        },
+        { header: "Budget Reset" },
+      ),
+      markUiCopy(
+        {
+          id: "models",
+          accessorKey: "models",
+          header: "Models",
+          size: 200,
+          enableSorting: false,
+          cell: (info) => {
+            const models = info.getValue() as string[];
+            const scope = deriveKeyModelScope(info.row.original.allowed_routes, info.row.original.key_type);
+            const emptyModelsBadge = !scope.hasModelAccess ? (
+              <SimpleTooltip content={`Scoped to ${scope.label} routes; this key cannot call any models`}>
+                <Badge variant="secondary" className="mb-1">
+                  <LocalizedText text={"No model access"} />
+                </Badge>
+              </SimpleTooltip>
+            ) : (
+              <Badge variant="destructive" className="mb-1">
+                <LocalizedText text={"All Proxy Models"} />
               </Badge>
-            </SimpleTooltip>
-          ) : (
-            <Badge variant="destructive" className="mb-1">
-              All Proxy Models
-            </Badge>
-          );
-          return (
-            <div className="flex flex-col py-2">
-              {Array.isArray(models) ? (
-                <div className="flex flex-col">
-                  {models.length === 0 ? (
-                    emptyModelsBadge
-                  ) : (
-                    <>
-                      <div className="flex items-start">
-                        {models.length > 3 && (
-                          <button
-                            type="button"
-                            aria-label={expandedAccordions[info.row.id] ? "Collapse models" : "Expand models"}
-                            className="rounded-sm text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                            onClick={() =>
-                              setExpandedAccordions((prev) => ({
-                                ...prev,
-                                [info.row.id]: !prev[info.row.id],
-                              }))
-                            }
-                          >
-                            {expandedAccordions[info.row.id] ? (
-                              <ChevronDown className="size-4" />
-                            ) : (
-                              <ChevronRight className="size-4" />
-                            )}
-                          </button>
-                        )}
-                        <div className="flex flex-wrap gap-1">
-                          {models.slice(0, 3).map((model, index) =>
-                            model === "all-proxy-models" ? (
-                              <Badge key={index} variant="destructive">
-                                All Proxy Models
-                              </Badge>
-                            ) : (
-                              <Badge key={index}>
-                                {model.length > 30
-                                  ? `${getModelDisplayName(model).slice(0, 30)}...`
-                                  : getModelDisplayName(model)}
-                              </Badge>
-                            ),
-                          )}
-                          {models.length > 3 && !expandedAccordions[info.row.id] && (
-                            <Badge variant="secondary">
-                              +{models.length - 3} {models.length - 3 === 1 ? "more model" : "more models"}
-                            </Badge>
-                          )}
-                          {expandedAccordions[info.row.id] && (
-                            <div className="flex flex-wrap gap-1">
-                              {models.slice(3).map((model, index) =>
-                                model === "all-proxy-models" ? (
-                                  <Badge key={index + 3} variant="destructive">
-                                    All Proxy Models
-                                  </Badge>
-                                ) : (
-                                  <Badge key={index + 3}>
-                                    {model.length > 30
-                                      ? `${getModelDisplayName(model).slice(0, 30)}...`
-                                      : getModelDisplayName(model)}
-                                  </Badge>
-                                ),
+            );
+            return (
+              <div className="flex flex-col py-2">
+                {Array.isArray(models) ? (
+                  <div className="flex flex-col">
+                    {models.length === 0 ? (
+                      emptyModelsBadge
+                    ) : (
+                      <>
+                        <div className="flex items-start">
+                          {models.length > 3 && (
+                            <button
+                              type="button"
+                              aria-label={
+                                expandedAccordions[info.row.id]
+                                  ? translateMessage("Collapse models")
+                                  : translateMessage("Expand models")
+                              }
+                              className="rounded-sm text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                              onClick={() =>
+                                setExpandedAccordions((prev) => ({
+                                  ...prev,
+                                  [info.row.id]: !prev[info.row.id],
+                                }))
+                              }
+                            >
+                              {expandedAccordions[info.row.id] ? (
+                                <ChevronDown className="size-4" />
+                              ) : (
+                                <ChevronRight className="size-4" />
                               )}
-                            </div>
+                            </button>
                           )}
+                          <div className="flex flex-wrap gap-1">
+                            {models.slice(0, 3).map((model, index) =>
+                              model === "all-proxy-models" ? (
+                                <Badge key={index} variant="destructive">
+                                  <LocalizedText text={"All Proxy Models"} />
+                                </Badge>
+                              ) : (
+                                <Badge key={index}>
+                                  {model.length > 30
+                                    ? `${getModelDisplayName(model).slice(0, 30)}...`
+                                    : getModelDisplayName(model)}
+                                </Badge>
+                              ),
+                            )}
+                            {models.length > 3 && !expandedAccordions[info.row.id] && (
+                              <Badge variant="secondary">
+                                +{models.length - 3}{" "}
+                                {models.length - 3 === 1
+                                  ? translateMessage("more model")
+                                  : translateMessage("more models")}
+                              </Badge>
+                            )}
+                            {expandedAccordions[info.row.id] && (
+                              <div className="flex flex-wrap gap-1">
+                                {models.slice(3).map((model, index) =>
+                                  model === "all-proxy-models" ? (
+                                    <Badge key={index + 3} variant="destructive">
+                                      <LocalizedText text={"All Proxy Models"} />
+                                    </Badge>
+                                  ) : (
+                                    <Badge key={index + 3}>
+                                      {model.length > 30
+                                        ? `${getModelDisplayName(model).slice(0, 30)}...`
+                                        : getModelDisplayName(model)}
+                                    </Badge>
+                                  ),
+                                )}
+                              </div>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    </>
-                  )}
+                      </>
+                    )}
+                  </div>
+                ) : null}
+              </div>
+            );
+          },
+        },
+        { header: "Models" },
+      ),
+      markUiCopy(
+        {
+          id: "rate_limits",
+          header: "Rate Limits",
+          size: 140,
+          enableSorting: false,
+          cell: ({ row }) => {
+            const key = row.original;
+            return (
+              <div>
+                <div>
+                  <LocalizedText text={"TPM: "} />
+                  {key.tpm_limit !== null ? key.tpm_limit : translateMessage("Unlimited")}
                 </div>
-              ) : null}
-            </div>
-          );
+                <div>
+                  <LocalizedText text={"RPM: "} />
+                  {key.rpm_limit !== null ? key.rpm_limit : translateMessage("Unlimited")}
+                </div>
+              </div>
+            );
+          },
         },
-      },
-      {
-        id: "rate_limits",
-        header: "Rate Limits",
-        size: 140,
-        enableSorting: false,
-        cell: ({ row }) => {
-          const key = row.original;
-          return (
-            <div>
-              <div>TPM: {key.tpm_limit !== null ? key.tpm_limit : "Unlimited"}</div>
-              <div>RPM: {key.rpm_limit !== null ? key.rpm_limit : "Unlimited"}</div>
-            </div>
-          );
-        },
-      },
+        { header: "Rate Limits" },
+      ),
     ],
     [expandedAccordions],
   );
@@ -456,7 +519,7 @@ export function TeamVirtualKeysTable({ teamId, teamAlias, organization }: TeamVi
             enableColumnResizing
             columnResizeMode="onChange"
             isLoading={isLoading || isFetching}
-            loadingMessage="Loading keys..."
+            loadingMessage={translateMessage("Loading keys...")}
             size="compact"
             toolbar={(table) => (
               <>
@@ -464,7 +527,7 @@ export function TeamVirtualKeysTable({ teamId, teamAlias, organization }: TeamVi
                   table={table}
                   searchValue={searchInput}
                   onSearchChange={handleSearchChange}
-                  searchPlaceholder="Search by key alias or ID…"
+                  searchPlaceholder={translateMessage("Search by key alias or ID…")}
                   onRefresh={() => refetch?.()}
                   isRefreshing={isFetching}
                   onOpenFilters={() => setFiltersOpen(true)}
@@ -474,23 +537,23 @@ export function TeamVirtualKeysTable({ teamId, teamAlias, organization }: TeamVi
                   table={table}
                   open={filtersOpen}
                   onOpenChange={setFiltersOpen}
-                  title="Filters"
-                  description={`Narrow down keys for ${teamAlias ?? "this team"}`}
+                  title={translateMessage("Filters")}
+                  description={translateMessage("Narrow down keys for %{0}", [teamAlias ?? "this team"])}
                 >
                   {({ get, set }) => (
                     <>
-                      <DataTableFilterField label="User ID">
+                      <DataTableFilterField label={translateMessage("User ID")}>
                         <Input
                           value={(get("user_id") as string) ?? ""}
                           onChange={(event) => set("user_id", event.target.value)}
-                          placeholder="Filter by user ID…"
+                          placeholder={translateMessage("Filter by user ID…")}
                         />
                       </DataTableFilterField>
-                      <DataTableFilterField label="Key ID">
+                      <DataTableFilterField label={translateMessage("Key ID")}>
                         <Input
                           value={(get("key_hash") as string) ?? ""}
                           onChange={(event) => set("key_hash", event.target.value)}
-                          placeholder="Enter Key ID…"
+                          placeholder={translateMessage("Enter Key ID…")}
                         />
                       </DataTableFilterField>
                     </>

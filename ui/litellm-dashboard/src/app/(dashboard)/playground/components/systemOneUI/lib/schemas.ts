@@ -1,3 +1,4 @@
+import { markUiCopy } from "@/lib/i18n";
 import { z } from "zod";
 
 export type DecisionEndpoint = "/v1/systemone" | "/typesafe/v1/systemone";
@@ -19,9 +20,15 @@ const decisionQuestionSchema = z.discriminatedUnion("type", [
       instructions: decisionInstructions,
       criteria: z.partialRecord(z.enum(["true", "false"]), decisionsJson.nullable()).nullish(),
     })
-    .refine((value) => value.instructions != null || value.criteria != null, {
-      message: "A yes / no question requires instructions or criteria.",
-    }),
+    .refine(
+      (value) => value.instructions != null || value.criteria != null,
+      markUiCopy(
+        {
+          message: "A yes / no question requires instructions or criteria.",
+        },
+        { message: "A yes / no question requires instructions or criteria." },
+      ),
+    ),
   z.looseObject({
     type: z.literal("score"),
     instructions: decisionInstructions,
@@ -92,10 +99,13 @@ const scoreQuestionSchema = z.looseObject({
     .min(2, "Score criteria must contain at least 2 levels."),
 });
 
-const QUESTION_ERROR_MESSAGES: Partial<Record<z.core.$ZodIssue["code"], string>> = {
-  invalid_union: "Question type must be choice, noul, or score.",
-  invalid_type: "Question must be an object.",
-};
+const QUESTION_ERROR_MESSAGES: Partial<Record<z.core.$ZodIssue["code"], string>> = markUiCopy(
+  {
+    invalid_union: "Question type must be choice, noul, or score.",
+    invalid_type: "Question must be an object.",
+  },
+  { invalid_union: "Question type must be choice, noul, or score.", invalid_type: "Question must be an object." },
+);
 
 const questionSchema = z.discriminatedUnion("type", [choiceQuestionSchema, noulQuestionSchema, scoreQuestionSchema], {
   error: (iss) => QUESTION_ERROR_MESSAGES[iss.code],

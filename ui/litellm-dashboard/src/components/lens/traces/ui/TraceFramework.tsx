@@ -1,3 +1,5 @@
+"use client";
+import { localizedProperty, markUiCopy, useUiLocale } from "@/lib/i18n";
 import anthropicLogo from "../../../../../public/assets/logos/anthropic.svg";
 import crewaiLogo from "../../../../../public/assets/logos/crewai-color.svg";
 import cursorLogo from "../../../../../public/assets/logos/cursor.svg";
@@ -28,33 +30,41 @@ export interface TraceFramework {
  * registry runs most-specific first: an agent framework beats the model SDK it wraps.
  */
 const FRAMEWORKS: readonly TraceFramework[] = [
-  { id: "claude-agent-sdk", label: "Claude Agent SDK", logo: anthropicLogo.src },
-  { id: "claude-code", label: "Claude Code", logo: anthropicLogo.src },
-  { id: "openai-codex", label: "Codex", logo: openaiLogo.src },
-  { id: "cursor", label: "Cursor", logo: cursorLogo.src },
-  { id: "copilot", label: "GitHub Copilot", logo: copilotLogo.src },
-  { id: "deepagents", label: "Deep Agents", logo: langchainLogo.src },
-  { id: "langgraph", label: "LangGraph", logo: langgraphLogo.src },
-  { id: "langchain", label: "LangChain", logo: langchainLogo.src },
-  { id: "langchain_create_agent", label: "LangChain", logo: langchainLogo.src },
-  { id: "langchain_chat_model", label: "LangChain", logo: langchainLogo.src },
-  { id: "crewai", label: "CrewAI", logo: crewaiLogo.src },
-  { id: "google-adk", label: "Google ADK", logo: googleAdkLogo.src },
-  { id: "llama-index", label: "LlamaIndex", logo: llamaIndexLogo.src },
-  { id: "openai-agents", label: "OpenAI Agents", logo: openaiAgentsLogo.src },
-  { id: "pydantic-ai", label: "Pydantic AI", logo: pydanticAiLogo.src },
-  { id: "strands", label: "Strands", logo: strandsLogo.src },
-  { id: "vercel-ai-sdk", label: "Vercel AI SDK", logo: vercelLogo.src },
-  { id: "openai", label: "OpenAI SDK", logo: openaiLogo.src },
+  markUiCopy(
+    { id: "claude-agent-sdk", label: "Claude Agent SDK", logo: anthropicLogo.src },
+    { label: "Claude Agent SDK" },
+  ),
+  markUiCopy({ id: "claude-code", label: "Claude Code", logo: anthropicLogo.src }, { label: "Claude Code" }),
+  markUiCopy({ id: "openai-codex", label: "Codex", logo: openaiLogo.src }, { label: "Codex" }),
+  markUiCopy({ id: "cursor", label: "Cursor", logo: cursorLogo.src }, { label: "Cursor" }),
+  markUiCopy({ id: "copilot", label: "GitHub Copilot", logo: copilotLogo.src }, { label: "GitHub Copilot" }),
+  markUiCopy({ id: "deepagents", label: "Deep Agents", logo: langchainLogo.src }, { label: "Deep Agents" }),
+  markUiCopy({ id: "langgraph", label: "LangGraph", logo: langgraphLogo.src }, { label: "LangGraph" }),
+  markUiCopy({ id: "langchain", label: "LangChain", logo: langchainLogo.src }, { label: "LangChain" }),
+  markUiCopy({ id: "langchain_create_agent", label: "LangChain", logo: langchainLogo.src }, { label: "LangChain" }),
+  markUiCopy({ id: "langchain_chat_model", label: "LangChain", logo: langchainLogo.src }, { label: "LangChain" }),
+  markUiCopy({ id: "crewai", label: "CrewAI", logo: crewaiLogo.src }, { label: "CrewAI" }),
+  markUiCopy({ id: "google-adk", label: "Google ADK", logo: googleAdkLogo.src }, { label: "Google ADK" }),
+  markUiCopy({ id: "llama-index", label: "LlamaIndex", logo: llamaIndexLogo.src }, { label: "LlamaIndex" }),
+  markUiCopy({ id: "openai-agents", label: "OpenAI Agents", logo: openaiAgentsLogo.src }, { label: "OpenAI Agents" }),
+  markUiCopy({ id: "pydantic-ai", label: "Pydantic AI", logo: pydanticAiLogo.src }, { label: "Pydantic AI" }),
+  markUiCopy({ id: "strands", label: "Strands", logo: strandsLogo.src }, { label: "Strands" }),
+  markUiCopy({ id: "vercel-ai-sdk", label: "Vercel AI SDK", logo: vercelLogo.src }, { label: "Vercel AI SDK" }),
+  markUiCopy({ id: "openai", label: "OpenAI SDK", logo: openaiLogo.src }, { label: "OpenAI SDK" }),
 ];
 
 export const traceFramework = (summary: Pick<TraceSummary, "frameworks">): TraceFramework | null =>
   FRAMEWORKS.find((framework) => summary.frameworks?.includes(framework.id)) ?? null;
 
 export function FrameworkLogo({ framework, className }: { framework: TraceFramework; className?: string }) {
+  useUiLocale();
   return (
     <span aria-hidden className="contents">
-      <Logo src={framework.logo} label={framework.label} className={cn("size-3.5 shrink-0", className)} />
+      <Logo
+        src={framework.logo}
+        label={localizedProperty(framework, "label", framework.label)}
+        className={cn("size-3.5 shrink-0", className)}
+      />
     </span>
   );
 }

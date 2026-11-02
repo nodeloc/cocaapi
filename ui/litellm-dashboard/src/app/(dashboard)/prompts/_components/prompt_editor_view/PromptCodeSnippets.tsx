@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import React, { useState } from "react";
 import { CodeIcon, CopyIcon } from "lucide-react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
@@ -10,9 +12,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const LANGUAGE_ITEMS = [
-  { value: "curl", label: "cURL" },
-  { value: "python", label: "Python (OpenAI SDK)" },
-  { value: "javascript", label: "JavaScript (OpenAI SDK)" },
+  markUiCopy({ value: "curl", label: "cURL" }, { label: "cURL" }),
+  markUiCopy({ value: "python", label: "Python (OpenAI SDK)" }, { label: "Python (OpenAI SDK)" }),
+  markUiCopy({ value: "javascript", label: "JavaScript (OpenAI SDK)" }, { label: "JavaScript (OpenAI SDK)" }),
 ] as const;
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -38,6 +40,7 @@ const PromptCodeSnippets: React.FC<PromptCodeSnippetsProps> = ({
   environment,
   proxySettings,
 }) => {
+  useUiLocale();
   const syntaxTheme = useSyntaxTheme(coy);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState<"curl" | "python" | "javascript">("curl");
@@ -252,18 +255,20 @@ main();`;
     <>
       <Button variant="outline" onClick={showModal}>
         <CodeIcon />
-        Get Code
+        <LocalizedText text={"Get Code"} />
       </Button>
 
       <Dialog open={isModalVisible} onOpenChange={(open) => !open && handleCancel()}>
         <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-3xl">
           <DialogHeader>
-            <DialogTitle>Generated Code</DialogTitle>
+            <DialogTitle>
+              <LocalizedText text={"Generated Code"} />
+            </DialogTitle>
           </DialogHeader>
           <div className="flex justify-between items-center mb-4">
             <div>
               <label htmlFor="prompt-code-language" className="font-medium block mb-1 text-foreground">
-                Language
+                <LocalizedText text={"Language"} />
               </label>
               <Select
                 items={LANGUAGE_ITEMS}
@@ -276,7 +281,7 @@ main();`;
                 <SelectContent>
                   {LANGUAGE_ITEMS.map((item) => (
                     <SelectItem key={item.value} value={item.value}>
-                      {item.label}
+                      {localizedProperty(item, "label", item.label)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -286,19 +291,25 @@ main();`;
               variant="outline"
               onClick={() => {
                 navigator.clipboard.writeText(generatedCode);
-                toast.success("Copied to clipboard!");
+                toast.success(translateMessage("Copied to clipboard!"));
               }}
             >
               <CopyIcon />
-              Copy to Clipboard
+              <LocalizedText text={"Copy to Clipboard"} />
             </Button>
           </div>
 
           <Tabs value={selectedTab} onValueChange={(value) => setSelectedTab(String(value))}>
-            <TabsList aria-label="Generated code type">
-              <TabsTrigger value="basic">Basic</TabsTrigger>
-              <TabsTrigger value="messages">With Messages</TabsTrigger>
-              <TabsTrigger value="version">With Version</TabsTrigger>
+            <TabsList aria-label={translateMessage("Generated code type")}>
+              <TabsTrigger value="basic">
+                <LocalizedText text={"Basic"} />
+              </TabsTrigger>
+              <TabsTrigger value="messages">
+                <LocalizedText text={"With Messages"} />
+              </TabsTrigger>
+              <TabsTrigger value="version">
+                <LocalizedText text={"With Version"} />
+              </TabsTrigger>
             </TabsList>
           </Tabs>
 

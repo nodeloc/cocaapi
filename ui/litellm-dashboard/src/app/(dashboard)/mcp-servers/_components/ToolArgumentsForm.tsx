@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import React from "react";
 import { useForm, type Control } from "react-hook-form";
 import { CircleHelp } from "lucide-react";
@@ -27,15 +29,15 @@ const argumentLabel = (field: ToolArgumentField): React.ReactNode => (
     {field.prop.description && (
       <Tooltip>
         <TooltipTrigger render={<CircleHelp className="ml-2 size-3.5 shrink-0 cursor-help text-muted-foreground" />} />
-        <TooltipContent>{field.prop.description}</TooltipContent>
+        <TooltipContent>{localizedProperty(field.prop, "description")}</TooltipContent>
       </Tooltip>
     )}
   </span>
 );
 
 const BOOLEAN_ITEMS = [
-  { value: true, label: "True" },
-  { value: false, label: "False" },
+  markUiCopy({ value: true, label: "True" }, { label: "True" }),
+  markUiCopy({ value: false, label: "False" }, { label: "False" }),
 ];
 
 const booleanTitle = (value: unknown): string | undefined => {
@@ -49,6 +51,7 @@ const JsonArgumentControl: React.FC<{
   prop: InputSchemaProperty;
   control: FormFieldControlProps<ToolArgumentsFormValues, `args.${number}`>;
 }> = ({ field, prop, control }) => {
+  useUiLocale();
   const isObject = prop.type === "object";
   const fallbackPlaceholder = isObject ? `Enter JSON object for ${field.key}` : `Enter JSON array for ${field.key}`;
   return (
@@ -57,13 +60,13 @@ const JsonArgumentControl: React.FC<{
         {...control}
         rows={isObject ? 6 : 4}
         value={(control.value as string) ?? ""}
-        placeholder={prop.description || fallbackPlaceholder}
+        placeholder={localizedProperty(prop, "description", prop.description) || fallbackPlaceholder}
         spellCheck={false}
         data-testid={`textarea-${field.key}`}
         className="rounded-lg font-mono"
       />
       <p className="text-xs text-muted-foreground">
-        {isObject ? "Provide a valid JSON object." : "Provide a valid JSON array."}
+        {isObject ? translateMessage("Provide a valid JSON object.") : translateMessage("Provide a valid JSON array.")}
       </p>
     </div>
   );
@@ -73,6 +76,7 @@ const ToolArgumentControl: React.FC<{
   field: ToolArgumentField;
   control: FormFieldControlProps<ToolArgumentsFormValues, `args.${number}`>;
 }> = ({ field, control }) => {
+  useUiLocale();
   const prop = resolveSchemaProperty(field.prop);
 
   if (prop.type === "string" && prop.enum) {
@@ -84,11 +88,12 @@ const ToolArgumentControl: React.FC<{
         className="w-full rounded-lg border border-input bg-transparent px-3 py-2 text-sm shadow-xs transition-colors focus:border-ring focus:ring-3 focus:ring-ring/50 focus:outline-hidden"
       >
         <option value={-1} disabled={field.required}>
-          Select {field.key}
+          <LocalizedText text={"Select "} />
+          {field.key}
         </option>
         {prop.enum.map((option, index) => (
           <option key={option} value={index}>
-            {option === "" ? "Empty string" : option}
+            {option === "" ? translateMessage("Empty string") : option}
           </option>
         ))}
       </select>
@@ -102,7 +107,9 @@ const ToolArgumentControl: React.FC<{
         type="number"
         step={prop.type === "integer" ? 1 : "any"}
         value={(control.value as number | string) ?? ""}
-        placeholder={prop.description || `Enter ${field.key}`}
+        placeholder={
+          localizedProperty(prop, "description", prop.description) || translateMessage("Enter %{0}", [field.key])
+        }
         className="rounded-lg"
       />
     );
@@ -121,12 +128,21 @@ const ToolArgumentControl: React.FC<{
           title={booleanTitle(control.value)}
           className="w-full"
         >
-          <SelectValue placeholder={`Select ${field.key}`} />
+          <SelectValue placeholder={translateMessage("Select %{0}", [field.key])} />
         </SelectTrigger>
         <SelectContent>
-          {!field.required && <SelectItem value={null}>Select {field.key}</SelectItem>}
-          <SelectItem value={true}>True</SelectItem>
-          <SelectItem value={false}>False</SelectItem>
+          {!field.required && (
+            <SelectItem value={null}>
+              <LocalizedText text={"Select "} />
+              {field.key}
+            </SelectItem>
+          )}
+          <SelectItem value={true}>
+            <LocalizedText text={"True"} />
+          </SelectItem>
+          <SelectItem value={false}>
+            <LocalizedText text={"False"} />
+          </SelectItem>
         </SelectContent>
       </Select>
     );
@@ -140,7 +156,9 @@ const ToolArgumentControl: React.FC<{
     <Input
       {...control}
       value={(control.value as string) ?? ""}
-      placeholder={prop.description || `Enter ${field.key}`}
+      placeholder={
+        localizedProperty(prop, "description", prop.description) || translateMessage("Enter %{0}", [field.key])
+      }
       className="rounded-lg"
     />
   );
@@ -151,6 +169,7 @@ const ToolArgumentFields: React.FC<{
   control: Control<ToolArgumentsFormValues>;
   singleInputFallback: boolean;
 }> = ({ fields, control, singleInputFallback }) => {
+  useUiLocale();
   if (singleInputFallback) {
     return (
       <FieldGroup>
@@ -159,7 +178,8 @@ const ToolArgumentFields: React.FC<{
           name="args.0"
           label={
             <span>
-              Input <span className="text-destructive">*</span>
+              <LocalizedText text={"Input "} />
+              <span className="text-destructive">*</span>
             </span>
           }
         >
@@ -167,7 +187,7 @@ const ToolArgumentFields: React.FC<{
             <Input
               {...field}
               value={(field.value as string) ?? ""}
-              placeholder="Enter input for this tool"
+              placeholder={translateMessage("Enter input for this tool")}
               className="rounded-lg"
             />
           )}
@@ -180,8 +200,12 @@ const ToolArgumentFields: React.FC<{
     return (
       <div className="rounded-lg border border-border bg-muted py-6 text-center">
         <div className="mx-auto max-w-sm">
-          <h4 className="mb-1 text-sm font-medium text-foreground">No Parameters Required</h4>
-          <p className="text-xs text-muted-foreground">This tool can be called without any input parameters.</p>
+          <h4 className="mb-1 text-sm font-medium text-foreground">
+            <LocalizedText text={"No Parameters Required"} />
+          </h4>
+          <p className="text-xs text-muted-foreground">
+            <LocalizedText text={"This tool can be called without any input parameters."} />
+          </p>
         </div>
       </div>
     );
@@ -215,6 +239,7 @@ export const ToolArgumentsForm: React.FC<{
   hasRun: boolean;
   onRun: (args: Record<string, unknown>) => void;
 }> = ({ fields, singleInputFallback, isLoading, hasRun, onRun }) => {
+  useUiLocale();
   const form = useForm<ToolArgumentsFormValues>({
     defaultValues: { args: initialArgumentValues(fields) },
     resolver: toolArgumentsResolver(fields),

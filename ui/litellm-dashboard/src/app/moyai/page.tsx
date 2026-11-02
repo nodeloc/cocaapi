@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, useUiLocale } from "@/lib/i18n";
 
 import { Suspense, useEffect, useMemo, useSyncExternalStore } from "react";
 import useAuthorized from "@/app/(dashboard)/hooks/useAuthorized";
@@ -13,6 +14,7 @@ import { isProxyAdminRole } from "@/utils/roles";
 import { uiHref } from "@/utils/uiHref";
 
 function MoyaiPageContent() {
+  useUiLocale();
   const { accessToken, userRole } = useAuthorized();
   const { data: uiSettings, isLoading, refetch } = useUISettings();
 
@@ -67,9 +69,12 @@ function MoyaiPageContent() {
     } else if (moyaiUrl) {
       content = (
         <div className="flex min-h-[calc(100vh-3.5rem)] flex-col items-center justify-center gap-3 bg-[#04060c] px-6 text-center text-[#e3e3e3]">
-          <p className="m-0 text-lg font-medium text-white">Opening Moyai</p>
+          <p className="m-0 text-lg font-medium text-white">
+            <LocalizedText text={"Opening Moyai"} />
+          </p>
           <a href={moyaiUrl} className="text-sm text-[#8b9bff] underline underline-offset-4">
-            Continue to {moyaiUrl}
+            <LocalizedText text={"Continue to "} />
+            {moyaiUrl}
           </a>
         </div>
       );
@@ -91,6 +96,7 @@ function MoyaiPageContent() {
 }
 
 export default function MoyaiPage() {
+  useUiLocale();
   return (
     <Suspense>
       <MoyaiPageContent />

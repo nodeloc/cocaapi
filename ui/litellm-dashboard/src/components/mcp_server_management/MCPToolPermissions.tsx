@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import React, { useEffect, useRef, useState, useMemo } from "react";
 import { listMCPTools } from "../networking";
 import { MCPTool } from "../mcp_tools/types";
@@ -45,7 +47,10 @@ const inheritedBadgeFor = (source: McpGrantSource): InheritedBadge | null => {
     case "toolset":
       return { label: `Via toolset: ${source.name}`, className: "text-purple-700 bg-purple-50 border-purple-200" };
     case "toolPermission":
-      return { label: "Via tool permissions", className: "text-amber-700 bg-amber-50 border-amber-200" };
+      return markUiCopy(
+        { label: "Via tool permissions", className: "text-amber-700 bg-amber-50 border-amber-200" },
+        { label: "Via tool permissions" },
+      );
   }
 };
 
@@ -58,6 +63,7 @@ const MCPToolPermissions: React.FC<MCPToolPermissionsProps> = ({
   onChange,
   disabled = false,
 }) => {
+  useUiLocale();
   const {
     data: allServers = [],
     isError: serversFailed,
@@ -187,10 +193,15 @@ const MCPToolPermissions: React.FC<MCPToolPermissionsProps> = ({
     <div className="space-y-4">
       {serversFailed && (
         <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-          <p className="text-sm text-yellow-800 font-medium">Unable to load MCP servers</p>
+          <p className="text-sm text-yellow-800 font-medium">
+            <LocalizedText text={"Unable to load MCP servers"} />
+          </p>
           <p className="text-sm text-yellow-700 mt-1">
-            This list is incomplete; servers granted directly or through an access group may be missing. Reload before
-            changing tool permissions
+            <LocalizedText
+              text={
+                "This list is incomplete; servers granted directly or through an access group may be missing. Reload before changing tool permissions"
+              }
+            />
           </p>
         </div>
       )}
@@ -199,19 +210,32 @@ const MCPToolPermissions: React.FC<MCPToolPermissionsProps> = ({
         accessGroupsLoaded &&
         emptyMcpAccessGroups(allServers, populatedAccessGroups, selectedAccessGroups).map((group) => (
           <div key={group} className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <p className="text-sm text-yellow-800 font-medium">Access group &quot;{group}&quot; has 0 servers</p>
+            <p className="text-sm text-yellow-800 font-medium">
+              <LocalizedText text={'Access group "'} />
+              {group}
+              <LocalizedText text={'" has 0 servers'} />
+            </p>
             <p className="text-sm text-yellow-700 mt-1">
-              No MCP server lists this group, so it grants nothing. A server defined in config.yaml joins a group
-              through its <code>access_groups</code> key; <code>mcp_access_groups</code> is ignored there
+              <LocalizedText
+                text={
+                  "No MCP server lists this group, so it grants nothing. A server defined in config.yaml joins a group through its "
+                }
+              />
+              <code>access_groups</code>
+              <LocalizedText text={" key; "} />
+              <code>mcp_access_groups</code>
+              <LocalizedText text={" is ignored there"} />
             </p>
           </div>
         ))}
 
       {toolsetsFailed && selectedToolsets.length > 0 && (
         <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-          <p className="text-sm text-yellow-800 font-medium">Unable to load toolsets</p>
+          <p className="text-sm text-yellow-800 font-medium">
+            <LocalizedText text={"Unable to load toolsets"} />
+          </p>
           <p className="text-sm text-yellow-700 mt-1">
-            Servers reached through the selected toolsets are not listed below
+            <LocalizedText text={"Servers reached through the selected toolsets are not listed below"} />
           </p>
         </div>
       )}
@@ -219,7 +243,9 @@ const MCPToolPermissions: React.FC<MCPToolPermissionsProps> = ({
       {serversLoading && (
         <div className="flex items-center justify-center py-6">
           <UiLoadingSpinner />
-          <p className="ml-3 text-sm text-muted-foreground">Loading MCP servers...</p>
+          <p className="ml-3 text-sm text-muted-foreground">
+            <LocalizedText text={"Loading MCP servers..."} />
+          </p>
         </div>
       )}
 
@@ -249,26 +275,39 @@ const MCPToolPermissions: React.FC<MCPToolPermissionsProps> = ({
                     <span
                       className={`px-1.5 py-0.5 text-[10px] font-semibold border rounded-sm uppercase tracking-wide ${inherited.className}`}
                     >
-                      {inherited.label}
+                      {localizedProperty(inherited, "label", inherited.label)}
                     </span>
                   )}
                 </div>
-                {server.description && <p className="text-sm text-muted-foreground">{server.description}</p>}
+                {server.description && (
+                  <p className="text-sm text-muted-foreground">
+                    {localizedProperty(server, "description", server.description)}
+                  </p>
+                )}
                 {grantsAll && (
                   <p className="text-sm text-muted-foreground mt-1">
-                    All tools allowed, including tools added to this server later
+                    <LocalizedText text={"All tools allowed, including tools added to this server later"} />
                   </p>
                 )}
                 {entry.ambiguousKeys.length > 0 && (
                   <p className="text-sm text-amber-700 mt-1">
-                    {`Also granted by ${entry.ambiguousKeys.map((key) => `"${key}"`).join(", ")}, which names another server too. Those tools stay allowed here until the servers no longer share that name`}
+                    {translateMessage(
+                      "Also granted by %{0}, which names another server too. Those tools stay allowed here until the servers no longer share that name",
+                      [entry.ambiguousKeys.map((key) => `"${key}"`).join(", ")],
+                    )}
                   </p>
                 )}
                 {toolsetTools.length > 0 && (
                   <p className="text-sm text-purple-700 mt-1">
                     {toolsetTools.length === 1
-                      ? `${toolsetTools[0]} is granted by a selected toolset, so it stays allowed here; edit the toolset to revoke it`
-                      : `${toolsetTools.join(", ")} are granted by a selected toolset, so they stay allowed here; edit the toolset to revoke them`}
+                      ? translateMessage(
+                          "%{0} is granted by a selected toolset, so it stays allowed here; edit the toolset to revoke it",
+                          [toolsetTools[0]],
+                        )
+                      : translateMessage(
+                          "%{0} are granted by a selected toolset, so they stay allowed here; edit the toolset to revoke them",
+                          [toolsetTools.join(", ")],
+                        )}
                   </p>
                 )}
               </div>
@@ -281,11 +320,11 @@ const MCPToolPermissions: React.FC<MCPToolPermissionsProps> = ({
                   >
                     <label className="flex items-center gap-2 text-sm">
                       <RadioGroupItem value="crud" />
-                      Risk Groups
+                      <LocalizedText text={"Risk Groups"} />
                     </label>
                     <label className="flex items-center gap-2 text-sm">
                       <RadioGroupItem value="flat" />
-                      Flat List
+                      <LocalizedText text={"Flat List"} />
                     </label>
                   </RadioGroup>
                 )}
@@ -297,7 +336,7 @@ const MCPToolPermissions: React.FC<MCPToolPermissionsProps> = ({
                       onClick={() => handleSelectAll(entry)}
                       disabled={isLoading}
                     >
-                      Select All
+                      <LocalizedText text={"Select All"} />
                     </button>
                     <button
                       type="button"
@@ -305,7 +344,7 @@ const MCPToolPermissions: React.FC<MCPToolPermissionsProps> = ({
                       onClick={() => writeAllowedTools(entry, [])}
                       disabled={isLoading}
                     >
-                      Deselect All
+                      <LocalizedText text={"Deselect All"} />
                     </button>
                   </>
                 )}
@@ -318,15 +357,19 @@ const MCPToolPermissions: React.FC<MCPToolPermissionsProps> = ({
               {isLoading && (
                 <div className="flex items-center justify-center py-8">
                   <UiLoadingSpinner />
-                  <p className="ml-3 text-sm text-muted-foreground">Loading tools...</p>
+                  <p className="ml-3 text-sm text-muted-foreground">
+                    <LocalizedText text={"Loading tools..."} />
+                  </p>
                 </div>
               )}
 
               {/* Error */}
               {error && !isLoading && (
                 <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-center">
-                  <p className="text-sm text-destructive font-medium">Unable to load tools</p>
-                  <p className="text-sm text-destructive mt-1">{error}</p>
+                  <p className="text-sm text-destructive font-medium">
+                    <LocalizedText text={"Unable to load tools"} />
+                  </p>
+                  <p className="text-sm text-destructive mt-1">{localizedProperty(toolErrors, serverId, error)}</p>
                 </div>
               )}
 
@@ -366,7 +409,11 @@ const MCPToolPermissions: React.FC<MCPToolPermissionsProps> = ({
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
                             <p className="text-sm font-medium text-foreground">{tool.name}</p>
-                            <p className="text-sm text-muted-foreground">- {tool.description || "No description"}</p>
+                            <p className="text-sm text-muted-foreground">
+                              -{" "}
+                              {localizedProperty(tool, "description", tool.description) ||
+                                translateMessage("No description")}
+                            </p>
                           </div>
                         </div>
                       </div>
@@ -378,7 +425,9 @@ const MCPToolPermissions: React.FC<MCPToolPermissionsProps> = ({
               {/* Empty State */}
               {!isLoading && !error && tools.length === 0 && (
                 <div className="text-center py-6">
-                  <p className="text-sm text-muted-foreground">No tools available</p>
+                  <p className="text-sm text-muted-foreground">
+                    <LocalizedText text={"No tools available"} />
+                  </p>
                 </div>
               )}
             </div>

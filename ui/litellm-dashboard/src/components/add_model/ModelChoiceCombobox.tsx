@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, useUiLocale } from "@/lib/i18n";
 
 import React from "react";
 import {
@@ -25,15 +26,9 @@ interface ModelChoiceComboboxProps {
   ariaDescribedBy: string | undefined;
 }
 
-const ModelChoiceCombobox: React.FC<ModelChoiceComboboxProps> = ({
-  id,
-  value,
-  onChange,
-  choices,
-  placeholder,
-  ariaInvalid,
-  ariaDescribedBy,
-}) => {
+const ModelChoiceCombobox: React.FC<ModelChoiceComboboxProps> = (cocaCopyProps0) => {
+  const { id, value, onChange, choices, placeholder, ariaInvalid, ariaDescribedBy } = cocaCopyProps0;
+  useUiLocale();
   const selected = value ? choices.find((choice) => choice.value === value) ?? { value, label: value } : null;
 
   return (
@@ -48,16 +43,18 @@ const ModelChoiceCombobox: React.FC<ModelChoiceComboboxProps> = ({
         id={id}
         aria-invalid={ariaInvalid}
         aria-describedby={ariaDescribedBy}
-        placeholder={placeholder}
+        placeholder={localizedProperty(cocaCopyProps0, "placeholder", placeholder)}
         className="w-full"
         showClear={value != null && value !== ""}
       />
       <ComboboxContent>
-        <ComboboxEmpty>No models found</ComboboxEmpty>
+        <ComboboxEmpty>
+          <LocalizedText text={"No models found"} />
+        </ComboboxEmpty>
         <ComboboxList>
           {(choice: ModelChoice) => (
             <ComboboxItem key={choice.value} value={choice}>
-              {choice.label}
+              {localizedProperty(choice, "label", choice.label)}
             </ComboboxItem>
           )}
         </ComboboxList>

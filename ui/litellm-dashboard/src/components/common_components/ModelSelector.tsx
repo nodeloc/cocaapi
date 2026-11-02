@@ -1,3 +1,5 @@
+"use client";
+import { markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import React, { useState, useEffect } from "react";
 import { Bot } from "lucide-react";
 import { useDebouncedCallback } from "@tanstack/react-pacer/debouncer";
@@ -30,6 +32,7 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
   showLabel = true,
   labelText = "Select Model",
 }) => {
+  useUiLocale();
   const [selectedModel, setSelectedModel] = useState<string | null>(value ?? null);
   const [showCustomModelInput, setShowCustomModelInput] = useState<boolean>(false);
   const [modelInfo, setModelInfo] = useState<ModelGroup[]>([]);
@@ -91,7 +94,7 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
               value: model_group,
               label: model_group,
             })),
-            { value: "custom", label: "Enter custom model" },
+            markUiCopy({ value: "custom", label: "Enter custom model" }, { label: "Enter custom model" }),
           ]}
           value={selectedModel}
           placeholder={placeholder}
@@ -102,7 +105,7 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
       {showCustomModelInput && (
         <Input
           className="mt-2"
-          placeholder="Enter custom model name"
+          placeholder={translateMessage("Enter custom model name")}
           onChange={(e) => debouncedSelect(e.target.value)}
           disabled={disabled}
         />

@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 import React, { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
@@ -14,6 +16,7 @@ interface Props {
 }
 
 const MCPConnectPicker: React.FC<Props> = ({ accessToken, selectedServers, onChange }) => {
+  useUiLocale();
   const [servers, setServers] = useState<MCPServer[]>([]);
   const [loadingServers, setLoadingServers] = useState(true);
   const [togglingOn, setTogglingOn] = useState<Set<string>>(new Set());
@@ -56,12 +59,16 @@ const MCPConnectPicker: React.FC<Props> = ({ accessToken, selectedServers, onCha
     try {
       const result = await listMCPTools(accessToken, serverName);
       if (result?.error) {
-        toast.warning(`Could not load tools for ${serverName} \u2014 it will be excluded from this message.`);
+        toast.warning(
+          translateMessage("Could not load tools for %{0} — it will be excluded from this message.", [serverName]),
+        );
         return;
       }
       onChange([...selectedServers, serverName]);
     } catch {
-      toast.warning(`Could not load tools for ${serverName} \u2014 it will be excluded from this message.`);
+      toast.warning(
+        translateMessage("Could not load tools for %{0} — it will be excluded from this message.", [serverName]),
+      );
     } finally {
       setTogglingOn((prev) => {
         const next = new Set(prev);
@@ -89,7 +96,9 @@ const MCPConnectPicker: React.FC<Props> = ({ accessToken, selectedServers, onCha
           ))}
         </div>
       ) : servers.length === 0 ? (
-        <div className="px-3 py-4 text-muted-foreground text-[13px] text-center">No MCP servers configured</div>
+        <div className="px-3 py-4 text-muted-foreground text-[13px] text-center">
+          <LocalizedText text={"No MCP servers configured"} />
+        </div>
       ) : (
         servers.map((server) => {
           const name = server.server_name ?? server.alias ?? server.server_id;
@@ -108,7 +117,9 @@ const MCPConnectPicker: React.FC<Props> = ({ accessToken, selectedServers, onCha
               <div className="flex-1 min-w-0">
                 <div className="font-medium text-[13px] text-foreground truncate">{name}</div>
                 {server.description && (
-                  <div className="text-xs text-muted-foreground mt-0.5 truncate">{server.description}</div>
+                  <div className="text-xs text-muted-foreground mt-0.5 truncate">
+                    {localizedProperty(server, "description", server.description)}
+                  </div>
                 )}
               </div>
               <div className="relative shrink-0">

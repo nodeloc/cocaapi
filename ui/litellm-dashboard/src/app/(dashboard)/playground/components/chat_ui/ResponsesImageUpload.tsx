@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 import React, { useId, useRef } from "react";
 import { Paperclip } from "lucide-react";
 import { toast } from "@/lib/toast";
@@ -18,6 +20,7 @@ const ResponsesImageUpload: React.FC<ResponsesImageUploadProps> = ({
   onImageUpload,
   disabled = false,
 }) => {
+  useUiLocale();
   const inputRef = useRef<HTMLInputElement>(null);
   const inputId = useId();
 
@@ -59,7 +62,7 @@ const ResponsesImageUpload: React.FC<ResponsesImageUploadProps> = ({
               variant="ghost"
               size="icon-sm"
               disabled={disabled}
-              aria-label="Attach image or PDF"
+              aria-label={translateMessage("Attach image or PDF")}
               className="text-muted-foreground hover:text-foreground"
               onClick={() => inputRef.current?.click()}
             />
@@ -67,7 +70,9 @@ const ResponsesImageUpload: React.FC<ResponsesImageUploadProps> = ({
         >
           <Paperclip className="size-4" />
         </TooltipTrigger>
-        <TooltipContent>Attach image or PDF</TooltipContent>
+        <TooltipContent>
+          <LocalizedText text={"Attach image or PDF"} />
+        </TooltipContent>
       </Tooltip>
     </>
   );

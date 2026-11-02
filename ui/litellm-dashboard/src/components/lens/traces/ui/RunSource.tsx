@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { ArrowUpRight, MessagesSquare, UserRound } from "lucide-react";
 
@@ -24,12 +25,15 @@ interface BrandedApp extends SourceApp {
 }
 
 const BRANDED: Readonly<Record<Exclude<SourceType, "custom">, BrandedApp>> = {
-  slack: { label: "Slack", logo: slackLogo.src, domains: ["slack.com"] },
-  teams: { label: "Teams", logo: null, domains: ["teams.microsoft.com", "teams.cloud.microsoft"] },
-  discord: { label: "Discord", logo: null, domains: ["discord.com"] },
-  linear: { label: "Linear", logo: linearLogo.src, domains: ["linear.app"] },
-  github: { label: "GitHub", logo: githubLogo.src, domains: ["github.com"] },
-  jira: { label: "Jira", logo: jiraLogo.src, domains: ["atlassian.net"] },
+  slack: markUiCopy({ label: "Slack", logo: slackLogo.src, domains: ["slack.com"] }, { label: "Slack" }),
+  teams: markUiCopy(
+    { label: "Teams", logo: null, domains: ["teams.microsoft.com", "teams.cloud.microsoft"] },
+    { label: "Teams" },
+  ),
+  discord: markUiCopy({ label: "Discord", logo: null, domains: ["discord.com"] }, { label: "Discord" }),
+  linear: markUiCopy({ label: "Linear", logo: linearLogo.src, domains: ["linear.app"] }, { label: "Linear" }),
+  github: markUiCopy({ label: "GitHub", logo: githubLogo.src, domains: ["github.com"] }, { label: "GitHub" }),
+  jira: markUiCopy({ label: "Jira", logo: jiraLogo.src, domains: ["atlassian.net"] }, { label: "Jira" }),
 };
 
 const onDomain = (hostname: string, domain: string): boolean => hostname === domain || hostname.endsWith(`.${domain}`);
@@ -45,8 +49,9 @@ export function sourceApp(source: Pick<Source, "type" | "url">): SourceApp | nul
 }
 
 function AppMark({ app, className }: { app: SourceApp; className: string }) {
+  useUiLocale();
   return app.logo ? (
-    <Logo src={app.logo} label={app.label} className={className} />
+    <Logo src={app.logo} label={localizedProperty(app, "label", app.label)} className={className} />
   ) : (
     <MessagesSquare aria-hidden className={className} />
   );
@@ -57,6 +62,7 @@ const chip =
 
 /** Who started the run, e.g. the person who asked in Slack. */
 export function RunUser({ user }: { user: string }) {
+  useUiLocale();
   return (
     <span className={chip} title={user} data-testid="run-user">
       <UserRound aria-hidden className="size-3 shrink-0 text-muted-foreground" />
@@ -67,6 +73,7 @@ export function RunUser({ user }: { user: string }) {
 
 /** Links a run back to the conversation that started it, e.g. a Slack thread; hover previews its title. */
 export function RunSourceLink({ source }: { source: Source }) {
+  useUiLocale();
   const app = sourceApp(source);
   if (!app) return null;
   return (
@@ -75,21 +82,26 @@ export function RunSourceLink({ source }: { source: Source }) {
         href={source.url}
         target="_blank"
         rel="noopener noreferrer"
-        aria-label={`Open ${app.label} thread`}
+        aria-label={translateMessage("Open %{0} thread", [app.label])}
         className={`${chip} shrink-0 transition-colors hover:bg-muted`}
       >
         <AppMark app={app} className="size-3 shrink-0" />
-        <span className="truncate">{app.label} thread</span>
+        <span className="truncate">
+          {localizedProperty(app, "label", app.label)}
+          <LocalizedText text={" thread"} />
+        </span>
         <ArrowUpRight aria-hidden className="size-3 shrink-0 text-muted-foreground" />
       </HoverCardTrigger>
       <HoverCardContent align="start" className="w-72 p-3">
         <a href={source.url} target="_blank" rel="noopener noreferrer" className="flex flex-col gap-1.5">
           <span className="line-clamp-2 text-sm font-medium text-foreground">
-            {source.title || `Open in ${app.label}`}
+            {localizedProperty(source, "title", source.title) || translateMessage("Open in %{0}", [app.label])}
           </span>
           <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
             <AppMark app={app} className="size-3 shrink-0" />
-            {source.user ? `${app.label} · ${source.user}` : app.label}
+            {source.user
+              ? `${localizedProperty(app, "label", app.label)} · ${source.user}`
+              : localizedProperty(app, "label", app.label)}
           </span>
         </a>
       </HoverCardContent>

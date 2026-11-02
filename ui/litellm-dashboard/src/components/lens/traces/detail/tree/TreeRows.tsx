@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { MoreHorizontal } from "lucide-react";
 
@@ -28,6 +29,7 @@ const rowTone = (selected: boolean): string =>
 
 /** One indent column per ancestor: a rail where that ancestor has more children, an elbow into this row. */
 function Guides({ depth, guide }: { depth: number; guide: TreeGuide }) {
+  useUiLocale();
   return Array.from({ length: depth }, (_, level) => {
     const parentColumn = level === depth - 1;
     const rail = parentColumn ? !guide.last : guide.rails[level] === true;
@@ -46,11 +48,12 @@ function Guides({ depth, guide }: { depth: number; guide: TreeGuide }) {
 }
 
 function Caret({ open, onToggle }: { open: boolean; onToggle: () => void }) {
+  useUiLocale();
   return (
     <span
       role="button"
       tabIndex={-1}
-      aria-label={open ? "Collapse" : "Expand"}
+      aria-label={open ? translateMessage("Collapse") : translateMessage("Expand")}
       className="grid size-5 shrink-0 place-items-center rounded-sm text-muted-foreground hover:bg-muted hover:text-foreground"
       onClick={(event) => {
         event.stopPropagation();
@@ -75,6 +78,7 @@ function Bar({
   type: SpanType;
   failed: boolean;
 }) {
+  useUiLocale();
   const { left, width } = barGeometry(start, duration, total);
   return (
     <span
@@ -105,6 +109,7 @@ interface RowFrameProps {
 }
 
 function RowFrame({ id, depth, guide, selected, expanded, onClick, onDoubleClick, children }: RowFrameProps) {
+  useUiLocale();
   return (
     <button
       type="button"
@@ -123,6 +128,7 @@ function RowFrame({ id, depth, guide, selected, expanded, onClick, onDoubleClick
 }
 
 function Label({ children }: { children: React.ReactNode }) {
+  useUiLocale();
   return <span className="flex min-w-0 flex-1 items-center gap-2 pl-1.5">{children}</span>;
 }
 
@@ -154,6 +160,7 @@ const subtitle = (row: SpanRowData, filtering: boolean): string => {
 };
 
 export function SpanRow({ row, ctx }: { row: SpanRowData; ctx: RowContext }) {
+  useUiLocale();
   const { span } = row;
   const failed = span.status === "error";
   const hint = ctx.layout === "tree" ? subtitle(row, ctx.filtering) : "";
@@ -207,6 +214,7 @@ export function SpanRow({ row, ctx }: { row: SpanRowData; ctx: RowContext }) {
 }
 
 export function GroupRow({ row, ctx }: { row: GroupRowData; ctx: RowContext }) {
+  useUiLocale();
   const start = Math.min(...row.members.map((m) => m.start_offset_ms));
   const end = Math.max(...row.members.map((m) => m.start_offset_ms + m.duration_ms));
   return (
@@ -230,7 +238,12 @@ export function GroupRow({ row, ctx }: { row: GroupRowData; ctx: RowContext }) {
           <span className="shrink-0 rounded-sm bg-muted px-1 text-xs leading-4 text-muted-foreground tabular-nums">
             ×{row.members.length}
           </span>
-          {row.failedCount > 0 && <span className={cn(META, "text-destructive")}>{row.failedCount} failed</span>}
+          {row.failedCount > 0 && (
+            <span className={cn(META, "text-destructive")}>
+              {row.failedCount}
+              <LocalizedText text={" failed"} />
+            </span>
+          )}
         </Label>
         {ctx.layout === "waterfall" && (
           <Bar start={start} duration={end - start} total={ctx.totalMs} type={row.type} failed={row.isFailureGroup} />
@@ -252,6 +265,7 @@ export function LoadMoreRow({
   guide: TreeGuide;
   onLoadMore: (groupId: string) => void;
 }) {
+  useUiLocale();
   return (
     <button
       type="button"
@@ -260,8 +274,12 @@ export function LoadMoreRow({
     >
       <Guides depth={row.depth} guide={guide} />
       <span className="flex items-center gap-2 pl-1.5">
-        <MoreHorizontal className="size-3.5" /> Load 20 more
-        <span>({row.remaining} remaining)</span>
+        <MoreHorizontal className="size-3.5" />
+        <LocalizedText text={" Load 20 more"} />
+        <span>
+          ({row.remaining}
+          <LocalizedText text={" remaining)"} />
+        </span>
       </span>
     </button>
   );

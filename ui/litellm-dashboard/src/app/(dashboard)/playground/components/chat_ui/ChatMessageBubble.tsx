@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 import { Bot, User } from "lucide-react";
 import React from "react";
 import ReactMarkdown from "react-markdown";
@@ -32,14 +34,9 @@ interface ChatMessageBubbleProps {
   accessToken: string;
 }
 
-function ChatMessageBubble({
-  message,
-  isLastMessage,
-  endpointType,
-  mcpEvents,
-  codeInterpreterResult,
-  accessToken,
-}: ChatMessageBubbleProps) {
+function ChatMessageBubble(cocaCopyProps0: ChatMessageBubbleProps) {
+  const { message, isLastMessage, endpointType, mcpEvents, codeInterpreterResult, accessToken } = cocaCopyProps0;
+  useUiLocale();
   const syntaxTheme = useSyntaxTheme(coy);
   const isUser = message.role === "user";
 
@@ -65,10 +62,10 @@ function ChatMessageBubble({
               <Bot className="size-3 text-muted-foreground" aria-hidden="true" />
             )}
           </div>
-          <strong className="text-sm capitalize">{message.role}</strong>
+          <strong className="text-sm capitalize">{localizedProperty(cocaCopyProps0, "message", message).role}</strong>
           {message.role === "assistant" && message.model && (
             <span className="max-w-48 truncate rounded-sm bg-muted px-2 py-0.5 text-xs font-normal text-muted-foreground sm:max-w-80">
-              {message.model}
+              {localizedProperty(cocaCopyProps0, "message", message).model}
             </span>
           )}
         </div>
@@ -117,17 +114,21 @@ function ChatMessageBubble({
           {message.isImage ? (
             <img
               src={typeof message.content === "string" ? message.content : ""}
-              alt="Generated image"
+              alt={translateMessage("Generated image")}
               className="max-w-full rounded-md border border-border shadow-xs"
               style={{ maxHeight: "500px" }}
             />
           ) : message.isAudio ? (
-            <AudioRenderer message={message} />
+            <AudioRenderer message={localizedProperty(cocaCopyProps0, "message", message)} />
           ) : (
             <>
               {/* Attached image for user messages based on endpoint */}
-              {endpointType === EndpointType.RESPONSES && <ResponsesImageRenderer message={message} />}
-              {endpointType === EndpointType.CHAT && <ChatImageRenderer message={message} />}
+              {endpointType === EndpointType.RESPONSES && (
+                <ResponsesImageRenderer message={localizedProperty(cocaCopyProps0, "message", message)} />
+              )}
+              {endpointType === EndpointType.CHAT && (
+                <ChatImageRenderer message={localizedProperty(cocaCopyProps0, "message", message)} />
+              )}
 
               <ReactMarkdown
                 components={{
@@ -175,7 +176,7 @@ function ChatMessageBubble({
                 <div className="mt-3">
                   <img
                     src={message.image.url}
-                    alt="Generated image"
+                    alt={translateMessage("Generated image")}
                     className="max-w-full rounded-md border border-border shadow-xs"
                     style={{ maxHeight: "500px" }}
                   />
@@ -189,7 +190,9 @@ function ChatMessageBubble({
               role="status"
               className="mt-3 rounded-md border border-border bg-muted p-3 text-sm text-muted-foreground"
             >
-              输出达到本次 Token 上限，回答尚未完成。可在高级设置中提高 Max Tokens，或发送“继续”。
+              <LocalizedText
+                text={"输出达到本次 Token 上限，回答尚未完成。可在高级设置中提高 Max Tokens，或发送“继续”。"}
+              />
             </div>
           )}
 

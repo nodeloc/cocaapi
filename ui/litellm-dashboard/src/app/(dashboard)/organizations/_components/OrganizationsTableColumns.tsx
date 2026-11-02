@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { ColumnDef } from "@tanstack/react-table";
 import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
@@ -25,11 +26,18 @@ const getOrganizationBudget = (organization: Organization): OrganizationBudget =
   (organization.litellm_budget_table ?? {}) as OrganizationBudget;
 
 function OrganizationLimitsCell({ organization }: { organization: Organization }) {
+  useUiLocale();
   const { tpm_limit, rpm_limit } = getOrganizationBudget(organization);
   return (
     <div className="flex flex-col text-xs text-muted-foreground">
-      <span>TPM: {tpm_limit ?? "Unlimited"}</span>
-      <span>RPM: {rpm_limit ?? "Unlimited"}</span>
+      <span>
+        <LocalizedText text={"TPM: "} />
+        {tpm_limit ?? translateMessage("Unlimited")}
+      </span>
+      <span>
+        <LocalizedText text={"RPM: "} />
+        {rpm_limit ?? translateMessage("Unlimited")}
+      </span>
     </div>
   );
 }
@@ -41,10 +49,11 @@ interface OrganizationRowActionsProps {
 }
 
 function OrganizationRowActions({ organization, onEditClick, onDeleteClick }: OrganizationRowActionsProps) {
+  useUiLocale();
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        aria-label="Open organization actions"
+        aria-label={translateMessage("Open organization actions")}
         data-testid={`organization-actions-${organization.organization_id}`}
         className={cn(buttonVariants({ variant: "ghost", size: "icon-sm" }), "text-muted-foreground")}
       >
@@ -56,7 +65,7 @@ function OrganizationRowActions({ organization, onEditClick, onDeleteClick }: Or
           onClick={() => onEditClick(organization.organization_id)}
         >
           <Pencil />
-          Edit
+          <LocalizedText text={"Edit"} />
         </DropdownMenuItem>
         <DropdownMenuItem
           variant="destructive"
@@ -64,7 +73,7 @@ function OrganizationRowActions({ organization, onEditClick, onDeleteClick }: Or
           onClick={() => onDeleteClick(organization.organization_id)}
         >
           <Trash2 />
-          Delete
+          <LocalizedText text={"Delete"} />
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -87,8 +96,8 @@ export const getOrganizationsTableColumns = ({
   {
     id: "organization_id",
     accessorKey: "organization_id",
-    meta: { title: "Organization ID" },
-    header: ({ column }) => <DataTableSortHeader column={column} title="Organization ID" />,
+    meta: markUiCopy({ title: "Organization ID" }, { title: "Organization ID" }),
+    header: ({ column }) => <DataTableSortHeader column={column} title={translateMessage("Organization ID")} />,
     size: 220,
     enableSorting: true,
     cell: ({ row }) => (
@@ -103,8 +112,8 @@ export const getOrganizationsTableColumns = ({
   {
     id: "organization_alias",
     accessorKey: "organization_alias",
-    meta: { title: "Organization Name" },
-    header: ({ column }) => <DataTableSortHeader column={column} title="Organization Name" />,
+    meta: markUiCopy({ title: "Organization Name" }, { title: "Organization Name" }),
+    header: ({ column }) => <DataTableSortHeader column={column} title={translateMessage("Organization Name")} />,
     size: 200,
     enableSorting: true,
     cell: ({ row }) => {
@@ -120,8 +129,8 @@ export const getOrganizationsTableColumns = ({
     id: "created_at",
     accessorKey: "created_at",
     sortingFn: "datetime",
-    meta: { title: "Created" },
-    header: ({ column }) => <DataTableSortHeader column={column} title="Created" />,
+    meta: markUiCopy({ title: "Created" }, { title: "Created" }),
+    header: ({ column }) => <DataTableSortHeader column={column} title={translateMessage("Created")} />,
     size: 130,
     enableSorting: true,
     cell: ({ row }) => <DateCell value={row.original.created_at} precision="date" />,
@@ -129,50 +138,76 @@ export const getOrganizationsTableColumns = ({
   {
     id: "spend",
     accessorKey: "spend",
-    meta: { title: "Spend (USD)", numeric: true },
-    header: ({ column }) => <DataTableSortHeader column={column} title="Spend (USD)" />,
+    meta: markUiCopy({ title: "Spend (USD)", numeric: true }, { title: "Spend (USD)" }),
+    header: ({ column }) => <DataTableSortHeader column={column} title={translateMessage("Spend (USD)")} />,
     size: 120,
     enableSorting: true,
     cell: ({ row }) => <MoneyCell value={row.original.spend} decimals={4} />,
   },
-  {
-    id: "max_budget",
-    meta: { title: "Budget (USD)", numeric: true },
-    header: "Budget (USD)",
-    size: 120,
-    enableSorting: false,
-    cell: ({ row }) => (
-      <MoneyCell value={getOrganizationBudget(row.original).max_budget} decimals={2} emptyText="Unlimited" showZero />
-    ),
-  },
-  {
-    id: "models",
-    meta: { title: "Models", skeleton: "chips" },
-    header: "Models",
-    size: 260,
-    enableSorting: false,
-    cell: ({ row }) => <ModelsCell models={row.original.models} />,
-  },
-  {
-    id: "limits",
-    meta: { title: "TPM / RPM Limits" },
-    header: "TPM / RPM Limits",
-    size: 150,
-    enableSorting: false,
-    cell: ({ row }) => <OrganizationLimitsCell organization={row.original} />,
-  },
-  {
-    id: "members",
-    meta: { title: "Members", numeric: true },
-    header: "Members",
-    size: 100,
-    enableSorting: false,
-    cell: ({ row }) => <span className="text-sm">{row.original.members?.length ?? 0} Members</span>,
-  },
+  markUiCopy(
+    {
+      id: "max_budget",
+      meta: markUiCopy({ title: "Budget (USD)", numeric: true }, { title: "Budget (USD)" }),
+      header: "Budget (USD)",
+      size: 120,
+      enableSorting: false,
+      cell: ({ row }) => (
+        <MoneyCell
+          value={getOrganizationBudget(row.original).max_budget}
+          decimals={2}
+          emptyText={translateMessage("Unlimited")}
+          showZero
+        />
+      ),
+    },
+    { header: "Budget (USD)" },
+  ),
+  markUiCopy(
+    {
+      id: "models",
+      meta: markUiCopy({ title: "Models", skeleton: "chips" as const }, { title: "Models" }),
+      header: "Models",
+      size: 260,
+      enableSorting: false,
+      cell: ({ row }) => <ModelsCell models={row.original.models} />,
+    },
+    { header: "Models" },
+  ),
+  markUiCopy(
+    {
+      id: "limits",
+      meta: markUiCopy({ title: "TPM / RPM Limits" }, { title: "TPM / RPM Limits" }),
+      header: "TPM / RPM Limits",
+      size: 150,
+      enableSorting: false,
+      cell: ({ row }) => <OrganizationLimitsCell organization={row.original} />,
+    },
+    { header: "TPM / RPM Limits" },
+  ),
+  markUiCopy(
+    {
+      id: "members",
+      meta: markUiCopy({ title: "Members", numeric: true }, { title: "Members" }),
+      header: "Members",
+      size: 100,
+      enableSorting: false,
+      cell: ({ row }) => (
+        <span className="text-sm">
+          {row.original.members?.length ?? 0}
+          <LocalizedText text={" Members"} />
+        </span>
+      ),
+    },
+    { header: "Members" },
+  ),
   {
     id: "actions",
     meta: { className: "text-right", headerClassName: "text-right" },
-    header: () => <span className="sr-only">Actions</span>,
+    header: () => (
+      <span className="sr-only">
+        <LocalizedText text={"Actions"} />
+      </span>
+    ),
     size: 64,
     enableSorting: false,
     enableHiding: false,

@@ -1,3 +1,5 @@
+"use client";
+import { localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 /**
  * Unified selector component that handles both model and agent selection
  * based on the current endpoint configuration.
@@ -26,6 +28,7 @@ const matchesQuery = (option: SelectorOption, query: string): boolean =>
   option.label.toLowerCase().includes(query.trim().toLowerCase());
 
 export function UnifiedSelector({ value, options, loading, config, onChange }: UnifiedSelectorProps) {
+  useUiLocale();
   const selected = options.find((option) => option.value === value) ?? null;
   const noun = config.selectorLabel.toLowerCase();
 
@@ -39,7 +42,7 @@ export function UnifiedSelector({ value, options, loading, config, onChange }: U
       filter={matchesQuery}
     >
       <ComboboxInput
-        placeholder={loading ? `Loading ${noun}s...` : config.selectorPlaceholder}
+        placeholder={loading ? translateMessage("Loading %{0}s...", [noun]) : config.selectorPlaceholder}
         className="w-48 md:w-64 lg:w-72"
       />
       <ComboboxContent>
@@ -49,13 +52,13 @@ export function UnifiedSelector({ value, options, loading, config, onChange }: U
               <UiLoadingSpinner className="size-4" />
             </span>
           ) : (
-            `No ${noun}s available`
+            translateMessage("No %{0}s available", [noun])
           )}
         </ComboboxEmpty>
         <ComboboxList>
           {(option: SelectorOption) => (
             <ComboboxItem key={option.value} value={option}>
-              {option.label}
+              {localizedProperty(option, "label", option.label)}
             </ComboboxItem>
           )}
         </ComboboxList>

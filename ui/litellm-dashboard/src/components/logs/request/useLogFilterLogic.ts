@@ -1,3 +1,4 @@
+import { markUiCopy } from "@/lib/i18n";
 import { useCustomerNative } from "@/components/account/native/CustomerNativeContext";
 import moment from "moment";
 import { keepPreviousData, useQuery, type UseQueryOptions } from "@tanstack/react-query";
@@ -39,23 +40,42 @@ export const LOG_FILTER_IDS = {
   SEARCH: "search",
 } as const;
 
-export const LOG_FILTER_LABELS: Record<string, string> = {
-  [LOG_FILTER_IDS.TEAM_ID]: "Team ID",
-  [LOG_FILTER_IDS.SPAN_TYPE]: "Span Type",
-  [LOG_FILTER_IDS.STATUS]: "Status",
-  [LOG_FILTER_IDS.CACHE_STATUS]: "Cache",
-  [LOG_FILTER_IDS.CREDENTIAL]: "Credential",
-  [LOG_FILTER_IDS.KEY_ALIAS]: "Key Alias",
-  [LOG_FILTER_IDS.USER_ID]: "User ID",
-  [LOG_FILTER_IDS.END_USER]: "End User",
-  [LOG_FILTER_IDS.ERROR_CODE]: "Error Code",
-  [LOG_FILTER_IDS.ERROR_MESSAGE]: "Error Message",
-  [LOG_FILTER_IDS.KEY_HASH]: "Key Hash",
-  [LOG_FILTER_IDS.SESSION_ID]: "Session ID",
-  [LOG_FILTER_IDS.MODEL_ID]: "Model",
-  [LOG_FILTER_IDS.PUBLIC_MODEL_OR_SEARCH_TOOL]: "Public model / search tool",
-  [LOG_FILTER_IDS.SEARCH]: "Search",
-};
+export const LOG_FILTER_LABELS: Record<string, string> = markUiCopy(
+  {
+    [LOG_FILTER_IDS.TEAM_ID]: "Team ID",
+    [LOG_FILTER_IDS.SPAN_TYPE]: "Span Type",
+    [LOG_FILTER_IDS.STATUS]: "Status",
+    [LOG_FILTER_IDS.CACHE_STATUS]: "Cache",
+    [LOG_FILTER_IDS.CREDENTIAL]: "Credential",
+    [LOG_FILTER_IDS.KEY_ALIAS]: "Key Alias",
+    [LOG_FILTER_IDS.USER_ID]: "User ID",
+    [LOG_FILTER_IDS.END_USER]: "End User",
+    [LOG_FILTER_IDS.ERROR_CODE]: "Error Code",
+    [LOG_FILTER_IDS.ERROR_MESSAGE]: "Error Message",
+    [LOG_FILTER_IDS.KEY_HASH]: "Key Hash",
+    [LOG_FILTER_IDS.SESSION_ID]: "Session ID",
+    [LOG_FILTER_IDS.MODEL_ID]: "Model",
+    [LOG_FILTER_IDS.PUBLIC_MODEL_OR_SEARCH_TOOL]: "Public model / search tool",
+    [LOG_FILTER_IDS.SEARCH]: "Search",
+  },
+  {
+    [LOG_FILTER_IDS.TEAM_ID]: "Team ID",
+    [LOG_FILTER_IDS.SPAN_TYPE]: "Span Type",
+    [LOG_FILTER_IDS.STATUS]: "Status",
+    [LOG_FILTER_IDS.CACHE_STATUS]: "Cache",
+    [LOG_FILTER_IDS.CREDENTIAL]: "Credential",
+    [LOG_FILTER_IDS.KEY_ALIAS]: "Key Alias",
+    [LOG_FILTER_IDS.USER_ID]: "User ID",
+    [LOG_FILTER_IDS.END_USER]: "End User",
+    [LOG_FILTER_IDS.ERROR_CODE]: "Error Code",
+    [LOG_FILTER_IDS.ERROR_MESSAGE]: "Error Message",
+    [LOG_FILTER_IDS.KEY_HASH]: "Key Hash",
+    [LOG_FILTER_IDS.SESSION_ID]: "Session ID",
+    [LOG_FILTER_IDS.MODEL_ID]: "Model",
+    [LOG_FILTER_IDS.PUBLIC_MODEL_OR_SEARCH_TOOL]: "Public model / search tool",
+    [LOG_FILTER_IDS.SEARCH]: "Search",
+  },
+);
 
 export interface LogsWindow {
   start_date: string;

@@ -1,3 +1,4 @@
+import { markUiCopy } from "@/lib/i18n";
 import { ProjectFormValues } from "./ProjectBaseForm";
 
 type ModelLimitEntry = NonNullable<ProjectFormValues["modelLimits"]>[number];
@@ -36,19 +37,23 @@ const buildProjectApiParams = (values: ProjectFormValues, sendEmpty: boolean) =>
       : {};
   const metadataParam = metadata !== undefined && (sendEmpty || Object.keys(metadata).length > 0) ? { metadata } : {};
 
-  return {
-    project_alias: values.project_alias,
-    description: values.description,
-    models: values.models ?? [],
-    max_budget: values.max_budget == null ? undefined : roundBudget(values.max_budget),
-    blocked: values.isBlocked ?? false,
-    ...guardrailsParam,
-    ...(keep(modelRpmLimit) && { model_rpm_limit: modelRpmLimit }),
-    ...(keep(modelTpmLimit) && { model_tpm_limit: modelTpmLimit }),
-    ...(keep(modelItpmLimit) && { model_itpm_limit: modelItpmLimit }),
-    ...(keep(modelOtpmLimit) && { model_otpm_limit: modelOtpmLimit }),
-    ...metadataParam,
-  };
+  return markUiCopy(
+    {
+      project_alias: values.project_alias,
+      description: values.description,
+      models: values.models ?? [],
+      max_budget: values.max_budget == null ? undefined : roundBudget(values.max_budget),
+      blocked: values.isBlocked ?? false,
+      ...guardrailsParam,
+      ...(keep(modelRpmLimit) && { model_rpm_limit: modelRpmLimit }),
+      ...(keep(modelTpmLimit) && { model_tpm_limit: modelTpmLimit }),
+      ...(keep(modelItpmLimit) && { model_itpm_limit: modelItpmLimit }),
+      ...(keep(modelOtpmLimit) && { model_otpm_limit: modelOtpmLimit }),
+      ...metadataParam,
+    },
+    { description: { owner: values, field: "description" } },
+    [guardrailsParam, metadataParam],
+  );
 };
 
 /** A new project has nothing to clear, so anything the operator left blank is left out. */

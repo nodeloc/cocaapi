@@ -1,4 +1,5 @@
 "use client";
+import { translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { Building2, SearchX } from "lucide-react";
 import React, { useMemo } from "react";
@@ -20,6 +21,7 @@ interface OrganizationsTableProps {
 }
 
 function EmptyState({ searchActive }: { searchActive: boolean }) {
+  useUiLocale();
   const Icon = searchActive ? SearchX : Building2;
   return (
     <div className="flex flex-col items-center gap-1 py-6">
@@ -27,12 +29,12 @@ function EmptyState({ searchActive }: { searchActive: boolean }) {
         <Icon className="size-5 text-muted-foreground" />
       </div>
       <div className="text-sm font-medium text-foreground">
-        {searchActive ? "No matching organizations" : "No organizations yet"}
+        {searchActive ? translateMessage("No matching organizations") : translateMessage("No organizations yet")}
       </div>
       <div className="text-sm text-muted-foreground">
         {searchActive
-          ? "No organizations match your search. Try a different name or ID."
-          : "Create an organization to group teams, models, and budgets."}
+          ? translateMessage("No organizations match your search. Try a different name or ID.")
+          : translateMessage("Create an organization to group teams, models, and budgets.")}
       </div>
     </div>
   );
@@ -47,6 +49,7 @@ const OrganizationsTable: React.FC<OrganizationsTableProps> = ({
   onEditClick,
   onDeleteClick,
 }) => {
+  useUiLocale();
   const { sorting, onSortingChange, pagination, onPaginationChange } = useOrganizationsTableState();
 
   const columns = useMemo(() => {
@@ -66,7 +69,7 @@ const OrganizationsTable: React.FC<OrganizationsTableProps> = ({
       sorting={sorting}
       onSortingChange={onSortingChange}
       isLoading={isLoading}
-      loadingMessage="Loading organizations…"
+      loadingMessage={translateMessage("Loading organizations…")}
       noDataMessage={<EmptyState searchActive={searchActive} />}
       size="compact"
     />

@@ -1,4 +1,5 @@
 "use client";
+import { translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { Braces } from "lucide-react";
 
@@ -13,6 +14,7 @@ import type { PayloadView, TextFormat } from "./payload";
 const TEXT_CARD = "rounded-lg border border-border bg-card px-3.5 py-3";
 
 export function TextBody({ text, format }: { text: string; format: TextFormat }) {
+  useUiLocale();
   if (format === "markdown") return <Markdown text={text} className={TEXT_CARD} />;
   return (
     <pre
@@ -28,6 +30,7 @@ export function TextBody({ text, format }: { text: string; format: TextFormat })
 }
 
 export function Payload({ view, name, failed }: { view: PayloadView; name: string; failed: boolean }) {
+  useUiLocale();
   switch (view.kind) {
     case "messages":
       return <MessageList messages={view.messages} />;
@@ -41,7 +44,7 @@ export function Payload({ view, name, failed }: { view: PayloadView; name: strin
               <Braces />
             </BlockBadge>
           }
-          label="Fields"
+          label={translateMessage("Fields")}
           name="fields"
           meta={<span className="text-xs text-muted-foreground tabular-nums">{view.entries.length}</span>}
         >

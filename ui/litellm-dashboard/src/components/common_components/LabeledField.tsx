@@ -1,3 +1,5 @@
+"use client";
+import { translateMessage, useUiLocale } from "@/lib/i18n";
 import React from "react";
 import CopyButton from "@/components/shared/CopyButton";
 import { EntityLink } from "@/components/shared/EntityLink";
@@ -24,6 +26,7 @@ export default function LabeledField({
   copyable = false,
   defaultUserIdCheck = false,
 }: LabeledFieldProps) {
+  useUiLocale();
   const isEmpty = !value;
   const isDefaultUser = defaultUserIdCheck && value === DEFAULT_PROXY_ADMIN_USER_ID;
   const displayValue = isEmpty ? "-" : value;
@@ -43,7 +46,7 @@ export default function LabeledField({
           {displayValue}
         </strong>
       )}
-      {isCopyable && <CopyButton value={value} label={`Copy ${label}`} />}
+      {isCopyable && <CopyButton value={value} label={translateMessage("Copy %{0}", [label])} />}
     </span>
   );
   return (

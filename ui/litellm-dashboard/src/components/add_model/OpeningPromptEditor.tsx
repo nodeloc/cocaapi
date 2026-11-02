@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import React, { useEffect, useState } from "react";
 import useAuthorized from "@/app/(dashboard)/hooks/useAuthorized";
 import { getAutoRouterAssembledPromptCall } from "@/components/networking";
@@ -76,6 +78,7 @@ const OpeningPromptEditor: React.FC<OpeningPromptEditorProps> = ({
   tierSource,
   contextWindowSize,
 }) => {
+  useUiLocale();
   const { accessToken } = useAuthorized();
   const [isOpen, setIsOpen] = useState(false);
   const [instructionDraft, setInstructionDraft] = useState("");
@@ -153,12 +156,14 @@ const OpeningPromptEditor: React.FC<OpeningPromptEditorProps> = ({
     <div>
       {rubricSummary && (
         <p className="mb-1 text-xs text-muted-foreground">
-          {isOverridden ? `Custom opening on the ${rubricSummary.label} rubric` : `${rubricSummary.label} rubric`}
+          {isOverridden
+            ? translateMessage("Custom opening on the %{0} rubric", [rubricSummary.label])
+            : translateMessage("%{0} rubric", [rubricSummary.label])}
         </p>
       )}
       <div className="flex items-center gap-2">
         <Button type="button" size="sm" variant="outline" onClick={openEditor}>
-          {isOverridden ? "Edit custom prompt" : "Customize prompt"}
+          {isOverridden ? translateMessage("Edit custom prompt") : translateMessage("Customize prompt")}
         </Button>
         {isOverridden && (
           <Button
@@ -173,7 +178,7 @@ const OpeningPromptEditor: React.FC<OpeningPromptEditorProps> = ({
               })
             }
           >
-            Reset to default
+            <LocalizedText text={"Reset to default"} />
           </Button>
         )}
       </div>
@@ -182,24 +187,35 @@ const OpeningPromptEditor: React.FC<OpeningPromptEditorProps> = ({
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-4xl">
           <DialogHeader>
-            <DialogTitle>Classifier prompt</DialogTitle>
+            <DialogTitle>
+              <LocalizedText text={"Classifier prompt"} />
+            </DialogTitle>
           </DialogHeader>
 
           {tierSource.kind === "builtIn" && (
             <div>
               <label className="text-sm font-medium" htmlFor="base-classification-rubric">
-                Base rubric
+                <LocalizedText text={"Base rubric"} />
               </label>
               <Select
-                items={Object.entries(CLASSIFICATION_RUBRIC_DESCRIPTIONS).map(([rubric, description]) => ({
-                  value: rubric,
-                  label: description.label,
-                }))}
+                items={Object.entries(CLASSIFICATION_RUBRIC_DESCRIPTIONS).map(([rubric, description]) =>
+                  markUiCopy(
+                    {
+                      value: rubric,
+                      label: description.label,
+                    },
+                    { label: { owner: description, field: "label" } },
+                  ),
+                )}
                 value={classificationRubric ?? tierSource.classificationRubric}
                 onValueChange={(rubric: ClassificationRubric | null) => rubric && setRubricDraft(rubric)}
                 disabled={Boolean(tierSource.rubricRestriction)}
               >
-                <SelectTrigger id="base-classification-rubric" aria-label="Base rubric" className="mt-1 w-full">
+                <SelectTrigger
+                  id="base-classification-rubric"
+                  aria-label={translateMessage("Base rubric")}
+                  className="mt-1 w-full"
+                >
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent
@@ -209,13 +225,14 @@ const OpeningPromptEditor: React.FC<OpeningPromptEditorProps> = ({
                 >
                   {Object.entries(CLASSIFICATION_RUBRIC_DESCRIPTIONS).map(([rubric, description]) => (
                     <SelectItem key={rubric} value={rubric}>
-                      {description.label}
+                      {localizedProperty(description, "label", description.label)}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
               <p className="mt-1 text-xs text-muted-foreground">
-                {tierSource.rubricRestriction ?? draftRubricSummary?.description}
+                {tierSource.rubricRestriction ??
+                  localizedProperty(draftRubricSummary, "description", draftRubricSummary?.description)}
               </p>
             </div>
           )}
@@ -225,50 +242,59 @@ const OpeningPromptEditor: React.FC<OpeningPromptEditorProps> = ({
           <div className="mt-3 space-y-4">
             <div>
               <label className="text-sm font-medium" htmlFor="classification-instructions">
-                Classification instructions
+                <LocalizedText text={"Classification instructions"} />
               </label>
               <p className="mt-1 text-xs text-muted-foreground">
-                Explain what the classifier should judge. Tier definitions are managed separately below.
+                <LocalizedText
+                  text={"Explain what the classifier should judge. Tier definitions are managed separately below."}
+                />
               </p>
               <Textarea
                 id="classification-instructions"
                 value={instructionDraft}
                 onChange={(e) => setInstructionDraft(e.target.value)}
                 rows={5}
-                placeholder={copy.placeholder}
-                aria-label="Classification instructions"
+                placeholder={localizedProperty(copy, "placeholder", copy.placeholder)}
+                aria-label={translateMessage("Classification instructions")}
                 className="mt-2 font-mono text-xs"
               />
             </div>
 
             <div>
               <label className="text-sm font-medium" htmlFor="calibration-examples">
-                Calibration examples
+                <LocalizedText text={"Calibration examples"} />
               </label>
               <p className="mt-1 text-xs text-muted-foreground">
-                Show representative requests and the tier they should receive. The router adds these after its tier
-                definitions.
+                <LocalizedText
+                  text={
+                    "Show representative requests and the tier they should receive. The router adds these after its tier definitions."
+                  }
+                />
               </p>
               <Textarea
                 id="calibration-examples"
                 value={exampleDraft}
                 onChange={(e) => setExampleDraft(e.target.value)}
                 rows={6}
-                placeholder={'- "what is the capital of France?" -> SIMPLE'}
-                aria-label="Calibration examples"
+                placeholder={translateMessage('- "what is the capital of France?" -> SIMPLE')}
+                aria-label={translateMessage("Calibration examples")}
                 className="mt-2 font-mono text-xs"
               />
             </div>
           </div>
 
           <div className="mt-3">
-            <p className="text-xs font-medium">What this router sends</p>
+            <p className="text-xs font-medium">
+              <LocalizedText text={"What this router sends"} />
+            </p>
             {preview.status === "loading" && (
-              <p className="mt-1 text-xs text-muted-foreground">Loading the assembled prompt…</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                <LocalizedText text={"Loading the assembled prompt…"} />
+              </p>
             )}
             {preview.status === "error" && (
               <p className="mt-1 text-xs text-muted-foreground">
-                Could not load the assembled prompt. Your text is still saved as written.
+                <LocalizedText text={"Could not load the assembled prompt. Your text is still saved as written."} />
               </p>
             )}
             {preview.status === "ready" && (
@@ -283,10 +309,10 @@ const OpeningPromptEditor: React.FC<OpeningPromptEditorProps> = ({
 
           <DialogFooter className="mt-4">
             <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>
-              Cancel
+              <LocalizedText text={"Cancel"} />
             </Button>
             <Button type="button" onClick={handleSave}>
-              Save prompt
+              <LocalizedText text={"Save prompt"} />
             </Button>
           </DialogFooter>
         </DialogContent>

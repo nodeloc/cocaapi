@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import React, { useState } from "react";
 import { CircleAlert, TriangleAlert, X } from "lucide-react";
@@ -33,15 +34,32 @@ const describeCountdown = (days: number): string => {
 
 const expiryDescription = (tier: "warning" | "critical" | "expired"): React.ReactNode => {
   if (tier === "expired") {
-    return <>Enterprise features are now disabled. Reach out to {salesLink} to restore access</>;
+    return (
+      <>
+        <LocalizedText text={"Enterprise features are now disabled. Reach out to "} />
+        {salesLink}
+        <LocalizedText text={" to restore access"} />
+      </>
+    );
   }
   if (tier === "critical") {
-    return <>Renew now to avoid losing enterprise features. Reach out to {salesLink}</>;
+    return (
+      <>
+        <LocalizedText text={"Renew now to avoid losing enterprise features. Reach out to "} />
+        {salesLink}
+      </>
+    );
   }
-  return <>Renew before it lapses to keep enterprise features. Reach out to {salesLink}</>;
+  return (
+    <>
+      <LocalizedText text={"Renew before it lapses to keep enterprise features. Reach out to "} />
+      {salesLink}
+    </>
+  );
 };
 
 export const LicenseExpiryBannerView: React.FC<LicenseExpiryBannerViewProps> = ({ licenseInfo }) => {
+  useUiLocale();
   const [locallyDismissed, setLocallyDismissed] = useState(false);
 
   const expirationDate = licenseInfo?.expiration_date ?? null;
@@ -88,7 +106,7 @@ export const LicenseExpiryBannerView: React.FC<LicenseExpiryBannerViewProps> = (
       <AlertDescription>{description}</AlertDescription>
       {isDismissible && (
         <AlertAction>
-          <Button variant="ghost" size="icon-sm" aria-label="Close" onClick={handleClose}>
+          <Button variant="ghost" size="icon-sm" aria-label={translateMessage("Close")} onClick={handleClose}>
             <X className="size-4" />
           </Button>
         </AlertAction>
@@ -98,6 +116,7 @@ export const LicenseExpiryBannerView: React.FC<LicenseExpiryBannerViewProps> = (
 };
 
 export const LicenseExpiryBanner: React.FC<LicenseExpiryBannerProps> = ({ accessToken }) => {
+  useUiLocale();
   const { data } = useLicenseInfo(accessToken);
   return <LicenseExpiryBannerView licenseInfo={data ?? null} />;
 };

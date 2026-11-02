@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import { Input } from "@/components/ui/input";
 import { SearchSelect, type SearchSelectOption } from "@/components/shared/SearchSelect";
 import { SimpleTooltip } from "@/components/ui/tooltip";
@@ -51,8 +53,8 @@ const API_KEY_FIELDS: readonly string[] = ["api_key"];
 const NO_HIDDEN_FIELDS: readonly string[] = [];
 
 const authMethodItems: { value: AuthMethod; label: string }[] = [
-  { value: "api_key", label: "API key" },
-  { value: "federation", label: "Workload identity federation" },
+  markUiCopy({ value: "api_key", label: "API key" }, { label: "API key" }),
+  markUiCopy({ value: "federation", label: "Workload identity federation" }, { label: "Workload identity federation" }),
 ];
 
 interface CredentialModalProps {
@@ -79,6 +81,7 @@ export default function CredentialModal({
   initialAuthMethod,
   providerLocked = false,
 }: CredentialModalProps) {
+  useUiLocale();
   const isEdit = mode === "edit";
   const [selectedProvider, setSelectedProvider] = useState<string | null>(
     (existingCredential?.credential_info.custom_llm_provider as Providers) ?? initialProvider ?? Providers.OpenAI,
@@ -152,7 +155,9 @@ export default function CredentialModal({
     <Dialog open={open} onOpenChange={(open) => !open && closeAndReset()}>
       <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle>{isEdit ? "Edit Credential" : "Add New Credential"}</DialogTitle>
+          <DialogTitle>
+            {isEdit ? translateMessage("Edit Credential") : translateMessage("Add New Credential")}
+          </DialogTitle>
         </DialogHeader>
         <FormProvider {...form}>
           <MountedFormProvider value={{ control: form.control, registry }}>
@@ -163,7 +168,7 @@ export default function CredentialModal({
               }}
             >
               <MountedFormField
-                label="Credential Name:"
+                label={translateMessage("Credential Name:")}
                 name="credential_name"
                 required
                 rules={{ validate: { required: requiredRule("Credential name is required") } }}
@@ -175,20 +180,20 @@ export default function CredentialModal({
                     value={typeof control.value === "string" ? control.value : ""}
                     onChange={control.onChange}
                     onBlur={control.onBlur}
-                    placeholder="Unique name that models reference this credential by"
+                    placeholder={translateMessage("Unique name that models reference this credential by")}
                     disabled={isEdit}
                   />
                 )}
               </MountedFormField>
 
-              <MountedFormField label="Display Name:" name="display_name" className="mb-4">
+              <MountedFormField label={translateMessage("Display Name:")} name="display_name" className="mb-4">
                 {(control) => (
                   <Input
                     id={control.id}
                     value={typeof control.value === "string" ? control.value : ""}
                     onChange={control.onChange}
                     onBlur={control.onBlur}
-                    placeholder="e.g. Production OpenAI"
+                    placeholder={translateMessage("e.g. Production OpenAI")}
                   />
                 )}
               </MountedFormField>
@@ -203,7 +208,7 @@ export default function CredentialModal({
                 {(control) => (
                   <SearchSelect
                     inputId={control.id}
-                    placeholder="Select a provider"
+                    placeholder={translateMessage("Select a provider")}
                     options={providerOptions}
                     value={typeof control.value === "string" ? control.value : null}
                     disabled={providerLocked}
@@ -234,7 +239,7 @@ export default function CredentialModal({
                     <SelectContent>
                       {authMethodItems.map((item) => (
                         <SelectItem key={item.value} value={item.value}>
-                          {item.label}
+                          {localizedProperty(item, "label", item.label)}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -259,15 +264,17 @@ export default function CredentialModal({
               <div className="flex justify-between items-center">
                 <SimpleTooltip content="Get help on our github">
                   <a href="https://github.com/BerriAI/litellm/issues" className="text-sm text-primary hover:underline">
-                    Need Help?
+                    <LocalizedText text={"Need Help?"} />
                   </a>
                 </SimpleTooltip>
 
                 <div>
                   <Button variant="outline" className="mr-2.5" onClick={closeAndReset}>
-                    Cancel
+                    <LocalizedText text={"Cancel"} />
                   </Button>
-                  <Button type="submit">{isEdit ? "Update Credential" : "Add Credential"}</Button>
+                  <Button type="submit">
+                    {isEdit ? translateMessage("Update Credential") : translateMessage("Add Credential")}
+                  </Button>
                 </div>
               </div>
             </form>

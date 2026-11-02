@@ -1,3 +1,6 @@
+
+"use client";
+import { LocalizedText, getIntlLocale, translateMessage, useUiLocale } from "@/lib/i18n";
 import React, { useState, useEffect } from "react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -56,6 +59,7 @@ const BulkCreateUsersButton: React.FC<BulkCreateUsersProps> = ({
   possibleUIRoles,
   onUsersCreated,
 }) => {
+  useUiLocale();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [parsedData, setParsedData] = useState<UserData[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -255,7 +259,7 @@ const BulkCreateUsersButton: React.FC<BulkCreateUsersProps> = ({
               `Found ${userData.length - validData.length} row(s) with errors out of ${userData.length} total rows. Please correct them before proceeding.`,
             );
           } else {
-            toast.success(`Successfully parsed ${validData.length} users`);
+            toast.success(translateMessage("Successfully parsed %{0} users", [validData.length]));
           }
         } catch (error: unknown) {
           const errorMessage = error instanceof Error ? error.message : "Unknown error";
@@ -473,28 +477,28 @@ const BulkCreateUsersButton: React.FC<BulkCreateUsersProps> = ({
         <div>
           <div className="flex items-center">
             <XCircleIcon className="h-5 w-5 text-destructive mr-2" />
-            <span className="text-destructive">Invalid</span>
+            <span className="text-destructive"><LocalizedText text={"Invalid"} /></span>
           </div>
           {record.error && <span className="text-sm text-destructive ml-7">{record.error}</span>}
         </div>
       );
     }
     if (!record.status || record.status === "pending") {
-      return <span className="text-muted-foreground">Pending</span>;
+      return <span className="text-muted-foreground"><LocalizedText text={"Pending"} /></span>;
     }
     if (record.status === "success") {
       return (
         <div>
           <div className="flex items-center">
             <CheckCircleIcon className="h-5 w-5 text-success mr-2" />
-            <span className="text-success">Success</span>
+            <span className="text-success"><LocalizedText text={"Success"} /></span>
           </div>
           {record.invitation_link && (
             <div className="mt-1">
               <div className="flex items-center">
                 <span className="text-xs text-muted-foreground truncate max-w-[150px]">{record.invitation_link}</span>
-                <CopyToClipboard text={record.invitation_link} onCopy={() => toast.success("Invitation link copied!")}>
-                  <button className="ml-1 text-info text-xs hover:text-info/80">Copy</button>
+                <CopyToClipboard text={record.invitation_link} onCopy={() => toast.success(translateMessage("Invitation link copied!"))}>
+                  <button className="ml-1 text-info text-xs hover:text-info/80"><LocalizedText text={"Copy"} /></button>
                 </CopyToClipboard>
               </div>
             </div>
@@ -506,7 +510,7 @@ const BulkCreateUsersButton: React.FC<BulkCreateUsersProps> = ({
       <div>
         <div className="flex items-center">
           <XCircleIcon className="h-5 w-5 text-destructive mr-2" />
-          <span className="text-destructive">Failed</span>
+          <span className="text-destructive"><LocalizedText text={"Failed"} /></span>
         </div>
         {record.error && <span className="text-sm text-destructive ml-7">{JSON.stringify(record.error)}</span>}
       </div>
@@ -519,14 +523,12 @@ const BulkCreateUsersButton: React.FC<BulkCreateUsersProps> = ({
 
   return (
     <>
-      <Button className="mb-0" onClick={() => setIsModalVisible(true)}>
-        + Bulk Invite Users
-      </Button>
+      <Button className="mb-0" onClick={() => setIsModalVisible(true)}><LocalizedText text={"+ Bulk Invite Users"} /></Button>
 
       <Dialog open={isModalVisible} onOpenChange={(open) => !open && setIsModalVisible(false)}>
         <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-[800px]">
           <DialogHeader>
-            <DialogTitle>Bulk Invite Users</DialogTitle>
+            <DialogTitle><LocalizedText text={"Bulk Invite Users"} /></DialogTitle>
           </DialogHeader>
           <div className="flex flex-col">
             {/* Step indicator */}
@@ -536,88 +538,75 @@ const BulkCreateUsersButton: React.FC<BulkCreateUsersProps> = ({
                   <div className="w-8 h-8 rounded-full bg-info text-info-foreground flex items-center justify-center mr-3">
                     1
                   </div>
-                  <h3 className="text-lg font-medium">Download and fill the template</h3>
+                  <h3 className="text-lg font-medium"><LocalizedText text={"Download and fill the template"} /></h3>
                 </div>
 
                 <div className="ml-11 mb-6">
-                  <p className="mb-4">Add multiple users at once by following these steps:</p>
+                  <p className="mb-4"><LocalizedText text={"Add multiple users at once by following these steps:"} /></p>
                   <ol className="list-decimal list-inside space-y-2 ml-2 mb-4">
-                    <li>Download our CSV template</li>
-                    <li>Add your users&apos; information to the spreadsheet</li>
-                    <li>Save the file and upload it here</li>
-                    <li>After creation, download the results file containing the Virtual Keys for each user</li>
+                    <li><LocalizedText text={"Download our CSV template"} /></li>
+                    <li><LocalizedText text={"Add your users' information to the spreadsheet"} /></li>
+                    <li><LocalizedText text={"Save the file and upload it here"} /></li>
+                    <li><LocalizedText text={"After creation, download the results file containing the Virtual Keys for each user"} /></li>
                   </ol>
 
                   <div className="bg-muted p-4 rounded-md border border-border mb-4">
-                    <h4 className="font-medium mb-2">Template Column Names</h4>
+                    <h4 className="font-medium mb-2"><LocalizedText text={"Template Column Names"} /></h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <div className="flex items-start">
                         <div className="w-3 h-3 rounded-full bg-destructive mt-1.5 mr-2 shrink-0"></div>
                         <div>
                           <p className="font-medium">user_email</p>
-                          <p className="text-sm text-muted-foreground">User&apos;s email address (required)</p>
+                          <p className="text-sm text-muted-foreground"><LocalizedText text={"User's email address (required)"} /></p>
                         </div>
                       </div>
                       <div className="flex items-start">
                         <div className="w-3 h-3 rounded-full bg-destructive mt-1.5 mr-2 shrink-0"></div>
                         <div>
                           <p className="font-medium">user_role</p>
-                          <p className="text-sm text-muted-foreground">
-                            User&apos;s role (one of: &quot;proxy_admin&quot;, &quot;proxy_admin_viewer&quot;,
-                            &quot;internal_user&quot;, &quot;internal_user_viewer&quot;)
-                          </p>
+                          <p className="text-sm text-muted-foreground"><LocalizedText text={"User's role (one of: \"proxy_admin\", \"proxy_admin_viewer\", \"internal_user\", \"internal_user_viewer\")"} /></p>
                         </div>
                       </div>
                       <div className="flex items-start">
                         <div className="w-3 h-3 rounded-full bg-border mt-1.5 mr-2 shrink-0"></div>
                         <div>
-                          <p className="font-medium">teams</p>
-                          <p className="text-sm text-muted-foreground">
-                            Comma-separated team IDs (e.g., &quot;team-1,team-2&quot;)
-                          </p>
+                          <p className="font-medium"><LocalizedText text={"teams"} /></p>
+                          <p className="text-sm text-muted-foreground"><LocalizedText text={"Comma-separated team IDs (e.g., \"team-1,team-2\")"} /></p>
                         </div>
                       </div>
                       <div className="flex items-start">
                         <div className="w-3 h-3 rounded-full bg-border mt-1.5 mr-2 shrink-0"></div>
                         <div>
                           <p className="font-medium">max_budget</p>
-                          <p className="text-sm text-muted-foreground">
-                            Maximum budget as a number (e.g., &quot;100&quot;)
-                          </p>
+                          <p className="text-sm text-muted-foreground"><LocalizedText text={"Maximum budget as a number (e.g., \"100\")"} /></p>
                         </div>
                       </div>
                       <div className="flex items-start">
                         <div className="w-3 h-3 rounded-full bg-border mt-1.5 mr-2 shrink-0"></div>
                         <div>
                           <p className="font-medium">budget_duration</p>
-                          <p className="text-sm text-muted-foreground">
-                            Budget reset period (e.g., &quot;30d&quot;, &quot;1mo&quot;)
-                          </p>
+                          <p className="text-sm text-muted-foreground"><LocalizedText text={"Budget reset period (e.g., \"30d\", \"1mo\")"} /></p>
                         </div>
                       </div>
                       <div className="flex items-start">
                         <div className="w-3 h-3 rounded-full bg-border mt-1.5 mr-2 shrink-0"></div>
                         <div>
-                          <p className="font-medium">models</p>
-                          <p className="text-sm text-muted-foreground">
-                            Comma-separated allowed models (e.g., &quot;gpt-3.5-turbo,gpt-4&quot;)
-                          </p>
+                          <p className="font-medium"><LocalizedText text={"models"} /></p>
+                          <p className="text-sm text-muted-foreground"><LocalizedText text={"Comma-separated allowed models (e.g., \"gpt-3.5-turbo,gpt-4\")"} /></p>
                         </div>
                       </div>
                     </div>
                   </div>
 
                   <Button size="lg" className="w-full md:w-auto">
-                    <Download className="size-4" />
-                    Download CSV Template
-                  </Button>
+                    <Download className="size-4" /><LocalizedText text={"Download CSV Template"} /></Button>
                 </div>
 
                 <div className="flex items-center mb-4">
                   <div className="w-8 h-8 rounded-full bg-info text-info-foreground flex items-center justify-center mr-3">
                     2
                   </div>
-                  <h3 className="text-lg font-medium">Upload your completed CSV</h3>
+                  <h3 className="text-lg font-medium"><LocalizedText text={"Upload your completed CSV"} /></h3>
                 </div>
 
                 <div className="ml-11">
@@ -637,14 +626,12 @@ const BulkCreateUsersButton: React.FC<BulkCreateUsersProps> = ({
                               {selectedFile.name}
                             </strong>
                             <span className={`block text-xs ${fileError ? "text-destructive" : "text-info"}`}>
-                              {(selectedFile.size / 1024).toFixed(1)} KB • {new Date().toLocaleDateString()}
+                              {(selectedFile.size / 1024).toFixed(1)}<LocalizedText text={" KB • "} />{new Date().toLocaleDateString(getIntlLocale())}
                             </span>
                           </div>
                         </div>
                         <Button variant="outline" size="sm" onClick={removeSelectedFile} className="flex items-center">
-                          <Trash2 className="size-4" />
-                          Remove
-                        </Button>
+                          <Trash2 className="size-4" /><LocalizedText text={"Remove"} /></Button>
                       </div>
 
                       {fileError ? (
@@ -658,7 +645,7 @@ const BulkCreateUsersButton: React.FC<BulkCreateUsersProps> = ({
                             <div className="w-full bg-border rounded-full h-1.5">
                               <div className="bg-info h-1.5 rounded-full w-full animate-pulse"></div>
                             </div>
-                            <span className="ml-2 text-xs text-info">Processing...</span>
+                            <span className="ml-2 text-xs text-info"><LocalizedText text={"Processing..."} /></span>
                           </div>
                         )
                       )}
@@ -682,10 +669,10 @@ const BulkCreateUsersButton: React.FC<BulkCreateUsersProps> = ({
                           onChange={handleFileInputChange}
                         />
                         <Upload className="size-[30px] text-muted-foreground mb-2" />
-                        <p className="mb-1">Drag and drop your CSV file here</p>
-                        <p className="text-sm text-muted-foreground mb-3">or</p>
-                        <span className={buttonVariants({ variant: "outline", size: "sm" })}>Browse files</span>
-                        <p className="text-xs text-muted-foreground mt-4">Only CSV files (.csv) are supported</p>
+                        <p className="mb-1"><LocalizedText text={"Drag and drop your CSV file here"} /></p>
+                        <p className="text-sm text-muted-foreground mb-3"><LocalizedText text={"or"} /></p>
+                        <span className={buttonVariants({ variant: "outline", size: "sm" })}><LocalizedText text={"Browse files"} /></span>
+                        <p className="text-xs text-muted-foreground mt-4"><LocalizedText text={"Only CSV files (.csv) are supported"} /></p>
                       </div>
                     </label>
                   )}
@@ -695,11 +682,9 @@ const BulkCreateUsersButton: React.FC<BulkCreateUsersProps> = ({
                       <div className="flex items-start">
                         <ExclamationIcon className="h-5 w-5 shrink-0 text-warning mr-2 mt-0.5" />
                         <div className="min-w-0">
-                          <strong className="text-warning">CSV Structure Error</strong>
+                          <strong className="text-warning"><LocalizedText text={"CSV Structure Error"} /></strong>
                           <p className="text-warning mt-1 mb-0 break-words">{csvStructureError}</p>
-                          <p className="text-warning mt-2 mb-0">
-                            Please download our template and ensure your CSV follows the required format.
-                          </p>
+                          <p className="text-warning mt-2 mb-0"><LocalizedText text={"Please download our template and ensure your CSV follows the required format."} /></p>
                         </div>
                       </div>
                     </div>
@@ -714,8 +699,8 @@ const BulkCreateUsersButton: React.FC<BulkCreateUsersProps> = ({
                   </div>
                   <h3 className="text-lg font-medium">
                     {parsedData.some((user) => user.status === "success" || user.status === "failed")
-                      ? "User Creation Results"
-                      : "Review and create users"}
+                      ? translateMessage("User Creation Results")
+                      : translateMessage("Review and create users")}
                   </h3>
                 </div>
 
@@ -727,12 +712,9 @@ const BulkCreateUsersButton: React.FC<BulkCreateUsersProps> = ({
                         <p className="text-destructive font-medium break-words">{parseError}</p>
                         {parsedData.some((user) => !user.isValid) && (
                           <ul className="mt-2 list-disc list-inside text-destructive text-sm">
-                            <li>Check the table below for specific errors in each row</li>
-                            <li>
-                              Common issues include invalid email formats, missing required fields, or incorrect role
-                              values
-                            </li>
-                            <li>Fix these issues in your CSV file and upload again</li>
+                            <li><LocalizedText text={"Check the table below for specific errors in each row"} /></li>
+                            <li><LocalizedText text={"Common issues include invalid email formats, missing required fields, or incorrect role values"} /></li>
+                            <li><LocalizedText text={"Fix these issues in your CSV file and upload again"} /></li>
                           </ul>
                         )}
                       </div>
@@ -745,36 +727,31 @@ const BulkCreateUsersButton: React.FC<BulkCreateUsersProps> = ({
                     <div className="flex items-center">
                       {parsedData.some((user) => user.status === "success" || user.status === "failed") ? (
                         <div className="flex items-center">
-                          <p className="text-lg font-medium mr-3">Creation Summary</p>
+                          <p className="text-lg font-medium mr-3"><LocalizedText text={"Creation Summary"} /></p>
                           <p className="text-sm bg-success/15 text-success px-2 py-1 rounded-sm mr-2">
-                            {parsedData.filter((d) => d.status === "success").length} Successful
-                          </p>
+                            {parsedData.filter((d) => d.status === "success").length}<LocalizedText text={" Successful"} /></p>
                           {parsedData.some((d) => d.status === "failed") && (
                             <p className="text-sm bg-destructive/15 text-destructive px-2 py-1 rounded-sm">
-                              {parsedData.filter((d) => d.status === "failed").length} Failed
-                            </p>
+                              {parsedData.filter((d) => d.status === "failed").length}<LocalizedText text={" Failed"} /></p>
                           )}
                         </div>
                       ) : (
                         <div className="flex items-center">
-                          <p className="text-lg font-medium mr-3">User Preview</p>
+                          <p className="text-lg font-medium mr-3"><LocalizedText text={"User Preview"} /></p>
                           <p className="text-sm bg-info/15 text-info px-2 py-1 rounded-sm">
-                            {parsedData.filter((d) => d.isValid).length} of {parsedData.length} users valid
-                          </p>
+                            {parsedData.filter((d) => d.isValid).length}<LocalizedText text={" of "} />{parsedData.length}<LocalizedText text={" users valid"} /></p>
                         </div>
                       )}
                     </div>
 
                     {!parsedData.some((user) => user.status === "success" || user.status === "failed") && (
                       <div className="flex space-x-3">
-                        <Button variant="outline" onClick={resetParsedData}>
-                          Back
-                        </Button>
+                        <Button variant="outline" onClick={resetParsedData}><LocalizedText text={"Back"} /></Button>
                         <Button
                           onClick={handleBulkCreate}
                           disabled={parsedData.filter((d) => d.isValid).length === 0 || isProcessing}
                         >
-                          {isProcessing ? "Creating..." : `Create ${parsedData.filter((d) => d.isValid).length} Users`}
+                          {isProcessing ? translateMessage("Creating...") : translateMessage("Create %{0} Users", [parsedData.filter((d) => d.isValid).length])}
                         </Button>
                       </div>
                     )}
@@ -787,12 +764,9 @@ const BulkCreateUsersButton: React.FC<BulkCreateUsersProps> = ({
                           <CheckCircleIcon className="h-5 w-5 text-info" />
                         </div>
                         <div>
-                          <p className="font-medium text-info">User creation complete</p>
+                          <p className="font-medium text-info"><LocalizedText text={"User creation complete"} /></p>
                           <p className="block text-sm text-info mt-1">
-                            <span className="font-medium">Next step:</span> Download the credentials file containing
-                            Virtual Keys and invitation links. Users will need these Virtual Keys to make LLM requests
-                            through LiteLLM.
-                          </p>
+                            <span className="font-medium"><LocalizedText text={"Next step:"} /></span><LocalizedText text={" Download the credentials file containing Virtual Keys and invitation links. Users will need these Virtual Keys to make LLM requests through LiteLLM."} /></p>
                         </div>
                       </div>
                     </div>
@@ -802,12 +776,12 @@ const BulkCreateUsersButton: React.FC<BulkCreateUsersProps> = ({
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead className="w-20">Row</TableHead>
-                          <TableHead>Email</TableHead>
-                          <TableHead>Role</TableHead>
-                          <TableHead>Teams</TableHead>
-                          <TableHead className={NUMERIC_CELL_CLASS}>Budget</TableHead>
-                          <TableHead>Status</TableHead>
+                          <TableHead className="w-20"><LocalizedText text={"Row"} /></TableHead>
+                          <TableHead><LocalizedText text={"Email"} /></TableHead>
+                          <TableHead><LocalizedText text={"Role"} /></TableHead>
+                          <TableHead><LocalizedText text={"Teams"} /></TableHead>
+                          <TableHead className={NUMERIC_CELL_CLASS}><LocalizedText text={"Budget"} /></TableHead>
+                          <TableHead><LocalizedText text={"Status"} /></TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -827,51 +801,40 @@ const BulkCreateUsersButton: React.FC<BulkCreateUsersProps> = ({
 
                   {pageCount > 1 && (
                     <div className="flex items-center justify-end gap-3 mt-2">
-                      <span className="text-sm text-muted-foreground">
-                        Page {currentPage + 1} of {pageCount}
+                      <span className="text-sm text-muted-foreground"><LocalizedText text={"Page "} />{currentPage + 1}<LocalizedText text={" of "} />{pageCount}
                       </span>
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => setPageIndex(currentPage - 1)}
                         disabled={currentPage === 0}
-                      >
-                        Previous
-                      </Button>
+                      ><LocalizedText text={"Previous"} /></Button>
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => setPageIndex(currentPage + 1)}
                         disabled={currentPage >= pageCount - 1}
-                      >
-                        Next
-                      </Button>
+                      ><LocalizedText text={"Next"} /></Button>
                     </div>
                   )}
 
                   {!parsedData.some((user) => user.status === "success" || user.status === "failed") && (
                     <div className="flex justify-end mt-4">
-                      <Button variant="outline" onClick={resetParsedData} className="mr-3">
-                        Back
-                      </Button>
+                      <Button variant="outline" onClick={resetParsedData} className="mr-3"><LocalizedText text={"Back"} /></Button>
                       <Button
                         onClick={handleBulkCreate}
                         disabled={parsedData.filter((d) => d.isValid).length === 0 || isProcessing}
                       >
-                        {isProcessing ? "Creating..." : `Create ${parsedData.filter((d) => d.isValid).length} Users`}
+                        {isProcessing ? translateMessage("Creating...") : translateMessage("Create %{0} Users", [parsedData.filter((d) => d.isValid).length])}
                       </Button>
                     </div>
                   )}
 
                   {parsedData.some((user) => user.status === "success" || user.status === "failed") && (
                     <div className="flex justify-end mt-4">
-                      <Button variant="outline" onClick={resetParsedData} className="mr-3">
-                        Start New Bulk Import
-                      </Button>
+                      <Button variant="outline" onClick={resetParsedData} className="mr-3"><LocalizedText text={"Start New Bulk Import"} /></Button>
                       <Button onClick={downloadResults}>
-                        <Download className="size-4" />
-                        Download User Credentials
-                      </Button>
+                        <Download className="size-4" /><LocalizedText text={"Download User Credentials"} /></Button>
                     </div>
                   )}
                 </div>

@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 import React, { useId, useRef } from "react";
 import { Copy } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -59,6 +61,7 @@ export default function OnboardingModal({
   invitationLinkData,
   modalType = "invitation",
 }: OnboardingProps) {
+  useUiLocale();
   const linkFieldId = useId();
   const copyButtonRef = useRef<HTMLButtonElement>(null);
   const isInvitation = modalType === "invitation";
@@ -76,32 +79,40 @@ export default function OnboardingModal({
     >
       <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-xl" initialFocus={copyButtonRef}>
         <DialogHeader>
-          <DialogTitle>{isInvitation ? "Invitation Link" : "Reset Password Link"}</DialogTitle>
+          <DialogTitle>
+            {isInvitation ? translateMessage("Invitation Link") : translateMessage("Reset Password Link")}
+          </DialogTitle>
           <DialogDescription>
             {isInvitation
-              ? "Copy and send the generated link to onboard this user to the proxy."
-              : "Copy and send the generated link to the user to reset their password."}
+              ? translateMessage("Copy and send the generated link to onboard this user to the proxy.")
+              : translateMessage("Copy and send the generated link to the user to reset their password.")}
           </DialogDescription>
         </DialogHeader>
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
-            <p className="text-xs text-muted-foreground">User ID</p>
+            <p className="text-xs text-muted-foreground">
+              <LocalizedText text={"User ID"} />
+            </p>
             <p className="font-mono text-sm break-all">{invitationLinkData?.user_id}</p>
           </div>
           <div className="flex flex-col gap-1.5">
             <Label htmlFor={linkFieldId} className="text-xs font-normal text-muted-foreground">
-              {isInvitation ? "Invitation link" : "Reset password link"}
+              {isInvitation ? translateMessage("Invitation link") : translateMessage("Reset password link")}
             </Label>
             <InputGroup>
               <InputGroupInput id={linkFieldId} readOnly value={invitationUrl} className="font-mono text-xs" />
               <InputGroupAddon align="inline-end">
                 <InputGroupButton
                   ref={copyButtonRef}
-                  aria-label={isInvitation ? "Copy invitation link" : "Copy password reset link"}
+                  aria-label={
+                    isInvitation
+                      ? translateMessage("Copy invitation link")
+                      : translateMessage("Copy password reset link")
+                  }
                   onClick={() => copyToClipboard(invitationUrl)}
                 >
                   <Copy />
-                  Copy
+                  <LocalizedText text={"Copy"} />
                 </InputGroupButton>
               </InputGroupAddon>
             </InputGroup>

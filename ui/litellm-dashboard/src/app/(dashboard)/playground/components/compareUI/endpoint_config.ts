@@ -1,3 +1,4 @@
+import { markUiCopy } from "@/lib/i18n";
 /**
  * Endpoint configuration for CompareUI.
  * Add new endpoints here to extend the comparison functionality.
@@ -56,10 +57,15 @@ export const ENDPOINT_CONFIGS: Record<EndpointIdType, EndpointConfig> = {
 
 // Get list of available endpoints for the dropdown
 export const getAvailableEndpoints = () =>
-  Object.values(ENDPOINT_CONFIGS).map((config) => ({
-    value: config.id,
-    label: config.label,
-  }));
+  Object.values(ENDPOINT_CONFIGS).map((config) =>
+    markUiCopy(
+      {
+        value: config.id,
+        label: config.label,
+      },
+      { label: { owner: config, field: "label" } },
+    ),
+  );
 
 // Helper to get config for an endpoint
 export const getEndpointConfig = (endpointId: EndpointIdType): EndpointConfig => ENDPOINT_CONFIGS[endpointId];

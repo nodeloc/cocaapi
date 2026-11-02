@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import type { ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -48,16 +49,18 @@ interface BannersProps {
 }
 
 function Banners({ error, activityReady, flush, refresh }: BannersProps) {
+  useUiLocale();
   if (!error && activityReady === null) return null;
   return (
     <div className={cn("flex flex-col gap-3", flush && "p-2 pb-0")}>
-      {error && <InvestigationError message={error.message} refresh={refresh} />}
+      {error && <InvestigationError message={localizedProperty(error, "message", error.message)} refresh={refresh} />}
       {activityReady !== null && <ReadinessBanner activityReady={activityReady} className="py-2 text-xs" />}
     </div>
   );
 }
 
 export function InvestigationsView({ readOnly = false }: InvestigationsViewProps) {
+  useUiLocale();
   const api = useLensApi();
   const invalidateLenses = useInvalidateLenses();
   const actions = useInvestigationActions();
@@ -141,7 +144,8 @@ export function InvestigationsView({ readOnly = false }: InvestigationsViewProps
                 <>
                   <WatchAllBanner lenses={current.lenses} />
                   <Button size="sm" className="h-8" disabled={!status.ready} onClick={() => openDialog("new")}>
-                    <Plus className="size-4" /> New investigation
+                    <Plus className="size-4" />
+                    <LocalizedText text={" New investigation"} />
                   </Button>
                 </>
               )
@@ -198,7 +202,7 @@ export function InvestigationsView({ readOnly = false }: InvestigationsViewProps
 
   return (
     <section
-      aria-label="Investigations"
+      aria-label={translateMessage("Investigations")}
       className={cn("flex w-full min-w-0 flex-1 flex-col", !browsing && "gap-3 p-4")}
     >
       <Banners

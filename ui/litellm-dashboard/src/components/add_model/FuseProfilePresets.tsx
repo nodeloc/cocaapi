@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import React from "react";
 import { $api } from "@/lib/http/api";
 import { SearchSelect } from "@/components/shared/SearchSelect";
@@ -20,11 +22,18 @@ const catalogQueryOptions = {
   refetchOnReconnect: false,
 };
 
-const profileLabels: Readonly<Record<FuseProfileField, string>> = {
-  efficient_profile: "Efficient solver profile",
-  capable_profile: "Capable solver profile",
-  harness: "Harness and budget",
-};
+const profileLabels: Readonly<Record<FuseProfileField, string>> = markUiCopy(
+  {
+    efficient_profile: "Efficient solver profile",
+    capable_profile: "Capable solver profile",
+    harness: "Harness and budget",
+  },
+  {
+    efficient_profile: "Efficient solver profile",
+    capable_profile: "Capable solver profile",
+    harness: "Harness and budget",
+  },
+);
 
 type FusePresetEntry = {
   id: string;
@@ -61,6 +70,7 @@ function FuseProfilePresetField({
   customWithoutPreview,
   setCustomWithoutPreview,
 }: FieldProps) {
+  useUiLocale();
   const label = profileLabels[field];
   const presetId = value[`${field}_preset`];
   const preset = presets?.find((entry) => entry.id === presetId);
@@ -98,20 +108,28 @@ function FuseProfilePresetField({
 
   return (
     <div className="space-y-2 min-w-0">
-      <Label htmlFor={`${id}-${field}-preset`}>{label} preset</Label>
+      <Label htmlFor={`${id}-${field}-preset`}>
+        {localizedProperty(profileLabels, field, label)}
+        <LocalizedText text={" preset"} />
+      </Label>
       <SearchSelect
         inputId={`${id}-${field}-preset`}
-        aria-label={`${label} preset`}
+        aria-label={translateMessage("%{0} preset", [label])}
         value={custom ? "custom" : presetId}
         allowClear={false}
         options={[
-          { value: "custom", label: "Custom" },
-          ...(presets ?? []).map((entry) => ({ value: entry.id, label: entry.label, sublabel: entry.id })),
+          markUiCopy({ value: "custom", label: "Custom" }, { label: "Custom" }),
+          ...(presets ?? []).map((entry) =>
+            markUiCopy(
+              { value: entry.id, label: entry.label, sublabel: entry.id },
+              { label: { owner: entry, field: "label" } },
+            ),
+          ),
         ]}
         onValueChange={chooseProfile}
       />
       <Textarea
-        aria-label={label}
+        aria-label={localizedProperty(profileLabels, field, label)}
         value={effectiveText}
         readOnly={!custom}
         maxLength={4000}
@@ -124,10 +142,10 @@ function FuseProfilePresetField({
           type="button"
           variant="outline"
           size="sm"
-          aria-label={`Keep saved ${label.toLowerCase()} preset`}
+          aria-label={translateMessage("Keep saved %{0} preset", [label.toLowerCase()])}
           onClick={keepSavedPreset}
         >
-          Keep saved preset
+          <LocalizedText text={"Keep saved preset"} />
         </Button>
       )}
       {presetId && (
@@ -137,18 +155,29 @@ function FuseProfilePresetField({
           </p>
           {preset ? (
             <>
-              <p>Catalog version: {catalogVersion}</p>
-              {preset.model && <p>Model: {preset.model}</p>}
+              <p>
+                <LocalizedText text={"Catalog version: "} />
+                {catalogVersion}
+              </p>
+              {preset.model && (
+                <p>
+                  <LocalizedText text={"Model: "} />
+                  {preset.model}
+                </p>
+              )}
               <div className="flex flex-wrap gap-x-3 gap-y-1">
                 {preset.sources.map((source, index) => (
                   <a key={source} href={source} target="_blank" rel="noopener noreferrer" className="underline">
-                    Source {index + 1}
+                    <LocalizedText text={"Source "} />
+                    {index + 1}
                   </a>
                 ))}
               </div>
             </>
           ) : (
-            <p>Preset preview unavailable. The saved reference is preserved</p>
+            <p>
+              <LocalizedText text={"Preset preview unavailable. The saved reference is preserved"} />
+            </p>
           )}
         </div>
       )}
@@ -163,6 +192,7 @@ export default function FuseProfilePresets({
   value: FuseSettings;
   onChange: (value: FuseSettings) => void;
 }) {
+  useUiLocale();
   const id = React.useId();
   const [customWithoutPreview, setCustomWithoutPreview] = React.useState<ReadonlySet<FuseProfileField>>(
     () => new Set(),
@@ -176,18 +206,22 @@ export default function FuseProfilePresets({
   return (
     <div className="space-y-4 min-w-0">
       <p className="text-xs text-muted-foreground">
-        Choose profiles that match every deployment in each solver group and its actual settings. Profile selection is
-        independent of routing model names. Presets describe the solvers and runtime; they do not set a quality gap or
-        calibration. Validate those separately for your workload, judge, and exact profile versions.
+        <LocalizedText
+          text={
+            "Choose profiles that match every deployment in each solver group and its actual settings. Profile selection is independent of routing model names. Presets describe the solvers and runtime; they do not set a quality gap or calibration. Validate those separately for your workload, judge, and exact profile versions."
+          }
+        />
       </p>
       {isPending && (
         <p role="status" className="text-xs text-muted-foreground">
-          Loading profile presets. Custom editing is available
+          <LocalizedText text={"Loading profile presets. Custom editing is available"} />
         </p>
       )}
       {isError && (
         <p role="status" className="text-xs text-muted-foreground">
-          Profile presets could not be loaded. Saved references are preserved and Custom editing is available
+          <LocalizedText
+            text={"Profile presets could not be loaded. Saved references are preserved and Custom editing is available"}
+          />
         </p>
       )}
       {fuseProfileFields.map((field) => (

@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, getIntlLocale, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import React from "react";
 
@@ -84,6 +85,7 @@ interface TierTurnsChartProps {
 }
 
 const TierTurnsChart: React.FC<TierTurnsChartProps> = ({ view, autoRouters }) => {
+  useUiLocale();
   const group = viewGroup(view);
   const entries = Object.entries(group?.tier_turns ?? {}).filter(([, turns]) => turns > 0);
   if (!group || entries.length === 0) return null;
@@ -100,10 +102,15 @@ const TierTurnsChart: React.FC<TierTurnsChartProps> = ({ view, autoRouters }) =>
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Routing by tier</CardTitle>
+        <CardTitle>
+          <LocalizedText text={"Routing by tier"} />
+        </CardTitle>
         <p className="text-sm text-muted-foreground">
-          Turns each tier served. Turns the classifier sent to the default model belong to no tier and are not counted
-          here, so this can total less than the router&apos;s turns.
+          <LocalizedText
+            text={
+              "Turns each tier served. Turns the classifier sent to the default model belong to no tier and are not counted here, so this can total less than the router's turns."
+            }
+          />
         </p>
       </CardHeader>
       <CardContent>
@@ -114,9 +121,9 @@ const TierTurnsChart: React.FC<TierTurnsChartProps> = ({ view, autoRouters }) =>
             index="tier"
             category="turns"
             colors={colors}
-            valueFormatter={(value) => value.toLocaleString()}
+            valueFormatter={(value) => value.toLocaleString(getIntlLocale())}
             showLabel
-            label={`${total.toLocaleString()} total turns`}
+            label={translateMessage("%{0} total turns", [total.toLocaleString()])}
           />
           <ul className="flex flex-col gap-6">
             {slices.map((slice, idx) => (
@@ -127,7 +134,7 @@ const TierTurnsChart: React.FC<TierTurnsChartProps> = ({ view, autoRouters }) =>
                 />
                 <div className="min-w-0">
                   <p className="text-sm text-muted-foreground">
-                    {slice.tier} {Math.round((100 * slice.turns) / total).toLocaleString()}%
+                    {slice.tier} {Math.round((100 * slice.turns) / total).toLocaleString(getIntlLocale())}%
                   </p>
                   {slice.models.length > 0 && (
                     <p className="text-xs break-words text-muted-foreground">{slice.models.join(", ")}</p>

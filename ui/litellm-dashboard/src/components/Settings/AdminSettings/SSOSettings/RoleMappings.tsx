@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, markUiCopy, useUiLocale } from "@/lib/i18n";
 import type { RoleMappings as RoleMappingsType } from "@/app/(dashboard)/hooks/sso/useSSOSettings";
 import type { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "@/components/shared/DataTable";
@@ -15,50 +17,65 @@ interface RoleMappingRow {
 }
 
 export default function RoleMappings({ roleMappings }: { roleMappings: RoleMappingsType | undefined }) {
+  useUiLocale();
   if (!roleMappings) {
     return null;
   }
 
   const roleMappingsColumns: ColumnDef<RoleMappingRow>[] = [
-    {
-      id: "role",
-      accessorKey: "role",
-      header: "Role",
-      cell: ({ row }) => <strong className="font-semibold">{defaultRoleDisplayNames[row.original.role]}</strong>,
-    },
-    {
-      id: "groups",
-      accessorKey: "groups",
-      header: "Mapped Groups",
-      cell: ({ row }) =>
-        row.original.groups.length > 0 ? (
-          <div className="flex flex-wrap gap-1">
-            {row.original.groups.map((group, index) => (
-              <StatusBadge key={index} tone="info" label={group} />
-            ))}
-          </div>
-        ) : (
-          <span className="text-muted-foreground italic">No groups mapped</span>
-        ),
-    },
+    markUiCopy(
+      {
+        id: "role",
+        accessorKey: "role",
+        header: "Role",
+        cell: ({ row }) => <strong className="font-semibold">{defaultRoleDisplayNames[row.original.role]}</strong>,
+      },
+      { header: "Role" },
+    ),
+    markUiCopy(
+      {
+        id: "groups",
+        accessorKey: "groups",
+        header: "Mapped Groups",
+        cell: ({ row }) =>
+          row.original.groups.length > 0 ? (
+            <div className="flex flex-wrap gap-1">
+              {row.original.groups.map((group, index) => (
+                <StatusBadge key={index} tone="info" label={group} />
+              ))}
+            </div>
+          ) : (
+            <span className="text-muted-foreground italic">
+              <LocalizedText text={"No groups mapped"} />
+            </span>
+          ),
+      },
+      { header: "Mapped Groups" },
+    ),
   ];
   return (
     <Card>
       <CardContent>
         <div className="flex items-center gap-3">
           <Users className="w-6 h-6 text-muted-foreground mb-2" />
-          <h3 className="mb-2 text-2xl font-semibold text-foreground">Role Mappings</h3>
+          <h3 className="mb-2 text-2xl font-semibold text-foreground">
+            <LocalizedText text={"Role Mappings"} />
+          </h3>
         </div>
         <div className="space-y-8">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <h5 className="mb-2 text-base font-semibold text-foreground">Group Claim</h5>
+              <h5 className="mb-2 text-base font-semibold text-foreground">
+                <LocalizedText text={"Group Claim"} />
+              </h5>
               <div>
                 <code className={inlineCodeClass}>{roleMappings.group_claim}</code>
               </div>
             </div>
             <div>
-              <h5 className="mb-2 text-base font-semibold text-foreground">Default Role</h5>
+              <h5 className="mb-2 text-base font-semibold text-foreground">
+                <LocalizedText text={"Default Role"} />
+              </h5>
               <div>
                 <strong className="font-semibold">{defaultRoleDisplayNames[roleMappings.default_role]}</strong>
               </div>

@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { ColumnDef } from "@tanstack/react-table";
 import { Info, Play, RefreshCw } from "lucide-react";
@@ -51,14 +52,16 @@ const NEVER_SUCCEEDED = "Never succeeded";
 const NONE = "None";
 
 function HealthStatusBadge({ status }: { status: string }) {
+  useUiLocale();
   const tone = HEALTH_STATUS_TONES[status];
   if (!tone) {
-    return <StatusBadge tone="neutral" label="unknown" />;
+    return <StatusBadge tone="neutral" label={translateMessage("unknown")} />;
   }
   return <StatusBadge tone={tone} label={status} />;
 }
 
 function DotPulse({ className }: { className: string }) {
+  useUiLocale();
   return (
     <div className="flex space-x-1">
       <div className={cn("animate-pulse rounded-full", className)} />
@@ -68,22 +71,14 @@ function DotPulse({ className }: { className: string }) {
   );
 }
 
-function DetailButton({
-  label,
-  onClick,
-  className,
-  testId,
-}: {
-  label: string;
-  onClick: () => void;
-  className: string;
-  testId: string;
-}) {
+function DetailButton(cocaCopyProps0: { label: string; onClick: () => void; className: string; testId: string }) {
+  const { label, onClick, className, testId } = cocaCopyProps0;
+  useUiLocale();
   return (
     <button
       type="button"
-      title={label}
-      aria-label={label}
+      title={localizedProperty(cocaCopyProps0, "label", label)}
+      aria-label={localizedProperty(cocaCopyProps0, "label", label)}
       data-testid={testId}
       onClick={onClick}
       className={cn("cursor-pointer rounded-sm p-1 transition-colors", className)}
@@ -104,6 +99,7 @@ function runButtonLabel(isLoading: boolean, hasExistingStatus: boolean): string 
 }
 
 function RunButtonIcon({ isLoading, hasExistingStatus }: { isLoading: boolean; hasExistingStatus: boolean }) {
+  useUiLocale();
   if (isLoading) {
     return <DotPulse className="size-1 bg-border" />;
   }
@@ -120,6 +116,7 @@ function RunHealthCheckButton({
   model: HealthCheckData;
   onRunHealthCheck: (modelId: string) => void;
 }) {
+  useUiLocale();
   const isLoading = model.health_loading;
   const hasExistingStatus = Boolean(model.health_status) && model.health_status !== "none";
   const label = runButtonLabel(isLoading, hasExistingStatus);
@@ -222,8 +219,10 @@ export const getHealthChecksTableColumns = ({
   {
     id: "model_id",
     accessorFn: (row) => row.model_info?.id ?? "",
-    meta: { title: "Model ID" },
-    header: ({ column }) => <DataTableSortHeader column={column} title="Model ID" variant="header-cycle" />,
+    meta: markUiCopy({ title: "Model ID" }, { title: "Model ID" }),
+    header: ({ column }) => (
+      <DataTableSortHeader column={column} title={translateMessage("Model ID")} variant="header-cycle" />
+    ),
     size: 220,
     enableSorting: true,
     sortingFn: "alphanumeric",
@@ -241,8 +240,10 @@ export const getHealthChecksTableColumns = ({
   {
     id: "model_name",
     accessorKey: "model_name",
-    meta: { title: "Model Name" },
-    header: ({ column }) => <DataTableSortHeader column={column} title="Model Name" variant="header-cycle" />,
+    meta: markUiCopy({ title: "Model Name" }, { title: "Model Name" }),
+    header: ({ column }) => (
+      <DataTableSortHeader column={column} title={translateMessage("Model Name")} variant="header-cycle" />
+    ),
     size: 200,
     enableSorting: true,
     sortingFn: "alphanumeric",
@@ -258,8 +259,10 @@ export const getHealthChecksTableColumns = ({
   {
     id: "team_id",
     accessorFn: (row) => row.model_info?.team_id ?? "",
-    meta: { title: "Team Alias" },
-    header: ({ column }) => <DataTableSortHeader column={column} title="Team Alias" variant="header-cycle" />,
+    meta: markUiCopy({ title: "Team Alias" }, { title: "Team Alias" }),
+    header: ({ column }) => (
+      <DataTableSortHeader column={column} title={translateMessage("Team Alias")} variant="header-cycle" />
+    ),
     size: 160,
     enableSorting: true,
     sortingFn: "alphanumeric",
@@ -279,8 +282,10 @@ export const getHealthChecksTableColumns = ({
   {
     id: "health_status",
     accessorKey: "health_status",
-    meta: { title: "Health Status", skeleton: "badge" },
-    header: ({ column }) => <DataTableSortHeader column={column} title="Health Status" variant="header-cycle" />,
+    meta: markUiCopy({ title: "Health Status", skeleton: "badge" as const }, { title: "Health Status" }),
+    header: ({ column }) => (
+      <DataTableSortHeader column={column} title={translateMessage("Health Status")} variant="header-cycle" />
+    ),
     size: 170,
     enableSorting: true,
     sortingFn: (rowA, rowB) => {
@@ -297,7 +302,9 @@ export const getHealthChecksTableColumns = ({
         return (
           <div className="flex items-center space-x-2">
             <DotPulse className="size-2 bg-indigo-500" />
-            <span className="text-sm text-muted-foreground">Checking...</span>
+            <span className="text-sm text-muted-foreground">
+              <LocalizedText text={"Checking..."} />
+            </span>
           </div>
         );
       }
@@ -312,7 +319,7 @@ export const getHealthChecksTableColumns = ({
           <HealthStatusBadge status={model.health_status} />
           {hasSuccessResponse && (
             <DetailButton
-              label="View response details"
+              label={translateMessage("View response details")}
               testId="view-health-success-btn"
               className="text-success hover:bg-success/10 "
               onClick={() => onShowSuccess(displayName, successResponse)}
@@ -322,48 +329,57 @@ export const getHealthChecksTableColumns = ({
       );
     },
   },
-  {
-    id: "health_error",
-    accessorKey: "health_error",
-    meta: { title: "Error Details" },
-    header: "Error Details",
-    size: 240,
-    enableSorting: false,
-    cell: ({ row }) => {
-      const model = row.original;
-      const modelId = model.model_info?.id ?? "";
-      const healthStatus = modelHealthStatuses[modelId];
+  markUiCopy(
+    {
+      id: "health_error",
+      accessorKey: "health_error",
+      meta: markUiCopy({ title: "Error Details" }, { title: "Error Details" }),
+      header: "Error Details",
+      size: 240,
+      enableSorting: false,
+      cell: ({ row }) => {
+        const model = row.original;
+        const modelId = model.model_info?.id ?? "";
+        const healthStatus = modelHealthStatuses[modelId];
 
-      if (!healthStatus?.error) {
-        return <span className="text-sm text-muted-foreground">No errors</span>;
-      }
+        if (!healthStatus?.error) {
+          return (
+            <span className="text-sm text-muted-foreground">
+              <LocalizedText text={"No errors"} />
+            </span>
+          );
+        }
 
-      const cleanedError = healthStatus.error;
-      const fullError = healthStatus.fullError || healthStatus.error;
-      const displayName = getDisplayModelName(model) || model.model_name;
+        const cleanedError = healthStatus.error;
+        const fullError = healthStatus.fullError || healthStatus.error;
+        const displayName = getDisplayModelName(model) || model.model_name;
 
-      return (
-        <div className="flex items-center space-x-2">
-          <span className="block max-w-50 truncate text-sm text-destructive" title={cleanedError}>
-            {cleanedError}
-          </span>
-          {fullError !== cleanedError && (
-            <DetailButton
-              label="View full error details"
-              testId="view-health-error-btn"
-              className="text-destructive hover:bg-destructive/10 "
-              onClick={() => onShowError(displayName, cleanedError, fullError)}
-            />
-          )}
-        </div>
-      );
+        return (
+          <div className="flex items-center space-x-2">
+            <span className="block max-w-50 truncate text-sm text-destructive" title={cleanedError}>
+              {cleanedError}
+            </span>
+            {fullError !== cleanedError && (
+              <DetailButton
+                label={translateMessage("View full error details")}
+                testId="view-health-error-btn"
+                className="text-destructive hover:bg-destructive/10 "
+                onClick={() => onShowError(displayName, cleanedError, fullError)}
+              />
+            )}
+          </div>
+        );
+      },
     },
-  },
+    { header: "Error Details" },
+  ),
   {
     id: "last_check",
     accessorKey: "last_check",
-    meta: { title: "Last Check" },
-    header: ({ column }) => <DataTableSortHeader column={column} title="Last Check" variant="header-cycle" />,
+    meta: markUiCopy({ title: "Last Check" }, { title: "Last Check" }),
+    header: ({ column }) => (
+      <DataTableSortHeader column={column} title={translateMessage("Last Check")} variant="header-cycle" />
+    ),
     size: 170,
     enableSorting: true,
     sortingFn: (rowA, rowB) => {
@@ -381,8 +397,10 @@ export const getHealthChecksTableColumns = ({
   {
     id: "last_success",
     accessorKey: "last_success",
-    meta: { title: "Last Success" },
-    header: ({ column }) => <DataTableSortHeader column={column} title="Last Success" variant="header-cycle" />,
+    meta: markUiCopy({ title: "Last Success" }, { title: "Last Success" }),
+    header: ({ column }) => (
+      <DataTableSortHeader column={column} title={translateMessage("Last Success")} variant="header-cycle" />
+    ),
     size: 170,
     enableSorting: true,
     sortingFn: (rowA, rowB) => {
@@ -399,8 +417,15 @@ export const getHealthChecksTableColumns = ({
   },
   {
     id: "actions",
-    meta: { title: "Actions", className: "text-right", headerClassName: "text-right" },
-    header: () => <span className="sr-only">Actions</span>,
+    meta: markUiCopy(
+      { title: "Actions", className: "text-right", headerClassName: "text-right" },
+      { title: "Actions" },
+    ),
+    header: () => (
+      <span className="sr-only">
+        <LocalizedText text={"Actions"} />
+      </span>
+    ),
     size: 80,
     enableSorting: false,
     enableHiding: false,

@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { ColumnDef } from "@tanstack/react-table";
 import { Copy, KeyRound, Layers, MoreHorizontal, Pencil, Trash2, Users } from "lucide-react";
@@ -41,10 +42,11 @@ const teamModelCount = (team: Team): number => team.models?.length ?? 0;
 const teamKeyCount = (team: Team): number => team.keys_count ?? team.keys?.length ?? 0;
 
 function ResourcesCell({ team }: { team: Team }) {
+  useUiLocale();
   const items = [
-    { key: "members" as const, label: "members", count: teamMemberCount(team) },
-    { key: "models" as const, label: "models", count: teamModelCount(team) },
-    { key: "keys" as const, label: "keys", count: teamKeyCount(team) },
+    markUiCopy({ key: "members" as const, label: "members", count: teamMemberCount(team) }, { label: "members" }),
+    markUiCopy({ key: "models" as const, label: "models", count: teamModelCount(team) }, { label: "models" }),
+    markUiCopy({ key: "keys" as const, label: "keys", count: teamKeyCount(team) }, { label: "keys" }),
   ];
 
   return (
@@ -55,7 +57,7 @@ function ResourcesCell({ team }: { team: Team }) {
         return (
           <span
             key={item.key}
-            title={`${item.count} ${item.label}`}
+            title={`${item.count} ${localizedProperty(item, "label", item.label)}`}
             className={cn(
               "inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset [&_svg]:size-3.5",
               tone.className,
@@ -70,11 +72,17 @@ function ResourcesCell({ team }: { team: Team }) {
   );
 }
 
-function RateLimitLine({ label, value }: { label: string; value: number | null }) {
+function RateLimitLine(cocaCopyProps0: { label: string; value: number | null }) {
+  const { label, value } = cocaCopyProps0;
+  useUiLocale();
   return (
     <div>
-      <span className="text-[10px] font-semibold text-muted-foreground">{label} </span>
-      <span className="tabular-nums">{value != null ? formatNumberWithCommas(value) : "Unlimited"}</span>
+      <span className="text-[10px] font-semibold text-muted-foreground">
+        {localizedProperty(cocaCopyProps0, "label", label)}{" "}
+      </span>
+      <span className="tabular-nums">
+        {value != null ? formatNumberWithCommas(value) : translateMessage("Unlimited")}
+      </span>
     </div>
   );
 }
@@ -87,6 +95,7 @@ interface TeamRowActionsProps {
 }
 
 function TeamRowActions({ team, canManage, onEditTeam, onDeleteTeam }: TeamRowActionsProps) {
+  useUiLocale();
   const handleCopy = () => {
     void copyToClipboard(team.team_id, "Team ID copied");
   };
@@ -94,7 +103,7 @@ function TeamRowActions({ team, canManage, onEditTeam, onDeleteTeam }: TeamRowAc
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        aria-label="Open team actions"
+        aria-label={translateMessage("Open team actions")}
         data-testid={`team-actions-${team.team_id}`}
         className={cn(buttonVariants({ variant: "ghost", size: "icon-sm" }), "text-muted-foreground")}
       >
@@ -104,19 +113,19 @@ function TeamRowActions({ team, canManage, onEditTeam, onDeleteTeam }: TeamRowAc
         {canManage && (
           <DropdownMenuItem onClick={() => onEditTeam(team)} data-testid="team-action-edit">
             <Pencil />
-            Edit team
+            <LocalizedText text={"Edit team"} />
           </DropdownMenuItem>
         )}
         <DropdownMenuItem onClick={handleCopy} data-testid="team-action-copy">
           <Copy />
-          Copy team ID
+          <LocalizedText text={"Copy team ID"} />
         </DropdownMenuItem>
         {canManage && (
           <>
             <DropdownMenuSeparator />
             <DropdownMenuItem variant="destructive" onClick={() => onDeleteTeam(team)} data-testid="team-action-delete">
               <Trash2 />
-              Delete team
+              <LocalizedText text={"Delete team"} />
             </DropdownMenuItem>
           </>
         )}
@@ -146,16 +155,21 @@ export const getTeamTableColumns = ({
     {
       id: "team_alias",
       accessorKey: "team_alias",
-      meta: {
-        title: "Team",
-        renderSkeleton: () => (
-          <div className="flex flex-col gap-2 py-1">
-            <Skeleton className="h-4 w-32" />
-            <Skeleton className="h-3.5 w-24 opacity-65" />
-          </div>
-        ),
-      },
-      header: ({ column }) => <DataTableSortHeader column={column} title="Team" variant="header-cycle" />,
+      meta: markUiCopy(
+        {
+          title: "Team",
+          renderSkeleton: () => (
+            <div className="flex flex-col gap-2 py-1">
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-3.5 w-24 opacity-65" />
+            </div>
+          ),
+        },
+        { title: "Team" },
+      ),
+      header: ({ column }) => (
+        <DataTableSortHeader column={column} title={translateMessage("Team")} variant="header-cycle" />
+      ),
       size: 260,
       enableSorting: true,
       cell: ({ row }) => {
@@ -170,110 +184,143 @@ export const getTeamTableColumns = ({
         );
       },
     },
-    {
-      id: "organization_alias",
-      accessorKey: "organization_id",
-      meta: { title: "Organization" },
-      header: "Organization",
-      size: 160,
-      enableSorting: false,
-      cell: (info) => {
-        const orgId = info.getValue() as string | null;
-        if (!orgId) return <span className="text-muted-foreground">—</span>;
-        const org = organizations.find((o) => o.organization_id === orgId);
-        const displayValue = org?.organization_alias || orgId;
-        const width = info.cell.column.getSize();
-        return (
-          <span className="block" style={{ maxWidth: width }} title={displayValue}>
-            <IdentityCell title={displayValue} titleClassName="text-sm font-normal" href={orgDetailHref(orgId)} />
-          </span>
-        );
+    markUiCopy(
+      {
+        id: "organization_alias",
+        accessorKey: "organization_id",
+        meta: markUiCopy({ title: "Organization" }, { title: "Organization" }),
+        header: "Organization",
+        size: 160,
+        enableSorting: false,
+        cell: (info) => {
+          const orgId = info.getValue() as string | null;
+          if (!orgId) return <span className="text-muted-foreground">—</span>;
+          const org = organizations.find((o) => o.organization_id === orgId);
+          const displayValue = org?.organization_alias || orgId;
+          const width = info.cell.column.getSize();
+          return (
+            <span className="block" style={{ maxWidth: width }} title={displayValue}>
+              <IdentityCell title={displayValue} titleClassName="text-sm font-normal" href={orgDetailHref(orgId)} />
+            </span>
+          );
+        },
       },
-    },
-    {
-      id: "resources",
-      meta: {
-        title: "Resources",
-        renderSkeleton: () => (
-          <div className="flex items-center gap-1.5">
-            <Skeleton className="h-6 w-12 rounded-md" />
-            <Skeleton className="h-6 w-12 rounded-md" />
-            <Skeleton className="h-6 w-12 rounded-md opacity-65" />
-          </div>
+      { header: "Organization" },
+    ),
+    markUiCopy(
+      {
+        id: "resources",
+        meta: markUiCopy(
+          {
+            title: "Resources",
+            renderSkeleton: () => (
+              <div className="flex items-center gap-1.5">
+                <Skeleton className="h-6 w-12 rounded-md" />
+                <Skeleton className="h-6 w-12 rounded-md" />
+                <Skeleton className="h-6 w-12 rounded-md opacity-65" />
+              </div>
+            ),
+          },
+          { title: "Resources" },
+        ),
+        header: "Resources",
+        size: 210,
+        enableSorting: false,
+        cell: ({ row }) => <ResourcesCell team={row.original} />,
+      },
+      { header: "Resources" },
+    ),
+    markUiCopy(
+      {
+        id: "spend",
+        accessorKey: "spend",
+        meta: markUiCopy(
+          { title: "Spend / Budget", skeleton: "meter" as const, numeric: true },
+          { title: "Spend / Budget" },
+        ),
+        header: "Spend / Budget",
+        size: 200,
+        enableSorting: false,
+        cell: ({ row }) => (
+          <SpendBudgetCell
+            spend={row.original.spend}
+            maxBudget={row.original.max_budget}
+            spendDecimals={2}
+            budgetDecimals={2}
+          />
         ),
       },
-      header: "Resources",
-      size: 210,
-      enableSorting: false,
-      cell: ({ row }) => <ResourcesCell team={row.original} />,
-    },
-    {
-      id: "spend",
-      accessorKey: "spend",
-      meta: { title: "Spend / Budget", skeleton: "meter", numeric: true },
-      header: "Spend / Budget",
-      size: 200,
-      enableSorting: false,
-      cell: ({ row }) => (
-        <SpendBudgetCell
-          spend={row.original.spend}
-          maxBudget={row.original.max_budget}
-          spendDecimals={2}
-          budgetDecimals={2}
-        />
-      ),
-    },
+      { header: "Spend / Budget" },
+    ),
     {
       id: "created_at",
       accessorKey: "created_at",
-      meta: { title: "Created" },
-      header: ({ column }) => <DataTableSortHeader column={column} title="Created" variant="header-cycle" />,
+      meta: markUiCopy({ title: "Created" }, { title: "Created" }),
+      header: ({ column }) => (
+        <DataTableSortHeader column={column} title={translateMessage("Created")} variant="header-cycle" />
+      ),
       size: 130,
       enableSorting: true,
       cell: (info) => <DateCell value={info.getValue() as string | null} precision="date" />,
     },
-    {
-      id: "members",
-      meta: { title: "Members", numeric: true },
-      header: "Members",
-      size: 110,
-      enableSorting: false,
-      cell: ({ row }) => <span className="text-sm tabular-nums">{teamMemberCount(row.original)}</span>,
-    },
-    {
-      id: "models",
-      meta: { title: "Models", numeric: true },
-      header: "Models",
-      size: 100,
-      enableSorting: false,
-      cell: ({ row }) => <span className="text-sm tabular-nums">{teamModelCount(row.original)}</span>,
-    },
-    {
-      id: "rate_limits",
-      meta: { title: "Rate Limits", skeleton: "twoLine" },
-      header: "Rate Limits",
-      size: 140,
-      enableSorting: false,
-      cell: ({ row }) => (
-        <div className="text-xs leading-tight">
-          <RateLimitLine label="TPM" value={row.original.tpm_limit} />
-          <RateLimitLine label="RPM" value={row.original.rpm_limit} />
-        </div>
-      ),
-    },
-    {
-      id: "updated_at",
-      accessorKey: "updated_at",
-      meta: { title: "Updated" },
-      header: "Updated",
-      size: 130,
-      enableSorting: false,
-      cell: (info) => <DateCell value={info.getValue() as string | null} precision="date" fallback="Never" />,
-    },
+    markUiCopy(
+      {
+        id: "members",
+        meta: markUiCopy({ title: "Members", numeric: true }, { title: "Members" }),
+        header: "Members",
+        size: 110,
+        enableSorting: false,
+        cell: ({ row }) => <span className="text-sm tabular-nums">{teamMemberCount(row.original)}</span>,
+      },
+      { header: "Members" },
+    ),
+    markUiCopy(
+      {
+        id: "models",
+        meta: markUiCopy({ title: "Models", numeric: true }, { title: "Models" }),
+        header: "Models",
+        size: 100,
+        enableSorting: false,
+        cell: ({ row }) => <span className="text-sm tabular-nums">{teamModelCount(row.original)}</span>,
+      },
+      { header: "Models" },
+    ),
+    markUiCopy(
+      {
+        id: "rate_limits",
+        meta: markUiCopy({ title: "Rate Limits", skeleton: "twoLine" as const }, { title: "Rate Limits" }),
+        header: "Rate Limits",
+        size: 140,
+        enableSorting: false,
+        cell: ({ row }) => (
+          <div className="text-xs leading-tight">
+            <RateLimitLine label={translateMessage("TPM")} value={row.original.tpm_limit} />
+            <RateLimitLine label={translateMessage("RPM")} value={row.original.rpm_limit} />
+          </div>
+        ),
+      },
+      { header: "Rate Limits" },
+    ),
+    markUiCopy(
+      {
+        id: "updated_at",
+        accessorKey: "updated_at",
+        meta: markUiCopy({ title: "Updated" }, { title: "Updated" }),
+        header: "Updated",
+        size: 130,
+        enableSorting: false,
+        cell: (info) => <DateCell value={info.getValue() as string | null} precision="date" fallback="Never" />,
+      },
+      { header: "Updated" },
+    ),
     {
       id: "actions",
       meta: { className: "text-right", headerClassName: "text-right" },
-      header: () => <span className="sr-only">Actions</span>,
+      header: () => (
+        <span className="sr-only">
+          <LocalizedText text={"Actions"} />
+        </span>
+      ),
       size: 60,
       enableSorting: false,
       enableHiding: false,

@@ -1,13 +1,14 @@
+import { markUiCopy } from "@/lib/i18n";
 import type { ColumnFilter, ColumnFiltersState } from "@tanstack/react-table";
 
 export const BUDGET_DURATION_UNSET = "__unset__";
 
 export const BUDGET_DURATION_FILTER_OPTIONS: readonly { value: string; label: string }[] = [
-  { value: "1h", label: "hourly" },
-  { value: "24h", label: "daily" },
-  { value: "7d", label: "weekly" },
-  { value: "30d", label: "monthly" },
-  { value: BUDGET_DURATION_UNSET, label: "Not set" },
+  markUiCopy({ value: "1h", label: "hourly" }, { label: "hourly" }),
+  markUiCopy({ value: "24h", label: "daily" }, { label: "daily" }),
+  markUiCopy({ value: "7d", label: "weekly" }, { label: "weekly" }),
+  markUiCopy({ value: "30d", label: "monthly" }, { label: "monthly" }),
+  markUiCopy({ value: BUDGET_DURATION_UNSET, label: "Not set" }, { label: "Not set" }),
 ];
 
 export interface MaxBudgetFilterValue {

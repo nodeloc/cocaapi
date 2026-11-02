@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { Bot, Settings2, User, Wrench } from "lucide-react";
 
@@ -22,6 +23,7 @@ const ROLE_ICON: Record<string, React.ReactNode> = {
 const argsText = (args: unknown): string => (typeof args === "string" ? args : JSON.stringify(args));
 
 export function ToolCallBlock({ call }: { call: TraceToolCall }) {
+  useUiLocale();
   return (
     <div className="rounded-md border border-border bg-background">
       <div className="flex items-center gap-2 border-b border-border/70 px-2.5 py-1.5">
@@ -32,14 +34,16 @@ export function ToolCallBlock({ call }: { call: TraceToolCall }) {
         <CopyButton
           variant="action"
           value={`${call.name}(${argsText(call.args)})`}
-          label={`Copy ${call.name} call`}
+          label={translateMessage("Copy %{0} call", [call.name])}
           iconOnly
           className="ml-auto size-6 text-muted-foreground"
         />
       </div>
       <div className="px-2.5 py-2">
         {call.args === undefined ? (
-          <p className="py-2 text-xs text-muted-foreground">Arguments not recorded</p>
+          <p className="py-2 text-xs text-muted-foreground">
+            <LocalizedText text={"Arguments not recorded"} />
+          </p>
         ) : (
           <ToolArguments args={call.args} />
         )}
@@ -48,7 +52,9 @@ export function ToolCallBlock({ call }: { call: TraceToolCall }) {
   );
 }
 
-export function MessageCard({ message }: { message: TraceMessage }) {
+export function MessageCard(cocaCopyProps0: { message: TraceMessage }) {
+  const { message } = cocaCopyProps0;
+  useUiLocale();
   const label = ROLE_LABEL[message.role] ?? message.role;
   if (message.role === "tool") return <ToolResultCard name={message.name || label} result={message.content} />;
   const calls = message.tool_calls ?? [];
@@ -76,6 +82,7 @@ export function MessageCard({ message }: { message: TraceMessage }) {
 }
 
 export function MessageList({ messages }: { messages: readonly TraceMessage[] }) {
+  useUiLocale();
   return (
     <div className="flex flex-col gap-2">
       {messages.map((message, i) => (
@@ -86,6 +93,7 @@ export function MessageList({ messages }: { messages: readonly TraceMessage[] })
 }
 
 export function ToolResultCard({ name, result, failed = false }: { name: string; result: string; failed?: boolean }) {
+  useUiLocale();
   return (
     <article
       className={cn(
@@ -101,7 +109,7 @@ export function ToolResultCard({ name, result, failed = false }: { name: string;
         <CopyButton
           variant="action"
           value={result}
-          label={`Copy ${name} result`}
+          label={translateMessage("Copy %{0} result", [name])}
           iconOnly
           className="size-6 shrink-0 text-muted-foreground"
         />

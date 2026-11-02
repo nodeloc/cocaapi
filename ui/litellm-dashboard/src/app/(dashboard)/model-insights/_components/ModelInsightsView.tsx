@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { Page } from "@/components/shared/Page";
 import React from "react";
@@ -27,8 +28,14 @@ import {
 
 const SCALES = ["linear", "log"] as const;
 const GRANULARITIES = ["day", "week"] as const;
-const GRANULARITY_LABELS: Record<Granularity, string> = { day: "Daily", week: "Weekly" };
-const METRIC_LABELS: Record<Metric, string> = { requests: "requests", spend: "spend", tokens: "tokens" };
+const GRANULARITY_LABELS: Record<Granularity, string> = markUiCopy(
+  { day: "Daily", week: "Weekly" },
+  { day: "Daily", week: "Weekly" },
+);
+const METRIC_LABELS: Record<Metric, string> = markUiCopy(
+  { requests: "requests", spend: "spend", tokens: "tokens" },
+  { requests: "requests", spend: "spend", tokens: "tokens" },
+);
 const RANKING_ROWS = 5;
 
 type Scale = (typeof SCALES)[number];
@@ -36,6 +43,7 @@ type Scale = (typeof SCALES)[number];
 const formatDelta = (value: number) => `${value > 0 ? "+" : ""}${value.toFixed(1)}`;
 
 const DeltaBadge = ({ value }: { value: number }) => {
+  useUiLocale();
   if (Math.abs(value) < 0.05) {
     return (
       <span className="flex items-center justify-end gap-1 text-xs text-muted-foreground">
@@ -52,22 +60,29 @@ const DeltaBadge = ({ value }: { value: number }) => {
   );
 };
 
-const RankingRow = ({ model, rank }: { model: RankedModel; rank: number }) => (
-  <li className="grid grid-cols-[1.5rem_2.5rem_1fr_auto] items-center gap-3 py-2">
-    <span className="text-sm tabular-nums text-muted-foreground">{rank}</span>
-    <ProviderLogo provider={model.provider} className="size-9 rounded-md border p-1" />
-    <div className="min-w-0">
-      <p className="truncate font-medium">{model.model_group}</p>
-      <p className="truncate text-sm text-muted-foreground">by {model.provider}</p>
-    </div>
-    <div className="text-right">
-      <p className="font-medium tabular-nums">{model.share.toFixed(1)}%</p>
-      <DeltaBadge value={model.delta} />
-    </div>
-  </li>
-);
+const RankingRow = ({ model, rank }: { model: RankedModel; rank: number }) => {
+  useUiLocale();
+  return (
+    <li className="grid grid-cols-[1.5rem_2.5rem_1fr_auto] items-center gap-3 py-2">
+      <span className="text-sm tabular-nums text-muted-foreground">{rank}</span>
+      <ProviderLogo provider={model.provider} className="size-9 rounded-md border p-1" />
+      <div className="min-w-0">
+        <p className="truncate font-medium">{model.model_group}</p>
+        <p className="truncate text-sm text-muted-foreground">
+          <LocalizedText text={"by "} />
+          {model.provider}
+        </p>
+      </div>
+      <div className="text-right">
+        <p className="font-medium tabular-nums">{model.share.toFixed(1)}%</p>
+        <DeltaBadge value={model.delta} />
+      </div>
+    </li>
+  );
+};
 
 export default function ModelInsightsView({ accessToken }: { accessToken: string | null }) {
+  useUiLocale();
   const [loaded, setLoaded] = React.useState<{ metric: Metric; response: ModelInsightsResponse } | null>(null);
   const [metric, setMetric] = React.useState<Metric>("tokens");
   const [scale, setScale] = React.useState<Scale>("linear");
@@ -114,7 +129,9 @@ export default function ModelInsightsView({ accessToken }: { accessToken: string
     return (
       <div className="p-8">
         <Alert variant="destructive">
-          <AlertTitle>Could not load model insights</AlertTitle>
+          <AlertTitle>
+            <LocalizedText text={"Could not load model insights"} />
+          </AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       </div>
@@ -135,19 +152,26 @@ export default function ModelInsightsView({ accessToken }: { accessToken: string
       <PageHeader>
         <PageHeaderTitle>
           <BarChart3 />
-          Model Leaderboard
+          <LocalizedText text={"Model Leaderboard"} />
         </PageHeaderTitle>
         <PageHeaderDescription>
-          See which models your gateway used from {data.start_date} through {data.end_date}
+          <LocalizedText text={"See which models your gateway used from "} />
+          {data.start_date}
+          <LocalizedText text={" through "} />
+          {data.end_date}
         </PageHeaderDescription>
       </PageHeader>
 
       <Card aria-busy={isStale} className={isStale ? "opacity-60 transition-opacity" : "transition-opacity"}>
         <CardHeader className="flex-row items-start justify-between space-y-0">
           <div>
-            <CardTitle>Top models</CardTitle>
+            <CardTitle>
+              <LocalizedText text={"Top models"} />
+            </CardTitle>
             <CardDescription>
-              {GRANULARITY_LABELS[granularity]} {METRIC_LABELS[shown]} across your gateway
+              {localizedProperty(GRANULARITY_LABELS, granularity, GRANULARITY_LABELS[granularity])}{" "}
+              {localizedProperty(METRIC_LABELS, shown, METRIC_LABELS[shown])}
+              <LocalizedText text={" across your gateway"} />
             </CardDescription>
           </div>
           <div className="flex items-center gap-3">
@@ -161,10 +185,10 @@ export default function ModelInsightsView({ accessToken }: { accessToken: string
               </TabsList>
             </Tabs>
             <Tabs value={granularity} onValueChange={(value) => setGranularity(value as Granularity)}>
-              <TabsList aria-label="Bucket size">
+              <TabsList aria-label={translateMessage("Bucket size")}>
                 {GRANULARITIES.map((value) => (
                   <TabsTrigger key={value} value={value}>
-                    {GRANULARITY_LABELS[value]}
+                    {localizedProperty(GRANULARITY_LABELS, value, GRANULARITY_LABELS[value])}
                   </TabsTrigger>
                 ))}
               </TabsList>
@@ -195,9 +219,13 @@ export default function ModelInsightsView({ accessToken }: { accessToken: string
 
       <Card aria-busy={isStale} className={isStale ? "opacity-60 transition-opacity" : "transition-opacity"}>
         <CardHeader>
-          <CardTitle>Leaderboard</CardTitle>
+          <CardTitle>
+            <LocalizedText text={"Leaderboard"} />
+          </CardTitle>
           <CardDescription>
-            Share of {METRIC_LABELS[shown]}, with the change between the first and second half of the period
+            <LocalizedText text={"Share of "} />
+            {localizedProperty(METRIC_LABELS, shown, METRIC_LABELS[shown])}
+            <LocalizedText text={", with the change between the first and second half of the period"} />
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-x-12 md:grid-cols-2">
@@ -216,13 +244,20 @@ export default function ModelInsightsView({ accessToken }: { accessToken: string
 
       <Card>
         <CardHeader>
-          <CardTitle>Cost per session</CardTitle>
-          <CardDescription>Session cost is not estimated from request counts</CardDescription>
+          <CardTitle>
+            <LocalizedText text={"Cost per session"} />
+          </CardTitle>
+          <CardDescription>
+            <LocalizedText text={"Session cost is not estimated from request counts"} />
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground">
-            Add a stable session_id to requests to unlock accurate session-level model comparisons in a future bounded
-            session rollup
+            <LocalizedText
+              text={
+                "Add a stable session_id to requests to unlock accurate session-level model comparisons in a future bounded session rollup"
+              }
+            />
           </p>
         </CardContent>
       </Card>

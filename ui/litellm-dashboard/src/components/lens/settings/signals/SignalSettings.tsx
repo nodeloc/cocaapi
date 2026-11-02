@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Flag, Trash2 } from "lucide-react";
@@ -32,10 +33,13 @@ import {
 const LIBRARY_QUESTIONS: ReadonlySet<string> = new Set(SIGNAL_LIBRARY.map((signal) => signal.question));
 
 export function SignalSettings() {
+  useUiLocale();
   return (
     <SettingsSection
       heading="Signals"
-      description="Set once for every trace. A System 1 model checks each run and Traces flags matches in red."
+      description={translateMessage(
+        "Set once for every trace. A System 1 model checks each run and Traces flags matches in red.",
+      )}
     >
       <SignalConfigLoader />
     </SettingsSection>
@@ -43,37 +47,50 @@ export function SignalSettings() {
 }
 
 function SignalConfigLoader() {
+  useUiLocale();
   const api = useLensApi();
   const config = useQuery(lensQueries.signalConfig(api));
   if (config.error)
     return (
       <p role="alert" className="text-sm text-destructive">
-        Could not load signals: {config.error.message}
+        <LocalizedText text={"Could not load signals: "} />
+        {localizedProperty(config.error, "message")}
       </p>
     );
-  if (!config.data) return <Skeleton aria-label="Loading signals" className="h-40 w-full" />;
+  if (!config.data) return <Skeleton aria-label={translateMessage("Loading signals")} className="h-40 w-full" />;
   return <SignalForm saved={config.data} />;
 }
 
-const FieldError = ({ children }: { children?: string }) =>
-  children ? <p className="mt-1 text-xs text-destructive">{children}</p> : null;
+const FieldError = ({ children }: { children?: string }) => {
+  useUiLocale();
+  return children ? <p className="mt-1 text-xs text-destructive">{children}</p> : null;
+};
 
 function SetupCallout({ hasModels }: { hasModels: boolean }) {
+  useUiLocale();
   return (
     <div className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm">
       <Flag aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-destructive" />
       <div className="space-y-1">
-        <p className="font-medium">Choose a System 1 model to start flagging traces</p>
+        <p className="font-medium">
+          <LocalizedText text={"Choose a System 1 model to start flagging traces"} />
+        </p>
         {hasModels ? (
-          <p className="text-xs text-muted-foreground">Pick one of the evaluation models on this proxy below.</p>
+          <p className="text-xs text-muted-foreground">
+            <LocalizedText text={"Pick one of the evaluation models on this proxy below."} />
+          </p>
         ) : (
           <p className="text-xs text-muted-foreground">
-            This proxy has no System 1 models yet. Add one with mode evaluation, for example typesafe/jev-latest, on{" "}
+            <LocalizedText
+              text={
+                "This proxy has no System 1 models yet. Add one with mode evaluation, for example typesafe/jev-latest, on"
+              }
+            />{" "}
             <Link
               href={uiHref("models-and-endpoints")}
               className="font-medium text-foreground underline underline-offset-2"
             >
-              Models + Endpoints
+              <LocalizedText text={"Models + Endpoints"} />
             </Link>
             .
           </p>
@@ -94,13 +111,14 @@ function SignalFields({
   onChange: (row: SignalRow) => void;
   onRemove: () => void;
 }) {
+  useUiLocale();
   const label = row.name.trim() || "new signal";
   return (
     <li className="grid gap-2 rounded-md border border-border p-3 sm:grid-cols-[200px_minmax(0,1fr)_auto]">
       <div>
         <Input
-          aria-label="Signal name"
-          placeholder="User frustration"
+          aria-label={translateMessage("Signal name")}
+          placeholder={translateMessage("User frustration")}
           value={row.name}
           aria-invalid={Boolean(problems?.name)}
           onChange={(event) => onChange({ ...row, name: event.target.value })}
@@ -109,8 +127,8 @@ function SignalFields({
       </div>
       <div>
         <Textarea
-          aria-label={`Question for ${label}`}
-          placeholder="Does the user show frustration with the agent in this run?"
+          aria-label={translateMessage("Question for %{0}", [label])}
+          placeholder={translateMessage("Does the user show frustration with the agent in this run?")}
           rows={2}
           value={row.question}
           aria-invalid={Boolean(problems?.question)}
@@ -118,7 +136,7 @@ function SignalFields({
         />
         <FieldError>{problems?.question}</FieldError>
       </div>
-      <Button variant="ghost" size="icon-sm" aria-label={`Remove ${label}`} onClick={onRemove}>
+      <Button variant="ghost" size="icon-sm" aria-label={translateMessage("Remove %{0}", [label])} onClick={onRemove}>
         <Trash2 aria-hidden="true" />
       </Button>
     </li>
@@ -126,6 +144,7 @@ function SignalFields({
 }
 
 export function SignalForm({ saved }: { saved: SignalConfig }) {
+  useUiLocale();
   const api = useLensApi();
   const queryClient = useQueryClient();
   const modelId = useId();
@@ -198,40 +217,44 @@ export function SignalForm({ saved }: { saved: SignalConfig }) {
       <SettingsCard className="space-y-4">
         <p role="status" className="inline-flex items-center gap-2 text-sm">
           <StatusDot state={active ? "ok" : "off"} />
-          {active ? `Flagging traces with ${saved.model}` : "Signals are off"}
+          {active ? translateMessage("Flagging traces with %{0}", [saved.model]) : translateMessage("Signals are off")}
         </p>
         {!saved.model && !details.isPending && <SetupCallout hasModels={models.length > 0} />}
         {savedElsewhere && (
           <div role="alert" className="flex items-center justify-between gap-3 rounded-md border p-3 text-sm">
-            <span>Signals were changed elsewhere</span>
+            <span>
+              <LocalizedText text={"Signals were changed elsewhere"} />
+            </span>
             <Button type="button" variant="outline" size="sm" onClick={loadLatest}>
-              Load latest
+              <LocalizedText text={"Load latest"} />
             </Button>
           </div>
         )}
         <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_160px]">
           <div className="space-y-1.5">
             <label htmlFor={modelId} className="text-sm font-medium">
-              System 1 model
+              <LocalizedText text={"System 1 model"} />
             </label>
             <SearchSelect
               inputId={modelId}
-              aria-label="System 1 model"
+              aria-label={translateMessage("System 1 model")}
               options={options}
               value={draft.model}
               onValueChange={(value) => setDraft((current) => ({ ...current, model: value ?? "" }))}
-              placeholder={details.isPending ? "Loading models…" : "Choose a System 1 model"}
+              placeholder={
+                details.isPending ? translateMessage("Loading models…") : translateMessage("Choose a System 1 model")
+              }
               disabled={details.isPending}
-              emptyText="No System 1 models on this proxy"
+              emptyText={translateMessage("No System 1 models on this proxy")}
               allowClear
             />
             <p className="text-xs text-muted-foreground">
-              Decisions API models onboarded with mode evaluation, such as TypeSafe JEV
+              <LocalizedText text={"Decisions API models onboarded with mode evaluation, such as TypeSafe JEV"} />
             </p>
           </div>
           <div className="space-y-1.5">
             <label htmlFor={thresholdId} className="text-sm font-medium">
-              Flag at score
+              <LocalizedText text={"Flag at score"} />
             </label>
             <div className="flex items-center gap-1.5">
               <Input
@@ -254,7 +277,7 @@ export function SignalForm({ saved }: { saved: SignalConfig }) {
         </div>
         <div className="space-y-4 border-t border-border pt-4">
           <WatchPicker
-            label="Flag runs where"
+            label={translateMessage("Flag runs where")}
             options={SIGNAL_LIBRARY}
             selected={picked}
             onChange={pick}
@@ -262,7 +285,7 @@ export function SignalForm({ saved }: { saved: SignalConfig }) {
             addDisabled={draft.rows.length >= MAX_SIGNALS}
           />
           {custom.length > 0 && (
-            <ul aria-label="Custom signals" className="space-y-2">
+            <ul aria-label={translateMessage("Custom signals")} className="space-y-2">
               {custom.map((row) => (
                 <SignalFields
                   key={row.key}
@@ -275,19 +298,26 @@ export function SignalForm({ saved }: { saved: SignalConfig }) {
             </ul>
           )}
           {draft.rows.length === 0 && (
-            <p className="text-xs text-muted-foreground">Pick at least one signal to flag traces</p>
+            <p className="text-xs text-muted-foreground">
+              <LocalizedText text={"Pick at least one signal to flag traces"} />
+            </p>
           )}
           <FieldError>{problems.signals}</FieldError>
         </div>
         <div className="flex items-center justify-end gap-3 border-t border-border pt-4">
           {save.error && (
             <p role="alert" className="text-sm text-destructive">
-              Could not save signals: {save.error.message}
+              <LocalizedText text={"Could not save signals: "} />
+              {localizedProperty(save.error, "message")}
             </p>
           )}
-          {save.isSuccess && !dirty && <p className="text-xs text-muted-foreground">Saved</p>}
+          {save.isSuccess && !dirty && (
+            <p className="text-xs text-muted-foreground">
+              <LocalizedText text={"Saved"} />
+            </p>
+          )}
           <Button disabled={!dirty || problems.any || save.isPending} onClick={() => save.mutate(next)}>
-            {save.isPending ? "Saving…" : "Save signals"}
+            {save.isPending ? translateMessage("Saving…") : translateMessage("Save signals")}
           </Button>
         </div>
       </SettingsCard>

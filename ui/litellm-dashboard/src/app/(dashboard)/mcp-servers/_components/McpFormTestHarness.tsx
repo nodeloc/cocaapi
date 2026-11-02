@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, useUiLocale } from "@/lib/i18n";
 import * as React from "react";
 import { render, type RenderResult } from "@testing-library/react";
 import { FormProvider, useForm } from "react-hook-form";
@@ -14,6 +16,7 @@ export const McpFormHarness: React.FC<{
   onFinish?: (values: MountedFormValues) => void;
   children: React.ReactNode;
 }> = ({ defaultValues, onFinish, children }) => {
+  useUiLocale();
   const form = useForm<MountedFormValues>({ mode: "onChange", defaultValues });
   const registry = useMountRegistry();
   return (
@@ -26,7 +29,9 @@ export const McpFormHarness: React.FC<{
           }}
         >
           {children}
-          <button type="submit">Submit</button>
+          <button type="submit">
+            <LocalizedText text={"Submit"} />
+          </button>
         </form>
       </MountedFormProvider>
     </FormProvider>

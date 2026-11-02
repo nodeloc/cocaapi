@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 import React, { useState } from "react";
 import { ArrowRight, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,6 +14,7 @@ interface TransformRequestPanelProps {
 }
 
 const TransformRequestPanel: React.FC<TransformRequestPanelProps> = ({ accessToken }) => {
+  useUiLocale();
   const [originalRequestJSON, setOriginalRequestJSON] = useState(`{
   "model": "openai/gpt-4o",
   "messages": [
@@ -100,13 +103,13 @@ ${formattedBody}
 
         // Update state with the formatted curl command
         setTransformedResponse(formattedCurl);
-        toast.success("Request transformed successfully");
+        toast.success(translateMessage("Request transformed successfully"));
       } else {
         // Handle the case where the API returns a different format
         // Try to extract the parts from a string response if needed
         const rawText = typeof data === "string" ? data : JSON.stringify(data);
         setTransformedResponse(rawText);
-        toast.info("Transformed request received in unexpected format");
+        toast.info(translateMessage("Transformed request received in unexpected format"));
       }
     } catch (err) {
       console.error("Error transforming request:", err);
@@ -126,16 +129,22 @@ ${formattedBody}
 
   return (
     <div className="p-2">
-      <h1 className="text-lg font-medium text-foreground">Playground</h1>
+      <h1 className="text-lg font-medium text-foreground">
+        <LocalizedText text={"Playground"} />
+      </h1>
       <p className="text-sm text-muted-foreground">
-        See how LiteLLM transforms your request for the specified provider.
+        <LocalizedText text={"See how LiteLLM transforms your request for the specified provider."} />
       </p>
       <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
         {/* Original Request Panel */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-2xl font-bold">Original Request</CardTitle>
-            <CardDescription>The request you would send to LiteLLM /chat/completions endpoint.</CardDescription>
+            <CardTitle className="text-2xl font-bold">
+              <LocalizedText text={"Original Request"} />
+            </CardTitle>
+            <CardDescription>
+              <LocalizedText text={"The request you would send to LiteLLM /chat/completions endpoint."} />
+            </CardDescription>
           </CardHeader>
 
           <CardContent>
@@ -144,13 +153,15 @@ ${formattedBody}
               value={originalRequestJSON}
               onChange={(e) => setOriginalRequestJSON(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Press Cmd/Ctrl + Enter to transform"
+              placeholder={translateMessage("Press Cmd/Ctrl + Enter to transform")}
             />
           </CardContent>
 
           <CardFooter className="justify-end">
             <Button onClick={handleTransform} disabled={isLoading}>
-              <span>Transform</span>
+              <span>
+                <LocalizedText text={"Transform"} />
+              </span>
               {isLoading ? <UiLoadingSpinner className="size-4" /> : <ArrowRight />}
             </Button>
           </CardFooter>
@@ -159,9 +170,15 @@ ${formattedBody}
         {/* Transformed Request Panel */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-2xl font-bold">Transformed Request</CardTitle>
-            <CardDescription>How LiteLLM transforms your request for the specified provider.</CardDescription>
-            <p className="mt-2 text-xs text-muted-foreground">Note: Sensitive headers are not shown.</p>
+            <CardTitle className="text-2xl font-bold">
+              <LocalizedText text={"Transformed Request"} />
+            </CardTitle>
+            <CardDescription>
+              <LocalizedText text={"How LiteLLM transforms your request for the specified provider."} />
+            </CardDescription>
+            <p className="mt-2 text-xs text-muted-foreground">
+              <LocalizedText text={"Note: Sensitive headers are not shown."} />
+            </p>
           </CardHeader>
 
           <CardContent>
@@ -187,11 +204,11 @@ ${formattedBody}
               <Button
                 variant="ghost"
                 size="icon-sm"
-                aria-label="Copy to clipboard"
+                aria-label={translateMessage("Copy to clipboard")}
                 className="absolute top-2 right-2"
                 onClick={() => {
                   navigator.clipboard.writeText(transformedResponse || "");
-                  toast.success("Copied to clipboard");
+                  toast.success(translateMessage("Copied to clipboard"));
                 }}
               >
                 <Copy />
@@ -202,14 +219,14 @@ ${formattedBody}
       </div>
       <div className="mt-4 text-right">
         <p className="text-sm text-muted-foreground">
-          Found an error? File an issue{" "}
+          <LocalizedText text={"Found an error? File an issue"} />{" "}
           <a
             className="underline underline-offset-4"
             href="https://github.com/BerriAI/litellm/issues"
             target="_blank"
             rel="noopener noreferrer"
           >
-            here
+            <LocalizedText text={"here"} />
           </a>
           .
         </p>

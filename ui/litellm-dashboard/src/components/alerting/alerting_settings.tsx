@@ -1,3 +1,5 @@
+"use client";
+import { translateMessage, useUiLocale } from "@/lib/i18n";
 /**
  * UI for controlling slack alerting settings
  */
@@ -23,6 +25,7 @@ interface AlertingSettingsProps {
 }
 
 const AlertingSettings: React.FC<AlertingSettingsProps> = ({ accessToken, premiumUser }) => {
+  useUiLocale();
   const [alertingSettings, setAlertingSettings] = useState<alertingSettingsItem[]>([]);
 
   useEffect(() => {
@@ -74,7 +77,7 @@ const AlertingSettings: React.FC<AlertingSettingsProps> = ({ accessToken, premiu
         }
       }
       // update value in state
-      toast.success("Wait 10s for proxy to update.");
+      toast.success(translateMessage("Wait 10s for proxy to update."));
     } catch (error) {
       toast.error(extractProxyErrorMessage(error));
     }

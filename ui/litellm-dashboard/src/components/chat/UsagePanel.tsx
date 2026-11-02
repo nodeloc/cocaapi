@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, getIntlLocale, localizedProperty, markUiCopy, useUiLocale } from "@/lib/i18n";
 
 import React, { useState } from "react";
 import { BarChart3 } from "lucide-react";
@@ -57,10 +58,11 @@ interface UsageResponse {
 function formatNumber(n: number): string {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
   if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
-  return n.toLocaleString();
+  return n.toLocaleString(getIntlLocale());
 }
 
 function SparklineBar({ data, maxVal }: { data: number[]; maxVal: number }) {
+  useUiLocale();
   const barWidth = Math.max(2, Math.floor(200 / Math.max(data.length, 1)));
   const height = 48;
   return (
@@ -84,12 +86,13 @@ function SparklineBar({ data, maxVal }: { data: number[]; maxVal: number }) {
 }
 
 const TIME_RANGE_OPTIONS: { value: TimeRange; label: string }[] = [
-  { value: "7d", label: "7d" },
-  { value: "30d", label: "30d" },
-  { value: "90d", label: "90d" },
+  markUiCopy({ value: "7d", label: "7d" }, { label: "7d" }),
+  markUiCopy({ value: "30d", label: "30d" }, { label: "30d" }),
+  markUiCopy({ value: "90d", label: "90d" }, { label: "90d" }),
 ];
 
 const UsagePanel: React.FC<Props> = ({ accessToken, userId }) => {
+  useUiLocale();
   const [timeRange, setTimeRange] = useState<TimeRange>("30d");
   const { start, end } = getDateRange(timeRange);
 
@@ -117,22 +120,28 @@ const UsagePanel: React.FC<Props> = ({ accessToken, userId }) => {
 
   const statCards: Array<{ label: string; value: string; sub?: string; subVariant?: "error" }> = meta
     ? [
-        { label: "Total Spend", value: `$${meta.total_spend.toFixed(2)}` },
-        { label: "API Requests", value: formatNumber(meta.total_api_requests) },
-        {
-          label: "Tokens Used",
-          value: formatNumber(meta.total_tokens),
-          sub: `${formatNumber(meta.total_prompt_tokens)} in / ${formatNumber(meta.total_completion_tokens)} out`,
-        },
-        {
-          label: "Success Rate",
-          value:
-            meta.total_api_requests > 0
-              ? `${((meta.total_successful_requests / meta.total_api_requests) * 100).toFixed(1)}%`
-              : "N/A",
-          sub: meta.total_failed_requests > 0 ? `${meta.total_failed_requests} failed` : undefined,
-          subVariant: meta.total_failed_requests > 0 ? "error" : undefined,
-        },
+        markUiCopy({ label: "Total Spend", value: `$${meta.total_spend.toFixed(2)}` }, { label: "Total Spend" }),
+        markUiCopy({ label: "API Requests", value: formatNumber(meta.total_api_requests) }, { label: "API Requests" }),
+        markUiCopy(
+          {
+            label: "Tokens Used",
+            value: formatNumber(meta.total_tokens),
+            sub: `${formatNumber(meta.total_prompt_tokens)} in / ${formatNumber(meta.total_completion_tokens)} out`,
+          },
+          { label: "Tokens Used" },
+        ),
+        markUiCopy(
+          {
+            label: "Success Rate",
+            value:
+              meta.total_api_requests > 0
+                ? `${((meta.total_successful_requests / meta.total_api_requests) * 100).toFixed(1)}%`
+                : "N/A",
+            sub: meta.total_failed_requests > 0 ? `${meta.total_failed_requests} failed` : undefined,
+            subVariant: meta.total_failed_requests > 0 ? "error" : undefined,
+          },
+          { label: "Success Rate" },
+        ),
       ]
     : [];
 
@@ -140,8 +149,12 @@ const UsagePanel: React.FC<Props> = ({ accessToken, userId }) => {
     <div className="w-full">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h2 className="text-base font-semibold text-foreground mb-0.5">Your Usage</h2>
-          <p className="text-sm text-muted-foreground m-0">Spend and request activity</p>
+          <h2 className="text-base font-semibold text-foreground mb-0.5">
+            <LocalizedText text={"Your Usage"} />
+          </h2>
+          <p className="text-sm text-muted-foreground m-0">
+            <LocalizedText text={"Spend and request activity"} />
+          </p>
         </div>
         <div className="flex gap-1">
           {TIME_RANGE_OPTIONS.map((opt) => (
@@ -151,7 +164,7 @@ const UsagePanel: React.FC<Props> = ({ accessToken, userId }) => {
               size="sm"
               onClick={() => setTimeRange(opt.value)}
             >
-              {opt.label}
+              {localizedProperty(opt, "label", opt.label)}
             </Button>
           ))}
         </div>
@@ -169,14 +182,14 @@ const UsagePanel: React.FC<Props> = ({ accessToken, userId }) => {
       ) : !meta || meta.total_api_requests === 0 ? (
         <div className="text-center text-muted-foreground text-sm py-12 border border-dashed rounded-lg">
           <BarChart3 className="h-6 w-6 mb-3 mx-auto text-muted-foreground/50" />
-          No usage data for this period
+          <LocalizedText text={"No usage data for this period"} />
         </div>
       ) : (
         <div>
           <div className="grid grid-cols-2 gap-3 mb-5">
             {statCards.map((card) => (
               <div key={card.label} className="border rounded-lg p-4 bg-card">
-                <div className="text-xs text-muted-foreground mb-1">{card.label}</div>
+                <div className="text-xs text-muted-foreground mb-1">{localizedProperty(card, "label", card.label)}</div>
                 <div className="text-xl font-semibold text-foreground">{card.value}</div>
                 {card.sub && (
                   <div
@@ -194,11 +207,15 @@ const UsagePanel: React.FC<Props> = ({ accessToken, userId }) => {
           {dailyData.length > 1 && (
             <div className="grid grid-cols-2 gap-3">
               <div className="border rounded-lg p-4 bg-card">
-                <div className="text-xs text-muted-foreground mb-2">Daily Spend</div>
+                <div className="text-xs text-muted-foreground mb-2">
+                  <LocalizedText text={"Daily Spend"} />
+                </div>
                 <SparklineBar data={dailySpend} maxVal={maxSpend} />
               </div>
               <div className="border rounded-lg p-4 bg-card">
-                <div className="text-xs text-muted-foreground mb-2">Daily Requests</div>
+                <div className="text-xs text-muted-foreground mb-2">
+                  <LocalizedText text={"Daily Requests"} />
+                </div>
                 <SparklineBar data={dailyRequests} maxVal={maxRequests} />
               </div>
             </div>

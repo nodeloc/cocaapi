@@ -1,3 +1,4 @@
+import { translateMessage } from "@/lib/i18n";
 import openai from "openai";
 import { getProxyBaseUrl } from "@/components/networking";
 import { buildPlaygroundHeaders, type CustomHeaders } from "@/components/llm_calls/request_headers";
@@ -47,7 +48,7 @@ export async function makeOpenAIAudioTranscriptionRequest(
     // The response is a transcription object with a text field
     if (response && response.text) {
       updateUI(response.text, selectedModel);
-      toast.success(`Audio transcribed successfully`);
+      toast.success(translateMessage("Audio transcribed successfully"));
     } else {
       throw new Error("No transcription text in response");
     }

@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import type { ColumnDef } from "@tanstack/react-table";
 import { GitBranch, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
@@ -24,10 +25,11 @@ interface RoutingGroupRowActionsProps {
 }
 
 function RoutingGroupRowActions({ group, onEdit, onDelete }: RoutingGroupRowActionsProps) {
+  useUiLocale();
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        aria-label={`Open actions for ${group.group_name}`}
+        aria-label={translateMessage("Open actions for %{0}", [group.group_name])}
         data-testid={`routing-group-actions-${group.group_name}`}
         className={cn(buttonVariants({ variant: "ghost", size: "icon-sm" }), "text-muted-foreground")}
       >
@@ -36,7 +38,7 @@ function RoutingGroupRowActions({ group, onEdit, onDelete }: RoutingGroupRowActi
       <DropdownMenuContent align="end" className="w-44">
         <DropdownMenuItem data-testid="routing-group-action-edit" onClick={() => onEdit(group)}>
           <Pencil />
-          Edit
+          <LocalizedText text={"Edit"} />
         </DropdownMenuItem>
         <DropdownMenuItem
           variant="destructive"
@@ -44,7 +46,7 @@ function RoutingGroupRowActions({ group, onEdit, onDelete }: RoutingGroupRowActi
           onClick={() => onDelete(group)}
         >
           <Trash2 />
-          Delete
+          <LocalizedText text={"Delete"} />
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -65,27 +67,30 @@ export const getRoutingGroupsTableColumns = ({
   {
     id: "group_name",
     accessorKey: "group_name",
-    meta: { title: "Group Name", skeleton: "text" },
-    header: ({ column }) => <DataTableSortHeader column={column} title="Group Name" />,
+    meta: markUiCopy({ title: "Group Name", skeleton: "text" as const }, { title: "Group Name" }),
+    header: ({ column }) => <DataTableSortHeader column={column} title={translateMessage("Group Name")} />,
     size: 240,
     enableSorting: true,
     cell: ({ row }) => (
       <IdentityCell title={row.original.group_name} className="max-w-60" onClick={() => onToggleUsage(row.original)} />
     ),
   },
-  {
-    id: "models",
-    meta: { title: "Models", skeleton: "chips" },
-    header: "Models",
-    size: 320,
-    enableSorting: false,
-    cell: ({ row }) => <ModelsCell models={row.original.models} />,
-  },
+  markUiCopy(
+    {
+      id: "models",
+      meta: markUiCopy({ title: "Models", skeleton: "chips" as const }, { title: "Models" }),
+      header: "Models",
+      size: 320,
+      enableSorting: false,
+      cell: ({ row }) => <ModelsCell models={row.original.models} />,
+    },
+    { header: "Models" },
+  ),
   {
     id: "routing_strategy",
     accessorKey: "routing_strategy",
-    meta: { title: "Strategy", skeleton: "text" },
-    header: ({ column }) => <DataTableSortHeader column={column} title="Strategy" />,
+    meta: markUiCopy({ title: "Strategy", skeleton: "text" as const }, { title: "Strategy" }),
+    header: ({ column }) => <DataTableSortHeader column={column} title={translateMessage("Strategy")} />,
     size: 180,
     enableSorting: true,
     cell: ({ row }) => (
@@ -98,7 +103,11 @@ export const getRoutingGroupsTableColumns = ({
   {
     id: "actions",
     meta: { className: "text-right", headerClassName: "text-right" },
-    header: () => <span className="sr-only">Actions</span>,
+    header: () => (
+      <span className="sr-only">
+        <LocalizedText text={"Actions"} />
+      </span>
+    ),
     size: 64,
     enableSorting: false,
     enableHiding: false,

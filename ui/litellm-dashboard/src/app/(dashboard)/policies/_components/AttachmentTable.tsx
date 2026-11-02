@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { SortingState } from "@tanstack/react-table";
 import { Inbox } from "lucide-react";
@@ -20,14 +21,17 @@ interface AttachmentTableProps {
 const DEFAULT_SORTING: SortingState = [{ id: "created_at", desc: true }];
 
 function EmptyState() {
+  useUiLocale();
   return (
     <div className="flex flex-col items-center gap-1 py-6">
       <div className="mb-1 flex size-10 items-center justify-center rounded-lg bg-muted">
         <Inbox className="size-5 text-muted-foreground" />
       </div>
-      <div className="text-sm font-medium text-foreground">No attachments found</div>
+      <div className="text-sm font-medium text-foreground">
+        <LocalizedText text={"No attachments found"} />
+      </div>
       <div className="text-sm text-muted-foreground">
-        Attach a policy to teams, keys, models, or tags to control where it applies.
+        <LocalizedText text={"Attach a policy to teams, keys, models, or tags to control where it applies."} />
       </div>
     </div>
   );
@@ -40,6 +44,7 @@ const AttachmentTable: React.FC<AttachmentTableProps> = ({
   isAdmin,
   accessToken,
 }) => {
+  useUiLocale();
   const [sorting, setSorting] = useState<SortingState>(DEFAULT_SORTING);
 
   const columns = useMemo(() => {
@@ -57,7 +62,7 @@ const AttachmentTable: React.FC<AttachmentTableProps> = ({
       sorting={sorting}
       onSortingChange={setSorting}
       isLoading={isLoading}
-      loadingMessage="Loading attachments…"
+      loadingMessage={translateMessage("Loading attachments…")}
       noDataMessage={<EmptyState />}
       size="compact"
     />

@@ -1,11 +1,12 @@
+import { markUiCopy } from "@/lib/i18n";
 import type { RunWindow } from "./types";
 
 export const RUN_PRESETS = [
-  { label: "Since last run", hours: null },
-  { label: "Last hour", hours: 1 },
-  { label: "Last 24h", hours: 24 },
-  { label: "Last 7d", hours: 168 },
-  { label: "Custom", hours: -1 },
+  markUiCopy({ label: "Since last run", hours: null }, { label: "Since last run" }),
+  markUiCopy({ label: "Last hour", hours: 1 }, { label: "Last hour" }),
+  markUiCopy({ label: "Last 24h", hours: 24 }, { label: "Last 24h" }),
+  markUiCopy({ label: "Last 7d", hours: 168 }, { label: "Last 7d" }),
+  markUiCopy({ label: "Custom", hours: -1 }, { label: "Custom" }),
 ] as const;
 
 export type RunPreset = (typeof RUN_PRESETS)[number]["hours"];

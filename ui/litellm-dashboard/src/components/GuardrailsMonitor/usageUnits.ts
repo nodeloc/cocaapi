@@ -1,3 +1,4 @@
+import { getIntlLocale } from "@/lib/i18n";
 import { formatNumberWithCommas, getSpendString } from "@/utils/dataUtils";
 
 export type UsageUnits = Readonly<Record<string, number>>;
@@ -17,7 +18,7 @@ export const counterLabel = (counter: string): string =>
 
 export const unpricedSummary = (untracked: UsageUnits): string | null => {
   const total = totalUnits(untracked);
-  return total > 0 ? `${total.toLocaleString()} ${total === 1 ? "unit" : "units"} unpriced` : null;
+  return total > 0 ? `${total.toLocaleString(getIntlLocale())} ${total === 1 ? "unit" : "units"} unpriced` : null;
 };
 
 export interface CounterMath {
@@ -50,14 +51,22 @@ export const counterMathRow = (row: CounterMath): MathRow => {
   const label = counterLabel(row.counter);
   const price = unitPrice(row);
   if (price == null) {
-    return { label, parts: [row.units.toLocaleString(), "× —", "= —"], note: "no known price, left out" };
+    return {
+      label,
+      parts: [row.units.toLocaleString(getIntlLocale()), "× —", "= —"],
+      note: "no known price, left out",
+    };
   }
   return {
     label,
-    parts: [pricedUnits(row).toLocaleString(), `× ${formatUnitPrice(price)}`, `= ${formatCost(row.cost)}`],
+    parts: [
+      pricedUnits(row).toLocaleString(getIntlLocale()),
+      `× ${formatUnitPrice(price)}`,
+      `= ${formatCost(row.cost)}`,
+    ],
     note:
       row.unpriced > 0
-        ? `${row.unpriced.toLocaleString()} unpriced ${row.unpriced === 1 ? "unit" : "units"} left out`
+        ? `${row.unpriced.toLocaleString(getIntlLocale())} unpriced ${row.unpriced === 1 ? "unit" : "units"} left out`
         : null,
   };
 };
@@ -65,7 +74,7 @@ export const counterMathRow = (row: CounterMath): MathRow => {
 export const unitsMathRows = (units: UsageUnits): readonly MathRow[] =>
   Object.entries(units).map(([counter, n]) => ({
     label: counterLabel(counter),
-    parts: [n.toLocaleString()],
+    parts: [n.toLocaleString(getIntlLocale())],
     note: null,
   }));
 

@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 import React, { useState, useEffect } from "react";
 import { MultiSelect } from "@/components/shared/MultiSelect";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -107,6 +109,7 @@ const MCPServerEdit: React.FC<MCPServerEditProps> = ({
   existingServers,
   stdioEnabled = true,
 }) => {
+  useUiLocale();
   const initialStaticHeaders = React.useMemo(() => {
     if (!mcpServer.static_headers) {
       return [];
@@ -315,7 +318,9 @@ const MCPServerEdit: React.FC<MCPServerEditProps> = ({
         };
         setToken(mcpServer.server_id, browserHeldToken, userID);
         toast.success(
-          "Token held for this browser session. Tools can now be loaded and configured; the token is not saved to LiteLLM.",
+          translateMessage(
+            "Token held for this browser session. Tools can now be loaded and configured; the token is not saved to LiteLLM.",
+          ),
         );
         return;
       }
@@ -336,7 +341,9 @@ const MCPServerEdit: React.FC<MCPServerEditProps> = ({
       // Re-capture after writing credentials so the token is not invalidated by its own credential write.
       authorizedIdentityRef.current = getOAuthAuthorizationIdentity(allFieldsValue(form));
 
-      toast.success("OAuth authorization successful! Please click 'Update MCP Server' to save the credentials.");
+      toast.success(
+        translateMessage("OAuth authorization successful! Please click 'Update MCP Server' to save the credentials."),
+      );
     },
     onBeforeRedirect: persistEditUiState,
     flowSource: "edit",
@@ -812,7 +819,7 @@ const MCPServerEdit: React.FC<MCPServerEditProps> = ({
         }
       }
 
-      toast.success("MCP Server updated successfully");
+      toast.success(translateMessage("MCP Server updated successfully"));
       setAppMayNotMatchUpstream(false);
       onSuccess(updated);
     } catch (error: any) {
@@ -825,10 +832,10 @@ const MCPServerEdit: React.FC<MCPServerEditProps> = ({
     <Tabs defaultValue="server">
       <TabsList variant="line" className="grid h-auto w-full grid-cols-2 rounded-none border-b p-0">
         <TabsTrigger value="server" className="rounded-none py-2">
-          Server Configuration
+          <LocalizedText text={"Server Configuration"} />
         </TabsTrigger>
         <TabsTrigger value="cost" className="rounded-none py-2">
-          Cost Configuration
+          <LocalizedText text={"Cost Configuration"} />
         </TabsTrigger>
       </TabsList>
       <div className="mt-6">
@@ -836,7 +843,7 @@ const MCPServerEdit: React.FC<MCPServerEditProps> = ({
           <FormProvider {...form}>
             <MountedFormProvider value={{ control: form.control, registry }}>
               <form
-                aria-label="Edit MCP server"
+                aria-label={translateMessage("Edit MCP server")}
                 onSubmit={(event) => {
                   event.preventDefault();
                   void submitForm();
@@ -844,7 +851,7 @@ const MCPServerEdit: React.FC<MCPServerEditProps> = ({
               >
                 {isStdioTransport && !stdioEnabled && <StdioDisabledBanner />}
                 <MountedFormField
-                  label="MCP Server Name"
+                  label={translateMessage("MCP Server Name")}
                   name="server_name"
                   rules={{ validate: validatorRules({ validator: (_, value) => validateMCPServerName(value) }) }}
                 >
@@ -856,7 +863,7 @@ const MCPServerEdit: React.FC<MCPServerEditProps> = ({
                   )}
                 </MountedFormField>
                 <MountedFormField
-                  label="Alias"
+                  label={translateMessage("Alias")}
                   name="alias"
                   rules={{ validate: validatorRules({ validator: (_, value) => validateMCPServerName(value) }) }}
                 >
@@ -871,7 +878,7 @@ const MCPServerEdit: React.FC<MCPServerEditProps> = ({
                     />
                   )}
                 </MountedFormField>
-                <MountedFormField label="Description" name="description">
+                <MountedFormField label={translateMessage("Description")} name="description">
                   {(control) => (
                     <Input
                       {...textControl(control)}
@@ -881,7 +888,7 @@ const MCPServerEdit: React.FC<MCPServerEditProps> = ({
                 </MountedFormField>
                 <MCPLogoSelector value={logoUrl} onChange={setLogoUrl} />
                 <MountedFormField
-                  label="Transport Type"
+                  label={translateMessage("Transport Type")}
                   name="transport"
                   required
                   rules={{ validate: { required: requiredRule("Transport Type is required") } }}
@@ -905,7 +912,7 @@ const MCPServerEdit: React.FC<MCPServerEditProps> = ({
                 {/* URL field - only for HTTP/SSE */}
                 {isMCPTransport && (
                   <MountedFormField
-                    label="MCP Server URL"
+                    label={translateMessage("MCP Server URL")}
                     name="url"
                     required
                     rules={{
@@ -930,7 +937,7 @@ const MCPServerEdit: React.FC<MCPServerEditProps> = ({
                   <MountedFormField
                     label={
                       <span className="text-sm font-medium text-foreground flex items-center">
-                        OpenAPI Spec URL
+                        <LocalizedText text={"OpenAPI Spec URL"} />
                         <SimpleTooltip content="URL to an OpenAPI specification (JSON or YAML). MCP tools will be automatically generated from the API endpoints defined in the spec.">
                           <Info className="ml-2 size-4 text-info hover:text-info/80 cursor-help" />
                         </SimpleTooltip>
@@ -953,7 +960,7 @@ const MCPServerEdit: React.FC<MCPServerEditProps> = ({
                 <MountedFormField
                   label={
                     <span className="text-sm font-medium text-foreground flex items-center">
-                      Max Concurrent Requests (optional)
+                      <LocalizedText text={"Max Concurrent Requests (optional)"} />
                       <SimpleTooltip content="Maximum number of tool calls LiteLLM will run against this server at the same time. Additional calls wait for a free slot. Leave blank for no limit.">
                         <Info className="ml-2 size-4 text-info hover:text-info/80 cursor-help" />
                       </SimpleTooltip>
@@ -966,7 +973,7 @@ const MCPServerEdit: React.FC<MCPServerEditProps> = ({
                       {...numberControl(control, 0)}
                       min={1}
                       step={1}
-                      placeholder="e.g. 10"
+                      placeholder={translateMessage("e.g. 10")}
                       className="w-full rounded-lg"
                     />
                   )}
@@ -975,7 +982,7 @@ const MCPServerEdit: React.FC<MCPServerEditProps> = ({
                 <MountedFormField
                   label={
                     <span className="text-sm font-medium text-foreground flex items-center">
-                      RPM limit (all callers)
+                      <LocalizedText text={"RPM limit (all callers)"} />
                       <SimpleTooltip content="Max requests per minute to this server across all keys and teams. Leave empty for no limit">
                         <Info className="ml-2 size-4 text-info hover:text-info/80 cursor-help" />
                       </SimpleTooltip>
@@ -988,7 +995,7 @@ const MCPServerEdit: React.FC<MCPServerEditProps> = ({
                       {...numberControl(control, 0)}
                       min={0}
                       step={1}
-                      placeholder="e.g. 60"
+                      placeholder={translateMessage("e.g. 60")}
                       className="w-full rounded-lg"
                     />
                   )}
@@ -998,7 +1005,7 @@ const MCPServerEdit: React.FC<MCPServerEditProps> = ({
                 {!isStdioTransport && (
                   <>
                     <MountedFormField
-                      label="Authentication"
+                      label={translateMessage("Authentication")}
                       name="auth_type"
                       required
                       rules={{ validate: { required: requiredRule("Authentication is required") } }}
@@ -1011,7 +1018,7 @@ const MCPServerEdit: React.FC<MCPServerEditProps> = ({
                           <SelectContent>
                             {AUTH_TYPE_ITEMS.map((item) => (
                               <SelectItem key={item.value} value={item.value}>
-                                {item.label}
+                                {localizedProperty(item, "label", item.label)}
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -1039,12 +1046,15 @@ const MCPServerEdit: React.FC<MCPServerEditProps> = ({
                 {isStdioTransport && (
                   <div className="rounded-lg border border-border p-4 space-y-4">
                     <p className="text-sm text-muted-foreground">
-                      Configure the stdio transport used to launch the MCP server process. You can either fill in the
-                      fields below or paste a JSON configuration.
+                      <LocalizedText
+                        text={
+                          "Configure the stdio transport used to launch the MCP server process. You can either fill in the fields below or paste a JSON configuration."
+                        }
+                      />
                     </p>
 
                     <MountedFormField
-                      label="Command"
+                      label={translateMessage("Command")}
                       name="command"
                       required
                       rules={{ validate: { required: requiredRule("Please enter a command for stdio transport") } }}
@@ -1052,24 +1062,24 @@ const MCPServerEdit: React.FC<MCPServerEditProps> = ({
                       {(control) => (
                         <Input
                           {...textControl(control)}
-                          placeholder="e.g., npx"
+                          placeholder={translateMessage("e.g., npx")}
                           className="rounded-lg border-border focus:border-info focus:ring-ring"
                         />
                       )}
                     </MountedFormField>
 
-                    <MountedFormField label="Args" name="args">
+                    <MountedFormField label={translateMessage("Args")} name="args">
                       {(control) => (
                         <MultiSelect
                           {...tagsControl(control)}
-                          placeholder="Add args (press enter or comma)"
+                          placeholder={translateMessage("Add args (press enter or comma)")}
                           className="rounded-lg"
                         />
                       )}
                     </MountedFormField>
 
                     <MountedFormField
-                      label="Environment (JSON object)"
+                      label={translateMessage("Environment (JSON object)")}
                       name="env_json"
                       rules={{
                         validate: {
@@ -1096,7 +1106,7 @@ const MCPServerEdit: React.FC<MCPServerEditProps> = ({
                   <MountedFormField
                     label={
                       <span className="text-sm font-medium text-foreground flex items-center">
-                        Authentication Value
+                        <LocalizedText text={"Authentication Value"} />
                         <SimpleTooltip content="Token, password, or header value to send with each request for the selected auth type.">
                           <Info className="ml-2 size-4 text-info hover:text-info/80 cursor-help" />
                         </SimpleTooltip>
@@ -1108,7 +1118,7 @@ const MCPServerEdit: React.FC<MCPServerEditProps> = ({
                     {(control) => (
                       <PasswordInput
                         {...textControl(control)}
-                        placeholder="Enter token or secret (leave blank to keep existing)"
+                        placeholder={translateMessage("Enter token or secret (leave blank to keep existing)")}
                         groupClassName="rounded-lg border-border focus:border-info focus:ring-ring"
                       />
                     )}
@@ -1120,11 +1130,15 @@ const MCPServerEdit: React.FC<MCPServerEditProps> = ({
                     {!oauthFlowTypeValue && !isDelegateAuth && (
                       <Alert variant="warning" className="mb-4 rounded-lg">
                         <TriangleAlert />
-                        <AlertTitle>This server has no OAuth flow set</AlertTitle>
+                        <AlertTitle>
+                          <LocalizedText text={"This server has no OAuth flow set"} />
+                        </AlertTitle>
                         <AlertDescription>
-                          Choose Machine-to-Machine (M2M) or Interactive (PKCE) so LiteLLM authenticates it the way you
-                          intend, then save. Until it is set, LiteLLM falls back to interactive per-user auth and treats
-                          a machine-to-machine credential shape conservatively.
+                          <LocalizedText
+                            text={
+                              "Choose Machine-to-Machine (M2M) or Interactive (PKCE) so LiteLLM authenticates it the way you intend, then save. Until it is set, LiteLLM falls back to interactive per-user auth and treats a machine-to-machine credential shape conservatively."
+                            }
+                          />
                         </AlertDescription>
                       </Alert>
                     )}
@@ -1148,20 +1162,20 @@ const MCPServerEdit: React.FC<MCPServerEditProps> = ({
                 {!isStdioTransport && isAwsSigV4AuthType && (
                   <>
                     <p className="text-sm text-muted-foreground mb-2">
-                      For MCP servers hosted on AWS Bedrock AgentCore.{" "}
+                      <LocalizedText text={"For MCP servers hosted on AWS Bedrock AgentCore."} />{" "}
                       <a
                         href="https://docs.litellm.ai/docs/mcp_aws_sigv4"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-info hover:text-info/80"
                       >
-                        View docs &rarr;
+                        <LocalizedText text={"View docs →"} />
                       </a>
                     </p>
                     <MountedFormField
                       label={
                         <span className="text-sm font-medium text-foreground flex items-center">
-                          AWS Region
+                          <LocalizedText text={"AWS Region"} />
                           <SimpleTooltip content="AWS region for SigV4 signing (e.g., us-east-1)">
                             <Info className="ml-2 size-4 text-info hover:text-info/80 cursor-help" />
                           </SimpleTooltip>
@@ -1172,7 +1186,7 @@ const MCPServerEdit: React.FC<MCPServerEditProps> = ({
                       {(control) => (
                         <Input
                           {...textControl(control)}
-                          placeholder="us-east-1 (leave blank to keep existing)"
+                          placeholder={translateMessage("us-east-1 (leave blank to keep existing)")}
                           className="rounded-lg border-border focus:border-info focus:ring-ring"
                         />
                       )}
@@ -1180,7 +1194,7 @@ const MCPServerEdit: React.FC<MCPServerEditProps> = ({
                     <MountedFormField
                       label={
                         <span className="text-sm font-medium text-foreground flex items-center">
-                          AWS Service Name
+                          <LocalizedText text={"AWS Service Name"} />
                           <SimpleTooltip content="AWS service name for SigV4 signing. Defaults to 'bedrock-agentcore'.">
                             <Info className="ml-2 size-4 text-info hover:text-info/80 cursor-help" />
                           </SimpleTooltip>
@@ -1191,7 +1205,7 @@ const MCPServerEdit: React.FC<MCPServerEditProps> = ({
                       {(control) => (
                         <Input
                           {...textControl(control)}
-                          placeholder="bedrock-agentcore (leave blank to keep existing)"
+                          placeholder={translateMessage("bedrock-agentcore (leave blank to keep existing)")}
                           className="rounded-lg border-border focus:border-info focus:ring-ring"
                         />
                       )}
@@ -1199,7 +1213,7 @@ const MCPServerEdit: React.FC<MCPServerEditProps> = ({
                     <MountedFormField
                       label={
                         <span className="text-sm font-medium text-foreground flex items-center">
-                          AWS Access Key ID
+                          <LocalizedText text={"AWS Access Key ID"} />
                           <SimpleTooltip content="Optional. If not provided, falls back to the boto3 credential chain (IAM role, env vars, etc.).">
                             <Info className="ml-2 size-4 text-info hover:text-info/80 cursor-help" />
                           </SimpleTooltip>
@@ -1210,7 +1224,7 @@ const MCPServerEdit: React.FC<MCPServerEditProps> = ({
                       {(control) => (
                         <PasswordInput
                           {...textControl(control)}
-                          placeholder="Leave blank to keep existing"
+                          placeholder={translateMessage("Leave blank to keep existing")}
                           groupClassName="rounded-lg border-border focus:border-info focus:ring-ring"
                         />
                       )}
@@ -1218,7 +1232,7 @@ const MCPServerEdit: React.FC<MCPServerEditProps> = ({
                     <MountedFormField
                       label={
                         <span className="text-sm font-medium text-foreground flex items-center">
-                          AWS Secret Access Key
+                          <LocalizedText text={"AWS Secret Access Key"} />
                           <SimpleTooltip content="Optional. Required if AWS Access Key ID is provided.">
                             <Info className="ml-2 size-4 text-info hover:text-info/80 cursor-help" />
                           </SimpleTooltip>
@@ -1229,7 +1243,7 @@ const MCPServerEdit: React.FC<MCPServerEditProps> = ({
                       {(control) => (
                         <PasswordInput
                           {...textControl(control)}
-                          placeholder="Leave blank to keep existing"
+                          placeholder={translateMessage("Leave blank to keep existing")}
                           groupClassName="rounded-lg border-border focus:border-info focus:ring-ring"
                         />
                       )}
@@ -1237,7 +1251,7 @@ const MCPServerEdit: React.FC<MCPServerEditProps> = ({
                     <MountedFormField
                       label={
                         <span className="text-sm font-medium text-foreground flex items-center">
-                          AWS Session Token
+                          <LocalizedText text={"AWS Session Token"} />
                           <SimpleTooltip content="Optional. Only needed for temporary STS credentials.">
                             <Info className="ml-2 size-4 text-info hover:text-info/80 cursor-help" />
                           </SimpleTooltip>
@@ -1248,7 +1262,7 @@ const MCPServerEdit: React.FC<MCPServerEditProps> = ({
                       {(control) => (
                         <PasswordInput
                           {...textControl(control)}
-                          placeholder="Leave blank to keep existing"
+                          placeholder={translateMessage("Leave blank to keep existing")}
                           groupClassName="rounded-lg border-border focus:border-info focus:ring-ring"
                         />
                       )}
@@ -1256,7 +1270,7 @@ const MCPServerEdit: React.FC<MCPServerEditProps> = ({
                     <MountedFormField
                       label={
                         <span className="text-sm font-medium text-foreground flex items-center">
-                          AWS Role ARN
+                          <LocalizedText text={"AWS Role ARN"} />
                           <SimpleTooltip content="Optional. IAM role ARN to assume via STS before signing. If set, LiteLLM calls sts:AssumeRole to get temporary credentials.">
                             <Info className="ml-2 size-4 text-info hover:text-info/80 cursor-help" />
                           </SimpleTooltip>
@@ -1267,7 +1281,7 @@ const MCPServerEdit: React.FC<MCPServerEditProps> = ({
                       {(control) => (
                         <Input
                           {...textControl(control)}
-                          placeholder="Leave blank to keep existing"
+                          placeholder={translateMessage("Leave blank to keep existing")}
                           className="rounded-lg border-border focus:border-info focus:ring-ring"
                         />
                       )}
@@ -1275,7 +1289,7 @@ const MCPServerEdit: React.FC<MCPServerEditProps> = ({
                     <MountedFormField
                       label={
                         <span className="text-sm font-medium text-foreground flex items-center">
-                          AWS Session Name
+                          <LocalizedText text={"AWS Session Name"} />
                           <SimpleTooltip content="Optional. Session name for the AssumeRole call — appears in CloudTrail logs. Auto-generated if omitted.">
                             <Info className="ml-2 size-4 text-info hover:text-info/80 cursor-help" />
                           </SimpleTooltip>
@@ -1286,7 +1300,7 @@ const MCPServerEdit: React.FC<MCPServerEditProps> = ({
                       {(control) => (
                         <Input
                           {...textControl(control)}
-                          placeholder="Leave blank to keep existing"
+                          placeholder={translateMessage("Leave blank to keep existing")}
                           className="rounded-lg border-border focus:border-info focus:ring-ring"
                         />
                       )}
@@ -1348,10 +1362,10 @@ const MCPServerEdit: React.FC<MCPServerEditProps> = ({
 
                 <div className="flex justify-end gap-2">
                   <Button variant="outline" onClick={handleCancel}>
-                    Cancel
+                    <LocalizedText text={"Cancel"} />
                   </Button>
                   <Button type="submit" disabled={isOAuthPending}>
-                    Save Changes
+                    <LocalizedText text={"Save Changes"} />
                   </Button>
                 </div>
               </form>
@@ -1365,10 +1379,10 @@ const MCPServerEdit: React.FC<MCPServerEditProps> = ({
 
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={handleCancel}>
-                Cancel
+                <LocalizedText text={"Cancel"} />
               </Button>
               <Button onClick={() => void submitForm()} disabled={isOAuthPending}>
-                Save Changes
+                <LocalizedText text={"Save Changes"} />
               </Button>
             </div>
           </div>

@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { useMemo, useState } from "react";
 import { useCustomerNative } from "@/components/account/native/CustomerNativeContext";
@@ -41,17 +42,30 @@ type ModelTabSlug =
 
 const BASE_TAB_KEY = "all-models";
 
-const TAB_LABELS: Record<ModelTabSlug, string> = {
-  add: "Add Model",
-  "auto-routers": "Auto-Routers",
-  "llm-credentials": "LLM Credentials",
-  "pass-through": "Pass-Through Endpoints",
-  health: "Health Status",
-  "retry-settings": "Model Retry Settings",
-  "model-group-alias": "Model Group Alias",
-  "access-group-budgets": "Model Access Group Budgets",
-  "price-data": "Price Data Reload",
-};
+const TAB_LABELS: Record<ModelTabSlug, string> = markUiCopy(
+  {
+    add: "Add Model",
+    "auto-routers": "Auto-Routers",
+    "llm-credentials": "LLM Credentials",
+    "pass-through": "Pass-Through Endpoints",
+    health: "Health Status",
+    "retry-settings": "Model Retry Settings",
+    "model-group-alias": "Model Group Alias",
+    "access-group-budgets": "Model Access Group Budgets",
+    "price-data": "Price Data Reload",
+  },
+  {
+    add: "Add Model",
+    "auto-routers": "Auto-Routers",
+    "llm-credentials": "LLM Credentials",
+    "pass-through": "Pass-Through Endpoints",
+    health: "Health Status",
+    "retry-settings": "Model Retry Settings",
+    "model-group-alias": "Model Group Alias",
+    "access-group-budgets": "Model Access Group Budgets",
+    "price-data": "Price Data Reload",
+  },
+);
 
 const renderPanel = (key: string) => {
   switch (key) {
@@ -81,6 +95,7 @@ const renderPanel = (key: string) => {
 };
 
 export default function ModelsAndEndpointsPage() {
+  useUiLocale();
   const customer = useCustomerNative();
   const { accessToken, userRole, userId: userID, premiumUser, isViewOnly } = useAuthorized();
   const { data: teams } = useTeams();
@@ -130,15 +145,15 @@ export default function ModelsAndEndpointsPage() {
 
   const allModelsLabel = isAdmin ? "Deployed Models" : "Your Models";
   const tabLabel = (slug: "" | ModelTabSlug): React.ReactNode => {
-    if (!slug) return allModelsLabel;
+    if (!slug) return translateMessage(allModelsLabel);
     if (slug === "auto-routers" || slug === "access-group-budgets") {
       return (
         <span className="flex items-center gap-2">
-          {TAB_LABELS[slug]} <BetaBadge />
+          {localizedProperty(TAB_LABELS, slug, TAB_LABELS[slug])} <BetaBadge />
         </span>
       );
     }
-    return TAB_LABELS[slug];
+    return localizedProperty(TAB_LABELS, slug, TAB_LABELS[slug]);
   };
 
   const handleRefreshClick = () => {
@@ -171,12 +186,16 @@ export default function ModelsAndEndpointsPage() {
       <div className="mt-2 flex w-full flex-col gap-2 p-8">
         <div className="mb-4 flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-semibold">Model Management</h2>
+            <h2 className="text-lg font-semibold">
+              <LocalizedText text={"Model Management"} />
+            </h2>
             {isAdmin ? (
-              <p className="text-sm text-muted-foreground">Add and manage models for the proxy</p>
+              <p className="text-sm text-muted-foreground">
+                <LocalizedText text={"Add and manage models for the proxy"} />
+              </p>
             ) : (
               <p className="text-sm text-muted-foreground">
-                View your models and manage routers for teams that allow it.
+                <LocalizedText text={"View your models and manage routers for teams that allow it."} />
               </p>
             )}
           </div>
@@ -212,9 +231,17 @@ export default function ModelsAndEndpointsPage() {
               </div>
               <div className="flex shrink-0 items-center gap-2 pb-1">
                 {lastRefreshed && (
-                  <span className="text-xs text-muted-foreground">Last Refreshed: {lastRefreshed}</span>
+                  <span className="text-xs text-muted-foreground">
+                    <LocalizedText text={"Last Refreshed: "} />
+                    {lastRefreshed}
+                  </span>
                 )}
-                <Button variant="ghost" size="icon-sm" onClick={handleRefreshClick} aria-label="Refresh models">
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={handleRefreshClick}
+                  aria-label={translateMessage("Refresh models")}
+                >
                   <RefreshCw />
                 </Button>
               </div>

@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import type { ReactNode } from "react";
 import { ChevronRight, CheckCircle2 } from "lucide-react";
@@ -41,6 +42,7 @@ export interface FindingsTabProps {
 }
 
 export function FindingsTab({ lens, job, findings, children }: FindingsTabProps) {
+  useUiLocale();
   const { kind, setKind, status, setStatus } = useFindingFilters();
   const { findingId, setFindingId } = useFindingRoute();
   const active = activeJob(lens.jobs) !== undefined;
@@ -59,30 +61,40 @@ export function FindingsTab({ lens, job, findings, children }: FindingsTabProps)
     >
       <TabsContent value="findings" className="pt-4 space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex gap-1" aria-label="Finding category">
+          <div className="flex gap-1" aria-label={translateMessage("Finding category")}>
             <Button size="sm" variant={kind === "issue" ? "secondary" : "ghost"} onClick={() => setKind("issue")}>
-              Needs attention ({openCount("issue")})
+              <LocalizedText text={"Needs attention ("} />
+              {openCount("issue")})
             </Button>
             <Button size="sm" variant={kind === "pattern" ? "secondary" : "ghost"} onClick={() => setKind("pattern")}>
-              Patterns ({openCount("pattern")})
+              <LocalizedText text={"Patterns ("} />
+              {openCount("pattern")})
             </Button>
           </div>
           <select
-            aria-label="Finding status"
+            aria-label={translateMessage("Finding status")}
             className="rounded-md border bg-background px-2 py-1 text-xs"
             value={status}
             onChange={(e) => setStatus(e.target.value)}
           >
-            <option value="open">Open</option>
-            <option value="resolved">Resolved</option>
-            <option value="dismissed">Dismissed</option>
-            <option value="all">All statuses</option>
+            <option value="open">
+              <LocalizedText text={"Open"} />
+            </option>
+            <option value="resolved">
+              <LocalizedText text={"Resolved"} />
+            </option>
+            <option value="dismissed">
+              <LocalizedText text={"Dismissed"} />
+            </option>
+            <option value="all">
+              <LocalizedText text={"All statuses"} />
+            </option>
           </select>
         </div>
         <p className="text-xs text-muted-foreground">
           {kind === "issue"
-            ? "Problems worth investigating, highest priority first."
-            : "Useful behavior and trends. These do not necessarily need a fix."}
+            ? translateMessage("Problems worth investigating, highest priority first.")
+            : translateMessage("Useful behavior and trends. These do not necessarily need a fix.")}
         </p>
         <div className="divide-y border-y">
           {visible.map((f) => (
@@ -99,15 +111,20 @@ export function FindingsTab({ lens, job, findings, children }: FindingsTabProps)
               <span
                 data-state={f.priority ?? "medium"}
                 className={cn("mt-1 size-2 shrink-0 rounded-full", priorityColors[f.priority ?? "medium"])}
-                aria-label={`${f.priority} priority`}
+                aria-label={translateMessage("%{0} priority", [f.priority])}
               />
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium">{f.title}</p>
-                <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{f.description}</p>
+                <p className="text-sm font-medium">{localizedProperty(f, "title", f.title)}</p>
+                <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
+                  {localizedProperty(f, "description", f.description)}
+                </p>
                 <p className="mt-2 text-xs text-muted-foreground">
-                  {f.occurrences?.length ?? 0} affected {f.occurrences?.length === 1 ? "trace" : "traces"} ·{" "}
-                  {(f.investigation_runs?.length ?? 0) > 1 && `${f.investigation_runs.length} investigation runs · `}
-                  {f.kind === "issue" ? `${f.priority} priority` : "Pattern"}
+                  {f.occurrences?.length ?? 0}
+                  <LocalizedText text={" affected "} />
+                  {f.occurrences?.length === 1 ? translateMessage("trace") : translateMessage("traces")} ·{" "}
+                  {(f.investigation_runs?.length ?? 0) > 1 &&
+                    translateMessage("%{0} investigation runs · ", [f.investigation_runs.length])}
+                  {f.kind === "issue" ? translateMessage("%{0} priority", [f.priority]) : translateMessage("Pattern")}
                 </p>
               </div>
               <ChevronRight className="size-4 shrink-0 text-muted-foreground" />

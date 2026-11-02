@@ -1,3 +1,4 @@
+import { markUiCopy } from "@/lib/i18n";
 // Auto-generated from block_insults.csv — do not edit manually.
 // Regenerate: python scripts/generate_compliance_prompts.py --csv ... --output ...
 
@@ -2996,9 +2997,15 @@ export const insultsCompliancePrompts: CompliancePrompt[] = [
   },
 ];
 
-export const insultsFrameworkMeta = {
-  name: "Topic Blocking",
-  icon: "shield",
-  description:
-    "Content filter guardrails that block messages matching specific prohibited topics while allowing legitimate use of related words in context.",
-};
+export const insultsFrameworkMeta = markUiCopy(
+  {
+    name: "Topic Blocking",
+    icon: "shield",
+    description:
+      "Content filter guardrails that block messages matching specific prohibited topics while allowing legitimate use of related words in context.",
+  },
+  {
+    description:
+      "Content filter guardrails that block messages matching specific prohibited topics while allowing legitimate use of related words in context.",
+  },
+);

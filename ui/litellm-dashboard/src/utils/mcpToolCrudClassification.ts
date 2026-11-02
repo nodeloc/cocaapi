@@ -1,3 +1,4 @@
+import { markUiCopy } from "@/lib/i18n";
 export type CrudOp = "read" | "create" | "update" | "delete" | "unknown";
 
 const DELETE_RE = /\b(delete|remove|destroy|purge|drop|erase|unlink)\b/i;
@@ -58,29 +59,44 @@ export const CRUD_GROUP_META: Record<
   CrudOp,
   { label: string; description: string; risk: "low" | "medium" | "high" | "unknown" }
 > = {
-  read: {
-    label: "Read",
-    description: "Safe operations — fetch, list, search. No side effects.",
-    risk: "low",
-  },
-  create: {
-    label: "Create",
-    description: "Add new resources — insert, upload, register.",
-    risk: "medium",
-  },
-  update: {
-    label: "Update",
-    description: "Modify existing resources — edit, patch, rename.",
-    risk: "medium",
-  },
-  delete: {
-    label: "Delete",
-    description: "Destructive operations — remove, purge, destroy.",
-    risk: "high",
-  },
-  unknown: {
-    label: "Other",
-    description: "Operations that could not be automatically classified.",
-    risk: "unknown",
-  },
+  read: markUiCopy(
+    {
+      label: "Read",
+      description: "Safe operations — fetch, list, search. No side effects.",
+      risk: "low",
+    },
+    { label: "Read", description: "Safe operations — fetch, list, search. No side effects." },
+  ),
+  create: markUiCopy(
+    {
+      label: "Create",
+      description: "Add new resources — insert, upload, register.",
+      risk: "medium",
+    },
+    { label: "Create", description: "Add new resources — insert, upload, register." },
+  ),
+  update: markUiCopy(
+    {
+      label: "Update",
+      description: "Modify existing resources — edit, patch, rename.",
+      risk: "medium",
+    },
+    { label: "Update", description: "Modify existing resources — edit, patch, rename." },
+  ),
+  delete: markUiCopy(
+    {
+      label: "Delete",
+      description: "Destructive operations — remove, purge, destroy.",
+      risk: "high",
+    },
+    { label: "Delete", description: "Destructive operations — remove, purge, destroy." },
+  ),
+  unknown: markUiCopy(
+    {
+      label: "Other",
+      description: "Operations that could not be automatically classified.",
+      risk: "unknown",
+    },
+    { label: "Other", description: "Operations that could not be automatically classified." },
+  ),
 };

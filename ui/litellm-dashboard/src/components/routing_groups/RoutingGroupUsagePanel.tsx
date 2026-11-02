@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, markUiCopy, useUiLocale } from "@/lib/i18n";
 
 import { Code2 } from "lucide-react";
 import React from "react";
@@ -58,28 +59,47 @@ const response = await client.chat.completions.create({
 console.log(response);`;
 
 const SNIPPET_TABS = [
-  { value: "curl", label: "cURL", language: "bash", build: buildCurlSnippet },
-  { value: "python", label: "Python (OpenAI SDK)", language: "python", build: buildPythonSnippet },
-  { value: "javascript", label: "JavaScript (OpenAI SDK)", language: "javascript", build: buildJsSnippet },
+  markUiCopy({ value: "curl", label: "cURL", language: "bash", build: buildCurlSnippet }, { label: "cURL" }),
+  markUiCopy(
+    { value: "python", label: "Python (OpenAI SDK)", language: "python", build: buildPythonSnippet },
+    { label: "Python (OpenAI SDK)" },
+  ),
+  markUiCopy(
+    { value: "javascript", label: "JavaScript (OpenAI SDK)", language: "javascript", build: buildJsSnippet },
+    { label: "JavaScript (OpenAI SDK)" },
+  ),
 ] as const;
 
 export function RoutingGroupUsagePanel({ group, baseUrl }: RoutingGroupUsagePanelProps) {
+  useUiLocale();
   return (
     <div className="border-y bg-muted/40 px-4 py-4">
       <div className="mb-2 flex items-center gap-2">
         <Code2 className="size-4 text-primary" />
-        <span className="text-sm font-medium text-foreground">How routing works for this group</span>
+        <span className="text-sm font-medium text-foreground">
+          <LocalizedText text={"How routing works for this group"} />
+        </span>
       </div>
       <p className="mb-3 text-sm text-muted-foreground">
         {group.routing_strategy === "priority" ? (
           <>
-            Request <span className="font-medium text-foreground">{group.group_name}</span> to try eligible models in
-            priority order. Direct requests to a member model keep their existing routing behavior.
+            <LocalizedText text={"Request "} />
+            <span className="font-medium text-foreground">{group.group_name}</span>
+            <LocalizedText
+              text={
+                " to try eligible models in priority order. Direct requests to a member model keep their existing routing behavior."
+              }
+            />
           </>
         ) : (
           <>
-            Callers request any model in the group by name; LiteLLM picks a deployment behind the scenes using the{" "}
-            <span className="font-medium text-foreground">{formatStrategyLabel(group.routing_strategy)}</span> strategy.
+            <LocalizedText
+              text={
+                "Callers request any model in the group by name; LiteLLM picks a deployment behind the scenes using the"
+              }
+            />{" "}
+            <span className="font-medium text-foreground">{formatStrategyLabel(group.routing_strategy)}</span>
+            <LocalizedText text={" strategy."} />
           </>
         )}
       </p>
@@ -87,7 +107,7 @@ export function RoutingGroupUsagePanel({ group, baseUrl }: RoutingGroupUsagePane
         <TabsList variant="line" className="h-auto w-full justify-start rounded-none border-b p-0">
           {SNIPPET_TABS.map((tab) => (
             <TabsTrigger key={tab.value} value={tab.value} className="flex-none rounded-none px-4 py-2">
-              {tab.label}
+              {localizedProperty(tab, "label", tab.label)}
             </TabsTrigger>
           ))}
         </TabsList>

@@ -1,3 +1,4 @@
+import { markUiCopy } from "@/lib/i18n";
 /**
  * Single owner of "which auto-router strategy is this deployment, and what can we do with it".
  *
@@ -42,40 +43,52 @@ const startsWith = (params: AutoRouterParams, prefix: string): boolean => params
 
 /** Ordered; the semantic entry matches anything left and must stay last. */
 export const AUTO_ROUTER_STRATEGIES: readonly AutoRouterStrategy[] = [
-  {
-    kind: "complexity",
-    label: "Complexity",
-    configKey: "complexity_router_config",
-    defaultModelKey: "complexity_router_default_model",
-    hasEditor: true,
-    // Also matched by config presence: rows predating the canonical model string carry the
-    // config without the prefix.
-    matches: (p) => startsWith(p, "auto_router/complexity_router") || p.complexity_router_config != null,
-  },
-  {
-    kind: "adaptive",
-    label: "Adaptive",
-    configKey: "adaptive_router_config",
-    defaultModelKey: "adaptive_router_default_model",
-    hasEditor: false,
-    matches: (p) => startsWith(p, "auto_router/adaptive_router"),
-  },
-  {
-    kind: "quality",
-    label: "Quality",
-    configKey: "quality_router_config",
-    defaultModelKey: "quality_router_default_model",
-    hasEditor: false,
-    matches: (p) => startsWith(p, "auto_router/quality_router"),
-  },
-  {
-    kind: "semantic",
-    label: "Semantic",
-    configKey: "auto_router_config",
-    defaultModelKey: "auto_router_default_model",
-    hasEditor: true,
-    matches: () => true,
-  },
+  markUiCopy(
+    {
+      kind: "complexity" as const,
+      label: "Complexity",
+      configKey: "complexity_router_config",
+      defaultModelKey: "complexity_router_default_model",
+      hasEditor: true,
+      // Also matched by config presence: rows predating the canonical model string carry the
+      // config without the prefix.
+      matches: (p) => startsWith(p, "auto_router/complexity_router") || p.complexity_router_config != null,
+    },
+    { label: "Complexity" },
+  ),
+  markUiCopy(
+    {
+      kind: "adaptive" as const,
+      label: "Adaptive",
+      configKey: "adaptive_router_config",
+      defaultModelKey: "adaptive_router_default_model",
+      hasEditor: false,
+      matches: (p) => startsWith(p, "auto_router/adaptive_router"),
+    },
+    { label: "Adaptive" },
+  ),
+  markUiCopy(
+    {
+      kind: "quality" as const,
+      label: "Quality",
+      configKey: "quality_router_config",
+      defaultModelKey: "quality_router_default_model",
+      hasEditor: false,
+      matches: (p) => startsWith(p, "auto_router/quality_router"),
+    },
+    { label: "Quality" },
+  ),
+  markUiCopy(
+    {
+      kind: "semantic" as const,
+      label: "Semantic",
+      configKey: "auto_router_config",
+      defaultModelKey: "auto_router_default_model",
+      hasEditor: true,
+      matches: () => true,
+    },
+    { label: "Semantic" },
+  ),
 ] as const;
 
 export const autoRouterStrategy = (params: AutoRouterParams | null | undefined): AutoRouterStrategy =>

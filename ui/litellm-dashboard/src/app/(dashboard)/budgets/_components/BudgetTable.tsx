@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { Inbox, ShieldAlert } from "lucide-react";
 import React, { useMemo, useState } from "react";
@@ -35,11 +36,14 @@ interface BudgetTableProps {
 
 const PAGE_SIZE_OPTIONS = [25, 50, 100];
 
-const FILTER_LABELS: Record<string, string> = {
-  budget_duration: "Reset",
-  max_budget: "Max Budget",
-  created_at: "Created",
-};
+const FILTER_LABELS: Record<string, string> = markUiCopy(
+  {
+    budget_duration: "Reset",
+    max_budget: "Max Budget",
+    created_at: "Created",
+  },
+  { budget_duration: "Reset", max_budget: "Max Budget", created_at: "Created" },
+);
 
 const durationLabel = (value: string): string =>
   BUDGET_DURATION_FILTER_OPTIONS.find((option) => option.value === value)?.label ?? value;
@@ -82,22 +86,26 @@ const normalizeCreatedAt = (draft: CreatedAtFilterValue): CreatedAtFilterValue |
 };
 
 function EmptyState({ hasQuery }: { hasQuery: boolean }) {
+  useUiLocale();
   return (
     <div className="flex flex-col items-center gap-1 py-6">
       <div className="mb-1 flex size-10 items-center justify-center rounded-lg bg-muted">
         <Inbox className="size-5 text-muted-foreground" />
       </div>
-      <div className="text-sm font-medium text-foreground">{hasQuery ? "No matching budgets" : "No budgets yet"}</div>
+      <div className="text-sm font-medium text-foreground">
+        {hasQuery ? translateMessage("No matching budgets") : translateMessage("No budgets yet")}
+      </div>
       <div className="text-sm text-muted-foreground">
         {hasQuery
-          ? "No budget matches your search or filters."
-          : "Create a budget to set spend, TPM and RPM limits for customers."}
+          ? translateMessage("No budget matches your search or filters.")
+          : translateMessage("Create a budget to set spend, TPM and RPM limits for customers.")}
       </div>
     </div>
   );
 }
 
 function ErrorState({ error }: { error: Error }) {
+  useUiLocale();
   const forbidden = error instanceof ApiError && error.status === 403;
   return (
     <div className="flex flex-col items-center gap-1 py-6">
@@ -105,10 +113,12 @@ function ErrorState({ error }: { error: Error }) {
         <ShieldAlert className="size-5 text-muted-foreground" />
       </div>
       <div className="text-sm font-medium text-foreground">
-        {forbidden ? "You do not have access to budgets" : "Could not load budgets"}
+        {forbidden ? translateMessage("You do not have access to budgets") : translateMessage("Could not load budgets")}
       </div>
       <div className="text-sm text-muted-foreground">
-        {forbidden ? "Ask a proxy admin to grant you the admin viewer role." : error.message}
+        {forbidden
+          ? translateMessage("Ask a proxy admin to grant you the admin viewer role.")
+          : localizedProperty(error, "message", error.message)}
       </div>
     </div>
   );
@@ -116,6 +126,7 @@ function ErrorState({ error }: { error: Error }) {
 
 /** "Not set" and the concrete durations are exclusive; see serializeBudgetFilters for why. */
 function DurationFilter({ selected, onChange }: { selected: string[]; onChange: (selected: string[]) => void }) {
+  useUiLocale();
   const toggle = (value: string, checked: boolean): void => {
     if (!checked) {
       onChange(selected.filter((entry) => entry !== value));
@@ -134,7 +145,7 @@ function DurationFilter({ selected, onChange }: { selected: string[]; onChange: 
             onCheckedChange={(checked) => toggle(option.value, checked === true)}
             data-testid={`budget-filter-duration-${option.value}`}
           />
-          {option.label}
+          {localizedProperty(option, "label", option.label)}
         </Label>
       ))}
     </div>
@@ -142,6 +153,7 @@ function DurationFilter({ selected, onChange }: { selected: string[]; onChange: 
 }
 
 function BudgetFilterFields({ get, set }: FilterDraft) {
+  useUiLocale();
   const customer = useCustomerNative();
   const maxBudget = (get("max_budget") as MaxBudgetFilterValue | undefined) ?? {};
   const created = (get("created_at") as CreatedAtFilterValue | undefined) ?? {};
@@ -149,13 +161,13 @@ function BudgetFilterFields({ get, set }: FilterDraft) {
 
   return (
     <>
-      <DataTableFilterField label="Reset">
+      <DataTableFilterField label={translateMessage("Reset")}>
         <DurationFilter
           selected={(get("budget_duration") as string[] | undefined) ?? []}
           onChange={(selected) => set("budget_duration", selected)}
         />
       </DataTableFilterField>
-      <DataTableFilterField label="Max Budget (USD)">
+      <DataTableFilterField label={translateMessage("Max Budget (USD)")}>
         <div className="flex items-center gap-2">
           <Input
             type="number"
@@ -164,8 +176,8 @@ function BudgetFilterFields({ get, set }: FilterDraft) {
             value={maxBudget.min ?? ""}
             disabled={unlimitedOnly}
             onChange={(event) => set("max_budget", normalizeMaxBudget({ ...maxBudget, min: event.target.value }))}
-            placeholder="Min"
-            aria-label="Minimum max budget"
+            placeholder={translateMessage("Min")}
+            aria-label={translateMessage("Minimum max budget")}
             data-testid="budget-filter-max-budget-min"
           />
           <Input
@@ -175,8 +187,8 @@ function BudgetFilterFields({ get, set }: FilterDraft) {
             value={maxBudget.max ?? ""}
             disabled={unlimitedOnly}
             onChange={(event) => set("max_budget", normalizeMaxBudget({ ...maxBudget, max: event.target.value }))}
-            placeholder="Max"
-            aria-label="Maximum max budget"
+            placeholder={translateMessage("Max")}
+            aria-label={translateMessage("Maximum max budget")}
             data-testid="budget-filter-max-budget-max"
           />
         </div>
@@ -186,24 +198,24 @@ function BudgetFilterFields({ get, set }: FilterDraft) {
             onCheckedChange={(checked) => set("max_budget", normalizeMaxBudget({ unlimitedOnly: checked === true }))}
             data-testid="budget-filter-max-budget-unlimited"
           />
-          Unlimited only
+          <LocalizedText text={"Unlimited only"} />
         </Label>
       </DataTableFilterField>
       {!customer && (
-        <DataTableFilterField label="Created">
+        <DataTableFilterField label={translateMessage("Created")}>
           <div className="flex items-center gap-2">
             <Input
               type="date"
               value={created.from ?? ""}
               onChange={(event) => set("created_at", normalizeCreatedAt({ ...created, from: event.target.value }))}
-              aria-label="Created from"
+              aria-label={translateMessage("Created from")}
               data-testid="budget-filter-created-from"
             />
             <Input
               type="date"
               value={created.to ?? ""}
               onChange={(event) => set("created_at", normalizeCreatedAt({ ...created, to: event.target.value }))}
-              aria-label="Created to"
+              aria-label={translateMessage("Created to")}
               data-testid="budget-filter-created-to"
             />
           </div>
@@ -214,6 +226,7 @@ function BudgetFilterFields({ get, set }: FilterDraft) {
 }
 
 const BudgetTable: React.FC<BudgetTableProps> = ({ list, canModify, onEditClick, onDeleteClick }) => {
+  useUiLocale();
   const customer = useCustomerNative();
   const [filtersOpen, setFiltersOpen] = useState(false);
 
@@ -247,7 +260,7 @@ const BudgetTable: React.FC<BudgetTableProps> = ({ list, canModify, onEditClick,
       columnFilters={list.columnFilters}
       onColumnFiltersChange={list.onColumnFiltersChange}
       isLoading={list.isLoading}
-      loadingMessage="Loading budgets…"
+      loadingMessage={translateMessage("Loading budgets…")}
       noDataMessage={emptyMessage}
       size="compact"
       toolbar={(table) => (
@@ -256,7 +269,7 @@ const BudgetTable: React.FC<BudgetTableProps> = ({ list, canModify, onEditClick,
             table={table}
             searchValue={list.searchValue}
             onSearchChange={list.onSearchChange}
-            searchPlaceholder="Search by budget ID…"
+            searchPlaceholder={translateMessage("Search by budget ID…")}
             onOpenFilters={() => setFiltersOpen(true)}
             onRefresh={list.refetch}
             isRefreshing={list.isFetching}
@@ -267,8 +280,8 @@ const BudgetTable: React.FC<BudgetTableProps> = ({ list, canModify, onEditClick,
             table={table}
             open={filtersOpen}
             onOpenChange={setFiltersOpen}
-            title="Filters"
-            description="Narrow down your budgets"
+            title={translateMessage("Filters")}
+            description={translateMessage("Narrow down your budgets")}
           >
             {(draft) => <BudgetFilterFields {...draft} />}
           </DataTableFilterDrawer>

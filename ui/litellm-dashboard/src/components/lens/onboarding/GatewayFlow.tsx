@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, useUiLocale } from "@/lib/i18n";
 import { useId } from "react";
 import { cn } from "@/lib/cva.config";
 import styles from "./LensIntroduction.module.css";
@@ -26,21 +28,34 @@ const swarmRows = Array.from({ length: 11 }, (_, row) => ({
 const organizedColumns = Array.from({ length: 58 }, (_, column) => column - 8);
 
 export function GatewayFlow() {
+  useUiLocale();
   const id = useId();
   return (
     <div className="mt-5 sm:mt-6">
       <div className="grid grid-cols-3 gap-3 text-xs">
         <div>
-          <p className="font-semibold">Agent swarms</p>
-          <p className="mt-0.5 leading-4 text-muted-foreground">Every run, every recorded step</p>
+          <p className="font-semibold">
+            <LocalizedText text={"Agent swarms"} />
+          </p>
+          <p className="mt-0.5 leading-4 text-muted-foreground">
+            <LocalizedText text={"Every run, every recorded step"} />
+          </p>
         </div>
         <div className="text-center">
-          <p className="font-semibold">LiteLLM gateway</p>
-          <p className="mt-0.5 leading-4 text-muted-foreground">One place, your infrastructure</p>
+          <p className="font-semibold">
+            <LocalizedText text={"LiteLLM gateway"} />
+          </p>
+          <p className="mt-0.5 leading-4 text-muted-foreground">
+            <LocalizedText text={"One place, your infrastructure"} />
+          </p>
         </div>
         <div className="text-right">
-          <p className="font-semibold">Lens</p>
-          <p className="mt-0.5 leading-4 text-muted-foreground">Findings to improve your agents</p>
+          <p className="font-semibold">
+            <LocalizedText text={"Lens"} />
+          </p>
+          <p className="mt-0.5 leading-4 text-muted-foreground">
+            <LocalizedText text={"Findings to improve your agents"} />
+          </p>
         </div>
       </div>
       <svg

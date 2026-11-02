@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, getIntlLocale, translateMessage, useUiLocale } from "@/lib/i18n";
 import React, { useEffect, useState } from "react";
 import { Ban, Clock3, Cloud, Database, Info, LoaderCircle, RefreshCw, TriangleAlert } from "lucide-react";
 
@@ -99,51 +101,63 @@ const isValidReloadInterval = (value: number) => {
 const formatDateTime = (dateTimeString: string | null) => {
   if (!dateTimeString) return "Never";
   const parsed = new Date(dateTimeString);
-  return Number.isNaN(parsed.getTime()) ? dateTimeString : parsed.toLocaleString();
+  return Number.isNaN(parsed.getTime()) ? dateTimeString : parsed.toLocaleString(getIntlLocale());
 };
 
-const CostMapProvenanceRows: React.FC<{ sourceInfo: CostMapSourceInfo }> = ({ sourceInfo }) => (
-  <>
-    {sourceInfo.source_revision && (
-      <div className="flex items-center justify-between gap-2 text-xs">
-        <span className="text-muted-foreground">Source revision:</span>
-        <Tooltip>
-          <TooltipTrigger render={<code className="font-mono" />}>
-            {shortRevision(sourceInfo.source_revision)}
-          </TooltipTrigger>
-          <TooltipContent>{sourceInfo.source_revision}</TooltipContent>
-        </Tooltip>
-      </div>
-    )}
+const CostMapProvenanceRows: React.FC<{ sourceInfo: CostMapSourceInfo }> = ({ sourceInfo }) => {
+  useUiLocale();
+  return (
+    <>
+      {sourceInfo.source_revision && (
+        <div className="flex items-center justify-between gap-2 text-xs">
+          <span className="text-muted-foreground">
+            <LocalizedText text={"Source revision:"} />
+          </span>
+          <Tooltip>
+            <TooltipTrigger render={<code className="font-mono" />}>
+              {shortRevision(sourceInfo.source_revision)}
+            </TooltipTrigger>
+            <TooltipContent>{sourceInfo.source_revision}</TooltipContent>
+          </Tooltip>
+        </div>
+      )}
 
-    {sourceInfo.etag && (
-      <div className="flex items-center justify-between gap-2 text-xs">
-        <span className="text-muted-foreground">ETag:</span>
-        <Tooltip>
-          <TooltipTrigger render={<code className="max-w-60 truncate font-mono" />}>{sourceInfo.etag}</TooltipTrigger>
-          <TooltipContent>{sourceInfo.etag}</TooltipContent>
-        </Tooltip>
-      </div>
-    )}
+      {sourceInfo.etag && (
+        <div className="flex items-center justify-between gap-2 text-xs">
+          <span className="text-muted-foreground">
+            <LocalizedText text={"ETag:"} />
+          </span>
+          <Tooltip>
+            <TooltipTrigger render={<code className="max-w-60 truncate font-mono" />}>{sourceInfo.etag}</TooltipTrigger>
+            <TooltipContent>{sourceInfo.etag}</TooltipContent>
+          </Tooltip>
+        </div>
+      )}
 
-    {sourceInfo.loaded_at && (
-      <div className="flex items-center justify-between text-xs">
-        <span className="text-muted-foreground">Loaded at:</span>
-        <span className="font-medium">{formatDateTime(sourceInfo.loaded_at)}</span>
-      </div>
-    )}
+      {sourceInfo.loaded_at && (
+        <div className="flex items-center justify-between text-xs">
+          <span className="text-muted-foreground">
+            <LocalizedText text={"Loaded at:"} />
+          </span>
+          <span className="font-medium">{formatDateTime(sourceInfo.loaded_at)}</span>
+        </div>
+      )}
 
-    {sourceInfo.loaded_at && (
-      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-        <Info className="size-3.5 shrink-0" />
-        <span>
-          Reported by the worker that answered this request. Other workers pick up a reload on their next poll, and the
-          Last run time is the latest reload any worker recorded
-        </span>
-      </div>
-    )}
-  </>
-);
+      {sourceInfo.loaded_at && (
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <Info className="size-3.5 shrink-0" />
+          <span>
+            <LocalizedText
+              text={
+                "Reported by the worker that answered this request. Other workers pick up a reload on their next poll, and the Last run time is the latest reload any worker recorded"
+              }
+            />
+          </span>
+        </div>
+      )}
+    </>
+  );
+};
 
 const PriceDataReload: React.FC<PriceDataReloadProps> = ({
   accessToken,
@@ -154,6 +168,7 @@ const PriceDataReload: React.FC<PriceDataReloadProps> = ({
   type = "primary",
   className = "",
 }) => {
+  useUiLocale();
   const [isLoading, setIsLoading] = useState(false);
   const [isScheduling, setIsScheduling] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
@@ -213,7 +228,9 @@ const PriceDataReload: React.FC<PriceDataReloadProps> = ({
       const response = await reloadModelCostMap(accessToken);
 
       if (response.status === "success") {
-        toast.success(`Price data reloaded successfully! ${response.models_count || 0} models updated.`);
+        toast.success(
+          translateMessage("Price data reloaded successfully! %{0} models updated.", [response.models_count || 0]),
+        );
         onReloadSuccess?.();
         await fetchReloadStatus();
         await fetchSourceInfo();
@@ -245,7 +262,7 @@ const PriceDataReload: React.FC<PriceDataReloadProps> = ({
       const response = await scheduleModelCostMapReload(accessToken, intervalHours);
 
       if (response.status === "success") {
-        toast.success(`Periodic reload scheduled for every ${intervalHours} hours`);
+        toast.success(translateMessage("Periodic reload scheduled for every %{0} hours", [intervalHours]));
         setShowScheduleModal(false);
         await fetchReloadStatus();
       } else {
@@ -270,7 +287,7 @@ const PriceDataReload: React.FC<PriceDataReloadProps> = ({
       const response = await cancelModelCostMapReload(accessToken);
 
       if (response.status === "success") {
-        toast.success("Periodic reload cancelled successfully");
+        toast.success(translateMessage("Periodic reload cancelled successfully"));
         await fetchReloadStatus();
       } else {
         toast.fromError("Failed to cancel periodic reload");
@@ -314,14 +331,24 @@ const PriceDataReload: React.FC<PriceDataReloadProps> = ({
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Hard Refresh Price Data</AlertDialogTitle>
+                <AlertDialogTitle>
+                  <LocalizedText text={"Hard Refresh Price Data"} />
+                </AlertDialogTitle>
                 <AlertDialogDescription>
-                  This will immediately fetch the latest pricing information from the remote source. Continue?
+                  <LocalizedText
+                    text={
+                      "This will immediately fetch the latest pricing information from the remote source. Continue?"
+                    }
+                  />
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>No</AlertDialogCancel>
-                <AlertDialogAction onClick={handleHardRefresh}>Yes</AlertDialogAction>
+                <AlertDialogCancel>
+                  <LocalizedText text={"No"} />
+                </AlertDialogCancel>
+                <AlertDialogAction onClick={handleHardRefresh}>
+                  <LocalizedText text={"Yes"} />
+                </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
@@ -329,7 +356,7 @@ const PriceDataReload: React.FC<PriceDataReloadProps> = ({
           {!reloadStatus?.scheduled ? (
             <Button type="button" variant="outline" size={buttonSizes[size]} onClick={() => setShowScheduleModal(true)}>
               <Clock3 data-icon="inline-start" />
-              Set Up Periodic Reload
+              <LocalizedText text={"Set Up Periodic Reload"} />
             </Button>
           ) : (
             <Button
@@ -344,7 +371,7 @@ const PriceDataReload: React.FC<PriceDataReloadProps> = ({
               ) : (
                 <Ban data-icon="inline-start" />
               )}
-              Cancel Periodic Reload
+              <LocalizedText text={"Cancel Periodic Reload"} />
             </Button>
           )}
         </div>
@@ -354,23 +381,29 @@ const PriceDataReload: React.FC<PriceDataReloadProps> = ({
             <CardContent className="space-y-2">
               <div className="flex items-center gap-2">
                 {sourceInfo.source === "remote" ? <Cloud className="size-4" /> : <Database className="size-4" />}
-                <span className="text-sm font-medium">Pricing Data Source</span>
+                <span className="text-sm font-medium">
+                  <LocalizedText text={"Pricing Data Source"} />
+                </span>
                 <Badge variant="secondary" className="ml-auto uppercase">
-                  {sourceInfo.source === "remote" ? "Remote" : "Local"}
+                  {sourceInfo.source === "remote" ? translateMessage("Remote") : translateMessage("Local")}
                 </Badge>
               </div>
 
               <Separator />
 
               <div className="flex items-center justify-between text-xs">
-                <span className="text-muted-foreground">Models loaded:</span>
-                <span className="font-medium">{sourceInfo.model_count.toLocaleString()}</span>
+                <span className="text-muted-foreground">
+                  <LocalizedText text={"Models loaded:"} />
+                </span>
+                <span className="font-medium">{sourceInfo.model_count.toLocaleString(getIntlLocale())}</span>
               </div>
 
               {sourceInfo.url && (
                 <div className="flex items-start justify-between gap-2 text-xs">
                   <span className="shrink-0 text-muted-foreground">
-                    {sourceInfo.source === "remote" ? "Loaded from:" : "Attempted URL:"}
+                    {sourceInfo.source === "remote"
+                      ? translateMessage("Loaded from:")
+                      : translateMessage("Attempted URL:")}
                   </span>
                   <Tooltip>
                     <TooltipTrigger render={<span className="max-w-60 truncate text-primary" />}>
@@ -387,7 +420,8 @@ const PriceDataReload: React.FC<PriceDataReloadProps> = ({
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                   <Info className="size-3.5 shrink-0" />
                   <span>
-                    Local mode forced via <code>LITELLM_LOCAL_MODEL_COST_MAP=True</code>
+                    <LocalizedText text={"Local mode forced via "} />
+                    <code>LITELLM_LOCAL_MODEL_COST_MAP=True</code>
                   </span>
                 </div>
               )}
@@ -395,7 +429,10 @@ const PriceDataReload: React.FC<PriceDataReloadProps> = ({
               {sourceInfo.fallback_reason && (
                 <div className="flex items-start gap-1.5 rounded-md border border-destructive/30 bg-destructive/10 px-2 py-1.5 text-xs">
                   <TriangleAlert className="mt-0.5 size-3.5 shrink-0 text-destructive" />
-                  <span>Fell back to local: {sourceInfo.fallback_reason}</span>
+                  <span>
+                    <LocalizedText text={"Fell back to local: "} />
+                    {sourceInfo.fallback_reason}
+                  </span>
                 </div>
               )}
             </CardContent>
@@ -408,14 +445,20 @@ const PriceDataReload: React.FC<PriceDataReloadProps> = ({
               {reloadStatus.scheduled ? (
                 <Badge variant="secondary">
                   <Clock3 />
-                  Scheduled every {reloadStatus.interval_hours} hours
+                  <LocalizedText text={"Scheduled every "} />
+                  {reloadStatus.interval_hours}
+                  <LocalizedText text={" hours"} />
                 </Badge>
               ) : (
-                <p className="text-sm text-muted-foreground">No periodic reload scheduled</p>
+                <p className="text-sm text-muted-foreground">
+                  <LocalizedText text={"No periodic reload scheduled"} />
+                </p>
               )}
 
               <div className="flex items-center justify-between text-xs">
-                <span className="text-muted-foreground">Last run:</span>
+                <span className="text-muted-foreground">
+                  <LocalizedText text={"Last run:"} />
+                </span>
                 <span>{formatDateTime(reloadStatus.last_run)}</span>
               </div>
 
@@ -423,12 +466,16 @@ const PriceDataReload: React.FC<PriceDataReloadProps> = ({
                 <>
                   {reloadStatus.next_run && (
                     <div className="flex items-center justify-between text-xs">
-                      <span className="text-muted-foreground">Next run:</span>
+                      <span className="text-muted-foreground">
+                        <LocalizedText text={"Next run:"} />
+                      </span>
                       <span>{formatDateTime(reloadStatus.next_run)}</span>
                     </div>
                   )}
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-muted-foreground">Status:</span>
+                    <span className="text-muted-foreground">
+                      <LocalizedText text={"Status:"} />
+                    </span>
                     <Badge variant="outline">{getStatusText()}</Badge>
                   </div>
                 </>
@@ -440,35 +487,47 @@ const PriceDataReload: React.FC<PriceDataReloadProps> = ({
         <Dialog open={showScheduleModal} onOpenChange={setShowScheduleModal}>
           <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Set Up Periodic Reload</DialogTitle>
+              <DialogTitle>
+                <LocalizedText text={"Set Up Periodic Reload"} />
+              </DialogTitle>
               <DialogDescription>
-                Set how often LiteLLM should fetch the latest pricing data from the remote source.
+                <LocalizedText
+                  text={"Set how often LiteLLM should fetch the latest pricing data from the remote source."}
+                />
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
-              <p className="text-sm">Set up automatic reload of price data every:</p>
+              <p className="text-sm">
+                <LocalizedText text={"Set up automatic reload of price data every:"} />
+              </p>
               <InputGroup>
                 <InputGroupInput
                   type="number"
-                  aria-label="Reload interval in hours"
+                  aria-label={translateMessage("Reload interval in hours")}
                   min={1}
                   max={168}
                   value={hours}
                   onChange={(event) => setHours(event.target.value === "" ? "" : Number(event.target.value))}
                 />
-                <InputGroupAddon align="inline-end">hours</InputGroupAddon>
+                <InputGroupAddon align="inline-end">
+                  <LocalizedText text={"hours"} />
+                </InputGroupAddon>
               </InputGroup>
               <p className="text-sm text-muted-foreground">
-                This will automatically fetch the latest pricing data from the remote source every {hours} hours.
+                <LocalizedText
+                  text={"This will automatically fetch the latest pricing data from the remote source every "}
+                />
+                {hours}
+                <LocalizedText text={" hours."} />
               </p>
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setShowScheduleModal(false)}>
-                Cancel
+                <LocalizedText text={"Cancel"} />
               </Button>
               <Button type="button" disabled={isScheduling} onClick={handleScheduleReload}>
                 {isScheduling && <LoaderCircle className="animate-spin" data-icon="inline-start" />}
-                Schedule
+                <LocalizedText text={"Schedule"} />
               </Button>
             </DialogFooter>
           </DialogContent>

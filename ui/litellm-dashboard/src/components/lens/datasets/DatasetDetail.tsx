@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { useState } from "react";
 import { ChevronRight, Database, Download, Loader2, TriangleAlert } from "lucide-react";
@@ -19,6 +20,7 @@ export interface DatasetDetailProps {
 }
 
 export function DatasetDetail({ datasetId, readOnly, onBack }: DatasetDetailProps) {
+  useUiLocale();
   const { revision, setRevision } = useDatasetRoute();
   const latest = useDataset(datasetId);
   const viewed = useDataset(datasetId, revision);
@@ -27,8 +29,8 @@ export function DatasetDetail({ datasetId, readOnly, onBack }: DatasetDetailProp
       <StateMessage
         role="status"
         icon={<Loader2 className="size-5 animate-spin motion-reduce:animate-none" />}
-        title="Loading dataset…"
-        description="Fetching its cases."
+        title={translateMessage("Loading dataset…")}
+        description={translateMessage("Fetching its cases.")}
       />
     );
   const error = latest.error ?? viewed.error;
@@ -38,11 +40,13 @@ export function DatasetDetail({ datasetId, readOnly, onBack }: DatasetDetailProp
         role="alert"
         tone="destructive"
         icon={<TriangleAlert className="size-5" />}
-        title="Couldn't load this dataset"
-        description={error?.message ?? "The proxy returned no dataset."}
+        title={translateMessage("Couldn't load this dataset")}
+        description={
+          localizedProperty(error, "message", error?.message) ?? translateMessage("The proxy returned no dataset.")
+        }
       >
         <Button size="sm" variant="outline" onClick={onBack}>
-          All datasets
+          <LocalizedText text={"All datasets"} />
         </Button>
       </StateMessage>
     );
@@ -74,6 +78,7 @@ interface DatasetRevisionProps {
 }
 
 function DatasetRevision(props: DatasetRevisionProps) {
+  useUiLocale();
   const { dataset, latestRevision, readOnly, onBack, onPickRevision, onShowLatest, onReload } = props;
   const { caseId, setCaseId } = useDatasetRoute();
   const [edits, setEdits] = useState<CaseEdits>({});
@@ -98,9 +103,12 @@ function DatasetRevision(props: DatasetRevisionProps) {
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <header className="flex shrink-0 flex-col gap-1 border-b bg-background px-3 pt-2.5 pb-2 sm:px-4">
-        <nav aria-label="Breadcrumb" className="flex items-center gap-1 text-xs text-muted-foreground">
+        <nav
+          aria-label={translateMessage("Breadcrumb")}
+          className="flex items-center gap-1 text-xs text-muted-foreground"
+        >
           <button type="button" onClick={onBack} className="rounded hover:text-foreground hover:underline">
-            Datasets
+            <LocalizedText text={"Datasets"} />
           </button>
           <ChevronRight aria-hidden="true" className="size-3" />
           <span className="truncate">{dataset.name}</span>
@@ -109,9 +117,9 @@ function DatasetRevision(props: DatasetRevisionProps) {
           <div className="flex min-w-0 flex-1 items-center gap-2">
             <Database aria-hidden="true" className="size-4 shrink-0 text-muted-foreground" />
             <h2 className="min-w-0 truncate text-base font-semibold">{dataset.name}</h2>
-            <IdChip value={dataset.id} label="Copy dataset ID" />
+            <IdChip value={dataset.id} label={translateMessage("Copy dataset ID")} />
             <span className="hidden truncate text-xs text-muted-foreground sm:inline">
-              {dataset.agent_name || "Any agent"}
+              {dataset.agent_name || translateMessage("Any agent")}
             </span>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -123,12 +131,13 @@ function DatasetRevision(props: DatasetRevisionProps) {
               onClick={() => exportDataset.mutate({ id: dataset.id, name: dataset.name, revision: dataset.revision })}
             >
               <Download className="size-3.5" />
-              Export JSONL
+              <LocalizedText text={"Export JSONL"} />
             </Button>
             {editable && (
               <Button size="sm" disabled={changed === 0 || save.isPending} onClick={saveRevision}>
                 {save.isPending && <Loader2 className="size-3.5 animate-spin motion-reduce:animate-none" />}
-                Save as revision {dataset.revision + 1}
+                <LocalizedText text={"Save as revision "} />
+                {dataset.revision + 1}
               </Button>
             )}
           </div>
@@ -137,12 +146,14 @@ function DatasetRevision(props: DatasetRevisionProps) {
       <SaveProblem error={save.error ?? exportDataset.error} onReload={reload} />
       {!isLatest && (
         <p role="status" className="border-b px-4 py-2 text-xs text-muted-foreground">
-          Revision {dataset.revision} is read-only. Switch to the latest revision to make changes.
+          <LocalizedText text={"Revision "} />
+          {dataset.revision}
+          <LocalizedText text={" is read-only. Switch to the latest revision to make changes."} />
         </p>
       )}
       {cases.length === 0 ? (
         <p className="px-4 py-10 text-center text-sm text-muted-foreground">
-          This revision has no cases. Add some from a trace or a finding.
+          <LocalizedText text={"This revision has no cases. Add some from a trace or a finding."} />
         </p>
       ) : (
         <CaseTable
@@ -168,6 +179,7 @@ function DatasetRevision(props: DatasetRevisionProps) {
 }
 
 function SaveProblem({ error, onReload }: { error: Error | null; onReload: () => void }) {
+  useUiLocale();
   if (!error) return null;
   const conflict = isRevisionConflict(error);
   return (
@@ -177,12 +189,14 @@ function SaveProblem({ error, onReload }: { error: Error | null; onReload: () =>
     >
       <span className="min-w-0">
         {conflict
-          ? "Someone saved a newer revision while you were editing. Reload to see it, then make your changes again."
-          : error.message}
+          ? translateMessage(
+              "Someone saved a newer revision while you were editing. Reload to see it, then make your changes again.",
+            )
+          : localizedProperty(error, "message", error.message)}
       </span>
       {conflict && (
         <Button variant="ghost" size="sm" onClick={onReload}>
-          Reload
+          <LocalizedText text={"Reload"} />
         </Button>
       )}
     </div>
@@ -198,18 +212,20 @@ function RevisionPicker({
   latest: number;
   onPick: (revision: number) => void;
 }) {
+  useUiLocale();
   const revisions = Array.from({ length: latest + 1 }, (_, offset) => latest - offset);
   return (
     <select
-      aria-label="Revision"
+      aria-label={translateMessage("Revision")}
       className="h-8 rounded-md border-0 bg-transparent pr-7 pl-2 text-xs text-muted-foreground hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring"
       value={revision}
       onChange={(event) => onPick(Number(event.target.value))}
     >
       {revisions.map((value) => (
         <option key={value} value={value}>
-          Revision {value}
-          {value === latest ? " (latest)" : ""}
+          <LocalizedText text={"Revision "} />
+          {value}
+          {value === latest ? translateMessage(" (latest)") : ""}
         </option>
       ))}
     </select>

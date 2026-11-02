@@ -1,3 +1,5 @@
+"use client";
+import { translateMessage, useUiLocale } from "@/lib/i18n";
 import { FilterInput } from "@/components/common_components/Filters/FilterInput";
 import { FiltersButton } from "@/components/common_components/Filters/FiltersButton";
 import { ResetFiltersButton } from "@/components/common_components/Filters/ResetFiltersButton";
@@ -23,6 +25,7 @@ const OrganizationFilters = ({
   onChange,
   onReset,
 }: OrganizationFiltersProps) => {
+  useUiLocale();
   const hasActiveFilters = !!(filters.org_id || filters.org_alias);
 
   return (
@@ -30,7 +33,7 @@ const OrganizationFilters = ({
       {/* Search and Filter Controls */}
       <div className="flex flex-wrap items-center gap-3">
         <FilterInput
-          placeholder="Search by Organization Name"
+          placeholder={translateMessage("Search by Organization Name")}
           value={filters.org_alias}
           onChange={(value) => onChange("org_alias", value)}
           icon={Search}
@@ -50,7 +53,7 @@ const OrganizationFilters = ({
       {showFilters && (
         <div className="flex flex-wrap items-center gap-3 mt-3">
           <FilterInput
-            placeholder="Search by Organization ID"
+            placeholder={translateMessage("Search by Organization ID")}
             value={filters.org_id}
             onChange={(value) => onChange("org_id", value)}
             icon={User}

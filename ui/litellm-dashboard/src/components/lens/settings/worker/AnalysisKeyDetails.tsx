@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { Button } from "@/components/ui/button";
 import { runTime } from "../../model/format";
@@ -27,14 +28,20 @@ function modelsLabel(models: readonly string[]): string {
 }
 
 export function AnalysisKeySummary({ keyId }: { keyId: string }) {
+  useUiLocale();
   const key = useAnalysisKeyInfo(keyId);
-  if (key.isLoading) return <p className="text-xs text-muted-foreground">Loading billing key…</p>;
+  if (key.isLoading)
+    return (
+      <p className="text-xs text-muted-foreground">
+        <LocalizedText text={"Loading billing key…"} />
+      </p>
+    );
   if (key.error || !key.data)
     return (
       <p role="alert" className="flex items-center gap-2 text-xs text-destructive">
-        Could not load billing key
+        <LocalizedText text={"Could not load billing key"} />
         <Button variant="link" size="xs" className="h-auto p-0" onClick={() => void key.refetch()}>
-          Retry
+          <LocalizedText text={"Retry"} />
         </Button>
       </p>
     );
@@ -48,20 +55,31 @@ export function AnalysisKeySummary({ keyId }: { keyId: string }) {
   return (
     <p className="truncate text-xs text-muted-foreground">
       {summary}
-      {inactive && <span className="text-destructive"> · Key {info.status}</span>}
+      {inactive && (
+        <span className="text-destructive">
+          <LocalizedText text={" · Key "} />
+          {info.status}
+        </span>
+      )}
     </p>
   );
 }
 
 export function AnalysisKeyDetails({ keyId }: { keyId: string }) {
+  useUiLocale();
   const key = useAnalysisKeyInfo(keyId);
-  if (key.isLoading) return <p className="text-xs text-muted-foreground">Loading key permissions…</p>;
+  if (key.isLoading)
+    return (
+      <p className="text-xs text-muted-foreground">
+        <LocalizedText text={"Loading key permissions…"} />
+      </p>
+    );
   if (key.error || !key.data)
     return (
       <div role="alert" className="flex items-center gap-2 text-sm text-destructive">
-        Could not load key permissions
+        <LocalizedText text={"Could not load key permissions"} />
         <Button variant="ghost" size="sm" onClick={() => void key.refetch()}>
-          Retry
+          <LocalizedText text={"Retry"} />
         </Button>
       </div>
     );
@@ -69,23 +87,42 @@ export function AnalysisKeyDetails({ keyId }: { keyId: string }) {
   return (
     <div className="space-y-2 text-sm">
       <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-5 gap-y-2">
-        <dt className="text-muted-foreground">Models</dt>
+        <dt className="text-muted-foreground">
+          <LocalizedText text={"Models"} />
+        </dt>
         <dd className="break-words">{modelsLabel(info.models)}</dd>
-        <dt className="text-muted-foreground">Key limit</dt>
+        <dt className="text-muted-foreground">
+          <LocalizedText text={"Key limit"} />
+        </dt>
         <dd>{budgetLabel(info.max_budget, info.budget_duration)}</dd>
       </dl>
       {info.status && info.status !== "active" && (
         <p role="alert" className="text-destructive">
-          This key is {info.status}. Choose an active key.
+          <LocalizedText text={"This key is "} />
+          {info.status}
+          <LocalizedText text={". Choose an active key."} />
         </p>
       )}
       <details className="text-xs text-muted-foreground">
-        <summary className="cursor-pointer">Other limits</summary>
+        <summary className="cursor-pointer">
+          <LocalizedText text={"Other limits"} />
+        </summary>
         <div className="mt-2 space-y-1 leading-5">
-          <p>Requests per minute: {info.rpm_limit ?? "No key limit"}</p>
-          <p>Tokens per minute: {info.tpm_limit ?? "No key limit"}</p>
-          <p>Expires: {info.expires ? runTime(info.expires) : "No expiry"}</p>
-          <p>Team, organization, and model limits still apply.</p>
+          <p>
+            <LocalizedText text={"Requests per minute: "} />
+            {info.rpm_limit ?? translateMessage("No key limit")}
+          </p>
+          <p>
+            <LocalizedText text={"Tokens per minute: "} />
+            {info.tpm_limit ?? translateMessage("No key limit")}
+          </p>
+          <p>
+            <LocalizedText text={"Expires: "} />
+            {info.expires ? runTime(info.expires) : translateMessage("No expiry")}
+          </p>
+          <p>
+            <LocalizedText text={"Team, organization, and model limits still apply."} />
+          </p>
         </div>
       </details>
     </div>

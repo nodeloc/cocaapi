@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { CircleHelp } from "lucide-react";
 import React, { useEffect, useState } from "react";
@@ -43,6 +44,7 @@ interface MemoryEditModalProps {
 }
 
 export const MemoryEditModal: React.FC<MemoryEditModalProps> = ({ open, mode, initialRow, onClose, onSave }) => {
+  useUiLocale();
   const form = useZodForm(memorySchema, { defaultValues: EMPTY_MEMORY, mode: "onChange" });
   const [submitting, setSubmitting] = useState(false);
 
@@ -80,7 +82,11 @@ export const MemoryEditModal: React.FC<MemoryEditModalProps> = ({ open, mode, in
     >
       <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-[640px]">
         <DialogHeader>
-          <DialogTitle>{mode === "create" ? "Create memory" : `Edit ${initialRow?.key ?? ""}`}</DialogTitle>
+          <DialogTitle>
+            {mode === "create"
+              ? translateMessage("Create memory")
+              : translateMessage("Edit %{0}", [initialRow?.key ?? ""])}
+          </DialogTitle>
         </DialogHeader>
         <form onSubmit={(event) => event.preventDefault()} noValidate>
           <TooltipProvider>
@@ -94,7 +100,12 @@ export const MemoryEditModal: React.FC<MemoryEditModalProps> = ({ open, mode, in
                 )}
               >
                 {({ ref, ...field }) => (
-                  <Input {...field} ref={ref} placeholder="e.g. user_role" disabled={mode === "edit"} />
+                  <Input
+                    {...field}
+                    ref={ref}
+                    placeholder={translateMessage("e.g. user_role")}
+                    disabled={mode === "edit"}
+                  />
                 )}
               </FormField>
 
@@ -104,7 +115,12 @@ export const MemoryEditModal: React.FC<MemoryEditModalProps> = ({ open, mode, in
                 label={labelWithHint("Value", "Markdown/text injected into LLM context. Plain strings are fine.")}
               >
                 {({ ref, ...field }) => (
-                  <Textarea {...field} ref={ref} rows={8} placeholder="What the agent should remember…" />
+                  <Textarea
+                    {...field}
+                    ref={ref}
+                    rows={8}
+                    placeholder={translateMessage("What the agent should remember…")}
+                  />
                 )}
               </FormField>
 
@@ -113,7 +129,10 @@ export const MemoryEditModal: React.FC<MemoryEditModalProps> = ({ open, mode, in
                 name="metadata"
                 label={labelWithHint(
                   <span>
-                    Metadata <span className="text-muted-foreground">(optional JSON)</span>
+                    <LocalizedText text={"Metadata "} />
+                    <span className="text-muted-foreground">
+                      <LocalizedText text={"(optional JSON)"} />
+                    </span>
                   </span>,
                   "Optional structured metadata — must be valid JSON if provided.",
                 )}
@@ -133,10 +152,10 @@ export const MemoryEditModal: React.FC<MemoryEditModalProps> = ({ open, mode, in
               onClose();
             }}
           >
-            Cancel
+            <LocalizedText text={"Cancel"} />
           </Button>
           <Button onClick={handleOk} disabled={submitting} aria-busy={submitting}>
-            {mode === "create" ? "Create" : "Save"}
+            {mode === "create" ? translateMessage("Create") : translateMessage("Save")}
           </Button>
         </DialogFooter>
       </DialogContent>

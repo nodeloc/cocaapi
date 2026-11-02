@@ -1,3 +1,5 @@
+"use client";
+import { translateMessage, useUiLocale } from "@/lib/i18n";
 import React, { useState, useEffect } from "react";
 
 import { availableTeamListCall, teamMemberAddCall } from "@/components/networking";
@@ -12,6 +14,7 @@ interface AvailableTeamsProps {
 }
 
 const AvailableTeamsPanel: React.FC<AvailableTeamsProps> = ({ accessToken, userID }) => {
+  useUiLocale();
   const [availableTeams, setAvailableTeams] = useState<AvailableTeam[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -54,7 +57,7 @@ const AvailableTeamsPanel: React.FC<AvailableTeamsProps> = ({ accessToken, userI
         role: "user",
       });
 
-      toast.success("Successfully joined team");
+      toast.success(translateMessage("Successfully joined team"));
       setAvailableTeams((teams) => teams.filter((team) => team.team_id !== teamId));
     } catch (error) {
       console.error("Error joining team:", error);

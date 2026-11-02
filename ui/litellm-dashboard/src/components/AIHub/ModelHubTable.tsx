@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, getIntlLocale, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 import { AgentHubData, getAgentHubTableColumns } from "@/components/AIHub/AgentHubTableColumns";
 import MakeAgentPublicForm from "@/components/AIHub/forms/MakeAgentPublicForm";
 import MakeMCPPublicForm from "@/components/AIHub/forms/MakeMCPPublicForm";
@@ -58,13 +60,15 @@ function isMCPHubVisibilityDisabled(isLoading: boolean, servers: readonly MCPSer
   return isLoading || servers === null;
 }
 
-function HubEmptyState({ title, body }: { title: string; body: string }) {
+function HubEmptyState(cocaCopyProps0: { title: string; body: string }) {
+  const { title, body } = cocaCopyProps0;
+  useUiLocale();
   return (
     <div className="flex flex-col items-center gap-1 py-6">
       <div className="mb-1 flex size-10 items-center justify-center rounded-lg bg-muted">
         <Inbox className="size-5 text-muted-foreground" />
       </div>
-      <div className="text-sm font-medium text-foreground">{title}</div>
+      <div className="text-sm font-medium text-foreground">{localizedProperty(cocaCopyProps0, "title", title)}</div>
       <div className="text-sm text-muted-foreground">{body}</div>
     </div>
   );
@@ -77,6 +81,7 @@ const ModelHubTable: React.FC<ModelHubTableProps> = ({
   userRole,
   canOpenPlayground,
 }) => {
+  useUiLocale();
   const syntaxTheme = useSyntaxTheme(prism);
   // Admin Viewer follows the read-parity rule: see the AI Hub catalog, but
   // cannot toggle public visibility (write).
@@ -416,25 +421,31 @@ const ModelHubTable: React.FC<ModelHubTableProps> = ({
           {/* Header with Title, Description and URL */}
           <div className="flex justify-between items-center mb-6">
             <div className="flex flex-col items-start">
-              <h2 className="text-center text-xl font-semibold">AI Hub</h2>
+              <h2 className="text-center text-xl font-semibold">
+                <LocalizedText text={"AI Hub"} />
+              </h2>
               {isAdminRole(userRole || "") ? (
                 <p className="text-sm text-muted-foreground">
-                  Make models, agents, and MCP servers public for developers to know what&apos;s available.
+                  <LocalizedText
+                    text={"Make models, agents, and MCP servers public for developers to know what's available."}
+                  />
                 </p>
               ) : (
                 <p className="text-sm text-muted-foreground">
-                  A list of all public model names personally available to you.
+                  <LocalizedText text={"A list of all public model names personally available to you."} />
                 </p>
               )}
             </div>
             <div className="flex items-center space-x-4">
-              <p>Model Hub URL:</p>
+              <p>
+                <LocalizedText text={"Model Hub URL:"} />
+              </p>
               <div className="flex items-center bg-border px-2 py-1 rounded-sm">
                 <p className="mr-2">{`${getProxyBaseUrl()}/ui/model_hub_table`}</p>
                 <button
                   onClick={() => void copyToClipboard(`${getProxyBaseUrl()}/ui/model_hub_table`)}
                   className="p-1 hover:bg-accent rounded-sm transition-colors"
-                  title="Copy URL"
+                  title={translateMessage("Copy URL")}
                 >
                   <Copy size={16} className="text-muted-foreground" />
                 </button>
@@ -453,16 +464,16 @@ const ModelHubTable: React.FC<ModelHubTableProps> = ({
           <Tabs defaultValue="models">
             <TabsList variant="line" className="mb-4 h-auto w-full justify-start rounded-none border-b p-0">
               <TabsTrigger value="models" className="flex-none rounded-none px-4 py-2">
-                Model Hub
+                <LocalizedText text={"Model Hub"} />
               </TabsTrigger>
               <TabsTrigger value="agents" className="flex-none rounded-none px-4 py-2">
-                Agent Hub
+                <LocalizedText text={"Agent Hub"} />
               </TabsTrigger>
               <TabsTrigger value="mcp" className="flex-none rounded-none px-4 py-2">
-                MCP Hub
+                <LocalizedText text={"MCP Hub"} />
               </TabsTrigger>
               <TabsTrigger value="skills" className="flex-none rounded-none px-4 py-2">
-                Skill Hub
+                <LocalizedText text={"Skill Hub"} />
               </TabsTrigger>
             </TabsList>
 
@@ -474,7 +485,9 @@ const ModelHubTable: React.FC<ModelHubTableProps> = ({
                   {/* Header with Make Public Button */}
                   {publicPage == false && canModify && (
                     <div className="flex justify-end mb-4">
-                      <Button onClick={() => handleMakePublicPage()}>Select Models to Make Public</Button>
+                      <Button onClick={() => handleMakePublicPage()}>
+                        <LocalizedText text={"Select Models to Make Public"} />
+                      </Button>
                     </div>
                   )}
 
@@ -491,10 +504,14 @@ const ModelHubTable: React.FC<ModelHubTableProps> = ({
                     sorting={modelSorting}
                     onSortingChange={setModelSorting}
                     isLoading={loading}
-                    loadingMessage="Loading models…"
+                    loadingMessage={translateMessage("Loading models…")}
                     noDataMessage={
                       <HubEmptyState
-                        title={modelHubData?.length ? "No matching models" : "No models yet"}
+                        title={
+                          modelHubData?.length
+                            ? translateMessage("No matching models")
+                            : translateMessage("No models yet")
+                        }
                         body={
                           modelHubData?.length
                             ? "Adjust the filters to see more models."
@@ -508,7 +525,11 @@ const ModelHubTable: React.FC<ModelHubTableProps> = ({
 
                 <div className="mt-4 text-center space-y-2">
                   <p className="text-sm text-muted-foreground">
-                    Showing {filteredData.length} of {modelHubData?.length || 0} models
+                    <LocalizedText text={"Showing "} />
+                    {filteredData.length}
+                    <LocalizedText text={" of "} />
+                    {modelHubData?.length || 0}
+                    <LocalizedText text={" models"} />
                   </p>
                 </div>
               </TabsContent>
@@ -519,18 +540,22 @@ const ModelHubTable: React.FC<ModelHubTableProps> = ({
                   {/* Header with Make Public Button */}
                   {publicPage == false && canModify && (
                     <div className="flex justify-end mb-4">
-                      <Button onClick={() => handleMakeAgentPublicPage()}>Select Agents to Make Public</Button>
+                      <Button onClick={() => handleMakeAgentPublicPage()}>
+                        <LocalizedText text={"Select Agents to Make Public"} />
+                      </Button>
                     </div>
                   )}
 
                   <div className="mb-4">
-                    <p className="text-sm font-medium mb-2">Search Agents:</p>
+                    <p className="text-sm font-medium mb-2">
+                      <LocalizedText text={"Search Agents:"} />
+                    </p>
                     <InputGroup className="max-w-sm">
                       <InputGroupAddon>
                         <SearchIcon className="size-4 text-muted-foreground" />
                       </InputGroupAddon>
                       <InputGroupInput
-                        placeholder="Search agent names or descriptions..."
+                        placeholder={translateMessage("Search agent names or descriptions...")}
                         value={agentSearchTerm}
                         onChange={(e) => setAgentSearchTerm(e.target.value)}
                       />
@@ -538,7 +563,7 @@ const ModelHubTable: React.FC<ModelHubTableProps> = ({
                         <InputGroupAddon align="inline-end">
                           <InputGroupButton
                             size="icon-xs"
-                            aria-label="Clear search"
+                            aria-label={translateMessage("Clear search")}
                             onClick={() => setAgentSearchTerm("")}
                           >
                             <X />
@@ -558,10 +583,14 @@ const ModelHubTable: React.FC<ModelHubTableProps> = ({
                     sorting={agentSorting}
                     onSortingChange={setAgentSorting}
                     isLoading={agentLoading}
-                    loadingMessage="Loading agents…"
+                    loadingMessage={translateMessage("Loading agents…")}
                     noDataMessage={
                       <HubEmptyState
-                        title={agentHubData?.length ? "No matching agents" : "No agents yet"}
+                        title={
+                          agentHubData?.length
+                            ? translateMessage("No matching agents")
+                            : translateMessage("No agents yet")
+                        }
                         body={
                           agentHubData?.length
                             ? "Adjust the search to see more agents."
@@ -575,7 +604,11 @@ const ModelHubTable: React.FC<ModelHubTableProps> = ({
 
                 <div className="mt-4 text-center space-y-2">
                   <p className="text-sm text-muted-foreground">
-                    Showing {filteredAgentData.length} of {agentHubData?.length || 0} agents
+                    <LocalizedText text={"Showing "} />
+                    {filteredAgentData.length}
+                    <LocalizedText text={" of "} />
+                    {agentHubData?.length || 0}
+                    <LocalizedText text={" agents"} />
                   </p>
                 </div>
               </TabsContent>
@@ -590,7 +623,7 @@ const ModelHubTable: React.FC<ModelHubTableProps> = ({
                         onClick={() => handleMakeMcpPublicPage()}
                         disabled={isMCPHubVisibilityDisabled(mcpLoading, mcpHubData)}
                       >
-                        Manage MCP Hub Visibility
+                        <LocalizedText text={"Manage MCP Hub Visibility"} />
                       </Button>
                     </div>
                   )}
@@ -605,10 +638,10 @@ const ModelHubTable: React.FC<ModelHubTableProps> = ({
                     sorting={mcpSorting}
                     onSortingChange={setMcpSorting}
                     isLoading={mcpLoading}
-                    loadingMessage="Loading MCP servers…"
+                    loadingMessage={translateMessage("Loading MCP servers…")}
                     noDataMessage={
                       <HubEmptyState
-                        title="No MCP servers yet"
+                        title={translateMessage("No MCP servers yet")}
                         body="MCP servers added to this proxy will appear here."
                       />
                     }
@@ -618,7 +651,10 @@ const ModelHubTable: React.FC<ModelHubTableProps> = ({
 
                 <div className="mt-4 text-center space-y-2">
                   <p className="text-sm text-muted-foreground">
-                    Showing {mcpHubData?.length || 0} MCP server{mcpHubData?.length !== 1 ? "s" : ""}
+                    <LocalizedText text={"Showing "} />
+                    {mcpHubData?.length || 0}
+                    <LocalizedText text={" MCP server"} />
+                    {mcpHubData?.length !== 1 ? translateMessage("s") : ""}
                   </p>
                 </div>
               </TabsContent>
@@ -627,7 +663,9 @@ const ModelHubTable: React.FC<ModelHubTableProps> = ({
               <TabsContent value="skills" keepMounted>
                 {publicPage == false && canModify && (
                   <div className="flex justify-end mb-4">
-                    <Button onClick={() => setIsMakeSkillPublicModalVisible(true)}>Select Skills to Make Public</Button>
+                    <Button onClick={() => setIsMakeSkillPublicModalVisible(true)}>
+                      <LocalizedText text={"Select Skills to Make Public"} />
+                    </Button>
                   </div>
                 )}
                 <SkillHubDashboard
@@ -647,9 +685,11 @@ const ModelHubTable: React.FC<ModelHubTableProps> = ({
         </div>
       ) : (
         <Card className="mx-auto max-w-xl mt-10 px-6">
-          <p className="text-xl text-center mb-2 text-foreground">Public Model Hub not enabled.</p>
+          <p className="text-xl text-center mb-2 text-foreground">
+            <LocalizedText text={"Public Model Hub not enabled."} />
+          </p>
           <p className="text-base text-center text-foreground">
-            Ask your proxy admin to enable this on their Admin UI.
+            <LocalizedText text={"Ask your proxy admin to enable this on their Admin UI."} />
           </p>
         </Card>
       )}
@@ -658,24 +698,32 @@ const ModelHubTable: React.FC<ModelHubTableProps> = ({
       <Dialog open={isModalVisible} onOpenChange={(open) => !open && handleCancel()}>
         <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-[1000px]">
           <DialogHeader>
-            <DialogTitle>{selectedModel?.model_group || "Model Details"}</DialogTitle>
+            <DialogTitle>{selectedModel?.model_group || translateMessage("Model Details")}</DialogTitle>
           </DialogHeader>
           {selectedModel && (
             <div className="space-y-6">
               {/* Model Overview */}
               <div>
-                <p className="text-lg font-semibold mb-4">Model Overview</p>
+                <p className="text-lg font-semibold mb-4">
+                  <LocalizedText text={"Model Overview"} />
+                </p>
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   <div>
-                    <p className="font-medium">Model Group:</p>
+                    <p className="font-medium">
+                      <LocalizedText text={"Model Group:"} />
+                    </p>
                     <p>{selectedModel.model_group}</p>
                   </div>
                   <div>
-                    <p className="font-medium">Mode:</p>
-                    <p>{selectedModel.mode || "Not specified"}</p>
+                    <p className="font-medium">
+                      <LocalizedText text={"Mode:"} />
+                    </p>
+                    <p>{selectedModel.mode || translateMessage("Not specified")}</p>
                   </div>
                   <div>
-                    <p className="font-medium">Providers:</p>
+                    <p className="font-medium">
+                      <LocalizedText text={"Providers:"} />
+                    </p>
                     <div className="flex flex-wrap gap-1 mt-1">
                       {selectedModel.providers.map((provider) => (
                         <Badge key={provider} variant="secondary">
@@ -689,30 +737,46 @@ const ModelHubTable: React.FC<ModelHubTableProps> = ({
 
               {/* Token and Cost Information */}
               <div>
-                <p className="text-lg font-semibold mb-4">Token & Cost Information</p>
+                <p className="text-lg font-semibold mb-4">
+                  <LocalizedText text={"Token & Cost Information"} />
+                </p>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="font-medium">Max Input Tokens:</p>
-                    <p>{selectedModel.max_input_tokens?.toLocaleString() || "Not specified"}</p>
-                  </div>
-                  <div>
-                    <p className="font-medium">Max Output Tokens:</p>
-                    <p>{selectedModel.max_output_tokens?.toLocaleString() || "Not specified"}</p>
-                  </div>
-                  <div>
-                    <p className="font-medium">Input Cost per 1M Tokens:</p>
+                    <p className="font-medium">
+                      <LocalizedText text={"Max Input Tokens:"} />
+                    </p>
                     <p>
-                      {selectedModel.input_cost_per_token
-                        ? formatCost(selectedModel.input_cost_per_token)
-                        : "Not specified"}
+                      {selectedModel.max_input_tokens?.toLocaleString(getIntlLocale()) ||
+                        translateMessage("Not specified")}
                     </p>
                   </div>
                   <div>
-                    <p className="font-medium">Output Cost per 1M Tokens:</p>
+                    <p className="font-medium">
+                      <LocalizedText text={"Max Output Tokens:"} />
+                    </p>
+                    <p>
+                      {selectedModel.max_output_tokens?.toLocaleString(getIntlLocale()) ||
+                        translateMessage("Not specified")}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="font-medium">
+                      <LocalizedText text={"Input Cost per 1M Tokens:"} />
+                    </p>
+                    <p>
+                      {selectedModel.input_cost_per_token
+                        ? formatCost(selectedModel.input_cost_per_token)
+                        : translateMessage("Not specified")}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="font-medium">
+                      <LocalizedText text={"Output Cost per 1M Tokens:"} />
+                    </p>
                     <p>
                       {selectedModel.output_cost_per_token
                         ? formatCost(selectedModel.output_cost_per_token)
-                        : "Not specified"}
+                        : translateMessage("Not specified")}
                     </p>
                   </div>
                 </div>
@@ -720,14 +784,20 @@ const ModelHubTable: React.FC<ModelHubTableProps> = ({
 
               {/* Capabilities */}
               <div>
-                <p className="text-lg font-semibold mb-4">Capabilities</p>
+                <p className="text-lg font-semibold mb-4">
+                  <LocalizedText text={"Capabilities"} />
+                </p>
                 <div className="flex flex-wrap gap-2">
                   {(() => {
                     const capabilities = getModelCapabilities(selectedModel);
                     const colors = ["green", "blue", "purple", "orange", "red", "yellow"];
 
                     if (capabilities.length === 0) {
-                      return <p className="text-muted-foreground">No special capabilities listed</p>;
+                      return (
+                        <p className="text-muted-foreground">
+                          <LocalizedText text={"No special capabilities listed"} />
+                        </p>
+                      );
                     }
 
                     return capabilities.map((capability, index) => (
@@ -742,18 +812,24 @@ const ModelHubTable: React.FC<ModelHubTableProps> = ({
               {/* Rate Limits */}
               {(selectedModel.tpm || selectedModel.rpm) && (
                 <div>
-                  <p className="text-lg font-semibold mb-4">Rate Limits</p>
+                  <p className="text-lg font-semibold mb-4">
+                    <LocalizedText text={"Rate Limits"} />
+                  </p>
                   <div className="grid grid-cols-2 gap-4">
                     {selectedModel.tpm && (
                       <div>
-                        <p className="font-medium">Tokens per Minute:</p>
-                        <p>{selectedModel.tpm.toLocaleString()}</p>
+                        <p className="font-medium">
+                          <LocalizedText text={"Tokens per Minute:"} />
+                        </p>
+                        <p>{selectedModel.tpm.toLocaleString(getIntlLocale())}</p>
                       </div>
                     )}
                     {selectedModel.rpm && (
                       <div>
-                        <p className="font-medium">Requests per Minute:</p>
-                        <p>{selectedModel.rpm.toLocaleString()}</p>
+                        <p className="font-medium">
+                          <LocalizedText text={"Requests per Minute:"} />
+                        </p>
+                        <p>{selectedModel.rpm.toLocaleString(getIntlLocale())}</p>
                       </div>
                     )}
                   </div>
@@ -763,7 +839,9 @@ const ModelHubTable: React.FC<ModelHubTableProps> = ({
               {/* Supported OpenAI Parameters */}
               {selectedModel.supported_openai_params && (
                 <div>
-                  <p className="text-lg font-semibold mb-4">Supported OpenAI Parameters</p>
+                  <p className="text-lg font-semibold mb-4">
+                    <LocalizedText text={"Supported OpenAI Parameters"} />
+                  </p>
                   <div className="flex flex-wrap gap-2">
                     {selectedModel.supported_openai_params.map((param) => (
                       <Badge key={param} variant="default">
@@ -775,19 +853,24 @@ const ModelHubTable: React.FC<ModelHubTableProps> = ({
               )}
 
               <div>
-                <p className="text-lg font-semibold mb-4">Usage Example</p>
+                <p className="text-lg font-semibold mb-4">
+                  <LocalizedText text={"Usage Example"} />
+                </p>
                 {isDecisionMode(selectedModel.mode) && (
                   <p className="mb-2 text-sm text-muted-foreground">
-                    Decision models answer on <code>/v1/decisions</code> and <code>/v1/systemone</code>, not{" "}
-                    <code>/chat/completions</code>.{" "}
+                    <LocalizedText text={"Decision models answer on "} />
+                    <code>/v1/decisions</code>
+                    <LocalizedText text={" and "} />
+                    <code>/v1/systemone</code>
+                    <LocalizedText text={", not"} /> <code>/chat/completions</code>.{" "}
                     <a href={DECISIONS_DOCS_URL} target="_blank" rel="noopener noreferrer" className="underline">
-                      How to call decision models
+                      <LocalizedText text={"How to call decision models"} />
                     </a>
                     {canOpenPlayground && (
                       <>
                         {" · "}
                         <a href={uiHref(SYSTEM_ONE_PLAYGROUND_ROUTE)} className="underline">
-                          Try it in the Playground
+                          <LocalizedText text={"Try it in the Playground"} />
                         </a>
                       </>
                     )}
@@ -811,28 +894,41 @@ const ModelHubTable: React.FC<ModelHubTableProps> = ({
       <Dialog open={isAgentModalVisible} onOpenChange={(open) => !open && handleCancel()}>
         <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-[1000px]">
           <DialogHeader>
-            <DialogTitle>{selectedAgent?.name || "Agent Details"}</DialogTitle>
+            <DialogTitle>{selectedAgent?.name || translateMessage("Agent Details")}</DialogTitle>
           </DialogHeader>
           {selectedAgent && (
             <div className="space-y-6">
               {/* Agent Overview */}
               <div>
-                <p className="text-lg font-semibold mb-4">Agent Overview</p>
+                <p className="text-lg font-semibold mb-4">
+                  <LocalizedText text={"Agent Overview"} />
+                </p>
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   <div>
-                    <p className="font-medium">Name:</p>
+                    <p className="font-medium">
+                      <LocalizedText text={"Name:"} />
+                    </p>
                     <p>{selectedAgent.name}</p>
                   </div>
                   <div>
-                    <p className="font-medium">Version:</p>
-                    <Badge variant="secondary">v{selectedAgent.version}</Badge>
+                    <p className="font-medium">
+                      <LocalizedText text={"Version:"} />
+                    </p>
+                    <Badge variant="secondary">
+                      <LocalizedText text={"v"} />
+                      {selectedAgent.version}
+                    </Badge>
                   </div>
                   <div>
-                    <p className="font-medium">Protocol Version:</p>
+                    <p className="font-medium">
+                      <LocalizedText text={"Protocol Version:"} />
+                    </p>
                     <p>{selectedAgent.protocolVersion}</p>
                   </div>
                   <div>
-                    <p className="font-medium">URL:</p>
+                    <p className="font-medium">
+                      <LocalizedText text={"URL:"} />
+                    </p>
                     <div className="flex items-center space-x-2">
                       <p className="truncate min-w-0">{selectedAgent.url}</p>
                       <Copy
@@ -843,15 +939,19 @@ const ModelHubTable: React.FC<ModelHubTableProps> = ({
                   </div>
                 </div>
                 <div>
-                  <p className="font-medium">Description:</p>
-                  <p className="mt-1">{selectedAgent.description}</p>
+                  <p className="font-medium">
+                    <LocalizedText text={"Description:"} />
+                  </p>
+                  <p className="mt-1">{localizedProperty(selectedAgent, "description", selectedAgent.description)}</p>
                 </div>
               </div>
 
               {/* Capabilities */}
               {selectedAgent.capabilities && Object.keys(selectedAgent.capabilities).length > 0 && (
                 <div>
-                  <p className="text-lg font-semibold mb-4">Capabilities</p>
+                  <p className="text-lg font-semibold mb-4">
+                    <LocalizedText text={"Capabilities"} />
+                  </p>
                   <div className="flex flex-wrap gap-2">
                     {Object.entries(selectedAgent.capabilities)
                       .filter(([_, value]) => value === true)
@@ -866,26 +966,40 @@ const ModelHubTable: React.FC<ModelHubTableProps> = ({
 
               {/* Input/Output Modes */}
               <div>
-                <p className="text-lg font-semibold mb-4">Input/Output Modes</p>
+                <p className="text-lg font-semibold mb-4">
+                  <LocalizedText text={"Input/Output Modes"} />
+                </p>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="font-medium">Input Modes:</p>
+                    <p className="font-medium">
+                      <LocalizedText text={"Input Modes:"} />
+                    </p>
                     <div className="flex flex-wrap gap-1 mt-1">
                       {selectedAgent.defaultInputModes?.map((mode) => (
                         <Badge key={mode} variant="secondary">
                           {mode}
                         </Badge>
-                      )) || <p>Not specified</p>}
+                      )) || (
+                        <p>
+                          <LocalizedText text={"Not specified"} />
+                        </p>
+                      )}
                     </div>
                   </div>
                   <div>
-                    <p className="font-medium">Output Modes:</p>
+                    <p className="font-medium">
+                      <LocalizedText text={"Output Modes:"} />
+                    </p>
                     <div className="flex flex-wrap gap-1 mt-1">
                       {selectedAgent.defaultOutputModes?.map((mode) => (
                         <Badge key={mode} variant="outline">
                           {mode}
                         </Badge>
-                      )) || <p>Not specified</p>}
+                      )) || (
+                        <p>
+                          <LocalizedText text={"Not specified"} />
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -894,14 +1008,19 @@ const ModelHubTable: React.FC<ModelHubTableProps> = ({
               {/* Skills */}
               {selectedAgent.skills && selectedAgent.skills.length > 0 && (
                 <div>
-                  <p className="text-lg font-semibold mb-4">Skills</p>
+                  <p className="text-lg font-semibold mb-4">
+                    <LocalizedText text={"Skills"} />
+                  </p>
                   <div className="space-y-4">
                     {selectedAgent.skills.map((skill) => (
                       <div key={skill.id} className="border border-border rounded-sm p-4">
                         <div className="flex justify-between items-start mb-2">
                           <div>
                             <p className="font-medium text-base">{skill.name}</p>
-                            <p className="text-xs text-muted-foreground">ID: {skill.id}</p>
+                            <p className="text-xs text-muted-foreground">
+                              <LocalizedText text={"ID: "} />
+                              {skill.id}
+                            </p>
                           </div>
                           {skill.tags && skill.tags.length > 0 && (
                             <div className="flex flex-wrap gap-1">
@@ -913,10 +1032,12 @@ const ModelHubTable: React.FC<ModelHubTableProps> = ({
                             </div>
                           )}
                         </div>
-                        <p className="text-sm mb-2">{skill.description}</p>
+                        <p className="text-sm mb-2">{localizedProperty(skill, "description", skill.description)}</p>
                         {skill.examples && skill.examples.length > 0 && (
                           <div>
-                            <p className="text-xs font-medium text-foreground">Examples:</p>
+                            <p className="text-xs font-medium text-foreground">
+                              <LocalizedText text={"Examples:"} />
+                            </p>
                             <div className="flex flex-wrap gap-1 mt-1">
                               {skill.examples.map((example, idx) => (
                                 <Badge key={idx} variant="outline">
@@ -935,8 +1056,12 @@ const ModelHubTable: React.FC<ModelHubTableProps> = ({
               {/* Additional Properties */}
               {selectedAgent.supportsAuthenticatedExtendedCard && (
                 <div>
-                  <p className="text-lg font-semibold mb-4">Additional Features</p>
-                  <Badge variant="default">Supports Authenticated Extended Card</Badge>
+                  <p className="text-lg font-semibold mb-4">
+                    <LocalizedText text={"Additional Features"} />
+                  </p>
+                  <Badge variant="default">
+                    <LocalizedText text={"Supports Authenticated Extended Card"} />
+                  </Badge>
                 </div>
               )}
             </div>
@@ -948,20 +1073,26 @@ const ModelHubTable: React.FC<ModelHubTableProps> = ({
       <Dialog open={isMcpModalVisible} onOpenChange={(open) => !open && handleCancel()}>
         <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-[1000px]">
           <DialogHeader>
-            <DialogTitle>{selectedMcpServer?.server_name || "MCP Server Details"}</DialogTitle>
+            <DialogTitle>{selectedMcpServer?.server_name || translateMessage("MCP Server Details")}</DialogTitle>
           </DialogHeader>
           {selectedMcpServer && (
             <div className="space-y-6">
               {/* Server Overview */}
               <div>
-                <p className="text-lg font-semibold mb-4">Server Overview</p>
+                <p className="text-lg font-semibold mb-4">
+                  <LocalizedText text={"Server Overview"} />
+                </p>
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   <div>
-                    <p className="font-medium">Server Name:</p>
+                    <p className="font-medium">
+                      <LocalizedText text={"Server Name:"} />
+                    </p>
                     <p>{selectedMcpServer.server_name}</p>
                   </div>
                   <div>
-                    <p className="font-medium">Server ID:</p>
+                    <p className="font-medium">
+                      <LocalizedText text={"Server ID:"} />
+                    </p>
                     <div className="flex items-center space-x-2">
                       <p className="text-xs truncate min-w-0">{selectedMcpServer.server_id}</p>
                       <Copy
@@ -972,22 +1103,30 @@ const ModelHubTable: React.FC<ModelHubTableProps> = ({
                   </div>
                   {selectedMcpServer.alias && (
                     <div>
-                      <p className="font-medium">Alias:</p>
+                      <p className="font-medium">
+                        <LocalizedText text={"Alias:"} />
+                      </p>
                       <p>{selectedMcpServer.alias}</p>
                     </div>
                   )}
                   <div>
-                    <p className="font-medium">Transport:</p>
+                    <p className="font-medium">
+                      <LocalizedText text={"Transport:"} />
+                    </p>
                     <Badge variant="secondary">{selectedMcpServer.transport}</Badge>
                   </div>
                   <div>
-                    <p className="font-medium">Auth Type:</p>
+                    <p className="font-medium">
+                      <LocalizedText text={"Auth Type:"} />
+                    </p>
                     <Badge variant={selectedMcpServer.auth_type === "none" ? "outline" : "default"}>
                       {selectedMcpServer.auth_type}
                     </Badge>
                   </div>
                   <div>
-                    <p className="font-medium">Status:</p>
+                    <p className="font-medium">
+                      <LocalizedText text={"Status:"} />
+                    </p>
                     <Badge
                       variant={
                         selectedMcpServer.status === "active" || selectedMcpServer.status === "healthy"
@@ -997,25 +1136,33 @@ const ModelHubTable: React.FC<ModelHubTableProps> = ({
                             : "outline"
                       }
                     >
-                      {selectedMcpServer.status || "unknown"}
+                      {selectedMcpServer.status || translateMessage("unknown")}
                     </Badge>
                   </div>
                 </div>
                 {selectedMcpServer.description && (
                   <div className="mt-2">
-                    <p className="font-medium">Description:</p>
-                    <p className="mt-1">{selectedMcpServer.description}</p>
+                    <p className="font-medium">
+                      <LocalizedText text={"Description:"} />
+                    </p>
+                    <p className="mt-1">
+                      {localizedProperty(selectedMcpServer, "description", selectedMcpServer.description)}
+                    </p>
                   </div>
                 )}
               </div>
 
               {/* Connection Details */}
               <div>
-                <p className="text-lg font-semibold mb-4">Connection Details</p>
+                <p className="text-lg font-semibold mb-4">
+                  <LocalizedText text={"Connection Details"} />
+                </p>
                 <div className="space-y-2">
                   {selectedMcpServer.command && (
                     <div>
-                      <p className="font-medium">Command:</p>
+                      <p className="font-medium">
+                        <LocalizedText text={"Command:"} />
+                      </p>
                       <p className="text-sm bg-muted p-2 rounded-sm mt-1 font-mono">{selectedMcpServer.command}</p>
                     </div>
                   )}
@@ -1025,7 +1172,9 @@ const ModelHubTable: React.FC<ModelHubTableProps> = ({
               {/* Tools */}
               {selectedMcpServer.allowed_tools && selectedMcpServer.allowed_tools.length > 0 && (
                 <div>
-                  <p className="text-lg font-semibold mb-4">Allowed Tools</p>
+                  <p className="text-lg font-semibold mb-4">
+                    <LocalizedText text={"Allowed Tools"} />
+                  </p>
                   <div className="flex flex-wrap gap-2">
                     {selectedMcpServer.allowed_tools.map((tool, idx) => (
                       <Badge key={idx} variant="outline">
@@ -1039,7 +1188,9 @@ const ModelHubTable: React.FC<ModelHubTableProps> = ({
               {/* Teams */}
               {selectedMcpServer.teams && selectedMcpServer.teams.length > 0 && (
                 <div>
-                  <p className="text-lg font-semibold mb-4">Teams</p>
+                  <p className="text-lg font-semibold mb-4">
+                    <LocalizedText text={"Teams"} />
+                  </p>
                   <div className="flex flex-wrap gap-2">
                     {selectedMcpServer.teams.map((team, idx) => (
                       <Badge key={idx} variant="secondary">
@@ -1053,7 +1204,9 @@ const ModelHubTable: React.FC<ModelHubTableProps> = ({
               {/* Access Groups */}
               {selectedMcpServer.mcp_access_groups && selectedMcpServer.mcp_access_groups.length > 0 && (
                 <div>
-                  <p className="text-lg font-semibold mb-4">Access Groups</p>
+                  <p className="text-lg font-semibold mb-4">
+                    <LocalizedText text={"Access Groups"} />
+                  </p>
                   <div className="flex flex-wrap gap-2">
                     {selectedMcpServer.mcp_access_groups.map((group, idx) => (
                       <Badge key={idx} variant="default">
@@ -1066,34 +1219,50 @@ const ModelHubTable: React.FC<ModelHubTableProps> = ({
 
               {/* Metadata */}
               <div>
-                <p className="text-lg font-semibold mb-4">Metadata</p>
+                <p className="text-lg font-semibold mb-4">
+                  <LocalizedText text={"Metadata"} />
+                </p>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="font-medium">Created By:</p>
+                    <p className="font-medium">
+                      <LocalizedText text={"Created By:"} />
+                    </p>
                     <p>{selectedMcpServer.created_by}</p>
                   </div>
                   <div>
-                    <p className="font-medium">Updated By:</p>
+                    <p className="font-medium">
+                      <LocalizedText text={"Updated By:"} />
+                    </p>
                     <p>{selectedMcpServer.updated_by}</p>
                   </div>
                   <div>
-                    <p className="font-medium">Created At:</p>
-                    <p className="text-sm">{new Date(selectedMcpServer.created_at).toLocaleString()}</p>
+                    <p className="font-medium">
+                      <LocalizedText text={"Created At:"} />
+                    </p>
+                    <p className="text-sm">{new Date(selectedMcpServer.created_at).toLocaleString(getIntlLocale())}</p>
                   </div>
                   <div>
-                    <p className="font-medium">Updated At:</p>
-                    <p className="text-sm">{new Date(selectedMcpServer.updated_at).toLocaleString()}</p>
+                    <p className="font-medium">
+                      <LocalizedText text={"Updated At:"} />
+                    </p>
+                    <p className="text-sm">{new Date(selectedMcpServer.updated_at).toLocaleString(getIntlLocale())}</p>
                   </div>
                   {selectedMcpServer.last_health_check && (
                     <div>
-                      <p className="font-medium">Last Health Check:</p>
-                      <p className="text-sm">{new Date(selectedMcpServer.last_health_check).toLocaleString()}</p>
+                      <p className="font-medium">
+                        <LocalizedText text={"Last Health Check:"} />
+                      </p>
+                      <p className="text-sm">
+                        {new Date(selectedMcpServer.last_health_check).toLocaleString(getIntlLocale())}
+                      </p>
                     </div>
                   )}
                 </div>
                 {selectedMcpServer.health_check_error && (
                   <div className="mt-2 p-2 bg-destructive/10 rounded-sm">
-                    <p className="font-medium text-destructive">Health Check Error:</p>
+                    <p className="font-medium text-destructive">
+                      <LocalizedText text={"Health Check Error:"} />
+                    </p>
                     <p className="text-sm text-destructive mt-1">{selectedMcpServer.health_check_error}</p>
                   </div>
                 )}
@@ -1101,7 +1270,9 @@ const ModelHubTable: React.FC<ModelHubTableProps> = ({
 
               {/* Usage Example */}
               <div>
-                <p className="text-lg font-semibold mb-4">Usage Example</p>
+                <p className="text-lg font-semibold mb-4">
+                  <LocalizedText text={"Usage Example"} />
+                </p>
                 <SyntaxHighlighter language="python" className="text-sm" style={syntaxTheme}>
                   {`from fastmcp import Client
 import asyncio

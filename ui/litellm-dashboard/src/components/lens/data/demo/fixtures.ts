@@ -1,3 +1,4 @@
+import { markUiCopy } from "@/lib/i18n";
 import type { Trace, Span, SpanDetail } from "@/components/lens/traces/types";
 import type { Lens, Finding, Job, Settings } from "../../model/types";
 import { withReleaseCases } from "./lensDemoLongTrace";
@@ -170,53 +171,87 @@ export function createLensDemoData(now = Date.now()) {
     })),
   });
   const findingInputs: Parameters<typeof finding>[0][] = [
-    {
-      id: "failed-lookups",
-      check: "recover",
-      title: "Repeated lookups leave customers without an answer",
-      description:
-        "The support agent retries the same unavailable order service three times, then promises to check without answering or offering a handoff.",
-      suggestion: "After repeated failures, explain the problem and offer a handoff.",
-      indices: [0, 4],
-    },
-    {
-      id: "safe-handoff",
-      check: "recover",
-      title: "A clear handoff helps when the order service is unavailable",
-      description:
-        "The agent explains the service outage and offers a support handoff instead of promising an answer it cannot provide.",
-      suggestion: "Keep this fallback for unavailable services.",
-      indices: [9],
-      kind: "pattern",
-    },
-    {
-      id: "unsupported-claim",
-      check: "grounding",
-      title: "Performance claim has no supporting benchmark",
-      description:
-        "The answer claims a 40% performance improvement, but the retrieved documentation contains no comparative benchmark.",
-      suggestion: "Require a benchmark source for numeric performance claims, or remove the comparison.",
-      indices: [1],
-    },
-    {
-      id: "uncertainty",
-      check: "grounding",
-      title: "Missing information is acknowledged",
-      description:
-        "When documentation does not establish regional availability, the agent says so and asks the user to verify it.",
-      suggestion: "Keep stating when a source does not answer the question.",
-      indices: [8],
-      kind: "pattern",
-    },
-    {
-      id: "release-blocked",
-      check: "release",
-      title: "Failing checks correctly block the release",
-      description: "The release agent identifies an unresolved regression and recommends holding the release.",
-      suggestion: "Continue requiring passing checks before recommending a release.",
-      indices: [6],
-      kind: "pattern",
-    },
+    markUiCopy(
+      {
+        id: "failed-lookups",
+        check: "recover",
+        title: "Repeated lookups leave customers without an answer",
+        description:
+          "The support agent retries the same unavailable order service three times, then promises to check without answering or offering a handoff.",
+        suggestion: "After repeated failures, explain the problem and offer a handoff.",
+        indices: [0, 4],
+      },
+      {
+        title: "Repeated lookups leave customers without an answer",
+        description:
+          "The support agent retries the same unavailable order service three times, then promises to check without answering or offering a handoff.",
+      },
+    ),
+    markUiCopy(
+      {
+        id: "safe-handoff",
+        check: "recover",
+        title: "A clear handoff helps when the order service is unavailable",
+        description:
+          "The agent explains the service outage and offers a support handoff instead of promising an answer it cannot provide.",
+        suggestion: "Keep this fallback for unavailable services.",
+        indices: [9],
+        kind: "pattern" as const,
+      },
+      {
+        title: "A clear handoff helps when the order service is unavailable",
+        description:
+          "The agent explains the service outage and offers a support handoff instead of promising an answer it cannot provide.",
+      },
+    ),
+    markUiCopy(
+      {
+        id: "unsupported-claim",
+        check: "grounding",
+        title: "Performance claim has no supporting benchmark",
+        description:
+          "The answer claims a 40% performance improvement, but the retrieved documentation contains no comparative benchmark.",
+        suggestion: "Require a benchmark source for numeric performance claims, or remove the comparison.",
+        indices: [1],
+      },
+      {
+        title: "Performance claim has no supporting benchmark",
+        description:
+          "The answer claims a 40% performance improvement, but the retrieved documentation contains no comparative benchmark.",
+      },
+    ),
+    markUiCopy(
+      {
+        id: "uncertainty",
+        check: "grounding",
+        title: "Missing information is acknowledged",
+        description:
+          "When documentation does not establish regional availability, the agent says so and asks the user to verify it.",
+        suggestion: "Keep stating when a source does not answer the question.",
+        indices: [8],
+        kind: "pattern" as const,
+      },
+      {
+        title: "Missing information is acknowledged",
+        description:
+          "When documentation does not establish regional availability, the agent says so and asks the user to verify it.",
+      },
+    ),
+    markUiCopy(
+      {
+        id: "release-blocked",
+        check: "release",
+        title: "Failing checks correctly block the release",
+        description: "The release agent identifies an unresolved regression and recommends holding the release.",
+        suggestion: "Continue requiring passing checks before recommending a release.",
+        indices: [6],
+        kind: "pattern" as const,
+      },
+      {
+        title: "Failing checks correctly block the release",
+        description: "The release agent identifies an unresolved regression and recommends holding the release.",
+      },
+    ),
   ];
   const findings = findingInputs.map(finding);
   const definitions = [

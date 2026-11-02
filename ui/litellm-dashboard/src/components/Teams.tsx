@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import { Page, PageTabs, PageTabsList, PageTabsTrigger } from "@/components/shared/Page";
 import { useOrganizations } from "@/app/(dashboard)/hooks/organizations/useOrganizations";
 import useCan from "@/app/(dashboard)/hooks/useCan";
@@ -211,6 +213,7 @@ const getAdminOrganizations = (
 
 // @deprecated
 const Teams: React.FC<TeamProps> = ({ accessToken, userID, userRole, premiumUser = false }) => {
+  useUiLocale();
   const { data: organizationsData } = useOrganizations();
   const organizations = organizationsData ?? null;
   const { data: teamMetadataSchemaFields = [], isLoading: isTeamMetadataSchemaLoading } = useTeamMetadataSchema();
@@ -241,11 +244,16 @@ const Teams: React.FC<TeamProps> = ({ accessToken, userID, userRole, premiumUser
           organizations == null ||
           adminOrgs.some((org) => org.organization_id === values.organization_id);
         if (!organizationIsStillPickable) {
-          ctx.addIssue({
-            code: "custom",
-            message: "You can no longer create teams in this organization",
-            path: ["organization_id"],
-          });
+          ctx.addIssue(
+            markUiCopy(
+              {
+                code: "custom" as const,
+                message: "You can no longer create teams in this organization",
+                path: ["organization_id"],
+              },
+              { message: "You can no longer create teams in this organization" },
+            ),
+          );
         }
         if (additionalSettingsOpen && !isParsableJson(values.secret_manager_settings)) {
           ctx.addIssue({ code: "custom", message: SUPPRESSED_BY_DESCRIPTION, path: ["secret_manager_settings"] });
@@ -377,7 +385,7 @@ const Teams: React.FC<TeamProps> = ({ accessToken, userID, userRole, premiumUser
       setIsTeamDeleting(true);
       await teamDeleteCall(accessToken, teamToDelete.team_id);
       await refreshTeams();
-      toast.success("Team deleted successfully");
+      toast.success(translateMessage("Team deleted successfully"));
     } catch (error) {
       toast.fromError("Error deleting the team: " + error);
     } finally {
@@ -424,7 +432,7 @@ const Teams: React.FC<TeamProps> = ({ accessToken, userID, userRole, premiumUser
           formValues.budget_duration = null;
         }
 
-        toast.info("Creating Team");
+        toast.info(translateMessage("Creating Team"));
 
         const metadataObject = {
           ...metadataPairsToObject(formValues.metadata),
@@ -546,7 +554,7 @@ const Teams: React.FC<TeamProps> = ({ accessToken, userID, userRole, premiumUser
         }
 
         await teamCreateCall(accessToken, { ...formValues, models: normalizeTeamModelSelection(formValues.models) });
-        toast.success("Team created");
+        toast.success(translateMessage("Team created"));
         await refreshTeams();
         resetCreateForm();
         setIsTeamModalVisible(false);
@@ -585,70 +593,84 @@ const Teams: React.FC<TeamProps> = ({ accessToken, userID, userRole, premiumUser
   };
 
   const tabItems = [
-    {
-      key: "your-teams",
-      label: "Your Teams",
-      className: "flex min-h-0 flex-1 flex-col",
-      children: (
-        <>
-          <TeamsTable
-            userRole={userRole}
-            userID={userID}
-            onSelectTeam={(team) => {
-              setSelectedTeam(team);
-              void setSelectedTeamId(team.team_id);
-              setEditTeam(false);
-            }}
-            onEditTeam={(team) => {
-              setSelectedTeam(team);
-              void setSelectedTeamId(team.team_id);
-              setEditTeam(true);
-            }}
-            onDeleteTeam={handleDelete}
-          />
+    markUiCopy(
+      {
+        key: "your-teams",
+        label: "Your Teams",
+        className: "flex min-h-0 flex-1 flex-col",
+        children: (
+          <>
+            <TeamsTable
+              userRole={userRole}
+              userID={userID}
+              onSelectTeam={(team) => {
+                setSelectedTeam(team);
+                void setSelectedTeamId(team.team_id);
+                setEditTeam(false);
+              }}
+              onEditTeam={(team) => {
+                setSelectedTeam(team);
+                void setSelectedTeamId(team.team_id);
+                setEditTeam(true);
+              }}
+              onDeleteTeam={handleDelete}
+            />
 
-          <DeleteResourceModal
-            isOpen={isDeleteModalOpen}
-            title="Delete Team?"
-            alertMessage={(() => {
-              const deleteKeyCount = teamToDelete?.keys_count ?? teamToDelete?.keys?.length ?? 0;
-              return deleteKeyCount === 0
-                ? undefined
-                : `Warning: This team has ${deleteKeyCount} keys associated with it. Deleting the team will also delete all associated keys, along with any models created for this team. This action is irreversible.`;
-            })()}
-            message="Are you sure you want to delete this team, all its keys, and any models created for it? This action cannot be undone."
-            resourceInformationTitle="Team Information"
-            resourceInformation={[
-              { label: "Team ID", value: teamToDelete?.team_id, code: true },
-              { label: "Team Name", value: teamToDelete?.team_alias },
-              {
-                label: "Keys",
-                value: teamToDelete?.keys_count ?? teamToDelete?.keys?.length ?? 0,
-              },
-              { label: "Members", value: teamToDelete?.members_with_roles?.length },
-            ]}
-            requiredConfirmation={teamToDelete?.team_alias}
-            onCancel={cancelDelete}
-            onOk={confirmDelete}
-            confirmLoading={isTeamDeleting}
-          />
-        </>
-      ),
-    },
-    {
-      key: "available-teams",
-      label: "Available Teams",
-      className: "min-h-0 flex-1 overflow-y-auto",
-      children: <AvailableTeamsPanel accessToken={accessToken} userID={userID} />,
-    },
+            <DeleteResourceModal
+              isOpen={isDeleteModalOpen}
+              title={translateMessage("Delete Team?")}
+              alertMessage={(() => {
+                const deleteKeyCount = teamToDelete?.keys_count ?? teamToDelete?.keys?.length ?? 0;
+                return deleteKeyCount === 0
+                  ? undefined
+                  : `Warning: This team has ${deleteKeyCount} keys associated with it. Deleting the team will also delete all associated keys, along with any models created for this team. This action is irreversible.`;
+              })()}
+              message={translateMessage(
+                "Are you sure you want to delete this team, all its keys, and any models created for it? This action cannot be undone.",
+              )}
+              resourceInformationTitle="Team Information"
+              resourceInformation={[
+                markUiCopy({ label: "Team ID", value: teamToDelete?.team_id, code: true }, { label: "Team ID" }),
+                markUiCopy({ label: "Team Name", value: teamToDelete?.team_alias }, { label: "Team Name" }),
+                markUiCopy(
+                  {
+                    label: "Keys",
+                    value: teamToDelete?.keys_count ?? teamToDelete?.keys?.length ?? 0,
+                  },
+                  { label: "Keys" },
+                ),
+                markUiCopy({ label: "Members", value: teamToDelete?.members_with_roles?.length }, { label: "Members" }),
+              ]}
+              requiredConfirmation={teamToDelete?.team_alias}
+              onCancel={cancelDelete}
+              onOk={confirmDelete}
+              confirmLoading={isTeamDeleting}
+            />
+          </>
+        ),
+      },
+      { label: "Your Teams" },
+    ),
+    markUiCopy(
+      {
+        key: "available-teams",
+        label: "Available Teams",
+        className: "min-h-0 flex-1 overflow-y-auto",
+        children: <AvailableTeamsPanel accessToken={accessToken} userID={userID} />,
+      },
+      { label: "Available Teams" },
+    ),
     ...(isProxyAdminRole(userRole || "")
       ? [
-          {
-            key: "default-settings",
-            label: "Default Team Settings",
-            className: "min-h-0 flex-1 overflow-y-auto",
-            children: <TeamSSOSettings accessToken={accessToken} userID={userID || ""} userRole={userRole || ""} />,
-          },
+          markUiCopy(
+            {
+              key: "default-settings",
+              label: "Default Team Settings",
+              className: "min-h-0 flex-1 overflow-y-auto",
+              children: <TeamSSOSettings accessToken={accessToken} userID={userID || ""} userRole={userRole || ""} />,
+            },
+            { label: "Default Team Settings" },
+          ),
         ]
       : []),
   ];
@@ -678,23 +700,25 @@ const Teams: React.FC<TeamProps> = ({ accessToken, userID, userRole, premiumUser
           <PageHeader>
             <PageHeaderTitle>
               <Users />
-              Teams
+              <LocalizedText text={"Teams"} />
             </PageHeaderTitle>
-            <PageHeaderDescription>Manage teams, members, and their access to models and budgets</PageHeaderDescription>
+            <PageHeaderDescription>
+              <LocalizedText text={"Manage teams, members, and their access to models and budgets"} />
+            </PageHeaderDescription>
             <PageHeaderControls>
               <PageTabsList>
                 {canCreateOrManageTeams(userRole, userID, organizations) && (
                   <>
                     <UIButton onClick={openCreateTeamModal} data-testid="create-team-button">
                       <Plus className="size-4" />
-                      Create Team
+                      <LocalizedText text={"Create Team"} />
                     </UIButton>
                     <ToolbarSeparator className="mx-0 h-6" />
                   </>
                 )}
                 {tabItems.map((item) => (
                   <PageTabsTrigger key={item.key} value={item.key}>
-                    {item.label}
+                    {localizedProperty(item, "label", item.label)}
                   </PageTabsTrigger>
                 ))}
               </PageTabsList>
@@ -712,12 +736,14 @@ const Teams: React.FC<TeamProps> = ({ accessToken, userID, userRole, premiumUser
         <Dialog open={isTeamModalVisible} onOpenChange={(open) => !open && handleCancel()}>
           <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-[1000px]">
             <DialogHeader>
-              <DialogTitle>Create Team</DialogTitle>
+              <DialogTitle>
+                <LocalizedText text={"Create Team"} />
+              </DialogTitle>
             </DialogHeader>
             <TooltipProvider>
               <form onSubmit={form.handleSubmit(onCreateSubmit)}>
                 <FieldGroup>
-                  <FormField control={form.control} name="team_alias" label="Team Name">
+                  <FormField control={form.control} name="team_alias" label={translateMessage("Team Name")}>
                     {({ ref, value, ...field }) => (
                       <UIInput {...field} ref={ref} value={value ?? ""} data-testid="team-name-input" />
                     )}
@@ -740,9 +766,9 @@ const Teams: React.FC<TeamProps> = ({ accessToken, userID, userRole, premiumUser
                           )}
                           description={
                             isOrgAdmin && isSingleOrg
-                              ? "You can only create teams within this organization"
+                              ? translateMessage("You can only create teams within this organization")
                               : isOrgAdmin
-                                ? "required"
+                                ? translateMessage("required")
                                 : undefined
                           }
                         >
@@ -758,9 +784,11 @@ const Teams: React.FC<TeamProps> = ({ accessToken, userID, userRole, premiumUser
                               disabled={isOrgAdmin && soleOrganizationId !== null && value === soleOrganizationId}
                               allowClear={!isOrgAdmin}
                               placeholder={
-                                hasNoOrgs ? "No organizations available" : "Search or select an Organization"
+                                hasNoOrgs
+                                  ? translateMessage("No organizations available")
+                                  : translateMessage("Search or select an Organization")
                               }
-                              emptyText="No organizations available"
+                              emptyText={translateMessage("No organizations available")}
                               onValueChange={(next) => selectCreateTeamOrganization(next, value ?? null, onChange)}
                             />
                           )}
@@ -769,8 +797,11 @@ const Teams: React.FC<TeamProps> = ({ accessToken, userID, userRole, premiumUser
                         {isOrgAdmin && !isSingleOrg && adminOrgs.length > 1 && (
                           <div className="mb-8 rounded-md border border-info/20 bg-info/10 p-4">
                             <span className="text-sm text-info">
-                              Please select an organization to create a team for. You can only create teams within
-                              organizations where you are an admin.
+                              <LocalizedText
+                                text={
+                                  "Please select an organization to create a team for. You can only create teams within organizations where you are an admin."
+                                }
+                              />
                             </span>
                           </div>
                         )}
@@ -801,12 +832,17 @@ const Teams: React.FC<TeamProps> = ({ accessToken, userID, userRole, premiumUser
                     )}
                   </FormField>
 
-                  <FormField control={form.control} name="max_budget" label="Max Budget (USD)">
+                  <FormField control={form.control} name="max_budget" label={translateMessage("Max Budget (USD)")}>
                     {({ ref, value, ...field }) => (
                       <NumericalInput {...field} ref={ref} value={value ?? ""} step={0.01} precision={2} width={200} />
                     )}
                   </FormField>
-                  <FormField control={form.control} name="budget_duration" className="mt-8" label="Reset Budget">
+                  <FormField
+                    control={form.control}
+                    name="budget_duration"
+                    className="mt-8"
+                    label={translateMessage("Reset Budget")}
+                  >
                     {({ id, value, onChange }) => (
                       <BudgetDurationDropdown
                         id={id}
@@ -825,12 +861,20 @@ const Teams: React.FC<TeamProps> = ({ accessToken, userID, userRole, premiumUser
                     availableModels={userModels}
                     hint="Cap this team's spend on individual models, each with its own reset window. Every key on the team shares the cap unless the key sets its own budget for that model."
                   />
-                  <FormField control={form.control} name="tpm_limit" label="Tokens per minute Limit (TPM)">
+                  <FormField
+                    control={form.control}
+                    name="tpm_limit"
+                    label={translateMessage("Tokens per minute Limit (TPM)")}
+                  >
                     {({ ref, value, ...field }) => (
                       <NumericalInput {...field} ref={ref} value={value ?? ""} step={1} width={400} />
                     )}
                   </FormField>
-                  <FormField control={form.control} name="rpm_limit" label="Requests per minute Limit (RPM)">
+                  <FormField
+                    control={form.control}
+                    name="rpm_limit"
+                    label={translateMessage("Requests per minute Limit (RPM)")}
+                  >
                     {({ ref, value, ...field }) => (
                       <NumericalInput {...field} ref={ref} value={value ?? ""} step={1} width={400} />
                     )}
@@ -848,7 +892,9 @@ const Teams: React.FC<TeamProps> = ({ accessToken, userID, userRole, premiumUser
                     )}
                   </FormField>
                   <Field>
-                    <FieldLabel>Metadata</FieldLabel>
+                    <FieldLabel>
+                      <LocalizedText text={"Metadata"} />
+                    </FieldLabel>
                     <MetadataKeyValueFields
                       control={form.control}
                       getValues={form.getValues}
@@ -857,7 +903,10 @@ const Teams: React.FC<TeamProps> = ({ accessToken, userID, userRole, premiumUser
                       schemaLoading={isTeamMetadataSchemaLoading}
                     />
                     <FieldDescription>
-                      Values are saved as text. Enter JSON for typed values, e.g. 3, true, or {'{"region": "us"}'}.
+                      <LocalizedText
+                        text={"Values are saved as text. Enter JSON for typed values, e.g. 3, true, or "}
+                      />
+                      {'{"region": "us"}'}.
                     </FieldDescription>
                   </Field>
 
@@ -867,7 +916,9 @@ const Teams: React.FC<TeamProps> = ({ accessToken, userID, userRole, premiumUser
                     className="mt-20 mb-8 overflow-hidden rounded-lg border"
                   >
                     <CollapsibleTrigger className="group/section flex w-full items-center justify-between px-4 py-3 text-left">
-                      <b>Additional Settings</b>
+                      <b>
+                        <LocalizedText text={"Additional Settings"} />
+                      </b>
                       <ChevronDown className="size-5 shrink-0 text-muted-foreground transition-transform group-data-[panel-open]/section:rotate-180" />
                     </CollapsibleTrigger>
                     <CollapsibleContent className="px-4 pb-3">
@@ -875,8 +926,10 @@ const Teams: React.FC<TeamProps> = ({ accessToken, userID, userRole, premiumUser
                         <FormField
                           control={form.control}
                           name="team_id"
-                          label="Team ID"
-                          description="ID of the team you want to create. If not provided, it will be generated automatically."
+                          label={translateMessage("Team ID")}
+                          description={translateMessage(
+                            "ID of the team you want to create. If not provided, it will be generated automatically.",
+                          )}
                         >
                           {({ ref, value, ...field }) => <UIInput {...field} ref={ref} value={value ?? ""} />}
                         </FormField>
@@ -911,7 +964,12 @@ const Teams: React.FC<TeamProps> = ({ accessToken, userID, userRole, premiumUser
                           )}
                         >
                           {({ ref, value, ...field }) => (
-                            <UIInput {...field} ref={ref} value={value ?? ""} placeholder="e.g., 30d" />
+                            <UIInput
+                              {...field}
+                              ref={ref}
+                              value={value ?? ""}
+                              placeholder={translateMessage("e.g., 30d")}
+                            />
                           )}
                         </FormField>
                         <FormField
@@ -941,11 +999,11 @@ const Teams: React.FC<TeamProps> = ({ accessToken, userID, userRole, premiumUser
                         <FormField
                           control={form.control}
                           name="secret_manager_settings"
-                          label="Secret Manager Settings"
+                          label={translateMessage("Secret Manager Settings")}
                           description={
                             premiumUser
-                              ? "Enter secret manager configuration as a JSON object."
-                              : "Premium feature - Upgrade to manage secret manager settings."
+                              ? translateMessage("Enter secret manager configuration as a JSON object.")
+                              : translateMessage("Premium feature - Upgrade to manage secret manager settings.")
                           }
                         >
                           {({ ref, value, ...field }) => (
@@ -968,7 +1026,7 @@ const Teams: React.FC<TeamProps> = ({ accessToken, userID, userRole, premiumUser
                             "Setup your first guardrail",
                             "https://docs.litellm.ai/docs/proxy/guardrails/quick_start",
                           )}
-                          description="Select existing guardrails or enter new ones"
+                          description={translateMessage("Select existing guardrails or enter new ones")}
                         >
                           {({ id, value, onChange }) => (
                             <TagsInput
@@ -976,7 +1034,7 @@ const Teams: React.FC<TeamProps> = ({ accessToken, userID, userRole, premiumUser
                               value={value ?? []}
                               onValueChange={onChange}
                               options={guardrailsList.map((name) => ({ value: name, label: name }))}
-                              placeholder="Select or enter guardrails"
+                              placeholder={translateMessage("Select or enter guardrails")}
                             />
                           )}
                         </FormField>
@@ -991,8 +1049,8 @@ const Teams: React.FC<TeamProps> = ({ accessToken, userID, userRole, premiumUser
                             )}
                             description={
                               premiumUser
-                                ? "Bypass global guardrails for this team"
-                                : "Premium feature - Upgrade to disable global guardrails by team"
+                                ? translateMessage("Bypass global guardrails for this team")
+                                : translateMessage("Premium feature - Upgrade to disable global guardrails by team")
                             }
                           >
                             {({ id, value, onChange }) => (
@@ -1015,7 +1073,7 @@ const Teams: React.FC<TeamProps> = ({ accessToken, userID, userRole, premiumUser
                               "Apply policies to this team to control guardrails and other settings",
                               "https://docs.litellm.ai/docs/proxy/guardrails/guardrail_policies",
                             )}
-                            description="Select existing policies or enter new ones"
+                            description={translateMessage("Select existing policies or enter new ones")}
                           >
                             {({ id, value, onChange }) => (
                               <TagsInput
@@ -1023,7 +1081,7 @@ const Teams: React.FC<TeamProps> = ({ accessToken, userID, userRole, premiumUser
                                 value={value ?? []}
                                 onValueChange={onChange}
                                 options={policiesList.map((name) => ({ value: name, label: name }))}
-                                placeholder="Select or enter policies"
+                                placeholder={translateMessage("Select or enter policies")}
                               />
                             )}
                           </FormField>
@@ -1036,13 +1094,13 @@ const Teams: React.FC<TeamProps> = ({ accessToken, userID, userRole, premiumUser
                             "Access Groups",
                             "Assign access groups to this team. Access groups control which models, MCP servers, and agents this team can use",
                           )}
-                          description="Select access groups to assign to this team"
+                          description={translateMessage("Select access groups to assign to this team")}
                         >
                           {({ value, onChange }) => (
                             <AccessGroupSelector
                               value={value}
                               onChange={onChange}
-                              placeholder="Select access groups (optional)"
+                              placeholder={translateMessage("Select access groups (optional)")}
                             />
                           )}
                         </FormField>
@@ -1054,14 +1112,16 @@ const Teams: React.FC<TeamProps> = ({ accessToken, userID, userRole, premiumUser
                             "Allowed Vector Stores",
                             "Select which vector stores this team can access by default. Leave empty for access to all vector stores",
                           )}
-                          description="Select vector stores this team can access. Leave empty for access to all vector stores"
+                          description={translateMessage(
+                            "Select vector stores this team can access. Leave empty for access to all vector stores",
+                          )}
                         >
                           {({ value, onChange }) => (
                             <VectorStoreSelector
                               onChange={onChange}
                               value={value}
                               accessToken={accessToken || ""}
-                              placeholder="Select vector stores (optional)"
+                              placeholder={translateMessage("Select vector stores (optional)")}
                             />
                           )}
                         </FormField>
@@ -1080,7 +1140,7 @@ const Teams: React.FC<TeamProps> = ({ accessToken, userID, userRole, premiumUser
                                     "Allowed Pass Through Routes",
                                     "Only proxy admins can set allowed pass through routes",
                                   )
-                                : "Allowed Pass Through Routes"
+                                : translateMessage("Allowed Pass Through Routes")
                           }
                         >
                           {({ value, onChange }) => (
@@ -1088,7 +1148,7 @@ const Teams: React.FC<TeamProps> = ({ accessToken, userID, userRole, premiumUser
                               value={value}
                               onChange={onChange}
                               accessToken={accessToken || ""}
-                              placeholder="Select pass through routes (optional)"
+                              placeholder={translateMessage("Select pass through routes (optional)")}
                               disabled={!premiumUser || !isProxyAdminRole(userRole || "")}
                             />
                           )}
@@ -1103,7 +1163,9 @@ const Teams: React.FC<TeamProps> = ({ accessToken, userID, userRole, premiumUser
                     className="mt-8 mb-8 overflow-hidden rounded-lg border"
                   >
                     <CollapsibleTrigger className="group/section flex w-full items-center justify-between px-4 py-3 text-left">
-                      <b>MCP Settings</b>
+                      <b>
+                        <LocalizedText text={"MCP Settings"} />
+                      </b>
                       <ChevronDown className="size-5 shrink-0 text-muted-foreground transition-transform group-data-[panel-open]/section:rotate-180" />
                     </CollapsibleTrigger>
                     <CollapsibleContent className="px-4 pb-3">
@@ -1115,14 +1177,14 @@ const Teams: React.FC<TeamProps> = ({ accessToken, userID, userRole, premiumUser
                           "Allowed MCP Servers",
                           "Select which MCP servers or access groups this team can access",
                         )}
-                        description="Select MCP servers or access groups this team can access"
+                        description={translateMessage("Select MCP servers or access groups this team can access")}
                       >
                         {({ value, onChange }) => (
                           <MCPServerSelector
                             onChange={onChange}
                             value={value}
                             accessToken={accessToken || ""}
-                            placeholder="Select MCP servers or access groups (optional)"
+                            placeholder={translateMessage("Select MCP servers or access groups (optional)")}
                             allowAllProxyMcpServers={isProxyAdminRole(userRole || "")}
                           />
                         )}
@@ -1147,7 +1209,9 @@ const Teams: React.FC<TeamProps> = ({ accessToken, userID, userRole, premiumUser
                     className="mt-8 mb-8 overflow-hidden rounded-lg border"
                   >
                     <CollapsibleTrigger className="group/section flex w-full items-center justify-between px-4 py-3 text-left">
-                      <b>Agent Settings</b>
+                      <b>
+                        <LocalizedText text={"Agent Settings"} />
+                      </b>
                       <ChevronDown className="size-5 shrink-0 text-muted-foreground transition-transform group-data-[panel-open]/section:rotate-180" />
                     </CollapsibleTrigger>
                     <CollapsibleContent className="px-4 pb-3">
@@ -1159,14 +1223,14 @@ const Teams: React.FC<TeamProps> = ({ accessToken, userID, userRole, premiumUser
                           "Allowed Agents",
                           "Select which agents or access groups this team can access",
                         )}
-                        description="Select agents or access groups this team can access"
+                        description={translateMessage("Select agents or access groups this team can access")}
                       >
                         {({ value, onChange }) => (
                           <AgentSelector
                             onChange={onChange}
                             value={value}
                             accessToken={accessToken || ""}
-                            placeholder="Select agents or access groups (optional)"
+                            placeholder={translateMessage("Select agents or access groups (optional)")}
                           />
                         )}
                       </FormField>
@@ -1179,7 +1243,9 @@ const Teams: React.FC<TeamProps> = ({ accessToken, userID, userRole, premiumUser
                     className="mt-8 mb-8 overflow-hidden rounded-lg border"
                   >
                     <CollapsibleTrigger className="group/section flex w-full items-center justify-between px-4 py-3 text-left">
-                      <b>Search Tool Settings</b>
+                      <b>
+                        <LocalizedText text={"Search Tool Settings"} />
+                      </b>
                       <ChevronDown className="size-5 shrink-0 text-muted-foreground transition-transform group-data-[panel-open]/section:rotate-180" />
                     </CollapsibleTrigger>
                     <CollapsibleContent className="px-4 pb-3">
@@ -1191,14 +1257,16 @@ const Teams: React.FC<TeamProps> = ({ accessToken, userID, userRole, premiumUser
                           "Allowed Search Tools",
                           "Select which search tools this team can access. Leave empty to allow all search tools.",
                         )}
-                        description="Restrict which configured search tools keys on this team may call."
+                        description={translateMessage(
+                          "Restrict which configured search tools keys on this team may call.",
+                        )}
                       >
                         {({ value, onChange }) => (
                           <SearchToolSelector
                             onChange={onChange}
                             value={value}
                             accessToken={accessToken || ""}
-                            placeholder="Select search tools (optional, empty = all allowed)"
+                            placeholder={translateMessage("Select search tools (optional, empty = all allowed)")}
                           />
                         )}
                       </FormField>
@@ -1211,7 +1279,9 @@ const Teams: React.FC<TeamProps> = ({ accessToken, userID, userRole, premiumUser
                     className="mt-8 mb-8 overflow-hidden rounded-lg border"
                   >
                     <CollapsibleTrigger className="group/section flex w-full items-center justify-between px-4 py-3 text-left">
-                      <b>Skill Settings</b>
+                      <b>
+                        <LocalizedText text={"Skill Settings"} />
+                      </b>
                       <ChevronDown className="size-5 shrink-0 text-muted-foreground transition-transform group-data-[panel-open]/section:rotate-180" />
                     </CollapsibleTrigger>
                     <CollapsibleContent className="px-4 pb-3">
@@ -1223,14 +1293,16 @@ const Teams: React.FC<TeamProps> = ({ accessToken, userID, userRole, premiumUser
                           "Allowed Skills",
                           "Enabled skills are visible to every team. Grant disabled (private) Claude Code plugins to this team here.",
                         )}
-                        description="Private skills keys on this team may see in the Claude Code marketplace."
+                        description={translateMessage(
+                          "Private skills keys on this team may see in the Claude Code marketplace.",
+                        )}
                       >
                         {({ value, onChange }) => (
                           <SkillSelector
                             onChange={onChange}
                             value={value}
                             accessToken={accessToken || ""}
-                            placeholder="Select skills (optional)"
+                            placeholder={translateMessage("Select skills (optional)")}
                           />
                         )}
                       </FormField>
@@ -1239,7 +1311,9 @@ const Teams: React.FC<TeamProps> = ({ accessToken, userID, userRole, premiumUser
 
                   <Collapsible className="mt-8 mb-8 overflow-hidden rounded-lg border">
                     <CollapsibleTrigger className="group/section flex w-full items-center justify-between px-4 py-3 text-left">
-                      <b>Logging Settings</b>
+                      <b>
+                        <LocalizedText text={"Logging Settings"} />
+                      </b>
                       <ChevronDown className="size-5 shrink-0 text-muted-foreground transition-transform group-data-[panel-open]/section:rotate-180" />
                     </CollapsibleTrigger>
                     <CollapsibleContent className="px-4 pb-3">
@@ -1258,7 +1332,9 @@ const Teams: React.FC<TeamProps> = ({ accessToken, userID, userRole, premiumUser
                     className="mt-8 mb-8 overflow-hidden rounded-lg border"
                   >
                     <CollapsibleTrigger className="group/section flex w-full items-center justify-between px-4 py-3 text-left">
-                      <b>Router Settings</b>
+                      <b>
+                        <LocalizedText text={"Router Settings"} />
+                      </b>
                       <ChevronDown className="size-5 shrink-0 text-muted-foreground transition-transform group-data-[panel-open]/section:rotate-180" />
                     </CollapsibleTrigger>
                     <CollapsibleContent className="px-4 pb-3">
@@ -1280,14 +1356,19 @@ const Teams: React.FC<TeamProps> = ({ accessToken, userID, userRole, premiumUser
 
                   <Collapsible className="mt-8 mb-8 overflow-hidden rounded-lg border">
                     <CollapsibleTrigger className="group/section flex w-full items-center justify-between px-4 py-3 text-left">
-                      <b>Model Aliases</b>
+                      <b>
+                        <LocalizedText text={"Model Aliases"} />
+                      </b>
                       <ChevronDown className="size-5 shrink-0 text-muted-foreground transition-transform group-data-[panel-open]/section:rotate-180" />
                     </CollapsibleTrigger>
                     <CollapsibleContent className="px-4 pb-3">
                       <div className="mt-4">
                         <p className="mb-4 block text-sm text-muted-foreground">
-                          Create custom aliases for models that can be used by team members in API calls. This allows
-                          you to create shortcuts for specific models.
+                          <LocalizedText
+                            text={
+                              "Create custom aliases for models that can be used by team members in API calls. This allows you to create shortcuts for specific models."
+                            }
+                          />
                         </p>
                         <ModelAliasManager
                           accessToken={accessToken || ""}
@@ -1301,7 +1382,7 @@ const Teams: React.FC<TeamProps> = ({ accessToken, userID, userRole, premiumUser
                 </FieldGroup>
                 <div className="mt-[10px] text-right">
                   <UIButton type="submit" data-testid="create-team-submit">
-                    Create Team
+                    <LocalizedText text={"Create Team"} />
                   </UIButton>
                 </div>
               </form>

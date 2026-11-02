@@ -1,4 +1,5 @@
 "use client";
+import { getIntlLocale, useUiLocale } from "@/lib/i18n";
 
 import * as React from "react";
 import type { TooltipContentProps, TooltipValueType } from "recharts";
@@ -18,16 +19,14 @@ export const formatCategoryName = (name: string): string =>
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
 
-export const ValueTooltip = ({
-  active,
-  payload,
-  label,
-  valueFormatter,
-}: ChartTooltipProps & { valueFormatter?: (value: number) => string }) => {
+export const ValueTooltip = (cocaCopyProps0: ChartTooltipProps & { valueFormatter?: (value: number) => string }) => {
+  const { active, payload, label, valueFormatter } = cocaCopyProps0;
+  useUiLocale();
   if (!active || !payload || payload.length === 0) return null;
 
   const formatValue = (value: unknown): string => {
-    if (typeof value === "number") return valueFormatter ? valueFormatter(value) : value.toLocaleString();
+    if (typeof value === "number")
+      return valueFormatter ? valueFormatter(value) : value.toLocaleString(getIntlLocale());
     return value == null ? "" : String(value);
   };
 
@@ -64,10 +63,12 @@ const rawMetricValue = (row: unknown, dataKey: string): number | undefined => {
 const formatMetricValue = (rawValue: number | undefined, isSpend: boolean): string => {
   if (rawValue === undefined) return "N/A";
   if (isSpend) return `$${rawValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-  return rawValue.toLocaleString();
+  return rawValue.toLocaleString(getIntlLocale());
 };
 
-export const CustomTooltip = ({ active, payload, label }: ChartTooltipProps) => {
+export const CustomTooltip = (cocaCopyProps1: ChartTooltipProps) => {
+  const { active, payload, label } = cocaCopyProps1;
+  useUiLocale();
   if (!active || !payload || payload.length === 0) return null;
 
   return (

@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 import React, { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { MessageSquare, Sparkles, X } from "lucide-react";
@@ -41,6 +43,7 @@ const TOOL_ICONS: Record<string, string> = {
 };
 
 const ToolCallDisplay: React.FC<{ step: ToolCallStep }> = ({ step }) => {
+  useUiLocale();
   const icon = TOOL_ICONS[step.tool_name] || "🔧";
   const args = step.arguments;
   const dateRange = args.start_date && args.end_date ? `${args.start_date} → ${args.end_date}` : "";
@@ -62,50 +65,59 @@ const ToolCallDisplay: React.FC<{ step: ToolCallStep }> = ({ step }) => {
           {icon} {step.tool_label}
         </div>
         {dateRange && <div className="text-muted-foreground mt-0.5">{dateRange}</div>}
-        {filter && <div className="text-muted-foreground mt-0.5">Filter: {filter}</div>}
+        {filter && (
+          <div className="text-muted-foreground mt-0.5">
+            <LocalizedText text={"Filter: "} />
+            {filter}
+          </div>
+        )}
         {step.status === "error" && step.error && <div className="text-destructive mt-0.5">{step.error}</div>}
       </div>
     </div>
   );
 };
 
-const MarkdownContent: React.FC<{ content: string }> = ({ content }) => (
-  <ReactMarkdown
-    components={{
-      p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
-      strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
-      ul: ({ children }) => <ul className="list-disc pl-4 mb-2 space-y-0.5">{children}</ul>,
-      ol: ({ children }) => <ol className="list-decimal pl-4 mb-2 space-y-0.5">{children}</ol>,
-      li: ({ children }) => <li>{children}</li>,
-      h1: ({ children }) => <h4 className="font-semibold text-sm mt-2 mb-1">{children}</h4>,
-      h2: ({ children }) => <h4 className="font-semibold text-sm mt-2 mb-1">{children}</h4>,
-      h3: ({ children }) => <h4 className="font-semibold text-sm mt-2 mb-1">{children}</h4>,
-      code: ({ children, className }) => {
-        const isBlock = className?.includes("language-");
-        return isBlock ? (
-          <pre className="bg-muted rounded-sm p-2 my-1 overflow-x-auto text-xs">
-            <code>{children}</code>
-          </pre>
-        ) : (
-          <code className="px-1 py-0.5 rounded-sm bg-muted text-xs font-mono">{children}</code>
-        );
-      },
-      table: ({ children }) => (
-        <div className="overflow-x-auto my-2">
-          <table className="text-xs border-collapse w-full">{children}</table>
-        </div>
-      ),
-      th: ({ children }) => (
-        <th className="border border-border px-2 py-1 bg-muted font-medium text-left">{children}</th>
-      ),
-      td: ({ children }) => <td className="border border-border px-2 py-1">{children}</td>,
-    }}
-  >
-    {content}
-  </ReactMarkdown>
-);
+const MarkdownContent: React.FC<{ content: string }> = ({ content }) => {
+  useUiLocale();
+  return (
+    <ReactMarkdown
+      components={{
+        p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+        strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+        ul: ({ children }) => <ul className="list-disc pl-4 mb-2 space-y-0.5">{children}</ul>,
+        ol: ({ children }) => <ol className="list-decimal pl-4 mb-2 space-y-0.5">{children}</ol>,
+        li: ({ children }) => <li>{children}</li>,
+        h1: ({ children }) => <h4 className="font-semibold text-sm mt-2 mb-1">{children}</h4>,
+        h2: ({ children }) => <h4 className="font-semibold text-sm mt-2 mb-1">{children}</h4>,
+        h3: ({ children }) => <h4 className="font-semibold text-sm mt-2 mb-1">{children}</h4>,
+        code: ({ children, className }) => {
+          const isBlock = className?.includes("language-");
+          return isBlock ? (
+            <pre className="bg-muted rounded-sm p-2 my-1 overflow-x-auto text-xs">
+              <code>{children}</code>
+            </pre>
+          ) : (
+            <code className="px-1 py-0.5 rounded-sm bg-muted text-xs font-mono">{children}</code>
+          );
+        },
+        table: ({ children }) => (
+          <div className="overflow-x-auto my-2">
+            <table className="text-xs border-collapse w-full">{children}</table>
+          </div>
+        ),
+        th: ({ children }) => (
+          <th className="border border-border px-2 py-1 bg-muted font-medium text-left">{children}</th>
+        ),
+        td: ({ children }) => <td className="border border-border px-2 py-1">{children}</td>,
+      }}
+    >
+      {content}
+    </ReactMarkdown>
+  );
+};
 
 const UsageAIChatPanel: React.FC<UsageAIChatPanelProps> = ({ open, onClose, accessToken }) => {
+  useUiLocale();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputText, setInputText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -250,11 +262,13 @@ const UsageAIChatPanel: React.FC<UsageAIChatPanelProps> = ({ open, onClose, acce
         <div className="min-w-0">
           <h3 className="flex items-center gap-2 text-sm leading-5 font-medium text-foreground">
             <Sparkles aria-hidden="true" className="size-4 shrink-0 text-muted-foreground" strokeWidth={1.75} />
-            Ask AI
+            <LocalizedText text={"Ask AI"} />
           </h3>
-          <p className="mt-0.5 text-xs text-muted-foreground">Ask about your spend, models, keys, and trends</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            <LocalizedText text={"Ask about your spend, models, keys, and trends"} />
+          </p>
         </div>
-        <Button variant="ghost" size="icon-sm" aria-label="Close" onClick={handleClose}>
+        <Button variant="ghost" size="icon-sm" aria-label={translateMessage("Close")} onClick={handleClose}>
           <X />
         </Button>
       </div>
@@ -268,13 +282,15 @@ const UsageAIChatPanel: React.FC<UsageAIChatPanelProps> = ({ open, onClose, acce
         >
           <ComboboxInput
             className="w-full"
-            placeholder="Select a model (optional, defaults to gpt-4o-mini)"
-            aria-label="Select a model (optional, defaults to gpt-4o-mini)"
+            placeholder={translateMessage("Select a model (optional, defaults to gpt-4o-mini)")}
+            aria-label={translateMessage("Select a model (optional, defaults to gpt-4o-mini)")}
             aria-busy={isLoadingModels}
             showClear={selectedModel !== undefined}
           />
           <ComboboxContent>
-            <ComboboxEmpty>{isLoadingModels ? "Loading models…" : "No models found"}</ComboboxEmpty>
+            <ComboboxEmpty>
+              {isLoadingModels ? translateMessage("Loading models…") : translateMessage("No models found")}
+            </ComboboxEmpty>
             <ComboboxList>
               {(model: string) => (
                 <ComboboxItem key={model} value={model}>
@@ -291,8 +307,12 @@ const UsageAIChatPanel: React.FC<UsageAIChatPanelProps> = ({ open, onClose, acce
         {messages.length === 0 && !streamingContent && !isLoading && (
           <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
             <MessageSquare aria-hidden="true" className="mb-2 size-6" strokeWidth={1.5} />
-            <p className="text-sm font-medium text-foreground">Ask a question about your usage</p>
-            <p className="text-xs mt-1">e.g. &quot;Which model costs me the most?&quot;</p>
+            <p className="text-sm font-medium text-foreground">
+              <LocalizedText text={"Ask a question about your usage"} />
+            </p>
+            <p className="text-xs mt-1">
+              <LocalizedText text={'e.g. "Which model costs me the most?"'} />
+            </p>
           </div>
         )}
 
@@ -336,7 +356,7 @@ const UsageAIChatPanel: React.FC<UsageAIChatPanelProps> = ({ open, onClose, acce
         {isLoading && !streamingContent && (
           <div className="flex items-center gap-2 px-3 py-2 text-xs text-muted-foreground">
             <UiLoadingSpinner className="size-3.5" />
-            <span className="italic">{statusMessage || "Thinking..."}</span>
+            <span className="italic">{statusMessage || translateMessage("Thinking...")}</span>
           </div>
         )}
 
@@ -357,14 +377,14 @@ const UsageAIChatPanel: React.FC<UsageAIChatPanelProps> = ({ open, onClose, acce
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Ask about your usage..."
+            placeholder={translateMessage("Ask about your usage...")}
             rows={1}
             className="flex-1 min-h-9 max-h-24"
             disabled={isLoading}
           />
           <Button onClick={handleSend} disabled={!inputText.trim() || isLoading}>
             {isLoading && <UiLoadingSpinner className="size-4" />}
-            Send
+            <LocalizedText text={"Send"} />
           </Button>
         </div>
         <div className="flex justify-between items-center mt-2">
@@ -373,9 +393,11 @@ const UsageAIChatPanel: React.FC<UsageAIChatPanelProps> = ({ open, onClose, acce
             className="text-xs text-muted-foreground hover:text-foreground transition-colors"
             disabled={messages.length === 0}
           >
-            Clear chat
+            <LocalizedText text={"Clear chat"} />
           </button>
-          <span className="text-xs text-muted-foreground">Enter to send</span>
+          <span className="text-xs text-muted-foreground">
+            <LocalizedText text={"Enter to send"} />
+          </span>
         </div>
       </div>
     </div>

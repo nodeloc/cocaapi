@@ -1,4 +1,5 @@
 "use client";
+import { localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import React, { useState } from "react";
 
@@ -52,6 +53,7 @@ export const TagsInput = ({
   disabled = false,
   id,
 }: TagsInputProps) => {
+  useUiLocale();
   const anchor = useComboboxAnchor();
   const [query, setQuery] = useState("");
 
@@ -112,13 +114,13 @@ export const TagsInput = ({
           {(chips: TagsInputOption[]) => (
             <>
               {chips.map((option) => (
-                <ComboboxChip key={option.value} aria-label={option.label}>
-                  {option.label}
+                <ComboboxChip key={option.value} aria-label={localizedProperty(option, "label", option.label)}>
+                  {localizedProperty(option, "label", option.label)}
                 </ComboboxChip>
               ))}
               <ComboboxChipsInput
                 id={id}
-                placeholder={loading ? "Loading..." : placeholder}
+                placeholder={loading ? translateMessage("Loading...") : placeholder}
                 className="min-w-24"
                 onBlur={commitPending}
                 onKeyDown={handleKeyDown}
@@ -131,8 +133,8 @@ export const TagsInput = ({
         <ComboboxEmpty>{emptyText}</ComboboxEmpty>
         <ComboboxList>
           {(option: TagsInputOption) => (
-            <ComboboxItem key={option.value} value={option} title={option.label}>
-              {option.label}
+            <ComboboxItem key={option.value} value={option} title={localizedProperty(option, "label", option.label)}>
+              {localizedProperty(option, "label", option.label)}
             </ComboboxItem>
           )}
         </ComboboxList>

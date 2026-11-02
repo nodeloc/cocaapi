@@ -1,3 +1,5 @@
+"use client";
+import { translateMessage, useUiLocale } from "@/lib/i18n";
 import { SearchSelect } from "@/components/shared/SearchSelect";
 import React from "react";
 import { ENDPOINT_OPTIONS } from "./chatConstants";
@@ -9,13 +11,14 @@ interface EndpointSelectorProps {
 }
 
 const EndpointSelector: React.FC<EndpointSelectorProps> = ({ endpointType, onEndpointChange, className }) => {
+  useUiLocale();
   return (
     <div className={className}>
       <SearchSelect
         value={endpointType}
         onValueChange={onEndpointChange}
         options={ENDPOINT_OPTIONS}
-        placeholder="Select an endpoint"
+        placeholder={translateMessage("Select an endpoint")}
       />
     </div>
   );

@@ -1,9 +1,13 @@
+"use client";
+import { LocalizedText, localizedProperty, useUiLocale } from "@/lib/i18n";
 import { CircleHelp } from "lucide-react";
 import React, { type ReactNode } from "react";
 import { Popover, PopoverContent, PopoverTitle, PopoverTrigger } from "@/components/ui/popover";
 import type { MathRow } from "./usageUnits";
 
-export function CalcPopover({ title, formula, children }: { title: string; formula: string; children: ReactNode }) {
+export function CalcPopover(cocaCopyProps0: { title: string; formula: string; children: ReactNode }) {
+  const { title, formula, children } = cocaCopyProps0;
+  useUiLocale();
   return (
     <Popover>
       <PopoverTrigger
@@ -18,10 +22,10 @@ export function CalcPopover({ title, formula, children }: { title: string; formu
         }
       >
         <CircleHelp className="mt-px size-3.5 shrink-0" />
-        How is this calculated?
+        <LocalizedText text={"How is this calculated?"} />
       </PopoverTrigger>
       <PopoverContent side="bottom" align="start" className="w-auto min-w-72 max-w-md gap-3">
-        <PopoverTitle>{title}</PopoverTitle>
+        <PopoverTitle>{localizedProperty(cocaCopyProps0, "title", title)}</PopoverTitle>
         <code className="w-fit rounded bg-muted px-2 py-1 text-[11px] text-muted-foreground">{formula}</code>
         {children}
       </PopoverContent>
@@ -30,6 +34,7 @@ export function CalcPopover({ title, formula, children }: { title: string; formu
 }
 
 export function MathTable({ rows, total }: { rows: readonly MathRow[]; total: string }) {
+  useUiLocale();
   const width = 1 + Math.max(...rows.map((row) => row.parts.length), 1);
   return (
     <table className="w-full text-xs">
@@ -37,7 +42,7 @@ export function MathTable({ rows, total }: { rows: readonly MathRow[]; total: st
         {rows.map((row) => (
           <React.Fragment key={row.label}>
             <tr>
-              <td className="py-0.5 pr-3">{row.label}</td>
+              <td className="py-0.5 pr-3">{localizedProperty(row, "label", row.label)}</td>
               {row.parts.map((part, i) => (
                 <td key={i} className="py-0.5 pl-3 text-right whitespace-nowrap tabular-nums">
                   {part}
@@ -57,7 +62,7 @@ export function MathTable({ rows, total }: { rows: readonly MathRow[]; total: st
       <tfoot>
         <tr className="border-t border-border font-medium">
           <td className="pt-1.5 pr-3" colSpan={width - 1}>
-            Total
+            <LocalizedText text={"Total"} />
           </td>
           <td className="pt-1.5 pl-3 text-right whitespace-nowrap tabular-nums">{total}</td>
         </tr>

@@ -1,4 +1,5 @@
 "use client";
+import { translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { useState } from "react";
 
@@ -43,6 +44,7 @@ const startsOpen = (node: FieldNode, depth: number): boolean => {
 };
 
 function TextValue({ text, format, mono }: { text: string; format: "markdown" | "code" | "plain"; mono: boolean }) {
+  useUiLocale();
   if (format === "markdown") return <Markdown text={text} />;
   return (
     <pre
@@ -58,6 +60,7 @@ function TextValue({ text, format, mono }: { text: string; format: "markdown" | 
 }
 
 function Children({ node, depth, mono }: { node: FieldNode; depth: number; mono: boolean }) {
+  useUiLocale();
   switch (node.kind) {
     case "object":
       return <FieldList entries={node.entries} depth={depth + 1} mono={mono} />;
@@ -79,6 +82,7 @@ function Children({ node, depth, mono }: { node: FieldNode; depth: number; mono:
 }
 
 function FieldRow({ name, node, depth, mono }: { name: string; node: FieldNode; depth: number; mono: boolean }) {
+  useUiLocale();
   const [open, setOpen] = useState(() => startsOpen(node, depth));
   const monoValue = mono || ID_KEY.test(name);
   if ((node.kind === "scalar" || node.kind === "text") && isInline(node)) {
@@ -99,7 +103,7 @@ function FieldRow({ name, node, depth, mono }: { name: string; node: FieldNode; 
       <button
         type="button"
         aria-expanded={open}
-        aria-label={`${open ? "Collapse" : "Expand"} ${name}`}
+        aria-label={`${open ? translateMessage("Collapse") : translateMessage("Expand")} ${name}`}
         onClick={() => setOpen((value) => !value)}
         className={cn(
           ROW,
@@ -124,6 +128,7 @@ function FieldRow({ name, node, depth, mono }: { name: string; node: FieldNode; 
 }
 
 function FieldList({ entries, depth, mono }: { entries: readonly FieldEntry[]; depth: number; mono: boolean }) {
+  useUiLocale();
   return (
     <ul className="flex min-w-0 flex-col">
       {entries.map(([name, node], i) => (
@@ -135,5 +140,6 @@ function FieldList({ entries, depth, mono }: { entries: readonly FieldEntry[]; d
 
 /** Nested key / value tree: short values inline, long text and nested objects fold open in place. */
 export function FieldTree({ entries, mono = false }: { entries: readonly FieldEntry[]; mono?: boolean }) {
+  useUiLocale();
   return <FieldList entries={entries} depth={0} mono={mono} />;
 }

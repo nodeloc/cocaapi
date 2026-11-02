@@ -1,3 +1,4 @@
+import { markUiCopy } from "@/lib/i18n";
 import { z } from "zod";
 import { AccountRequestError, type Profile } from "../accountApi";
 import { gatewayApi } from "../gatewayApi";
@@ -12,7 +13,10 @@ const denied = () =>
   Response.json(
     {
       detail: "customer_operation_unavailable",
-      error: { message: "This operation is not available for personal accounts." },
+      error: markUiCopy(
+        { message: "This operation is not available for personal accounts." },
+        { message: "This operation is not available for personal accounts." },
+      ),
     },
     { status: 403 },
   );

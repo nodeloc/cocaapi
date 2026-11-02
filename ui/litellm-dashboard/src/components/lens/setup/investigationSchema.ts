@@ -1,3 +1,4 @@
+import { markUiCopy } from "@/lib/i18n";
 import { z } from "zod";
 import type { Settings } from "../model/types";
 import { normalizeFilters } from "./filters";
@@ -34,29 +35,44 @@ type InvestigationDraft = z.infer<typeof draftSchema>;
 function validateFilters(draft: InvestigationDraft, ctx: z.RefinementCtx) {
   draft.selection.filters.forEach((filter, index) => {
     if (!filter.key.trim()) {
-      ctx.addIssue({
-        code: "custom",
-        message: "Choose a key and value for every condition, or remove it",
-        path: ["selection", "filters", index, "key"],
-      });
+      ctx.addIssue(
+        markUiCopy(
+          {
+            code: "custom" as const,
+            message: "Choose a key and value for every condition, or remove it",
+            path: ["selection", "filters", index, "key"],
+          },
+          { message: "Choose a key and value for every condition, or remove it" },
+        ),
+      );
     }
     if (!filter.value.trim()) {
-      ctx.addIssue({
-        code: "custom",
-        message: "Choose a key and value for every condition, or remove it",
-        path: ["selection", "filters", index, "value"],
-      });
+      ctx.addIssue(
+        markUiCopy(
+          {
+            code: "custom" as const,
+            message: "Choose a key and value for every condition, or remove it",
+            path: ["selection", "filters", index, "value"],
+          },
+          { message: "Choose a key and value for every condition, or remove it" },
+        ),
+      );
     }
   });
 }
 
 function validateManualSelection(draft: InvestigationDraft, ctx: z.RefinementCtx) {
   if (draft.manualSelection && !draft.selection.execution_ids.length) {
-    ctx.addIssue({
-      code: "custom",
-      message: "Choose at least one run or turn off individual selection",
-      path: ["selection", "execution_ids"],
-    });
+    ctx.addIssue(
+      markUiCopy(
+        {
+          code: "custom" as const,
+          message: "Choose at least one run or turn off individual selection",
+          path: ["selection", "execution_ids"],
+        },
+        { message: "Choose at least one run or turn off individual selection" },
+      ),
+    );
   }
 }
 
@@ -64,64 +80,99 @@ function validateSampleWindow(draft: InvestigationDraft, ctx: z.RefinementCtx) {
   const selection = draft.selection;
   const hours = selection.lookback_hours ?? 24;
   if (!Number.isInteger(hours) || hours < 1) {
-    ctx.addIssue({
-      code: "custom",
-      message: "Choose a time range of at least 1 hour",
-      path: ["selection", "lookback_hours"],
-    });
+    ctx.addIssue(
+      markUiCopy(
+        {
+          code: "custom" as const,
+          message: "Choose a time range of at least 1 hour",
+          path: ["selection", "lookback_hours"],
+        },
+        { message: "Choose a time range of at least 1 hour" },
+      ),
+    );
   }
   const percent = selection.sample_percent ?? 100;
   if (!Number.isFinite(percent) || percent <= 0 || percent > 100) {
-    ctx.addIssue({
-      code: "custom",
-      message: "Choose a sampling percentage greater than 0 and up to 100",
-      path: ["selection", "sample_percent"],
-    });
+    ctx.addIssue(
+      markUiCopy(
+        {
+          code: "custom" as const,
+          message: "Choose a sampling percentage greater than 0 and up to 100",
+          path: ["selection", "sample_percent"],
+        },
+        { message: "Choose a sampling percentage greater than 0 and up to 100" },
+      ),
+    );
   }
   if (selection.sample_size != null && (!Number.isInteger(selection.sample_size) || selection.sample_size < 1)) {
-    ctx.addIssue({
-      code: "custom",
-      message: "Choose a positive maximum or leave it blank for no limit",
-      path: ["selection", "sample_size"],
-    });
+    ctx.addIssue(
+      markUiCopy(
+        {
+          code: "custom" as const,
+          message: "Choose a positive maximum or leave it blank for no limit",
+          path: ["selection", "sample_size"],
+        },
+        { message: "Choose a positive maximum or leave it blank for no limit" },
+      ),
+    );
   }
 }
 
 function validateBudgetAndSchedule(draft: InvestigationDraft, ctx: z.RefinementCtx) {
   if (!Number.isFinite(draft.budget) || draft.budget <= 0) {
-    ctx.addIssue({
-      code: "custom",
-      message: "Choose a monthly limit greater than zero",
-      path: ["budget"],
-    });
+    ctx.addIssue(
+      markUiCopy(
+        {
+          code: "custom" as const,
+          message: "Choose a monthly limit greater than zero",
+          path: ["budget"],
+        },
+        { message: "Choose a monthly limit greater than zero" },
+      ),
+    );
   }
   const intervalOutOfRange = draft.interval < 1;
   const intervalInvalid = !Number.isInteger(draft.interval) || intervalOutOfRange;
   if (draft.repeat && intervalInvalid) {
-    ctx.addIssue({
-      code: "custom",
-      message: "Choose a repeat interval of at least 1 minute",
-      path: ["interval"],
-    });
+    ctx.addIssue(
+      markUiCopy(
+        {
+          code: "custom" as const,
+          message: "Choose a repeat interval of at least 1 minute",
+          path: ["interval"],
+        },
+        { message: "Choose a repeat interval of at least 1 minute" },
+      ),
+    );
   }
 }
 
 function validateExpectations(draft: InvestigationDraft, ctx: z.RefinementCtx) {
   const checks = draft.questions.filter((check) => check.instruction.trim());
   if (!draft.context.trim() && !checks.length && !draft.watching.length) {
-    ctx.addIssue({
-      code: "custom",
-      message: "Describe the expected behavior or pick something to watch for",
-      path: ["context"],
-    });
+    ctx.addIssue(
+      markUiCopy(
+        {
+          code: "custom" as const,
+          message: "Describe the expected behavior or pick something to watch for",
+          path: ["context"],
+        },
+        { message: "Describe the expected behavior or pick something to watch for" },
+      ),
+    );
   }
   draft.questions.forEach((check, index) => {
     if (check.instruction.trim() && check.instruction.trim().length < 3) {
-      ctx.addIssue({
-        code: "custom",
-        message: "Use at least three characters for each check",
-        path: ["questions", index, "instruction"],
-      });
+      ctx.addIssue(
+        markUiCopy(
+          {
+            code: "custom" as const,
+            message: "Use at least three characters for each check",
+            path: ["questions", index, "instruction"],
+          },
+          { message: "Use at least three characters for each check" },
+        ),
+      );
     }
   });
 }

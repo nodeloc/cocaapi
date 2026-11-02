@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, getIntlLocale, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import { STACKED_USAGE_PALETTE } from "@/components/shared/charts";
 import { DataTable } from "@/components/shared/DataTable";
 import { MoneyCell } from "@/components/shared/table_cells";
@@ -29,45 +31,60 @@ interface SpendByProviderProps {
 const QUIET_HEADER = { headerClassName: "font-normal" };
 
 const columns: ColumnDef<ProviderSpendData>[] = [
-  {
-    header: "Provider",
-    accessorKey: "provider",
-    meta: QUIET_HEADER,
-    cell: ({ row }) => (
-      <div className="flex min-w-0 items-center gap-2">
-        {row.original.provider && (
-          <span className="inline-flex size-6 shrink-0 items-center justify-center rounded-md border bg-background">
-            <ProviderLogo provider={row.original.provider} className="size-3.5 rounded-[3px]" />
-          </span>
-        )}
-        <span className="truncate font-medium text-foreground">{row.original.provider}</span>
-      </div>
-    ),
-  },
-  {
-    header: "Spend",
-    accessorKey: "spend",
-    meta: { numeric: true, ...QUIET_HEADER },
-    cell: ({ row }) => <MoneyCell value={row.original.spend} decimals={2} />,
-  },
-  {
-    header: "Successful",
-    accessorKey: "successful_requests",
-    meta: { numeric: true, className: "text-success", ...QUIET_HEADER },
-    cell: ({ row }) => row.original.successful_requests.toLocaleString(),
-  },
-  {
-    header: "Failed",
-    accessorKey: "failed_requests",
-    meta: { numeric: true, className: "text-destructive", ...QUIET_HEADER },
-    cell: ({ row }) => row.original.failed_requests.toLocaleString(),
-  },
-  {
-    header: "Tokens",
-    accessorKey: "tokens",
-    meta: { numeric: true, ...QUIET_HEADER },
-    cell: ({ row }) => row.original.tokens.toLocaleString(),
-  },
+  markUiCopy(
+    {
+      header: "Provider",
+      accessorKey: "provider",
+      meta: QUIET_HEADER,
+      cell: ({ row }) => (
+        <div className="flex min-w-0 items-center gap-2">
+          {row.original.provider && (
+            <span className="inline-flex size-6 shrink-0 items-center justify-center rounded-md border bg-background">
+              <ProviderLogo provider={row.original.provider} className="size-3.5 rounded-[3px]" />
+            </span>
+          )}
+          <span className="truncate font-medium text-foreground">{row.original.provider}</span>
+        </div>
+      ),
+    },
+    { header: "Provider" },
+  ),
+  markUiCopy(
+    {
+      header: "Spend",
+      accessorKey: "spend",
+      meta: { numeric: true, ...QUIET_HEADER },
+      cell: ({ row }) => <MoneyCell value={row.original.spend} decimals={2} />,
+    },
+    { header: "Spend" },
+  ),
+  markUiCopy(
+    {
+      header: "Successful",
+      accessorKey: "successful_requests",
+      meta: { numeric: true, className: "text-success", ...QUIET_HEADER },
+      cell: ({ row }) => row.original.successful_requests.toLocaleString(getIntlLocale()),
+    },
+    { header: "Successful" },
+  ),
+  markUiCopy(
+    {
+      header: "Failed",
+      accessorKey: "failed_requests",
+      meta: { numeric: true, className: "text-destructive", ...QUIET_HEADER },
+      cell: ({ row }) => row.original.failed_requests.toLocaleString(getIntlLocale()),
+    },
+    { header: "Failed" },
+  ),
+  markUiCopy(
+    {
+      header: "Tokens",
+      accessorKey: "tokens",
+      meta: { numeric: true, ...QUIET_HEADER },
+      cell: ({ row }) => row.original.tokens.toLocaleString(getIntlLocale()),
+    },
+    { header: "Tokens" },
+  ),
 ];
 
 /**
@@ -76,6 +93,7 @@ const columns: ColumnDef<ProviderSpendData>[] = [
  * usage views.
  */
 export function ProviderSpendBreakdown({ rows }: { rows: readonly ProviderSpendData[] }) {
+  useUiLocale();
   const sorted = [...rows].sort((a, b) => b.spend - a.spend);
   const total = sorted.reduce((sum, row) => sum + row.spend, 0);
   const shareOf = (spend: number) => (total > 0 ? (spend / total) * 100 : 0);
@@ -86,7 +104,9 @@ export function ProviderSpendBreakdown({ rows }: { rows: readonly ProviderSpendD
       {visible.length > 0 && (
         <div className="grid gap-2.5">
           <div className="flex items-baseline justify-between gap-3">
-            <span className="text-xs text-muted-foreground">Total provider spend</span>
+            <span className="text-xs text-muted-foreground">
+              <LocalizedText text={"Total provider spend"} />
+            </span>
             <span data-testid="provider-spend-total" className="text-sm font-semibold tabular-nums">
               ${formatNumberWithCommas(total, 2)}
             </span>
@@ -96,7 +116,7 @@ export function ProviderSpendBreakdown({ rows }: { rows: readonly ProviderSpendD
               <div
                 key={row.provider}
                 data-testid="provider-share-segment"
-                title={`${row.provider || "unknown"} · ${shareOf(row.spend).toFixed(1)}%`}
+                title={`${row.provider || translateMessage("unknown")} · ${shareOf(row.spend).toFixed(1)}%`}
                 className="h-full first:rounded-l-full last:rounded-r-full"
                 style={{ width: `${shareOf(row.spend)}%`, backgroundColor: colorOf(index) }}
               />
@@ -106,7 +126,7 @@ export function ProviderSpendBreakdown({ rows }: { rows: readonly ProviderSpendD
             {visible.slice(0, 6).map((row, index) => (
               <span key={row.provider} className="flex items-center gap-1.5 text-xs text-muted-foreground">
                 <span className="size-2 rounded-[2px]" style={{ backgroundColor: colorOf(index) }} />
-                <span className="text-foreground">{row.provider || "unknown"}</span>
+                <span className="text-foreground">{row.provider || translateMessage("unknown")}</span>
                 <span className="tabular-nums">{shareOf(row.spend).toFixed(1)}%</span>
               </span>
             ))}
@@ -117,30 +137,27 @@ export function ProviderSpendBreakdown({ rows }: { rows: readonly ProviderSpendD
         columns={columns}
         data={sorted}
         getRowId={(row) => row.provider}
-        noDataMessage="No provider usage data"
+        noDataMessage={translateMessage("No provider usage data")}
         size="compact"
       />
     </div>
   );
 }
 
-function ToggleField({
-  label,
-  checked,
-  onCheckedChange,
-  hint,
-}: {
+function ToggleField(cocaCopyProps0: {
   label: string;
   checked: boolean;
   onCheckedChange: (checked: boolean) => void;
   hint?: string;
 }) {
+  const { label, checked, onCheckedChange, hint } = cocaCopyProps0;
+  useUiLocale();
   const id = useId();
   return (
     <div className="flex items-center gap-1.5">
       <Switch id={id} size="sm" checked={checked} onCheckedChange={onCheckedChange} />
       <label htmlFor={id} className="text-xs text-muted-foreground">
-        {label}
+        {localizedProperty(cocaCopyProps0, "label", label)}
       </label>
       {hint && (
         <Tooltip>
@@ -153,6 +170,7 @@ function ToggleField({
 }
 
 const SpendByProvider: React.FC<SpendByProviderProps> = ({ loading, isDateChanging, providerSpend }) => {
+  useUiLocale();
   const [includeZeroSpend, setIncludeZeroSpend] = useState(false);
   const [includeUnknown, setIncludeUnknown] = useState(false);
 
@@ -176,13 +194,17 @@ const SpendByProvider: React.FC<SpendByProviderProps> = ({ loading, isDateChangi
   return (
     <Panel
       icon={Server}
-      title="Spend by Provider"
+      title={translateMessage("Spend by Provider")}
       className="h-full"
       action={
         <div className="flex flex-wrap items-center gap-3">
-          <ToggleField label="Show Zero Spend" checked={includeZeroSpend} onCheckedChange={setIncludeZeroSpend} />
           <ToggleField
-            label="Show Unknown"
+            label={translateMessage("Show Zero Spend")}
+            checked={includeZeroSpend}
+            onCheckedChange={setIncludeZeroSpend}
+          />
+          <ToggleField
+            label={translateMessage("Show Unknown")}
             checked={includeUnknown}
             onCheckedChange={setIncludeUnknown}
             hint="Requests that failed to route to a provider"

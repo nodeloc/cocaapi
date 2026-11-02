@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import { parseAsString, useQueryState } from "nuqs";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 
@@ -58,6 +60,7 @@ const ViewUserDashboard: React.FC<ViewUserDashboardProps> = ({
   teams,
   orgAdminOrgIds,
 }) => {
+  useUiLocale();
   const isProxyAdmin = userRole ? isProxyAdminRole(userRole) : false;
   const queryClient = useQueryClient();
 
@@ -161,7 +164,7 @@ const ViewUserDashboard: React.FC<ViewUserDashboardProps> = ({
         return;
       }
       try {
-        toast.success("Generating password reset link...");
+        toast.success(translateMessage("Generating password reset link..."));
         const data = await invitationCreateCall(accessToken, userId);
         setInvitationLinkData(data);
         setIsInvitationLinkModalVisible(true);
@@ -185,7 +188,7 @@ const ViewUserDashboard: React.FC<ViewUserDashboardProps> = ({
           return { ...previousData, users: updatedUsers };
         });
 
-        toast.success("User deleted successfully");
+        toast.success(translateMessage("User deleted successfully"));
       } catch (error) {
         console.error("Error deleting user:", error);
         toast.fromError("Failed to delete user");
@@ -343,7 +346,7 @@ const ViewUserDashboard: React.FC<ViewUserDashboardProps> = ({
                   variant={selectionMode ? "default" : "outline"}
                   data-testid="toggle-user-selection"
                 >
-                  {selectionMode ? "Cancel Selection" : "Select Users"}
+                  {selectionMode ? translateMessage("Cancel Selection") : translateMessage("Select Users")}
                 </Button>
               )}
 
@@ -354,7 +357,9 @@ const ViewUserDashboard: React.FC<ViewUserDashboardProps> = ({
                   disabled={selectedUsers.length === 0}
                   data-testid="bulk-edit-users"
                 >
-                  Bulk Edit ({selectedUsers.length} selected)
+                  <LocalizedText text={"Bulk Edit ("} />
+                  {selectedUsers.length}
+                  <LocalizedText text={" selected)"} />
                 </Button>
               )}
             </>
@@ -366,10 +371,10 @@ const ViewUserDashboard: React.FC<ViewUserDashboardProps> = ({
         <Tabs defaultValue="users" className="gap-0">
           <TabsList variant="line" className="mb-4">
             <TabsTrigger value="users" className="flex-none data-active:text-primary after:bg-primary">
-              Users
+              <LocalizedText text={"Users"} />
             </TabsTrigger>
             <TabsTrigger value="default-settings" className="flex-none data-active:text-primary after:bg-primary">
-              Default User Settings
+              <LocalizedText text={"Default User Settings"} />
             </TabsTrigger>
           </TabsList>
 
@@ -382,7 +387,7 @@ const ViewUserDashboard: React.FC<ViewUserDashboardProps> = ({
               <div
                 className="flex h-64 items-center justify-center"
                 role="status"
-                aria-label="Loading default user settings"
+                aria-label={translateMessage("Loading default user settings")}
               >
                 <div className="w-full max-w-lg space-y-3">
                   <Skeleton className="h-5 w-1/3" />
@@ -403,20 +408,26 @@ const ViewUserDashboard: React.FC<ViewUserDashboardProps> = ({
       {/* Existing Modals */}
       <DeleteResourceModal
         isOpen={isDeleteModalOpen}
-        title="Delete User?"
-        message="Are you sure you want to delete this user? This action cannot be undone."
+        title={translateMessage("Delete User?")}
+        message={translateMessage("Are you sure you want to delete this user? This action cannot be undone.")}
         resourceInformationTitle="User Information"
         resourceInformation={[
-          { label: "Email", value: userToDelete?.user_email },
-          { label: "User ID", value: userToDelete?.user_id, code: true },
-          {
-            label: "Global Proxy Role",
-            value:
-              (userToDelete?.user_role && possibleUIRoles?.[userToDelete.user_role]?.ui_label) ||
-              userToDelete?.user_role ||
-              "-",
-          },
-          { label: "Total Spend (USD)", value: userToDelete?.spend?.toFixed(2) },
+          markUiCopy({ label: "Email", value: userToDelete?.user_email }, { label: "Email" }),
+          markUiCopy({ label: "User ID", value: userToDelete?.user_id, code: true }, { label: "User ID" }),
+          markUiCopy(
+            {
+              label: "Global Proxy Role",
+              value:
+                (userToDelete?.user_role && possibleUIRoles?.[userToDelete.user_role]?.ui_label) ||
+                userToDelete?.user_role ||
+                "-",
+            },
+            { label: "Global Proxy Role" },
+          ),
+          markUiCopy(
+            { label: "Total Spend (USD)", value: userToDelete?.spend?.toFixed(2) },
+            { label: "Total Spend (USD)" },
+          ),
         ]}
         onCancel={cancelDelete}
         onOk={confirmDelete}

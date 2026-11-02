@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import React, { useState } from "react";
 import { PlusIcon, TrashIcon, GripVerticalIcon } from "lucide-react";
 import VariableTextArea from "../variable_textarea";
@@ -7,9 +9,9 @@ import { Card } from "@/components/ui/card";
 import { Select as ShadcnSelect, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const ROLE_ITEMS = [
-  { value: "user", label: "User" },
-  { value: "assistant", label: "Assistant" },
-  { value: "system", label: "System" },
+  markUiCopy({ value: "user", label: "User" }, { label: "User" }),
+  markUiCopy({ value: "assistant", label: "Assistant" }, { label: "Assistant" }),
+  markUiCopy({ value: "system", label: "System" }, { label: "System" }),
 ] as const;
 
 interface PromptMessagesCardProps {
@@ -27,6 +29,7 @@ const PromptMessagesCard: React.FC<PromptMessagesCardProps> = ({
   onRemoveMessage,
   onMoveMessage,
 }) => {
+  useUiLocale();
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
@@ -56,9 +59,13 @@ const PromptMessagesCard: React.FC<PromptMessagesCardProps> = ({
   return (
     <Card className="p-3">
       <div className="mb-2">
-        <p className="text-sm font-medium">Prompt messages</p>
+        <p className="text-sm font-medium">
+          <LocalizedText text={"Prompt messages"} />
+        </p>
         <p className="text-muted-foreground text-xs mt-1">
-          Use <code className="bg-muted px-1 rounded-sm text-xs">{"{{variable}}"}</code> syntax for template variables
+          <LocalizedText text={"Use "} />
+          <code className="bg-muted px-1 rounded-sm text-xs">{"{{variable}}"}</code>
+          <LocalizedText text={" syntax for template variables"} />
         </p>
       </div>
       <div className="space-y-2">
@@ -83,14 +90,14 @@ const PromptMessagesCard: React.FC<PromptMessagesCardProps> = ({
                 <SelectTrigger
                   size="sm"
                   className="w-[110px] border-0 shadow-none"
-                  aria-label={`Message ${index + 1} role`}
+                  aria-label={translateMessage("Message %{0} role", [index + 1])}
                 >
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   {ROLE_ITEMS.map((item) => (
                     <SelectItem key={item.value} value={item.value}>
-                      {item.label}
+                      {localizedProperty(item, "label", item.label)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -100,7 +107,7 @@ const PromptMessagesCard: React.FC<PromptMessagesCardProps> = ({
                   <Button
                     variant="ghost"
                     size="icon-sm"
-                    aria-label={`Remove message ${index + 1}`}
+                    aria-label={translateMessage("Remove message %{0}", [index + 1])}
                     onClick={() => onRemoveMessage(index)}
                   >
                     <TrashIcon size={14} />
@@ -116,7 +123,7 @@ const PromptMessagesCard: React.FC<PromptMessagesCardProps> = ({
                 value={message.content}
                 onChange={(value) => onUpdateMessage(index, "content", value)}
                 rows={3}
-                placeholder="Enter prompt content..."
+                placeholder={translateMessage("Enter prompt content...")}
               />
             </div>
           </div>
@@ -124,7 +131,7 @@ const PromptMessagesCard: React.FC<PromptMessagesCardProps> = ({
       </div>
       <Button variant="ghost" size="sm" onClick={onAddMessage} className="mt-2">
         <PlusIcon size={14} className="mr-1" />
-        Add message
+        <LocalizedText text={"Add message"} />
       </Button>
     </Card>
   );

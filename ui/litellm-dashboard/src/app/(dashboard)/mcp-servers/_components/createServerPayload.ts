@@ -1,3 +1,4 @@
+import { markUiCopy } from "@/lib/i18n";
 import {
   AUTH_TYPE,
   MCPServerCostInfo,
@@ -198,13 +199,16 @@ export const buildCreateServerPayload = (
       ...(transport === restValues.transport ? {} : { transport }),
       // Remove the raw stdio_config field as we've extracted its components
       stdio_config: undefined,
-      mcp_info: {
-        server_name: serverName || restValues.url,
-        description: restValues.description,
-        logo_url: ui.logoUrl || undefined,
-        mcp_server_cost_info: Object.keys(ui.costConfig).length > 0 ? ui.costConfig : null,
-        tool_allowlist_enforced: ui.hasToolAllowlistInteraction || ui.allowedTools.length > 0,
-      },
+      mcp_info: markUiCopy(
+        {
+          server_name: serverName || restValues.url,
+          description: restValues.description,
+          logo_url: ui.logoUrl || undefined,
+          mcp_server_cost_info: Object.keys(ui.costConfig).length > 0 ? ui.costConfig : null,
+          tool_allowlist_enforced: ui.hasToolAllowlistInteraction || ui.allowedTools.length > 0,
+        },
+        { description: { owner: restValues, field: "description" } },
+      ),
       mcp_access_groups: restValues.mcp_access_groups,
       alias: restValues.alias,
       allowed_tools: [...ui.allowedTools],

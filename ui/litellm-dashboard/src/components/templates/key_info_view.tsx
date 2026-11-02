@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, getIntlLocale, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import { useCustomerNative } from "@/components/account/native/CustomerNativeContext";
 import useAuthorized from "@/app/(dashboard)/hooks/useAuthorized";
 import { useModelAccessGroupNames } from "@/app/(dashboard)/hooks/models/useModels";
@@ -96,6 +98,7 @@ export default function KeyInfoView({
   onDelete,
   backButtonText = "Back to Keys",
 }: KeyInfoViewProps) {
+  useUiLocale();
   const { accessToken, userId: userID, userRole, premiumUser } = useAuthorized();
   const customer = useCustomerNative();
   const accessGroupNames = useModelAccessGroupNames();
@@ -187,7 +190,9 @@ export default function KeyInfoView({
           <ArrowLeft className="size-4" />
           {backButtonText}
         </Button>
-        <p className="text-sm">Key not found</p>
+        <p className="text-sm">
+          <LocalizedText text={"Key not found"} />
+        </p>
       </div>
     );
   }
@@ -238,7 +243,7 @@ export default function KeyInfoView({
       const nextSoftBudget =
         formValues.soft_budget === "" || formValues.soft_budget == null ? null : Number(formValues.soft_budget);
       if (nextSoftBudget !== null && !Number.isFinite(nextSoftBudget)) {
-        toast.error("Soft Budget must be a finite number");
+        toast.error(translateMessage("Soft Budget must be a finite number"));
         return;
       }
       if (nextSoftBudget === previousSoftBudget) {
@@ -267,7 +272,11 @@ export default function KeyInfoView({
             (toolsetId) => !(allMcpToolsets ?? []).some((toolset) => toolset.toolset_id === toolsetId),
           );
         if (unresolvableSelection && Object.keys(mcpEntitlement.mcp_tool_permissions).length > 0) {
-          toast.error("MCP server or toolset list is unavailable, so MCP permissions cannot be saved yet. Retry.");
+          toast.error(
+            translateMessage(
+              "MCP server or toolset list is unavailable, so MCP permissions cannot be saved yet. Retry.",
+            ),
+          );
           return;
         }
         formValues.object_permission = {
@@ -326,7 +335,7 @@ export default function KeyInfoView({
           };
         } catch (error) {
           console.error("Error parsing metadata JSON:", error);
-          toast.error("Invalid metadata JSON");
+          toast.error(translateMessage("Invalid metadata JSON"));
           return;
         }
       } else {
@@ -376,7 +385,9 @@ export default function KeyInfoView({
         const trimmed = teamAdminMemberKeyPayload(formValues, dirtyFields);
         if (trimmed.kind === "blocked") {
           toast.error(
-            `Team admins can only change budget fields on other members' keys, not ${trimmed.fields.join(", ")}`,
+            translateMessage("Team admins can only change budget fields on other members' keys, not %{0}", [
+              trimmed.fields.join(", "),
+            ]),
           );
           return;
         }
@@ -391,7 +402,7 @@ export default function KeyInfoView({
       if (onKeyDataUpdate) {
         onKeyDataUpdate(newKeyValues);
       }
-      toast.success("Key updated successfully");
+      toast.success(translateMessage("Key updated successfully"));
       setIsEditing(false);
       // Refresh key data here if needed
     } catch (error) {
@@ -405,7 +416,7 @@ export default function KeyInfoView({
       setDeleteLoading(true);
       if (!accessToken) return;
       await keyDeleteCall(accessToken as string, currentKeyData.token || currentKeyData.token_id);
-      toast.success("Key deleted successfully");
+      toast.success(translateMessage("Key deleted successfully"));
       await queryClient.invalidateQueries({ queryKey: keyKeys.lists() });
       if (onDelete) {
         onDelete();
@@ -429,7 +440,7 @@ export default function KeyInfoView({
         ...prevData,
         ...updatedKeyData, // This should include the new token (key-id)
         // Update the created_at to show when it was regenerated
-        created_at: regeneratedAt.toLocaleString(),
+        created_at: regeneratedAt.toLocaleString(getIntlLocale()),
       };
       return newData;
     });
@@ -440,7 +451,7 @@ export default function KeyInfoView({
 
     setKeyDataUpdateHeldUntilModalClose({
       ...updatedKeyData,
-      created_at: regeneratedAt.toLocaleString(),
+      created_at: regeneratedAt.toLocaleString(getIntlLocale()),
     });
   };
 
@@ -497,7 +508,7 @@ export default function KeyInfoView({
         if (onKeyDataUpdate) {
           onKeyDataUpdate({ spend: 0 });
         }
-        toast.success("Key spend reset to $0");
+        toast.success(translateMessage("Key spend reset to $0"));
         setIsResetSpendModalOpen(false);
       },
       onError: (error) => {
@@ -519,7 +530,7 @@ export default function KeyInfoView({
           if (onKeyDataUpdate) {
             onKeyDataUpdate({ blocked });
           }
-          toast.success(blocked ? "Key blocked" : "Key unblocked");
+          toast.success(blocked ? translateMessage("Key blocked") : translateMessage("Key unblocked"));
           setIsBlockModalOpen(false);
         },
         onError: (error) => {
@@ -590,29 +601,41 @@ export default function KeyInfoView({
       {/* Delete Confirmation Modal */}
       <DeleteResourceModal
         isOpen={isDeleteModalOpen}
-        title="Delete Key"
+        title={translateMessage("Delete Key")}
         alertMessage="This action is irreversible and will immediately revoke access for any applications using this key."
-        message="Are you sure you want to delete this Virtual Key?"
+        message={translateMessage("Are you sure you want to delete this Virtual Key?")}
         resourceInformationTitle="Key Information"
         resourceInformation={[
-          {
-            label: "Key Alias",
-            value: currentKeyData?.key_alias || "-",
-          },
-          {
-            label: "Key ID",
-            value: currentKeyData?.token_id || currentKeyData?.token || "-",
-            code: true,
-          },
-          {
-            label: "Team ID",
-            value: currentKeyData?.team_id || "-",
-            code: true,
-          },
-          {
-            label: "Spend",
-            value: currentKeyData?.spend ? `$${formatNumberWithCommas(currentKeyData.spend, 4)}` : "$0.0000",
-          },
+          markUiCopy(
+            {
+              label: "Key Alias",
+              value: currentKeyData?.key_alias || "-",
+            },
+            { label: "Key Alias" },
+          ),
+          markUiCopy(
+            {
+              label: "Key ID",
+              value: currentKeyData?.token_id || currentKeyData?.token || "-",
+              code: true,
+            },
+            { label: "Key ID" },
+          ),
+          markUiCopy(
+            {
+              label: "Team ID",
+              value: currentKeyData?.team_id || "-",
+              code: true,
+            },
+            { label: "Team ID" },
+          ),
+          markUiCopy(
+            {
+              label: "Spend",
+              value: currentKeyData?.spend ? `$${formatNumberWithCommas(currentKeyData.spend, 4)}` : "$0.0000",
+            },
+            { label: "Spend" },
+          ),
         ]}
         onCancel={() => {
           setIsDeleteModalOpen(false);
@@ -626,22 +649,30 @@ export default function KeyInfoView({
       <Dialog open={isResetSpendModalOpen} onOpenChange={(open) => setIsResetSpendModalOpen(open)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Reset Key Spend</DialogTitle>
+            <DialogTitle>
+              <LocalizedText text={"Reset Key Spend"} />
+            </DialogTitle>
           </DialogHeader>
           <p>
-            Reset spend for <strong>{currentKeyData?.key_alias || currentKeyData?.token_id || "this key"}</strong> to{" "}
-            <strong>$0</strong>?
+            <LocalizedText text={"Reset spend for "} />
+            <strong>{currentKeyData?.key_alias || currentKeyData?.token_id || translateMessage("this key")}</strong>
+            <LocalizedText text={" to"} /> <strong>$0</strong>?
           </p>
           <p style={{ color: "#666", fontSize: "0.875rem", marginTop: 8 }}>
-            Current spend: <strong>${formatNumberWithCommas(currentKeyData.spend, 4)}</strong>. Spend history is
-            preserved in logs. This resets the current period spend counter, the same as an automatic budget reset.
+            <LocalizedText text={"Current spend: "} />
+            <strong>${formatNumberWithCommas(currentKeyData.spend, 4)}</strong>
+            <LocalizedText
+              text={
+                ". Spend history is preserved in logs. This resets the current period spend counter, the same as an automatic budget reset."
+              }
+            />
           </p>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsResetSpendModalOpen(false)}>
-              Cancel
+              <LocalizedText text={"Cancel"} />
             </Button>
             <Button variant="destructive" onClick={handleResetSpend} disabled={resetSpendLoading}>
-              Reset
+              <LocalizedText text={"Reset"} />
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -650,27 +681,29 @@ export default function KeyInfoView({
       <Dialog open={isBlockModalOpen} onOpenChange={(open) => setIsBlockModalOpen(open)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{isBlocked ? "Unblock Key" : "Block Key"}</DialogTitle>
+            <DialogTitle>{isBlocked ? translateMessage("Unblock Key") : translateMessage("Block Key")}</DialogTitle>
           </DialogHeader>
           <p>
-            {isBlocked ? "Unblock" : "Block"}{" "}
-            <strong>{currentKeyData?.key_alias || currentKeyData?.token_id || "this key"}</strong>?
+            {isBlocked ? translateMessage("Unblock") : translateMessage("Block")}{" "}
+            <strong>{currentKeyData?.key_alias || currentKeyData?.token_id || translateMessage("this key")}</strong>?
           </p>
           <p style={{ color: "#666", fontSize: "0.875rem", marginTop: 8 }}>
             {isBlocked
-              ? "Requests using this key will be accepted again."
-              : "Requests using this key will be rejected with a 401 error until it is unblocked. The key is not deleted and can be unblocked at any time."}
+              ? translateMessage("Requests using this key will be accepted again.")
+              : translateMessage(
+                  "Requests using this key will be rejected with a 401 error until it is unblocked. The key is not deleted and can be unblocked at any time.",
+                )}
           </p>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsBlockModalOpen(false)}>
-              Cancel
+              <LocalizedText text={"Cancel"} />
             </Button>
             <Button
               variant={isBlocked ? "default" : "destructive"}
               onClick={handleToggleBlocked}
               disabled={blockLoading}
             >
-              {isBlocked ? "Unblock" : "Block"}
+              {isBlocked ? translateMessage("Unblock") : translateMessage("Block")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -679,21 +712,21 @@ export default function KeyInfoView({
       <Tabs defaultValue="overview">
         <TabsList variant="line" className="mb-4 h-auto w-full justify-start rounded-none border-b p-0">
           <TabsTrigger value="overview" className="flex-none rounded-none px-4 py-2">
-            Overview
+            <LocalizedText text={"Overview"} />
           </TabsTrigger>
           {!customer && (
             <TabsTrigger value="savings" className="flex-none rounded-none px-4 py-2">
-              Savings
+              <LocalizedText text={"Savings"} />
             </TabsTrigger>
           )}
           {hasProxyWideSpendView(userRole) && (
             <TabsTrigger value="auto-router-usage" className="flex-none rounded-none px-4 py-2">
-              Auto-router usage
+              <LocalizedText text={"Auto-router usage"} />
             </TabsTrigger>
           )}
           {!customer && (
             <TabsTrigger value="settings" className="flex-none rounded-none px-4 py-2">
-              Settings
+              <LocalizedText text={"Settings"} />
             </TabsTrigger>
           )}
         </TabsList>
@@ -703,25 +736,32 @@ export default function KeyInfoView({
           <TabsContent value="overview" keepMounted>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               <Card className="block p-6">
-                <p className="text-sm">Spend</p>
+                <p className="text-sm">
+                  <LocalizedText text={"Spend"} />
+                </p>
                 <div className="mt-2">
                   <h3 className="text-lg font-medium">${formatNumberWithCommas(currentKeyData.spend, 4)}</h3>
                   <p className="text-sm">
-                    of {budgetDisplay}
+                    <LocalizedText text={"of "} />
+                    {budgetDisplay}
                     <InheritedBudgetHint gates={inheritedGates} />
                   </p>
                   {currentKeyData.budget_reset_at && (
-                    <p className="text-sm">Resets {formatTimestamp(currentKeyData.budget_reset_at)}</p>
+                    <p className="text-sm">
+                      <LocalizedText text={"Resets "} />
+                      {formatTimestamp(currentKeyData.budget_reset_at)}
+                    </p>
                   )}
                   <p className="text-sm mt-2" data-testid="key-lifetime-spend">
-                    Lifetime spend: ${formatNumberWithCommas(currentKeyData.total_spend ?? 0, 4)}
+                    <LocalizedText text={"Lifetime spend: $"} />
+                    {formatNumberWithCommas(currentKeyData.total_spend ?? 0, 4)}
                     {needsLifetimeSpendBackfill(currentKeyData.spend, currentKeyData.total_spend) && (
                       <HoverCard>
                         <HoverCardTrigger
                           render={
                             <button
                               type="button"
-                              aria-label="Why lifetime spend is below current spend"
+                              aria-label={translateMessage("Why lifetime spend is below current spend")}
                               className="inline-flex align-middle ml-1 cursor-help"
                               data-testid="key-lifetime-spend-backfill-hint"
                             />
@@ -730,8 +770,11 @@ export default function KeyInfoView({
                           <Info className="size-3 text-muted-foreground" />
                         </HoverCardTrigger>
                         <HoverCardContent className="w-80">
-                          Lifetime tracking started with LiteLLM v1.103.0 on September 19, 2026 and was not backfilled,
-                          so this key&apos;s lifetime spend only counts usage since that upgrade.
+                          <LocalizedText
+                            text={
+                              "Lifetime tracking started with LiteLLM v1.103.0 on September 19, 2026 and was not backfilled, so this key's lifetime spend only counts usage since that upgrade."
+                            }
+                          />
                         </HoverCardContent>
                       </HoverCard>
                     )}
@@ -740,23 +783,34 @@ export default function KeyInfoView({
               </Card>
 
               <Card className="block p-6">
-                <p className="text-sm">Rate Limits</p>
+                <p className="text-sm">
+                  <LocalizedText text={"Rate Limits"} />
+                </p>
                 <div className="mt-2">
                   <p className="text-sm">
-                    TPM: {currentKeyData.tpm_limit !== null ? currentKeyData.tpm_limit : "Unlimited"}
+                    <LocalizedText text={"TPM: "} />
+                    {currentKeyData.tpm_limit !== null ? currentKeyData.tpm_limit : translateMessage("Unlimited")}
                   </p>
                   <p className="text-sm">
-                    RPM: {currentKeyData.rpm_limit !== null ? currentKeyData.rpm_limit : "Unlimited"}
+                    <LocalizedText text={"RPM: "} />
+                    {currentKeyData.rpm_limit !== null ? currentKeyData.rpm_limit : translateMessage("Unlimited")}
                   </p>
-                  <p className="text-sm">TPD (batch): {currentKeyData.tpd_limit ?? "Unlimited"}</p>
+                  <p className="text-sm">
+                    <LocalizedText text={"TPD (batch): "} />
+                    {currentKeyData.tpd_limit ?? translateMessage("Unlimited")}
+                  </p>
                   {Boolean(currentKeyData.metadata?.throttle_on_budget_exceeded) && (
-                    <p className="text-sm">Throttle on budget exceeded: Yes</p>
+                    <p className="text-sm">
+                      <LocalizedText text={"Throttle on budget exceeded: Yes"} />
+                    </p>
                   )}
                 </div>
               </Card>
 
               <Card className="block p-6">
-                <p className="text-sm">Models</p>
+                <p className="text-sm">
+                  <LocalizedText text={"Models"} />
+                </p>
                 <div className="mt-2 flex flex-wrap gap-2">
                   {currentKeyData.models && currentKeyData.models.length > 0 ? (
                     currentKeyData.models.map((model, index) => (
@@ -769,7 +823,9 @@ export default function KeyInfoView({
                       </BadgeLink>
                     ))
                   ) : (
-                    <p className="text-sm">No models specified</p>
+                    <p className="text-sm">
+                      <LocalizedText text={"No models specified"} />
+                    </p>
                   )}
                 </div>
               </Card>
@@ -785,7 +841,9 @@ export default function KeyInfoView({
                   </Card>
 
                   <Card className="block p-6">
-                    <p className="text-sm font-medium mb-3">Guardrails</p>
+                    <p className="text-sm font-medium mb-3">
+                      <LocalizedText text={"Guardrails"} />
+                    </p>
                     {Array.isArray(currentKeyData.metadata?.guardrails) &&
                     currentKeyData.metadata.guardrails.length > 0 ? (
                       <div className="flex flex-wrap gap-2">
@@ -796,18 +854,24 @@ export default function KeyInfoView({
                         ))}
                       </div>
                     ) : (
-                      <p className="text-sm text-muted-foreground">No guardrails configured</p>
+                      <p className="text-sm text-muted-foreground">
+                        <LocalizedText text={"No guardrails configured"} />
+                      </p>
                     )}
                     {typeof currentKeyData.metadata?.disable_global_guardrails === "boolean" &&
                       currentKeyData.metadata.disable_global_guardrails === true && (
                         <div className="mt-3 pt-3 border-t border-border">
-                          <Badge variant="destructive">Global Guardrails Disabled</Badge>
+                          <Badge variant="destructive">
+                            <LocalizedText text={"Global Guardrails Disabled"} />
+                          </Badge>
                         </div>
                       )}
                   </Card>
 
                   <Card className="block p-6">
-                    <p className="text-sm font-medium mb-3">Policies</p>
+                    <p className="text-sm font-medium mb-3">
+                      <LocalizedText text={"Policies"} />
+                    </p>
                     {Array.isArray(currentKeyData.metadata?.policies) && currentKeyData.metadata.policies.length > 0 ? (
                       <div className="space-y-4">
                         {currentKeyData.metadata.policies.map((policy: string, index: number) => (
@@ -817,12 +881,16 @@ export default function KeyInfoView({
                                 {policy}
                               </Badge>
                               {loadingPolicies && (
-                                <p className="text-xs text-muted-foreground">Loading guardrails...</p>
+                                <p className="text-xs text-muted-foreground">
+                                  <LocalizedText text={"Loading guardrails..."} />
+                                </p>
                               )}
                             </div>
                             {!loadingPolicies && policyGuardrails[policy] && policyGuardrails[policy].length > 0 && (
                               <div className="ml-4 pl-3 border-l-2 border-border">
-                                <p className="text-xs text-muted-foreground mb-1">Resolved Guardrails:</p>
+                                <p className="text-xs text-muted-foreground mb-1">
+                                  <LocalizedText text={"Resolved Guardrails:"} />
+                                </p>
                                 <div className="flex flex-wrap gap-1">
                                   {policyGuardrails[policy].map((guardrail: string, gIndex: number) => (
                                     <Badge key={gIndex} variant="secondary" className="min-w-0 break-words">
@@ -836,7 +904,9 @@ export default function KeyInfoView({
                         ))}
                       </div>
                     ) : (
-                      <p className="text-sm text-muted-foreground">No policies configured</p>
+                      <p className="text-sm text-muted-foreground">
+                        <LocalizedText text={"No policies configured"} />
+                      </p>
                     )}
                   </Card>
 
@@ -892,10 +962,12 @@ export default function KeyInfoView({
             <TabsContent value="settings" keepMounted>
               <Card className="block p-6">
                 <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-medium">Key Settings</h3>
+                  <h3 className="text-lg font-medium">
+                    <LocalizedText text={"Key Settings"} />
+                  </h3>
                   {!customer && !isEditing && canModifyKey && (
                     <Button variant="outline" onClick={() => setIsEditing(true)}>
-                      Edit Settings
+                      <LocalizedText text={"Edit Settings"} />
                     </Button>
                   )}
                 </div>
@@ -914,36 +986,46 @@ export default function KeyInfoView({
                 ) : (
                   <div className="space-y-4">
                     <div>
-                      <p className="text-sm font-medium">Key ID</p>
+                      <p className="text-sm font-medium">
+                        <LocalizedText text={"Key ID"} />
+                      </p>
                       <p className="text-sm font-mono">{currentKeyData.token_id || currentKeyData.token}</p>
                     </div>
 
                     <div>
-                      <p className="text-sm font-medium">Key Alias</p>
-                      <p className="text-sm">{currentKeyData.key_alias || "Not Set"}</p>
+                      <p className="text-sm font-medium">
+                        <LocalizedText text={"Key Alias"} />
+                      </p>
+                      <p className="text-sm">{currentKeyData.key_alias || translateMessage("Not Set")}</p>
                     </div>
 
                     <div>
-                      <p className="text-sm font-medium">Secret Key</p>
+                      <p className="text-sm font-medium">
+                        <LocalizedText text={"Secret Key"} />
+                      </p>
                       <p className="text-sm font-mono">{currentKeyData.key_name}</p>
                     </div>
 
                     <div>
-                      <p className="text-sm font-medium">Team ID</p>
+                      <p className="text-sm font-medium">
+                        <LocalizedText text={"Team ID"} />
+                      </p>
                       <p className="text-sm">
                         {currentKeyData.team_id ? (
                           <EntityLink href={teamDetailHref(currentKeyData.team_id)} className="font-normal">
                             {currentKeyData.team_id}
                           </EntityLink>
                         ) : (
-                          "Not Set"
+                          translateMessage("Not Set")
                         )}
                       </p>
                     </div>
 
                     {enableProjectsUI && (
                       <div>
-                        <p className="text-sm font-medium">Project</p>
+                        <p className="text-sm font-medium">
+                          <LocalizedText text={"Project"} />
+                        </p>
                         <p className="text-sm">
                           {currentKeyData.project_id
                             ? (() => {
@@ -952,45 +1034,61 @@ export default function KeyInfoView({
                                   ? `${project.project_alias} (${currentKeyData.project_id})`
                                   : currentKeyData.project_id;
                               })()
-                            : "Not Set"}
+                            : translateMessage("Not Set")}
                         </p>
                       </div>
                     )}
 
                     <div>
-                      <p className="text-sm font-medium">Organization</p>
+                      <p className="text-sm font-medium">
+                        <LocalizedText text={"Organization"} />
+                      </p>
                       <p className="text-sm">
-                        {(currentKeyData.organization_id ?? currentKeyData.org_id) || "Not Set"}
+                        {(currentKeyData.organization_id ?? currentKeyData.org_id) || translateMessage("Not Set")}
                       </p>
                     </div>
 
                     <div>
-                      <p className="text-sm font-medium">Created</p>
+                      <p className="text-sm font-medium">
+                        <LocalizedText text={"Created"} />
+                      </p>
                       <p className="text-sm">{formatTimestamp(currentKeyData.created_at)}</p>
                     </div>
 
                     {lastRegeneratedAt && (
                       <div>
-                        <p className="text-sm font-medium">Last Regenerated</p>
+                        <p className="text-sm font-medium">
+                          <LocalizedText text={"Last Regenerated"} />
+                        </p>
                         <div className="flex items-center gap-2">
                           <p className="text-sm">{formatTimestamp(lastRegeneratedAt)}</p>
-                          <Badge variant="secondary">Recent</Badge>
+                          <Badge variant="secondary">
+                            <LocalizedText text={"Recent"} />
+                          </Badge>
                         </div>
                       </div>
                     )}
 
                     <div>
-                      <p className="text-sm font-medium">Expires</p>
+                      <p className="text-sm font-medium">
+                        <LocalizedText text={"Expires"} />
+                      </p>
                       <p className="text-sm">
-                        {currentKeyData.expires ? formatTimestamp(currentKeyData.expires) : "Never"}
+                        {currentKeyData.expires ? formatTimestamp(currentKeyData.expires) : translateMessage("Never")}
                       </p>
                     </div>
 
                     {Boolean(currentKeyData.metadata?.enable_prompt_caching) && (
                       <div>
-                        <p className="text-sm font-medium">Prompt Caching</p>
+                        <p className="text-sm font-medium">
+                          <LocalizedText text={"Prompt Caching"} />
+                        </p>
                         <p className="text-sm">
-                          Enabled (auto-injects cache_control markers on Anthropic and Bedrock Claude requests)
+                          <LocalizedText
+                            text={
+                              "Enabled (auto-injects cache_control markers on Anthropic and Bedrock Claude requests)"
+                            }
+                          />
                         </p>
                       </div>
                     )}
@@ -1006,36 +1104,52 @@ export default function KeyInfoView({
                     />
 
                     <div>
-                      <p className="text-sm font-medium">Spend</p>
-                      <p className="text-sm">${formatNumberWithCommas(currentKeyData.spend, 4)} USD</p>
-                    </div>
-
-                    <div>
-                      <p className="text-sm font-medium">Lifetime Spend</p>
-                      <p className="text-sm">${formatNumberWithCommas(currentKeyData.total_spend ?? 0, 4)} USD</p>
-                    </div>
-
-                    <div>
-                      <p className="text-sm font-medium">Budget</p>
+                      <p className="text-sm font-medium">
+                        <LocalizedText text={"Spend"} />
+                      </p>
                       <p className="text-sm">
-                        {currentKeyData.max_budget !== null
-                          ? `$${formatNumberWithCommas(currentKeyData.max_budget, 2)}`
-                          : "Unlimited"}
+                        ${formatNumberWithCommas(currentKeyData.spend, 4)}
+                        <LocalizedText text={" USD"} />
                       </p>
                     </div>
 
                     <div>
-                      <p className="text-sm font-medium">Budget Reset</p>
+                      <p className="text-sm font-medium">
+                        <LocalizedText text={"Lifetime Spend"} />
+                      </p>
+                      <p className="text-sm">
+                        ${formatNumberWithCommas(currentKeyData.total_spend ?? 0, 4)}
+                        <LocalizedText text={" USD"} />
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-sm font-medium">
+                        <LocalizedText text={"Budget"} />
+                      </p>
+                      <p className="text-sm">
+                        {currentKeyData.max_budget !== null
+                          ? `$${formatNumberWithCommas(currentKeyData.max_budget, 2)}`
+                          : translateMessage("Unlimited")}
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-sm font-medium">
+                        <LocalizedText text={"Budget Reset"} />
+                      </p>
                       <p data-testid="budget-reset-value" className="text-sm">
                         {currentKeyData.budget_reset_at
-                          ? `${currentKeyData.budget_duration ? `Every ${currentKeyData.budget_duration}, next ` : ""}${formatTimestamp(currentKeyData.budget_reset_at)}`
-                          : "Never"}
+                          ? `${currentKeyData.budget_duration ? translateMessage("Every %{0}, next ", [currentKeyData.budget_duration]) : ""}${formatTimestamp(currentKeyData.budget_reset_at)}`
+                          : translateMessage("Never")}
                       </p>
                     </div>
 
                     {currentKeyData.budget_fallbacks && Object.keys(currentKeyData.budget_fallbacks).length > 0 && (
                       <div>
-                        <p className="text-sm font-medium">Budget Fallbacks</p>
+                        <p className="text-sm font-medium">
+                          <LocalizedText text={"Budget Fallbacks"} />
+                        </p>
                         <div className="mt-1 space-y-1">
                           {Object.entries(currentKeyData.budget_fallbacks).map(([model, fallbacks]) => (
                             <div key={model} className="text-xs text-muted-foreground">
@@ -1050,7 +1164,9 @@ export default function KeyInfoView({
 
                     {hasRouterSettings(currentKeyData.router_settings) && (
                       <div>
-                        <p className="text-sm font-medium">Router Settings</p>
+                        <p className="text-sm font-medium">
+                          <LocalizedText text={"Router Settings"} />
+                        </p>
                         <div className="mt-1">
                           <RouterSettingsSummary routerSettings={currentKeyData.router_settings} />
                         </div>
@@ -1058,7 +1174,9 @@ export default function KeyInfoView({
                     )}
 
                     <div>
-                      <p className="text-sm font-medium">Tags</p>
+                      <p className="text-sm font-medium">
+                        <LocalizedText text={"Tags"} />
+                      </p>
                       <div className="flex flex-wrap gap-2 mt-1">
                         {Array.isArray(currentKeyData.metadata?.tags) && currentKeyData.metadata.tags.length > 0
                           ? currentKeyData.metadata.tags.map((tag, index) => (
@@ -1066,12 +1184,14 @@ export default function KeyInfoView({
                                 {tag}
                               </span>
                             ))
-                          : "No tags specified"}
+                          : translateMessage("No tags specified")}
                       </div>
                     </div>
 
                     <div>
-                      <p className="text-sm font-medium">Prompts</p>
+                      <p className="text-sm font-medium">
+                        <LocalizedText text={"Prompts"} />
+                      </p>
                       <p className="text-sm">
                         {Array.isArray(currentKeyData.metadata?.prompts) && currentKeyData.metadata.prompts.length > 0
                           ? currentKeyData.metadata.prompts.map((prompt, index) => (
@@ -1079,12 +1199,14 @@ export default function KeyInfoView({
                                 {prompt}
                               </span>
                             ))
-                          : "No prompts specified"}
+                          : translateMessage("No prompts specified")}
                       </p>
                     </div>
 
                     <div>
-                      <p className="text-sm font-medium">Allowed Routes</p>
+                      <p className="text-sm font-medium">
+                        <LocalizedText text={"Allowed Routes"} />
+                      </p>
                       <div className="flex flex-wrap gap-2 mt-1">
                         {Array.isArray(currentKeyData.allowed_routes) && currentKeyData.allowed_routes.length > 0 ? (
                           currentKeyData.allowed_routes.map((route, index) => (
@@ -1093,13 +1215,17 @@ export default function KeyInfoView({
                             </span>
                           ))
                         ) : (
-                          <Badge variant="secondary">All routes allowed</Badge>
+                          <Badge variant="secondary">
+                            <LocalizedText text={"All routes allowed"} />
+                          </Badge>
                         )}
                       </div>
                     </div>
 
                     <div>
-                      <p className="text-sm font-medium">Allowed Pass Through Routes</p>
+                      <p className="text-sm font-medium">
+                        <LocalizedText text={"Allowed Pass Through Routes"} />
+                      </p>
                       <p className="text-sm">
                         {Array.isArray(currentKeyData.metadata?.allowed_passthrough_routes) &&
                         currentKeyData.metadata.allowed_passthrough_routes.length > 0
@@ -1108,23 +1234,31 @@ export default function KeyInfoView({
                                 {route}
                               </span>
                             ))
-                          : "No pass through routes specified"}
+                          : translateMessage("No pass through routes specified")}
                       </p>
                     </div>
 
                     <div>
-                      <p className="text-sm font-medium">Disable Global Guardrails</p>
+                      <p className="text-sm font-medium">
+                        <LocalizedText text={"Disable Global Guardrails"} />
+                      </p>
                       <p className="text-sm">
                         {currentKeyData.metadata?.disable_global_guardrails === true ? (
-                          <Badge variant="destructive">Enabled - Global guardrails bypassed</Badge>
+                          <Badge variant="destructive">
+                            <LocalizedText text={"Enabled - Global guardrails bypassed"} />
+                          </Badge>
                         ) : (
-                          <Badge variant="secondary">Disabled - Global guardrails active</Badge>
+                          <Badge variant="secondary">
+                            <LocalizedText text={"Disabled - Global guardrails active"} />
+                          </Badge>
                         )}
                       </p>
                     </div>
 
                     <div>
-                      <p className="text-sm font-medium">Models</p>
+                      <p className="text-sm font-medium">
+                        <LocalizedText text={"Models"} />
+                      </p>
                       <div className="flex flex-wrap gap-2 mt-1">
                         {currentKeyData.models && currentKeyData.models.length > 0 ? (
                           currentKeyData.models.map((model, index) => (
@@ -1137,61 +1271,72 @@ export default function KeyInfoView({
                             </BadgeLink>
                           ))
                         ) : (
-                          <p className="text-sm">No models specified</p>
+                          <p className="text-sm">
+                            <LocalizedText text={"No models specified"} />
+                          </p>
                         )}
                       </div>
                     </div>
 
                     <div>
-                      <p className="text-sm font-medium">Rate Limits</p>
-                      <p className="text-sm">
-                        TPM: {currentKeyData.tpm_limit !== null ? currentKeyData.tpm_limit : "Unlimited"}
+                      <p className="text-sm font-medium">
+                        <LocalizedText text={"Rate Limits"} />
                       </p>
                       <p className="text-sm">
-                        RPM: {currentKeyData.rpm_limit !== null ? currentKeyData.rpm_limit : "Unlimited"}
+                        <LocalizedText text={"TPM: "} />
+                        {currentKeyData.tpm_limit !== null ? currentKeyData.tpm_limit : translateMessage("Unlimited")}
                       </p>
-                      <p className="text-sm">TPD (batch): {currentKeyData.tpd_limit ?? "Unlimited"}</p>
                       <p className="text-sm">
-                        Max Parallel Requests:{" "}
+                        <LocalizedText text={"RPM: "} />
+                        {currentKeyData.rpm_limit !== null ? currentKeyData.rpm_limit : translateMessage("Unlimited")}
+                      </p>
+                      <p className="text-sm">
+                        <LocalizedText text={"TPD (batch): "} />
+                        {currentKeyData.tpd_limit ?? translateMessage("Unlimited")}
+                      </p>
+                      <p className="text-sm">
+                        <LocalizedText text={"Max Parallel Requests:"} />{" "}
                         {currentKeyData.max_parallel_requests !== null
                           ? currentKeyData.max_parallel_requests
-                          : "Unlimited"}
+                          : translateMessage("Unlimited")}
                       </p>
                       <p className="text-sm">
-                        Model TPM Limits:{" "}
+                        <LocalizedText text={"Model TPM Limits:"} />{" "}
                         {currentKeyData.metadata?.model_tpm_limit
                           ? JSON.stringify(currentKeyData.metadata.model_tpm_limit)
-                          : "Unlimited"}
+                          : translateMessage("Unlimited")}
                       </p>
                       <p className="text-sm">
-                        Model RPM Limits:{" "}
+                        <LocalizedText text={"Model RPM Limits:"} />{" "}
                         {currentKeyData.metadata?.model_rpm_limit
                           ? JSON.stringify(currentKeyData.metadata.model_rpm_limit)
-                          : "Unlimited"}
+                          : translateMessage("Unlimited")}
                       </p>
                       <p className="text-sm">
-                        Tag RPM Limits:{" "}
+                        <LocalizedText text={"Tag RPM Limits:"} />{" "}
                         {currentKeyData.metadata?.tag_rpm_limit &&
                         Object.keys(currentKeyData.metadata.tag_rpm_limit).length > 0
                           ? JSON.stringify(currentKeyData.metadata.tag_rpm_limit)
-                          : "Unlimited"}
+                          : translateMessage("Unlimited")}
                       </p>
                       <p className="text-sm">
-                        Estimated Output Tokens:{" "}
+                        <LocalizedText text={"Estimated Output Tokens:"} />{" "}
                         {currentKeyData.metadata?.default_estimated_output_tokens != null
                           ? String(currentKeyData.metadata.default_estimated_output_tokens)
-                          : "Default"}
+                          : translateMessage("Default")}
                       </p>
                       <p className="text-sm">
-                        Estimated Output Tokens Per Model:{" "}
+                        <LocalizedText text={"Estimated Output Tokens Per Model:"} />{" "}
                         {currentKeyData.metadata?.default_estimated_output_tokens_per_model
                           ? JSON.stringify(currentKeyData.metadata.default_estimated_output_tokens_per_model)
-                          : "Default"}
+                          : translateMessage("Default")}
                       </p>
                     </div>
 
                     <div>
-                      <p className="text-sm font-medium">Metadata</p>
+                      <p className="text-sm font-medium">
+                        <LocalizedText text={"Metadata"} />
+                      </p>
                       <pre className="bg-muted p-2 rounded-sm text-xs overflow-auto mt-1">
                         {formatMetadataForDisplay(stripTagsFromMetadata(currentKeyData.metadata))}
                       </pre>

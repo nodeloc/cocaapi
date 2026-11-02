@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, getIntlLocale, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import type { DateRangePickerValue } from "@/components/shared/date_picker_types";
 import React, { useEffect, useState } from "react";
 import { toast } from "@/lib/toast";
@@ -80,6 +82,7 @@ interface CachePageProps {
 // Helper function to deep-parse a JSON string if possible
 
 const CacheDashboard: React.FC<CachePageProps> = ({ accessToken, token, userRole, userID, premiumUser }) => {
+  useUiLocale();
   const anchor1 = useComboboxAnchor();
   const anchor2 = useComboboxAnchor();
   const [selectedApiKeys, setSelectedApiKeys] = useState<string[]>([]);
@@ -102,7 +105,7 @@ const CacheDashboard: React.FC<CachePageProps> = ({ accessToken, token, userRole
   });
 
   useEffect(() => {
-    setLastRefreshed(new Date().toLocaleString());
+    setLastRefreshed(new Date().toLocaleString(getIntlLocale()));
   }, []);
 
   const uniqueApiKeys = activity?.filter_options.key_aliases ?? [];
@@ -113,12 +116,12 @@ const CacheDashboard: React.FC<CachePageProps> = ({ accessToken, token, userRole
 
   const handleRefreshClick = () => {
     refetch();
-    setLastRefreshed(new Date().toLocaleString());
+    setLastRefreshed(new Date().toLocaleString(getIntlLocale()));
   };
 
   const runCachingHealthCheck = async () => {
     try {
-      toast.info("Running cache health check...");
+      toast.info(translateMessage("Running cache health check..."));
       setHealthCheckResponse("");
       const response = await cachingHealthCheckCall(accessToken !== null ? accessToken : "");
       setHealthCheckResponse(response);
@@ -135,10 +138,10 @@ const CacheDashboard: React.FC<CachePageProps> = ({ accessToken, token, userRole
           }
           errorData = parsedData;
         } catch (e) {
-          errorData = { message: error.message };
+          errorData = markUiCopy({ message: error.message }, { message: { owner: error, field: "message" } });
         }
       } else {
-        errorData = { message: "Unknown error occurred" };
+        errorData = markUiCopy({ message: "Unknown error occurred" }, { message: "Unknown error occurred" });
       }
       setHealthCheckResponse({ error: errorData });
     }
@@ -147,9 +150,15 @@ const CacheDashboard: React.FC<CachePageProps> = ({ accessToken, token, userRole
   const totals = activity?.totals;
   const hasRequests = totals != null && totals.api_requests + totals.cache_hits + totals.failed_requests > 0;
   const statCards = [
-    { label: "Cache Hit Ratio", value: `${hasRequests ? totals.cache_hit_ratio.toFixed(2) : "0"}%` },
-    { label: "Cache Hits", value: valueFormatterNumbers(totals?.cache_hits ?? 0) },
-    { label: "Cached Completion Tokens", value: valueFormatterNumbers(totals?.cached_completion_tokens ?? 0) },
+    markUiCopy(
+      { label: "Cache Hit Ratio", value: `${hasRequests ? totals.cache_hit_ratio.toFixed(2) : "0"}%` },
+      { label: "Cache Hit Ratio" },
+    ),
+    markUiCopy({ label: "Cache Hits", value: valueFormatterNumbers(totals?.cache_hits ?? 0) }, { label: "Cache Hits" }),
+    markUiCopy(
+      { label: "Cached Completion Tokens", value: valueFormatterNumbers(totals?.cached_completion_tokens ?? 0) },
+      { label: "Cached Completion Tokens" },
+    ),
   ];
 
   return (
@@ -157,22 +166,32 @@ const CacheDashboard: React.FC<CachePageProps> = ({ accessToken, token, userRole
       <div className="mt-2 flex w-full items-center justify-between border-b">
         <TabsList variant="line" className="h-auto rounded-none p-0">
           <TabsTrigger value="analytics" className="flex-none rounded-none px-4 py-2">
-            Cache Analytics
+            <LocalizedText text={"Cache Analytics"} />
           </TabsTrigger>
           <TabsTrigger value="health" className="flex-none rounded-none px-4 py-2">
-            Cache Health
+            <LocalizedText text={"Cache Health"} />
           </TabsTrigger>
           <TabsTrigger value="settings" className="flex-none rounded-none px-4 py-2">
-            Cache Settings
+            <LocalizedText text={"Cache Settings"} />
           </TabsTrigger>
           <TabsTrigger value="coordination" className="flex-none rounded-none px-4 py-2">
-            Coordination Redis
+            <LocalizedText text={"Coordination Redis"} />
           </TabsTrigger>
         </TabsList>
 
         <div className="flex items-center space-x-2">
-          {lastRefreshed && <p className="text-sm text-muted-foreground">Last Refreshed: {lastRefreshed}</p>}
-          <Button variant="outline" size="icon-sm" onClick={handleRefreshClick} aria-label="Refresh">
+          {lastRefreshed && (
+            <p className="text-sm text-muted-foreground">
+              <LocalizedText text={"Last Refreshed: "} />
+              {lastRefreshed}
+            </p>
+          )}
+          <Button
+            variant="outline"
+            size="icon-sm"
+            onClick={handleRefreshClick}
+            aria-label={translateMessage("Refresh")}
+          >
             <RefreshCw />
           </Button>
         </div>
@@ -182,26 +201,33 @@ const CacheDashboard: React.FC<CachePageProps> = ({ accessToken, token, userRole
         <Card>
           <CardContent>
             <p className="text-sm text-muted-foreground">
-              Analytics for LiteLLM&apos;s{" "}
+              <LocalizedText text={"Analytics for LiteLLM's"} />{" "}
               <a
                 href="https://docs.litellm.ai/docs/proxy/caching"
                 target="_blank"
                 rel="noreferrer"
                 className="underline"
               >
-                response cache
+                <LocalizedText text={"response cache"} />
               </a>{" "}
-              (e.g. Redis / in-memory): requests answered from cache without calling the LLM provider. Provider-side{" "}
+              <LocalizedText
+                text={
+                  "(e.g. Redis / in-memory): requests answered from cache without calling the LLM provider. Provider-side"
+                }
+              />{" "}
               <a
                 href="https://docs.litellm.ai/docs/completion/prompt_caching"
                 target="_blank"
                 rel="noreferrer"
                 className="underline"
               >
-                prompt caching
+                <LocalizedText text={"prompt caching"} />
               </a>{" "}
-              (cached input tokens from Anthropic, OpenAI, etc.) is not shown here; see &quot;Prompt Caching
-              Metrics&quot; on the Usage page or individual requests in the Logs page.
+              <LocalizedText
+                text={
+                  '(cached input tokens from Anthropic, OpenAI, etc.) is not shown here; see "Prompt Caching Metrics" on the Usage page or individual requests in the Logs page.'
+                }
+              />
             </p>
 
             <div className="mt-4 grid grid-cols-1 items-center gap-4 md:grid-cols-[1fr_1fr_auto]">
@@ -221,10 +247,12 @@ const CacheDashboard: React.FC<CachePageProps> = ({ accessToken, token, userRole
                       ))
                     }
                   </ComboboxValue>
-                  <ComboboxChipsInput placeholder="Select Virtual Keys" />
+                  <ComboboxChipsInput placeholder={translateMessage("Select Virtual Keys")} />
                 </ComboboxChips>
                 <ComboboxContent anchor={anchor1}>
-                  <ComboboxEmpty>No virtual keys found</ComboboxEmpty>
+                  <ComboboxEmpty>
+                    <LocalizedText text={"No virtual keys found"} />
+                  </ComboboxEmpty>
                   <ComboboxList>
                     {(key: string) => (
                       <ComboboxItem key={key} value={key}>
@@ -251,10 +279,12 @@ const CacheDashboard: React.FC<CachePageProps> = ({ accessToken, token, userRole
                       ))
                     }
                   </ComboboxValue>
-                  <ComboboxChipsInput placeholder="Select Models" />
+                  <ComboboxChipsInput placeholder={translateMessage("Select Models")} />
                 </ComboboxChips>
                 <ComboboxContent anchor={anchor2}>
-                  <ComboboxEmpty>No models found</ComboboxEmpty>
+                  <ComboboxEmpty>
+                    <LocalizedText text={"No models found"} />
+                  </ComboboxEmpty>
                   <ComboboxList>
                     {(model: string) => (
                       <ComboboxItem key={model} value={model}>
@@ -277,7 +307,9 @@ const CacheDashboard: React.FC<CachePageProps> = ({ accessToken, token, userRole
               {statCards.map((stat) => (
                 <Card key={stat.label}>
                   <CardContent>
-                    <p className="text-sm font-medium text-muted-foreground">{stat.label}</p>
+                    <p className="text-sm font-medium text-muted-foreground">
+                      {localizedProperty(stat, "label", stat.label)}
+                    </p>
                     <div className="mt-2 flex items-baseline space-x-2.5">
                       <p className="text-3xl font-semibold">{stat.value}</p>
                     </div>
@@ -288,11 +320,15 @@ const CacheDashboard: React.FC<CachePageProps> = ({ accessToken, token, userRole
 
             <Card className="mt-4">
               <CardHeader>
-                <CardTitle className="text-base font-semibold">Cache Hits vs API Requests</CardTitle>
+                <CardTitle className="text-base font-semibold">
+                  <LocalizedText text={"Cache Hits vs API Requests"} />
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground">
-                  Click a red failed-requests segment to see which error codes caused those failures.
+                  <LocalizedText
+                    text={"Click a red failed-requests segment to see which error codes caused those failures."}
+                  />
                 </p>
                 {hasUnknownGroup && <p className="mt-1 text-sm text-muted-foreground">{UNKNOWN_CALL_TYPE_NOTE}</p>}
                 <BarChart
@@ -323,7 +359,7 @@ const CacheDashboard: React.FC<CachePageProps> = ({ accessToken, token, userRole
             <Card className="mt-6">
               <CardHeader>
                 <CardTitle className="text-base font-semibold">
-                  Cached Completion Tokens vs Generated Completion Tokens
+                  <LocalizedText text={"Cached Completion Tokens vs Generated Completion Tokens"} />
                 </CardTitle>
               </CardHeader>
               <CardContent>

@@ -1,7 +1,8 @@
+import { markUiCopy } from "@/lib/i18n";
 import type { SearchSelectOption } from "@/components/shared/SearchSelect";
 import type { CredentialItem } from "@/components/networking";
 
-export const NO_CREDENTIAL_OPTION: SearchSelectOption = { label: "None", value: "" };
+export const NO_CREDENTIAL_OPTION: SearchSelectOption = markUiCopy({ label: "None", value: "" }, { label: "None" });
 
 export const credentialLabel = (credential: CredentialItem): string =>
   credential.display_name || credential.credential_name;

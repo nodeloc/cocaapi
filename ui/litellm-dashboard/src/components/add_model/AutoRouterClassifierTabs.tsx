@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import React, { useContext, useId } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
@@ -49,6 +51,7 @@ export function ClassifierOption({
   disabled?: boolean;
   unlimited?: boolean;
 }) {
+  useUiLocale();
   const state = useContext(AutoRouterAvailabilityContext);
   const allowance = state.data?.allowances.find((entry) => entry.key === feature);
   const fresh = !state.isPending && !state.isError && !state.isChecking;
@@ -62,7 +65,11 @@ export function ClassifierOption({
             {feature ? (
               <AutoRouterAllowanceLabel feature={feature} />
             ) : (
-              unlimited && <span className="shrink-0 text-xs leading-5 text-muted-foreground">Unlimited</span>
+              unlimited && (
+                <span className="shrink-0 text-xs leading-5 text-muted-foreground">
+                  <LocalizedText text={"Unlimited"} />
+                </span>
+              )
             )}
           </span>
           <span className={`text-xs leading-5 text-muted-foreground ${exhausted ? "pr-28" : ""}`}>{description}</span>
@@ -71,25 +78,17 @@ export function ClassifierOption({
       {fresh && exhausted && (
         <DropdownMenuItem
           render={<a href={AUTO_ROUTER_CONTACT_URL} target="_blank" rel="noopener noreferrer" />}
-          aria-label={`Talk to our team about ${label}`}
+          aria-label={translateMessage("Talk to our team about %{0}", [label])}
           className="absolute top-9 right-8 cursor-pointer px-0 py-0 text-xs leading-5 font-medium text-blue-600 focus:text-blue-600 hover:underline dark:text-blue-400 dark:focus:text-blue-400"
         >
-          Talk to our team
+          <LocalizedText text={"Talk to our team"} />
         </DropdownMenuItem>
       )}
     </div>
   );
 }
 
-export function ClassifierMenu({
-  id,
-  label,
-  value,
-  selectedLabel,
-  feature,
-  onValueChange,
-  children,
-}: {
+export function ClassifierMenu(cocaCopyProps0: {
   id: string;
   label: string;
   value: string;
@@ -98,18 +97,22 @@ export function ClassifierMenu({
   onValueChange: (value: string) => void;
   children: React.ReactNode;
 }) {
+  const { id, label, value, selectedLabel, feature, onValueChange, children } = cocaCopyProps0;
+  useUiLocale();
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
         id={id}
-        aria-label={label}
+        aria-label={localizedProperty(cocaCopyProps0, "label", label)}
         render={<Button variant="outline" className="w-full justify-between font-normal" />}
       >
         <span className="flex-1 text-left">{selectedLabel}</span>
         {feature ? (
           <AutoRouterAllowanceLabel feature={feature} />
         ) : (
-          <span className="text-xs text-muted-foreground">Unlimited</span>
+          <span className="text-xs text-muted-foreground">
+            <LocalizedText text={"Unlimited"} />
+          </span>
         )}
         <ChevronDownIcon className="size-4 text-muted-foreground" />
       </DropdownMenuTrigger>
@@ -137,6 +140,7 @@ const AutoRouterClassifierTabs: React.FC<AutoRouterClassifierTabsProps> = ({
   judgeModel,
   decisionModel,
 }) => {
+  useUiLocale();
   const id = useId();
   const availability = useContext(AutoRouterAvailabilityContext);
   const classifierType = effectiveClassifierType(value);
@@ -171,7 +175,10 @@ const AutoRouterClassifierTabs: React.FC<AutoRouterClassifierTabsProps> = ({
       jev_classifier_config: { ...defaults, ...value.jev_classifier_config, provider, model: defaults.model },
     });
   };
-  const approachLabels: Partial<Record<ClassifierType, string>> = { capability: "Capability", llm_v2: "Fuse v2" };
+  const approachLabels: Partial<Record<ClassifierType, string>> = markUiCopy(
+    { capability: "Capability", llm_v2: "Fuse v2" },
+    { capability: "Capability", llm_v2: "Fuse v2" },
+  );
   const approachDescription: Partial<Record<ClassifierType, string>> = {
     capability: "Use the efficient model when it is likely to succeed",
     llm_v2: "Use the efficient model when its predicted quality is close enough to the capable model",
@@ -181,9 +188,15 @@ const AutoRouterClassifierTabs: React.FC<AutoRouterClassifierTabsProps> = ({
       <fieldset>
         <legend className="mb-4 flex w-full items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <h4 className="m-0 text-xl font-semibold text-foreground">Choose your classifier</h4>
+            <h4 className="m-0 text-xl font-semibold text-foreground">
+              <LocalizedText text={"Choose your classifier"} />
+            </h4>
             <SimpleTooltip content="Choose how requests are evaluated and routed to your tiers">
-              <button type="button" aria-label="About classifiers" className="text-muted-foreground">
+              <button
+                type="button"
+                aria-label={translateMessage("About classifiers")}
+                className="text-muted-foreground"
+              >
                 <Info className="size-4" />
               </button>
             </SimpleTooltip>
@@ -192,13 +205,22 @@ const AutoRouterClassifierTabs: React.FC<AutoRouterClassifierTabsProps> = ({
         </legend>
         <RadioGroup value={family} onValueChange={changeFamily} className="grid gap-3 sm:grid-cols-3">
           {[
-            { value: "heuristics", label: "Heuristics", description: "Classify locally, with no API call" },
-            { value: "llm", label: "LLM", description: "Use a judge model to choose a solver" },
-            {
-              value: "jev",
-              label: "Decisions Model",
-              description: "Use a decision model to choose a tier",
-            },
+            markUiCopy(
+              { value: "heuristics", label: "Heuristics", description: "Classify locally, with no API call" },
+              { label: "Heuristics", description: "Classify locally, with no API call" },
+            ),
+            markUiCopy(
+              { value: "llm", label: "LLM", description: "Use a judge model to choose a solver" },
+              { label: "LLM", description: "Use a judge model to choose a solver" },
+            ),
+            markUiCopy(
+              {
+                value: "jev",
+                label: "Decisions Model",
+                description: "Use a decision model to choose a tier",
+              },
+              { label: "Decisions Model", description: "Use a decision model to choose a tier" },
+            ),
           ].map((option) => (
             <Label
               key={option.value}
@@ -210,13 +232,13 @@ const AutoRouterClassifierTabs: React.FC<AutoRouterClassifierTabsProps> = ({
                 disabled={option.value === "heuristics" && hasCustomTiers}
               />
               <span className="space-y-1">
-                <span className="block font-medium">{option.label}</span>
+                <span className="block font-medium">{localizedProperty(option, "label", option.label)}</span>
                 <span
                   id={`${id}-${option.value}-description`}
                   aria-hidden="true"
                   className="block text-xs font-normal text-muted-foreground"
                 >
-                  {option.description}
+                  {localizedProperty(option, "description", option.description)}
                 </span>
               </span>
             </Label>
@@ -226,13 +248,15 @@ const AutoRouterClassifierTabs: React.FC<AutoRouterClassifierTabsProps> = ({
       {family === "jev" &&
         (decisionModel ?? (
           <div className="space-y-2">
-            <Label htmlFor={`${id}-decision-model`}>Decision model</Label>
+            <Label htmlFor={`${id}-decision-model`}>
+              <LocalizedText text={"Decision model"} />
+            </Label>
             <Select
               items={[
-                { value: "jev", label: "Jev" },
-                { value: "laya", label: "Laya" },
-                { value: "bespoke", label: "Bespoke Nimble" },
-                { value: "databricks", label: "Databricks" },
+                markUiCopy({ value: "jev", label: "Jev" }, { label: "Jev" }),
+                markUiCopy({ value: "laya", label: "Laya" }, { label: "Laya" }),
+                markUiCopy({ value: "bespoke", label: "Bespoke Nimble" }, { label: "Bespoke Nimble" }),
+                markUiCopy({ value: "databricks", label: "Databricks" }, { label: "Databricks" }),
               ]}
               value={normalizeJevClassifierConfig(value.jev_classifier_config).provider}
               onValueChange={changeProvider}
@@ -241,23 +265,35 @@ const AutoRouterClassifierTabs: React.FC<AutoRouterClassifierTabsProps> = ({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="jev">Jev</SelectItem>
-                <SelectItem value="laya">Laya</SelectItem>
-                <SelectItem value="bespoke">Bespoke Nimble</SelectItem>
-                <SelectItem value="databricks">Databricks</SelectItem>
+                <SelectItem value="jev">
+                  <LocalizedText text={"Jev"} />
+                </SelectItem>
+                <SelectItem value="laya">
+                  <LocalizedText text={"Laya"} />
+                </SelectItem>
+                <SelectItem value="bespoke">
+                  <LocalizedText text={"Bespoke Nimble"} />
+                </SelectItem>
+                <SelectItem value="databricks">
+                  <LocalizedText text={"Databricks"} />
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
         ))}
       {family === "custom" && (
-        <p className="text-sm text-muted-foreground">This router uses a custom classifier plugin</p>
+        <p className="text-sm text-muted-foreground">
+          <LocalizedText text={"This router uses a custom classifier plugin"} />
+        </p>
       )}
       {family === "heuristics" && (
         <div className="space-y-2">
-          <Label htmlFor={`${id}-heuristic`}>Heuristic</Label>
+          <Label htmlFor={`${id}-heuristic`}>
+            <LocalizedText text={"Heuristic"} />
+          </Label>
           <ClassifierMenu
             id={`${id}-heuristic`}
-            label="Heuristic"
+            label={translateMessage("Heuristic")}
             selectedLabel={classifierType === "heuristic_v2" ? "Heuristic v2" : "Rule-based"}
             feature={classifierType === "heuristic_v2" ? "heuristic_v2" : undefined}
             value={classifierType}
@@ -267,30 +303,34 @@ const AutoRouterClassifierTabs: React.FC<AutoRouterClassifierTabsProps> = ({
           >
             <ClassifierOption
               value="heuristic"
-              label="Rule-based"
-              description="Score requests with local rules to choose a tier, with no API call"
+              label={translateMessage("Rule-based")}
+              description={translateMessage("Score requests with local rules to choose a tier, with no API call")}
             />
             <ClassifierOption
               value="heuristic_v2"
-              label="Heuristic v2"
-              description="Use calibrated probabilities to match requests to a tier, with no API call"
+              label={translateMessage("Heuristic v2")}
+              description={translateMessage(
+                "Use calibrated probabilities to match requests to a tier, with no API call",
+              )}
               feature="heuristic_v2"
             />
           </ClassifierMenu>
           <p className="text-xs text-muted-foreground">
             {classifierType === "heuristic_v2"
-              ? "Use calibrated probabilities to match requests to a tier"
-              : "Match requests using scoring rules. Choose or change tier models freely"}
+              ? translateMessage("Use calibrated probabilities to match requests to a tier")
+              : translateMessage("Match requests using scoring rules. Choose or change tier models freely")}
           </p>
         </div>
       )}
       {family === "llm" && judgeModel}
       {family === "llm" && (
         <div className="space-y-2">
-          <Label htmlFor={`${id}-approach`}>Routing approach</Label>
+          <Label htmlFor={`${id}-approach`}>
+            <LocalizedText text={"Routing approach"} />
+          </Label>
           <ClassifierMenu
             id={`${id}-approach`}
-            label="Routing approach"
+            label={translateMessage("Routing approach")}
             selectedLabel={approachLabels[classifierType] ?? "Complexity"}
             feature={isForecastClassifier(classifierType) ? classifierType : undefined}
             value={isForecastClassifier(classifierType) ? classifierType : "llm"}
@@ -303,22 +343,26 @@ const AutoRouterClassifierTabs: React.FC<AutoRouterClassifierTabsProps> = ({
           >
             <ClassifierOption
               value="llm"
-              label="Complexity"
-              description="Match task difficulty to a tier, then use one of that tier's models"
+              label={translateMessage("Complexity")}
+              description={translateMessage("Match task difficulty to a tier, then use one of that tier's models")}
             />
             {family === "llm" && (
               <>
                 <ClassifierOption
                   value="capability"
-                  label="Capability"
-                  description="Use the efficient model when it is likely to succeed; otherwise use the capable model"
+                  label={translateMessage("Capability")}
+                  description={translateMessage(
+                    "Use the efficient model when it is likely to succeed; otherwise use the capable model",
+                  )}
                   feature="capability"
                   disabled={hasCustomTiers}
                 />
                 <ClassifierOption
                   value="llm_v2"
-                  label="Fuse v2"
-                  description="Use the efficient model when its predicted quality is close enough to the capable model"
+                  label={translateMessage("Fuse v2")}
+                  description={translateMessage(
+                    "Use the efficient model when its predicted quality is close enough to the capable model",
+                  )}
                   feature="llm_v2"
                   disabled={hasCustomTiers}
                 />
@@ -326,13 +370,13 @@ const AutoRouterClassifierTabs: React.FC<AutoRouterClassifierTabsProps> = ({
             )}
           </ClassifierMenu>
           <p className="text-xs text-muted-foreground">
-            {approachDescription[classifierType] ?? "Match task difficulty to a tier"}
+            {approachDescription[classifierType] ?? translateMessage("Match task difficulty to a tier")}
           </p>
         </div>
       )}
       {hasCustomTiers && (
         <p className="text-xs text-muted-foreground">
-          Restore standard tiers to use Heuristics, Capability, or Fuse v2
+          <LocalizedText text={"Restore standard tiers to use Heuristics, Capability, or Fuse v2"} />
         </p>
       )}
       {availability.data?.error && !availability.isChecking && (
@@ -343,9 +387,9 @@ const AutoRouterClassifierTabs: React.FC<AutoRouterClassifierTabsProps> = ({
       )}
       {availability.isError && (
         <p className="text-xs text-muted-foreground">
-          Could not check availability.{" "}
+          <LocalizedText text={"Could not check availability."} />{" "}
           <button type="button" className="underline" onClick={() => availability.refetch?.()}>
-            Retry
+            <LocalizedText text={"Retry"} />
           </button>
         </p>
       )}

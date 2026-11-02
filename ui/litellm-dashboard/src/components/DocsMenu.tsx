@@ -1,3 +1,5 @@
+"use client";
+import { localizedProperty, useUiLocale } from "@/lib/i18n";
 import React, { useState, useRef, useEffect } from "react";
 import { ExternalLink, ChevronDown } from "lucide-react";
 
@@ -13,6 +15,7 @@ interface DocsMenuProps {
 }
 
 export const DocsMenu: React.FC<DocsMenuProps> = ({ items, children = "Docs", className = "" }) => {
+  useUiLocale();
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -56,7 +59,7 @@ export const DocsMenu: React.FC<DocsMenuProps> = ({ items, children = "Docs", cl
               className="flex items-center justify-between px-4 py-2 text-sm text-foreground hover:bg-accent transition-colors"
               onClick={() => setIsOpen(false)}
             >
-              <span>{item.label}</span>
+              <span>{localizedProperty(item, "label", item.label)}</span>
               <ExternalLink className="h-3.5 w-3.5 text-muted-foreground shrink-0 ml-2" aria-hidden="true" />
             </a>
           ))}

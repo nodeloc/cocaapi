@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import {
   getCoreRowModel,
@@ -51,6 +52,7 @@ interface ListContextValue {
 const ListContext = createContext<ListContextValue | null>(null);
 
 function useList(): ListContextValue {
+  useUiLocale();
   const value = useContext(ListContext);
   if (value === null) throw new Error("Investigation cells must be rendered inside InvestigationList");
   return value;
@@ -61,6 +63,7 @@ type Cell = CellContext<InvestigationRow, unknown>;
 const ROW_LABEL = { investigation: "Investigation details", finding: "Finding details" } as const;
 
 function NameCell({ row: { original: item } }: Cell) {
+  useUiLocale();
   return (
     <span className="flex min-w-0 flex-col">
       <span className="truncate font-medium text-foreground">{item.lens.settings.name}</span>
@@ -70,10 +73,12 @@ function NameCell({ row: { original: item } }: Cell) {
 }
 
 function AgentCell({ row: { original: item } }: Cell) {
+  useUiLocale();
   return <span className="block truncate text-muted-foreground">{scopeLabel(item.lens.settings)}</span>;
 }
 
 function ScheduleCell({ row: { original: item } }: Cell) {
+  useUiLocale();
   const { now } = useList();
   return (
     <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-muted-foreground">
@@ -87,6 +92,7 @@ function ScheduleCell({ row: { original: item } }: Cell) {
 }
 
 function StatusCell({ row: { original: item } }: Cell) {
+  useUiLocale();
   const { connected, now } = useList();
   const latest = item.lens.jobs[0];
   return (
@@ -103,6 +109,7 @@ function StatusCell({ row: { original: item } }: Cell) {
 }
 
 function FindingCount({ row: { original: item } }: Cell) {
+  useUiLocale();
   if (item.kind === "finding") return null;
   const count = openFindings(item.lens).length;
   if (count === 0) return null;
@@ -117,6 +124,7 @@ function FindingCount({ row: { original: item } }: Cell) {
 }
 
 function ActionsCell({ row: { original: item } }: Cell) {
+  useUiLocale();
   const { readOnly, demo, onEdit, onRunNow } = useList();
   if (item.kind === "finding")
     return <ChevronRight aria-hidden="true" className="mr-2 ml-auto size-3.5 text-muted-foreground/60" />;
@@ -126,8 +134,8 @@ function ActionsCell({ row: { original: item } }: Cell) {
     <span className="flex items-center justify-end gap-0.5">
       <button
         type="button"
-        aria-label={`Run ${settings.name} now`}
-        title={demo ? "Turn off Demo data to run an investigation" : "Run now"}
+        aria-label={translateMessage("Run %{0} now", [settings.name])}
+        title={demo ? translateMessage("Turn off Demo data to run an investigation") : translateMessage("Run now")}
         disabled={readOnly}
         onClick={(event) => {
           event.stopPropagation();
@@ -139,8 +147,8 @@ function ActionsCell({ row: { original: item } }: Cell) {
       </button>
       <button
         type="button"
-        aria-label={`Edit ${settings.name}`}
-        title={demo ? "Turn off Demo data to edit an investigation" : "Edit"}
+        aria-label={translateMessage("Edit %{0}", [settings.name])}
+        title={demo ? translateMessage("Turn off Demo data to edit an investigation") : translateMessage("Edit")}
         disabled={readOnly}
         onClick={(event) => {
           event.stopPropagation();
@@ -155,18 +163,24 @@ function ActionsCell({ row: { original: item } }: Cell) {
 }
 
 const COLUMNS: ColumnDef<InvestigationRow>[] = [
-  { id: "name", header: "Investigation", cell: NameCell },
-  { id: "agent", size: 160, header: "Agent", cell: AgentCell },
-  { id: "schedule", size: 180, header: "Schedule", cell: ScheduleCell },
-  { id: "status", size: 200, header: "Last run", cell: StatusCell },
-  { id: "findings", size: 64, header: "Open", cell: FindingCount, meta: { numeric: true } },
-  {
-    id: "actions",
-    size: 76,
-    header: "Actions",
-    cell: ActionsCell,
-    meta: { headerClassName: "sr-only", className: "pl-0 pr-3" },
-  },
+  markUiCopy({ id: "name", header: "Investigation", cell: NameCell }, { header: "Investigation" }),
+  markUiCopy({ id: "agent", size: 160, header: "Agent", cell: AgentCell }, { header: "Agent" }),
+  markUiCopy({ id: "schedule", size: 180, header: "Schedule", cell: ScheduleCell }, { header: "Schedule" }),
+  markUiCopy({ id: "status", size: 200, header: "Last run", cell: StatusCell }, { header: "Last run" }),
+  markUiCopy(
+    { id: "findings", size: 64, header: "Open", cell: FindingCount, meta: { numeric: true } },
+    { header: "Open" },
+  ),
+  markUiCopy(
+    {
+      id: "actions",
+      size: 76,
+      header: "Actions",
+      cell: ActionsCell,
+      meta: { headerClassName: "sr-only", className: "pl-0 pr-3" },
+    },
+    { header: "Actions" },
+  ),
 ];
 
 export interface InvestigationListProps {
@@ -193,6 +207,7 @@ export function InvestigationList({
   actions,
   children,
 }: InvestigationListProps) {
+  useUiLocale();
   const [search, setSearch] = useListSearchRoute();
   const { demo } = useLensRoute();
   const now = useNow(15000);
@@ -227,16 +242,16 @@ export function InvestigationList({
             values={itemValues(INVESTIGATION_INDEX, lenses)}
             value={search}
             onValueChange={setSearch}
-            label="Search investigations"
+            label={translateMessage("Search investigations")}
           >
-            <SearchBox.Input className="rounded-md" placeholder="Search investigations" />
+            <SearchBox.Input className="rounded-md" placeholder={translateMessage("Search investigations")} />
             <SearchBox.Suggestions />
           </SearchBox.Root>
           {actions && <div className="ml-auto flex items-center gap-2">{actions}</div>}
         </div>
         <ListContext.Provider value={{ now, connected, readOnly, demo, onEdit, onRunNow }}>
           <InspectorTable.Root table={table}>
-            <InspectorTable.Grid aria-label="Investigations" className="text-xs md:min-w-[860px]">
+            <InspectorTable.Grid aria-label={translateMessage("Investigations")} className="text-xs md:min-w-[860px]">
               <InspectorTable.Header />
               <InspectorTable.Body<InvestigationRow> rowHeight={() => (desktop ? INVESTIGATION_HEIGHT : 48)}>
                 {(row) => (
@@ -245,7 +260,9 @@ export function InvestigationList({
                     item={row.original}
                     tabIndex={0}
                     aria-label={
-                      row.original.kind === "finding" ? row.original.finding.title : row.original.lens.settings.name
+                      row.original.kind === "finding"
+                        ? localizedProperty(row.original.finding, "title")
+                        : row.original.lens.settings.name
                     }
                     className="group h-12 md:h-9"
                   />
@@ -254,14 +271,15 @@ export function InvestigationList({
             </InspectorTable.Grid>
             {!shown.length && (
               <div className="py-16 text-center text-xs text-muted-foreground">
-                No investigations match your search.
+                <LocalizedText text={"No investigations match your search."} />
               </div>
             )}
           </InspectorTable.Root>
         </ListContext.Provider>
         <footer className="flex h-8 shrink-0 items-center border-t bg-muted/30 px-3 text-xs text-muted-foreground">
-          {shown.length} {shown.length === 1 ? "investigation" : "investigations"} ·{" "}
-          {shown.filter((lens) => lens.settings.enabled).length} watching
+          {shown.length} {shown.length === 1 ? translateMessage("investigation") : translateMessage("investigations")} ·{" "}
+          {shown.filter((lens) => lens.settings.enabled).length}
+          <LocalizedText text={" watching"} />
         </footer>
       </div>
       <Inspector.Panel label={ROW_LABEL[noun]} testId="investigation-panel">

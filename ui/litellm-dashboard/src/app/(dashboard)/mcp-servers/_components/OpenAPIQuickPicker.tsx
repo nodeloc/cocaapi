@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, useUiLocale } from "@/lib/i18n";
 import React, { useEffect, useState } from "react";
 import { UiLoadingSpinner } from "@/components/ui/ui-loading-spinner";
 import { cn } from "@/lib/cva.config";
@@ -30,6 +32,7 @@ interface OpenAPIQuickPickerProps {
 }
 
 const OpenAPIQuickPicker: React.FC<OpenAPIQuickPickerProps> = ({ accessToken, selectedName, onSelect }) => {
+  useUiLocale();
   const [apis, setApis] = useState<OpenAPIRegistryEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [imgErrors, setImgErrors] = useState<Set<string>>(new Set());
@@ -50,7 +53,9 @@ const OpenAPIQuickPicker: React.FC<OpenAPIQuickPickerProps> = ({ accessToken, se
   if (loading) {
     return (
       <div className="mb-4">
-        <span className="text-sm font-medium">Popular APIs</span>
+        <span className="text-sm font-medium">
+          <LocalizedText text={"Popular APIs"} />
+        </span>
         <div className="flex justify-center py-6">
           <UiLoadingSpinner className="size-5 text-muted-foreground" />
         </div>
@@ -62,7 +67,9 @@ const OpenAPIQuickPicker: React.FC<OpenAPIQuickPickerProps> = ({ accessToken, se
 
   return (
     <div className="mb-4">
-      <span className="mb-2 block text-sm font-medium">Popular APIs</span>
+      <span className="mb-2 block text-sm font-medium">
+        <LocalizedText text={"Popular APIs"} />
+      </span>
 
       <div className="grid grid-cols-5 gap-2">
         {apis.map((api) => {
@@ -72,7 +79,7 @@ const OpenAPIQuickPicker: React.FC<OpenAPIQuickPickerProps> = ({ accessToken, se
             <button
               key={api.name}
               type="button"
-              title={api.description}
+              title={localizedProperty(api, "description", api.description)}
               onClick={() => onSelect(api)}
               className={cn(
                 "flex cursor-pointer flex-col items-center gap-1.5 rounded-lg border p-3 transition-all",
@@ -86,19 +93,23 @@ const OpenAPIQuickPicker: React.FC<OpenAPIQuickPickerProps> = ({ accessToken, se
               ) : (
                 <img
                   src={api.icon_url}
-                  alt={api.title}
+                  alt={localizedProperty(api, "title", api.title)}
                   className="h-7 w-7 object-contain"
                   onError={() => handleImgError(api.name)}
                 />
               )}
-              <span className="text-center text-xs leading-tight font-medium text-muted-foreground">{api.title}</span>
+              <span className="text-center text-xs leading-tight font-medium text-muted-foreground">
+                {localizedProperty(api, "title", api.title)}
+              </span>
             </button>
           );
         })}
       </div>
 
       <p className="mt-2 text-xs text-muted-foreground">
-        Select an API to pre-fill the spec URL and OAuth 2.0 settings, or enter your own spec URL below.
+        <LocalizedText
+          text={"Select an API to pre-fill the spec URL and OAuth 2.0 settings, or enter your own spec URL below."}
+        />
       </p>
     </div>
   );

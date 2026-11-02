@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import { useRef, useState } from "react";
 import { Info, UserPlus } from "lucide-react";
 import { Alert, AlertTitle } from "@/components/shared/Alert";
@@ -54,16 +56,23 @@ const UserSearchModal: React.FC<UserSearchModalProps> = ({
   accessToken,
   title = "Add Team Member",
   roles = [
-    {
-      label: "admin",
-      value: "admin",
-      description: "Admin role. Can create team keys, add members, and manage settings.",
-    },
-    { label: "user", value: "user", description: "User role. Can view team info, but not manage it." },
+    markUiCopy(
+      {
+        label: "admin",
+        value: "admin",
+        description: "Admin role. Can create team keys, add members, and manage settings.",
+      },
+      { label: "admin", description: "Admin role. Can create team keys, add members, and manage settings." },
+    ),
+    markUiCopy(
+      { label: "user", value: "user", description: "User role. Can view team info, but not manage it." },
+      { label: "user", description: "User role. Can view team info, but not manage it." },
+    ),
   ],
   defaultRole = "user",
   teamId,
 }) => {
+  useUiLocale();
   const emptyValues: FormValues = { user_email: undefined, user_id: undefined, role: defaultRole };
   const form = useForm<FormValues>({ defaultValues: emptyValues });
   const selectedUserId = form.watch("user_id");
@@ -172,8 +181,8 @@ const UserSearchModal: React.FC<UserSearchModalProps> = ({
           autoHighlight="always"
           isLoading={loading}
           placeholder={placeholder}
-          emptyText="No results"
-          loadingText="Loading..."
+          emptyText={translateMessage("No results")}
+          loadingText={translateMessage("Loading...")}
           inputId={controlProps.id}
         />
       </div>
@@ -191,25 +200,30 @@ const UserSearchModal: React.FC<UserSearchModalProps> = ({
             <Alert variant="info" className="mb-4" data-testid="member-existing-users-notice">
               <Info />
               <AlertTitle>
-                Search selects from users that already exist. To add someone new, ask a proxy admin to create their
-                account first.
+                <LocalizedText
+                  text={
+                    "Search selects from users that already exist. To add someone new, ask a proxy admin to create their account first."
+                  }
+                />
               </AlertTitle>
             </Alert>
 
             <FieldGroup>
-              <FormField control={form.control} name="user_email" label="Email">
+              <FormField control={form.control} name="user_email" label={translateMessage("Email")}>
                 {({ id, value, onChange }) =>
                   renderUserSearch("user_email", "Search by email", { id, value, onChange }, "member-email-search")
                 }
               </FormField>
 
-              <div className="text-center">OR</div>
+              <div className="text-center">
+                <LocalizedText text={"OR"} />
+              </div>
 
-              <FormField control={form.control} name="user_id" label="User ID">
+              <FormField control={form.control} name="user_id" label={translateMessage("User ID")}>
                 {({ id, value, onChange }) => renderUserSearch("user_id", "Search by user ID", { id, value, onChange })}
               </FormField>
 
-              <FormField control={form.control} name="role" label="Member Role">
+              <FormField control={form.control} name="role" label={translateMessage("Member Role")}>
                 {({ id, value, onChange }) => (
                   <Select items={roles} value={value} onValueChange={(next) => onChange(next as string)}>
                     <SelectTrigger id={id}>
@@ -222,12 +236,14 @@ const UserSearchModal: React.FC<UserSearchModalProps> = ({
                             <TooltipTrigger
                               render={
                                 <span>
-                                  <span className="font-medium">{role.label}</span>
-                                  <span className="ml-2 text-sm text-muted-foreground">- {role.description}</span>
+                                  <span className="font-medium">{localizedProperty(role, "label", role.label)}</span>
+                                  <span className="ml-2 text-sm text-muted-foreground">
+                                    - {localizedProperty(role, "description", role.description)}
+                                  </span>
                                 </span>
                               }
                             />
-                            <TooltipContent>{role.description}</TooltipContent>
+                            <TooltipContent>{localizedProperty(role, "description", role.description)}</TooltipContent>
                           </Tooltip>
                         </SelectItem>
                       ))}
@@ -240,7 +256,7 @@ const UserSearchModal: React.FC<UserSearchModalProps> = ({
             <div className="mt-4 text-right">
               <Button type="submit" disabled={isSubmitting || (!selectedUserId && !selectedUserEmail)}>
                 {isSubmitting ? <UiLoadingSpinner className="size-4" /> : <UserPlus />}
-                {isSubmitting ? "Adding..." : "Add Member"}
+                {isSubmitting ? translateMessage("Adding...") : translateMessage("Add Member")}
               </Button>
             </div>
           </form>

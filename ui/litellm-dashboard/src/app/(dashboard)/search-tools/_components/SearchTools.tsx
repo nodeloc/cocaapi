@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import { isAdminRole } from "@/utils/roles";
 import { useQuery } from "@tanstack/react-query";
 import React, { useState } from "react";
@@ -46,6 +48,7 @@ type EditSearchToolFormValues = z.infer<typeof editSearchToolSchema>;
 const EMPTY_EDIT_VALUES: EditSearchToolFormValues = { search_tool_name: "", search_provider: "" };
 
 const SearchTools: React.FC<SearchToolsProps> = ({ accessToken, userRole, userID }) => {
+  useUiLocale();
   const {
     data: searchTools,
     isLoading: isLoadingTools,
@@ -112,13 +115,13 @@ const SearchTools: React.FC<SearchToolsProps> = ({ accessToken, userRole, userID
     setIsDeleting(true);
     try {
       await deleteSearchTool(accessToken, toolIdToDelete);
-      toast.success("Deleted search tool successfully");
+      toast.success(translateMessage("Deleted search tool successfully"));
       setIsDeleteModalOpen(false);
       setToolToDelete(null);
       refetch();
     } catch (error) {
       console.error("Error deleting the search tool:", error);
-      toast.error("Failed to delete search tool");
+      toast.error(translateMessage("Failed to delete search tool"));
     } finally {
       setIsDeleting(false);
     }
@@ -145,19 +148,19 @@ const SearchTools: React.FC<SearchToolsProps> = ({ accessToken, userRole, userID
 
       try {
         await updateSearchTool(accessToken, selectedToolId, buildSearchToolPayload(values));
-        toast.success("Search tool updated successfully");
+        toast.success(translateMessage("Search tool updated successfully"));
         setEditModalVisible(false);
         form.reset(EMPTY_EDIT_VALUES);
         setSelectedToolId(null);
         refetch();
       } catch (error) {
         console.error("Failed to update search tool:", error);
-        toast.error("Failed to update search tool");
+        toast.error(translateMessage("Failed to update search tool"));
       }
     },
     (errors) => {
       console.error("Failed to update search tool:", errors);
-      toast.error("Failed to update search tool");
+      toast.error(translateMessage("Failed to update search tool"));
     },
   );
 
@@ -169,11 +172,13 @@ const SearchTools: React.FC<SearchToolsProps> = ({ accessToken, userRole, userID
   const renderEditForm = () => (
     <form onSubmit={(event) => event.preventDefault()}>
       <FieldGroup>
-        <FormField control={form.control} name="search_tool_name" label="Search Tool Name">
-          {({ ref, ...field }) => <Input {...field} ref={ref} placeholder="e.g., my-perplexity-search" />}
+        <FormField control={form.control} name="search_tool_name" label={translateMessage("Search Tool Name")}>
+          {({ ref, ...field }) => (
+            <Input {...field} ref={ref} placeholder={translateMessage("e.g., my-perplexity-search")} />
+          )}
         </FormField>
 
-        <FormField control={form.control} name="search_provider" label="Search Provider">
+        <FormField control={form.control} name="search_provider" label={translateMessage("Search Provider")}>
           {({ id, value, onChange, "aria-invalid": ariaInvalid, "aria-describedby": ariaDescribedBy }) => (
             <Select
               items={availableProviders.map((provider) => ({
@@ -184,7 +189,7 @@ const SearchTools: React.FC<SearchToolsProps> = ({ accessToken, userRole, userID
               onValueChange={(provider: string | null) => onChange(provider ?? "")}
             >
               <SelectTrigger id={id} aria-invalid={ariaInvalid} aria-describedby={ariaDescribedBy} className="w-full">
-                <SelectValue placeholder="Select a search provider" />
+                <SelectValue placeholder={translateMessage("Select a search provider")} />
                 {isLoadingProviders && <UiLoadingSpinner className="size-4" />}
               </SelectTrigger>
               <SelectContent>
@@ -198,15 +203,26 @@ const SearchTools: React.FC<SearchToolsProps> = ({ accessToken, userRole, userID
           )}
         </FormField>
 
-        <FormField control={form.control} name="api_key" label="API Key" description="API key for the search provider">
+        <FormField
+          control={form.control}
+          name="api_key"
+          label={translateMessage("API Key")}
+          description={translateMessage("API key for the search provider")}
+        >
           {({ ref, value, ...field }) => (
-            <PasswordInput {...field} ref={ref} value={value ?? ""} placeholder="Enter API key" />
+            <PasswordInput {...field} ref={ref} value={value ?? ""} placeholder={translateMessage("Enter API key")} />
           )}
         </FormField>
 
-        <FormField control={form.control} name="description" label="Description">
+        <FormField control={form.control} name="description" label={translateMessage("Description")}>
           {({ ref, value, ...field }) => (
-            <Textarea {...field} ref={ref} value={value ?? ""} rows={3} placeholder="Description of this search tool" />
+            <Textarea
+              {...field}
+              ref={ref}
+              value={value ?? ""}
+              rows={3}
+              placeholder={translateMessage("Description of this search tool")}
+            />
           )}
         </FormField>
       </FieldGroup>
@@ -214,11 +230,16 @@ const SearchTools: React.FC<SearchToolsProps> = ({ accessToken, userRole, userID
   );
 
   if (!accessToken || !userRole || !userID) {
-    return <div className="p-6 text-center text-muted-foreground">Missing required authentication parameters.</div>;
+    return (
+      <div className="p-6 text-center text-muted-foreground">
+        <LocalizedText text={"Missing required authentication parameters."} />
+      </div>
+    );
   }
 
-  const ToolsTab = () =>
-    selectedToolId ? (
+  const ToolsTab = () => {
+    useUiLocale();
+    return selectedToolId ? (
       <SearchToolView
         searchTool={
           searchTools?.find((tool: SearchTool) => tool.search_tool_id === selectedToolId) || {
@@ -250,24 +271,31 @@ const SearchTools: React.FC<SearchToolsProps> = ({ accessToken, userRole, userID
         />
       </div>
     );
+  };
 
   return (
     <div className="w-full h-full p-6">
       <DeleteResourceModal
         isOpen={isDeleteModalOpen}
-        title="Delete Search Tool"
-        message="Are you sure you want to delete this search tool? This action cannot be undone."
+        title={translateMessage("Delete Search Tool")}
+        message={translateMessage("Are you sure you want to delete this search tool? This action cannot be undone.")}
         resourceInformationTitle="Search Tool Information"
         resourceInformation={
           toolToDelete
             ? [
-                { label: "Name", value: toolToDelete.search_tool_name },
-                { label: "ID", value: toolToDelete.search_tool_id, code: true },
-                {
-                  label: "Provider",
-                  value: providerInfo?.ui_friendly_name || toolToDelete.litellm_params.search_provider,
-                },
-                { label: "Description", value: toolToDelete.search_tool_info?.description || "-" },
+                markUiCopy({ label: "Name", value: toolToDelete.search_tool_name }, { label: "Name" }),
+                markUiCopy({ label: "ID", value: toolToDelete.search_tool_id, code: true }, { label: "ID" }),
+                markUiCopy(
+                  {
+                    label: "Provider",
+                    value: providerInfo?.ui_friendly_name || toolToDelete.litellm_params.search_provider,
+                  },
+                  { label: "Provider" },
+                ),
+                markUiCopy(
+                  { label: "Description", value: toolToDelete.search_tool_info?.description || "-" },
+                  { label: "Description" },
+                ),
               ]
             : []
         }
@@ -296,7 +324,9 @@ const SearchTools: React.FC<SearchToolsProps> = ({ accessToken, userRole, userID
       >
         <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-[600px]">
           <DialogHeader>
-            <DialogTitle>Edit Search Tool</DialogTitle>
+            <DialogTitle>
+              <LocalizedText text={"Edit Search Tool"} />
+            </DialogTitle>
           </DialogHeader>
           {renderEditForm()}
           <DialogFooter>
@@ -308,18 +338,24 @@ const SearchTools: React.FC<SearchToolsProps> = ({ accessToken, userRole, userID
                 setSelectedToolId(null);
               }}
             >
-              Cancel
+              <LocalizedText text={"Cancel"} />
             </Button>
-            <Button onClick={handleEditSubmit}>OK</Button>
+            <Button onClick={handleEditSubmit}>
+              <LocalizedText text={"OK"} />
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      <h1 className="text-lg font-semibold text-foreground">Search Tools</h1>
-      <p className="mt-2 text-sm text-muted-foreground">Configure and manage your search providers</p>
+      <h1 className="text-lg font-semibold text-foreground">
+        <LocalizedText text={"Search Tools"} />
+      </h1>
+      <p className="mt-2 text-sm text-muted-foreground">
+        <LocalizedText text={"Configure and manage your search providers"} />
+      </p>
       {isAdminRole(userRole) && (
         <Button className="mt-4 mb-4" variant="outline" onClick={() => setCreateModalVisible(true)}>
-          + Add New Search Tool
+          <LocalizedText text={"+ Add New Search Tool"} />
         </Button>
       )}
 

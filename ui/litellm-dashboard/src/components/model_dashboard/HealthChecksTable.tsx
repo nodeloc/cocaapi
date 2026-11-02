@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { OnChangeFn, PaginationState, RowSelectionState, SortingState } from "@tanstack/react-table";
 import { HeartPulse } from "lucide-react";
@@ -27,13 +28,18 @@ interface HealthChecksTableProps {
 }
 
 function EmptyState() {
+  useUiLocale();
   return (
     <div className="flex flex-col items-center gap-1 py-6">
       <div className="mb-1 flex size-10 items-center justify-center rounded-lg bg-muted">
         <HeartPulse className="size-5 text-muted-foreground" />
       </div>
-      <div className="text-sm font-medium text-foreground">No models found</div>
-      <div className="text-sm text-muted-foreground">Models added to this proxy will show their health here.</div>
+      <div className="text-sm font-medium text-foreground">
+        <LocalizedText text={"No models found"} />
+      </div>
+      <div className="text-sm text-muted-foreground">
+        <LocalizedText text={"Models added to this proxy will show their health here."} />
+      </div>
     </div>
   );
 }
@@ -54,6 +60,7 @@ export function HealthChecksTable({
   onSelectModel,
   teams,
 }: HealthChecksTableProps) {
+  useUiLocale();
   const [sorting, setSorting] = useState<SortingState>([]);
 
   const columns = useMemo(() => {
@@ -84,7 +91,7 @@ export function HealthChecksTable({
       rowSelection={rowSelection}
       onRowSelectionChange={onRowSelectionChange}
       isLoading={isLoading}
-      loadingMessage="Loading models…"
+      loadingMessage={translateMessage("Loading models…")}
       noDataMessage={<EmptyState />}
       size="compact"
     />

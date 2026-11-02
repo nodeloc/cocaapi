@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, useUiLocale } from "@/lib/i18n";
 import React from "react";
 import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -9,6 +11,7 @@ import VariableWarning from "./VariableWarning";
 import MessageInput from "./MessageInput";
 
 const ConversationPanel: React.FC<ConversationPanelProps> = ({ prompt, accessToken }) => {
+  useUiLocale();
   const {
     isLoading,
     messages,
@@ -40,7 +43,7 @@ const ConversationPanel: React.FC<ConversationPanelProps> = ({ prompt, accessTok
         <div className="p-3 border-b border-border bg-background flex justify-end">
           <Button type="button" variant="outline" size="sm" onClick={handleClearConversation}>
             <Trash2 aria-hidden="true" />
-            Clear Chat
+            <LocalizedText text={"Clear Chat"} />
           </Button>
         </div>
       )}

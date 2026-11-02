@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 import { useState } from "react";
 import ReactMarkdown, { type Components } from "react-markdown";
 import { Check } from "lucide-react";
@@ -28,7 +30,9 @@ const markdown: Components = {
   code: ({ children }) => <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">{children}</code>,
 };
 
-export function IssueBrief({ title, brief }: { title: string; brief: IssueBrief }) {
+export function IssueBrief(cocaCopyProps0: { title: string; brief: IssueBrief }) {
+  const { title, brief } = cocaCopyProps0;
+  useUiLocale();
   const [copied, setCopied] = useState<string | null>(null);
   const source = briefMarkdown(title, brief);
   const copy = async (agent: string) => {
@@ -41,13 +45,15 @@ export function IssueBrief({ title, brief }: { title: string; brief: IssueBrief 
     <div className="overflow-hidden rounded-lg border border-border">
       <div className="flex h-10 items-center gap-1 border-b border-border bg-muted/40 px-3">
         <span className="font-mono text-xs text-muted-foreground">issue-brief.md</span>
-        <span className="mr-1 ml-auto text-xs text-muted-foreground">Copy for</span>
+        <span className="mr-1 ml-auto text-xs text-muted-foreground">
+          <LocalizedText text={"Copy for"} />
+        </span>
         {AGENTS.map((agent) => (
           <button
             key={agent.name}
             type="button"
             onClick={() => void copy(agent.name)}
-            aria-label={`Copy for ${agent.name}`}
+            aria-label={translateMessage("Copy for %{0}", [agent.name])}
             className="inline-flex h-7 items-center gap-1.5 rounded-md border border-border bg-background px-2 text-xs font-medium hover:bg-muted"
           >
             {copied === agent.name ? (

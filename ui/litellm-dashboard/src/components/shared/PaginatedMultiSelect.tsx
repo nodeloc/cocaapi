@@ -1,4 +1,5 @@
 "use client";
+import { localizedProperty, useUiLocale } from "@/lib/i18n";
 
 import { Loader2 } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -61,6 +62,7 @@ export function PaginatedMultiSelect({
   "aria-invalid": ariaInvalid,
   "aria-describedby": ariaDescribedBy,
 }: PaginatedMultiSelectProps) {
+  useUiLocale();
   const anchor = useComboboxAnchor();
   const [query, setQuery] = useState("");
   const [pickedOptions, setPickedOptions] = useState<ReadonlyMap<string, SearchSelectOption>>(new Map());
@@ -108,8 +110,8 @@ export function PaginatedMultiSelect({
         <ComboboxValue>
           {(selectedItems: SearchSelectOption[]) =>
             selectedItems.map((option) => (
-              <ComboboxChip key={option.value} aria-label={option.label}>
-                {option.label}
+              <ComboboxChip key={option.value} aria-label={localizedProperty(option, "label", option.label)}>
+                {localizedProperty(option, "label", option.label)}
               </ComboboxChip>
             ))
           }
@@ -132,7 +134,7 @@ export function PaginatedMultiSelect({
           {(item: SearchSelectOption) => (
             <ComboboxItem key={item.value} value={item}>
               <span className="flex min-w-0 flex-col">
-                <span className="truncate">{item.label}</span>
+                <span className="truncate">{localizedProperty(item, "label", item.label)}</span>
                 {item.sublabel != null && item.sublabel !== "" && (
                   <span className="truncate text-xs text-muted-foreground">{item.sublabel}</span>
                 )}

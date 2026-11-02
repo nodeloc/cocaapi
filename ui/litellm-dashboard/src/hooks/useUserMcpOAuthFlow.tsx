@@ -1,4 +1,5 @@
 "use client";
+import { translateMessage, useUiLocale } from "@/lib/i18n";
 
 /**
  * OAuth2 PKCE flow for the *user* connect path.
@@ -76,6 +77,7 @@ export const useUserMcpOAuthFlow = ({
   clientId: preClientId,
   onSuccess,
 }: UseUserMcpOAuthFlowOptions): UseUserMcpOAuthFlowResult => {
+  useUiLocale();
   const [status, setStatus] = useState<UserMcpOAuthStatus>("idle");
   const [error, setError] = useState<string | null>(null);
   const processingRef = useRef(false);
@@ -178,7 +180,7 @@ export const useUserMcpOAuthFlow = ({
       const raw = getStorage(FLOW_STATE_KEY);
       flowState = raw ? JSON.parse(raw) : null;
     } catch (_) {
-      setError("Failed to resume OAuth flow. Please retry.");
+      setError(translateMessage("Failed to resume OAuth flow. Please retry."));
       setStatus("error");
       processingRef.current = false;
       clearStorage(FLOW_STATE_KEY);
@@ -221,7 +223,7 @@ export const useUserMcpOAuthFlow = ({
 
       setStatus("success");
       setError(null);
-      toast.success("Connected successfully");
+      toast.success(translateMessage("Connected successfully"));
       onSuccess();
     } catch (err) {
       const msg = extractErrorMessage(err);

@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import React, { useState, useEffect } from "react";
 
 import ViewUserSpend from "@/components/view_user_spend";
@@ -80,6 +82,7 @@ const isAdminOrAdminViewer = (role: string | null): boolean => {
 };
 
 const TeamSpendBarList: React.FC<{ data: TeamSpendTotal[] }> = ({ data }) => {
+  useUiLocale();
   const max = Math.max(0, ...data.map((team) => team.value));
 
   return (
@@ -102,6 +105,7 @@ const TeamSpendBarList: React.FC<{ data: TeamSpendTotal[] }> = ({ data }) => {
 };
 
 const UsagePage: React.FC<UsagePageProps> = ({ accessToken, token, userRole, userID, keys, premiumUser }) => {
+  useUiLocale();
   const anchor = useComboboxAnchor();
   const canViewGlobalSpend = hasCapability(userRole, "viewGlobalSpend");
   const currentDate = new Date();
@@ -137,7 +141,7 @@ const UsagePage: React.FC<UsagePageProps> = ({ accessToken, token, userRole, use
     .map((key: any) => ({ token: String(key["token"]), alias: String(key["key_alias"]) }));
 
   const tagOptions: TagOption[] = [
-    { value: ALL_TAGS, label: "All Tags", disabled: false },
+    markUiCopy({ value: ALL_TAGS, label: "All Tags", disabled: false }, { label: "All Tags" }),
     ...allTagNames
       .filter((tag) => tag !== ALL_TAGS)
       .map((tag) => ({
@@ -517,11 +521,15 @@ const UsagePage: React.FC<UsagePageProps> = ({ accessToken, token, userRole, use
       <div className="w-full p-8">
         <Card>
           <CardHeader>
-            <CardTitle>Usage</CardTitle>
+            <CardTitle>
+              <LocalizedText text={"Usage"} />
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">
-              Proxy-wide usage is only available to admin users. Your own usage is on the Usage page.
+              <LocalizedText
+                text={"Proxy-wide usage is only available to admin users. Your own usage is on the Usage page."}
+              />
             </p>
           </CardContent>
         </Card>
@@ -534,18 +542,22 @@ const UsagePage: React.FC<UsagePageProps> = ({ accessToken, token, userRole, use
       <div className="w-full p-8">
         <Card>
           <CardHeader>
-            <CardTitle>Database Query Limit Reached</CardTitle>
+            <CardTitle>
+              <LocalizedText text={"Database Query Limit Reached"} />
+            </CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col items-start gap-4">
             <p className="text-sm text-muted-foreground">
-              SpendLogs in DB has {proxySettings.NUM_SPEND_LOGS_ROWS} rows.
+              <LocalizedText text={"SpendLogs in DB has "} />
+              {proxySettings.NUM_SPEND_LOGS_ROWS}
+              <LocalizedText text={" rows."} />
               <br></br>
-              Please follow our guide to view usage when SpendLogs has more than 1M rows.
+              <LocalizedText text={"Please follow our guide to view usage when SpendLogs has more than 1M rows."} />
             </p>
             <Button
               render={
                 <a href="https://docs.litellm.ai/docs/proxy/cost_tracking" target="_blank" rel="noreferrer">
-                  View Usage Guide
+                  <LocalizedText text={"View Usage Guide"} />
                 </a>
               }
             />
@@ -559,13 +571,21 @@ const UsagePage: React.FC<UsagePageProps> = ({ accessToken, token, userRole, use
     <div className="w-full p-8">
       <Tabs defaultValue="all-up">
         <TabsList variant="line" className="mt-2">
-          <TabsTrigger value="all-up">All Up</TabsTrigger>
+          <TabsTrigger value="all-up">
+            <LocalizedText text={"All Up"} />
+          </TabsTrigger>
 
           {isAdminOrAdminViewer(userRole) && (
             <>
-              <TabsTrigger value="team-based-usage">Team Based Usage</TabsTrigger>
-              <TabsTrigger value="customer-usage">Customer Usage</TabsTrigger>
-              <TabsTrigger value="tag-based-usage">Tag Based Usage</TabsTrigger>
+              <TabsTrigger value="team-based-usage">
+                <LocalizedText text={"Team Based Usage"} />
+              </TabsTrigger>
+              <TabsTrigger value="customer-usage">
+                <LocalizedText text={"Customer Usage"} />
+              </TabsTrigger>
+              <TabsTrigger value="tag-based-usage">
+                <LocalizedText text={"Tag Based Usage"} />
+              </TabsTrigger>
             </>
           )}
         </TabsList>
@@ -573,15 +593,20 @@ const UsagePage: React.FC<UsagePageProps> = ({ accessToken, token, userRole, use
         <TabsContent value="all-up" keepMounted>
           <Tabs defaultValue="cost">
             <TabsList className="mt-1">
-              <TabsTrigger value="cost">Cost</TabsTrigger>
-              <TabsTrigger value="activity">Activity</TabsTrigger>
+              <TabsTrigger value="cost">
+                <LocalizedText text={"Cost"} />
+              </TabsTrigger>
+              <TabsTrigger value="activity">
+                <LocalizedText text={"Activity"} />
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="cost" keepMounted>
               <div className="grid h-screen w-full grid-cols-2 gap-2">
                 <div className="col-span-2">
                   <p className="mt-2 mb-2 text-lg text-muted-foreground">
-                    Project Spend {new Date().toLocaleString("default", { month: "long" })} 1 -{" "}
+                    <LocalizedText text={"Project Spend "} />
+                    {new Date().toLocaleString("default", { month: "long" })} 1 -{" "}
                     {new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate()}
                   </p>
                   <ViewUserSpend userSpend={totalMonthlySpend} selectedTeam={null} userMaxBudget={null} />
@@ -589,7 +614,9 @@ const UsagePage: React.FC<UsagePageProps> = ({ accessToken, token, userRole, use
                 <div className="col-span-2">
                   <Card>
                     <CardHeader>
-                      <CardTitle>Monthly Spend</CardTitle>
+                      <CardTitle>
+                        <LocalizedText text={"Monthly Spend"} />
+                      </CardTitle>
                     </CardHeader>
                     <CardContent>
                       <BarChart
@@ -607,7 +634,9 @@ const UsagePage: React.FC<UsagePageProps> = ({ accessToken, token, userRole, use
                 <div className="col-span-1">
                   <Card className="h-full">
                     <CardHeader>
-                      <CardTitle>Top Virtual Keys</CardTitle>
+                      <CardTitle>
+                        <LocalizedText text={"Top Virtual Keys"} />
+                      </CardTitle>
                     </CardHeader>
                     <CardContent>
                       <TopKeyView topKeys={topKeys} teams={null} topKeysLimit={5} setTopKeysLimit={() => {}} />
@@ -617,7 +646,9 @@ const UsagePage: React.FC<UsagePageProps> = ({ accessToken, token, userRole, use
                 <div className="col-span-1">
                   <Card className="h-full">
                     <CardHeader>
-                      <CardTitle>Top Models</CardTitle>
+                      <CardTitle>
+                        <LocalizedText text={"Top Models"} />
+                      </CardTitle>
                     </CardHeader>
                     <CardContent>
                       <BarChart
@@ -639,7 +670,9 @@ const UsagePage: React.FC<UsagePageProps> = ({ accessToken, token, userRole, use
                 <div className="col-span-2">
                   <Card className="mb-2">
                     <CardHeader>
-                      <CardTitle>Spend by Provider</CardTitle>
+                      <CardTitle>
+                        <LocalizedText text={"Spend by Provider"} />
+                      </CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="grid grid-cols-2">
@@ -658,8 +691,12 @@ const UsagePage: React.FC<UsagePageProps> = ({ accessToken, token, userRole, use
                           <Table>
                             <TableHeader>
                               <TableRow>
-                                <TableHead>Provider</TableHead>
-                                <TableHead className={NUMERIC_CELL_CLASS}>Spend</TableHead>
+                                <TableHead>
+                                  <LocalizedText text={"Provider"} />
+                                </TableHead>
+                                <TableHead className={NUMERIC_CELL_CLASS}>
+                                  <LocalizedText text={"Spend"} />
+                                </TableHead>
                               </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -685,13 +722,16 @@ const UsagePage: React.FC<UsagePageProps> = ({ accessToken, token, userRole, use
               <div className="grid h-[75vh] w-full grid-cols-1 gap-2">
                 <Card>
                   <CardHeader>
-                    <CardTitle>All Up</CardTitle>
+                    <CardTitle>
+                      <LocalizedText text={"All Up"} />
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="grid grid-cols-2">
                       <div>
                         <p className="text-[15px] font-normal text-muted-foreground">
-                          API Requests {valueFormatterNumbers(globalActivity.sum_api_requests)}
+                          <LocalizedText text={"API Requests "} />
+                          {valueFormatterNumbers(globalActivity.sum_api_requests)}
                         </p>
                         <AreaChart
                           className="h-40"
@@ -704,7 +744,8 @@ const UsagePage: React.FC<UsagePageProps> = ({ accessToken, token, userRole, use
                       </div>
                       <div>
                         <p className="text-[15px] font-normal text-muted-foreground">
-                          Tokens {valueFormatterNumbers(globalActivity.sum_total_tokens)}
+                          <LocalizedText text={"Tokens "} />
+                          {valueFormatterNumbers(globalActivity.sum_total_tokens)}
                         </p>
                         <BarChart
                           className="h-40"
@@ -728,7 +769,8 @@ const UsagePage: React.FC<UsagePageProps> = ({ accessToken, token, userRole, use
                       <div className="grid grid-cols-2">
                         <div>
                           <p className="text-[15px] font-normal text-muted-foreground">
-                            API Requests {valueFormatterNumbers(globalActivity.sum_api_requests)}
+                            <LocalizedText text={"API Requests "} />
+                            {valueFormatterNumbers(globalActivity.sum_api_requests)}
                           </p>
                           <AreaChart
                             className="h-40"
@@ -741,7 +783,8 @@ const UsagePage: React.FC<UsagePageProps> = ({ accessToken, token, userRole, use
                         </div>
                         <div>
                           <p className="text-[15px] font-normal text-muted-foreground">
-                            Tokens {valueFormatterNumbers(globalActivity.sum_total_tokens)}
+                            <LocalizedText text={"Tokens "} />
+                            {valueFormatterNumbers(globalActivity.sum_total_tokens)}
                           </p>
                           <BarChart
                             className="h-40"
@@ -766,7 +809,9 @@ const UsagePage: React.FC<UsagePageProps> = ({ accessToken, token, userRole, use
             <div className="col-span-2">
               <Card className="mb-2">
                 <CardHeader>
-                  <CardTitle>Total Spend Per Team</CardTitle>
+                  <CardTitle>
+                    <LocalizedText text={"Total Spend Per Team"} />
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <TeamSpendBarList data={totalSpendPerTeam} />
@@ -774,7 +819,9 @@ const UsagePage: React.FC<UsagePageProps> = ({ accessToken, token, userRole, use
               </Card>
               <Card>
                 <CardHeader>
-                  <CardTitle>Daily Spend Per Team</CardTitle>
+                  <CardTitle>
+                    <LocalizedText text={"Daily Spend Per Team"} />
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <BarChart
@@ -794,14 +841,16 @@ const UsagePage: React.FC<UsagePageProps> = ({ accessToken, token, userRole, use
 
         <TabsContent value="customer-usage" keepMounted>
           <p className="mb-2 text-[12px] text-muted-foreground italic">
-            Customers of your LLM API calls. Tracked when a `user` param is passed in your LLM calls{" "}
+            <LocalizedText
+              text={"Customers of your LLM API calls. Tracked when a `user` param is passed in your LLM calls"}
+            />{" "}
             <a
               className="text-primary"
               href="https://docs.litellm.ai/docs/proxy/users"
               target="_blank"
               rel="noreferrer"
             >
-              docs here
+              <LocalizedText text={"docs here"} />
             </a>
           </p>
           <div className="grid grid-cols-2">
@@ -816,7 +865,9 @@ const UsagePage: React.FC<UsagePageProps> = ({ accessToken, token, userRole, use
               />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Select Key</p>
+              <p className="text-sm text-muted-foreground">
+                <LocalizedText text={"Select Key"} />
+              </p>
               <Select
                 value={selectedKeyToken}
                 onValueChange={(value: string | null) => {
@@ -825,12 +876,14 @@ const UsagePage: React.FC<UsagePageProps> = ({ accessToken, token, userRole, use
                 }}
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="All Keys">
+                  <SelectValue placeholder={translateMessage("All Keys")}>
                     {(token: string | null) => selectableKeys.find((key) => key.token === token)?.alias ?? "All Keys"}
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value={null}>All Keys</SelectItem>
+                  <SelectItem value={null}>
+                    <LocalizedText text={"All Keys"} />
+                  </SelectItem>
                   {selectableKeys.map((key) => (
                     <SelectItem key={key.token} value={key.token}>
                       {key.alias}
@@ -847,9 +900,15 @@ const UsagePage: React.FC<UsagePageProps> = ({ accessToken, token, userRole, use
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Customer</TableHead>
-                      <TableHead className={NUMERIC_CELL_CLASS}>Spend</TableHead>
-                      <TableHead className={NUMERIC_CELL_CLASS}>Total Events</TableHead>
+                      <TableHead>
+                        <LocalizedText text={"Customer"} />
+                      </TableHead>
+                      <TableHead className={NUMERIC_CELL_CLASS}>
+                        <LocalizedText text={"Spend"} />
+                      </TableHead>
+                      <TableHead className={NUMERIC_CELL_CLASS}>
+                        <LocalizedText text={"Total Events"} />
+                      </TableHead>
                     </TableRow>
                   </TableHeader>
 
@@ -897,20 +956,22 @@ const UsagePage: React.FC<UsagePageProps> = ({ accessToken, token, userRole, use
                   <ComboboxValue>
                     {(options: TagOption[]) =>
                       options.map((option) => (
-                        <ComboboxChip key={option.value} aria-label={option.label}>
-                          {option.label}
+                        <ComboboxChip key={option.value} aria-label={localizedProperty(option, "label", option.label)}>
+                          {localizedProperty(option, "label", option.label)}
                         </ComboboxChip>
                       ))
                     }
                   </ComboboxValue>
-                  <ComboboxChipsInput placeholder="Select tags" />
+                  <ComboboxChipsInput placeholder={translateMessage("Select tags")} />
                 </ComboboxChips>
                 <ComboboxContent anchor={anchor}>
-                  <ComboboxEmpty>No tags found</ComboboxEmpty>
+                  <ComboboxEmpty>
+                    <LocalizedText text={"No tags found"} />
+                  </ComboboxEmpty>
                   <ComboboxList>
                     {(option: TagOption) => (
                       <ComboboxItem key={option.value} value={option} disabled={option.disabled}>
-                        {option.label}
+                        {localizedProperty(option, "label", option.label)}
                       </ComboboxItem>
                     )}
                   </ComboboxList>
@@ -922,18 +983,20 @@ const UsagePage: React.FC<UsagePageProps> = ({ accessToken, token, userRole, use
             <div className="col-span-2">
               <Card>
                 <CardHeader>
-                  <CardTitle>Spend Per Tag</CardTitle>
+                  <CardTitle>
+                    <LocalizedText text={"Spend Per Tag"} />
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="flex flex-col gap-2">
                   <p className="text-sm text-muted-foreground">
-                    Get Started by Tracking cost per tag{" "}
+                    <LocalizedText text={"Get Started by Tracking cost per tag"} />{" "}
                     <a
                       className="text-primary"
                       href="https://docs.litellm.ai/docs/proxy/cost_tracking"
                       target="_blank"
                       rel="noreferrer"
                     >
-                      here
+                      <LocalizedText text={"here"} />
                     </a>
                   </p>
                   <BarChart className="h-72" data={topTagsData} index="name" categories={["spend"]} colors={["cyan"]} />

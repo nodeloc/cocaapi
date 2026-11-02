@@ -1,3 +1,4 @@
+import { markUiCopy } from "@/lib/i18n";
 import { ApiError } from "@/lib/http/client";
 
 /**
@@ -41,7 +42,10 @@ export function classifyTraceReadFailure(error: unknown): TraceReadFailure {
   }
   const code = failureCode(error.body);
   const kind = (code && KIND_BY_CODE[code]) || KIND_BY_STATUS[error.status] || "unknown";
-  return { kind, message: error.message, retryAfterMs: error.retryAfterMs };
+  return markUiCopy(
+    { kind, message: error.message, retryAfterMs: error.retryAfterMs },
+    { message: { owner: error, field: "message" } },
+  );
 }
 
 /** Only an outage is worth retrying without the user; a changed or invalid cursor fails the same way every time. */

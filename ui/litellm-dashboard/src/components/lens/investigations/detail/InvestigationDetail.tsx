@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { Button } from "@/components/ui/button";
 import CopyButton from "@/components/shared/CopyButton";
@@ -49,6 +50,7 @@ export function InvestigationDetail({
   onReviewFinding,
   ...intents
 }: InvestigationDetailProps) {
+  useUiLocale();
   const isLive = useTracesLive();
   const { section, setSection } = useSectionRoute();
   const { setKind, setStatus } = useFindingFilters();
@@ -80,7 +82,7 @@ export function InvestigationDetail({
             {isLive && (
               <CopyButton
                 variant="action"
-                label="Copy for agent"
+                label={translateMessage("Copy for agent")}
                 copiedLabel="Command copied"
                 value={investigationHandoffText(getProxyBaseUrl(), lens.id, batchId, getAuthHeaderName())}
               />
@@ -111,24 +113,39 @@ export function InvestigationDetail({
         <Tabs value={section} onValueChange={setSection} key={lens.id}>
           <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b">
             <TabsList variant="line">
-              <TabsTrigger value="findings">Findings</TabsTrigger>
-              <TabsTrigger value="checks">Criteria</TabsTrigger>
-              <TabsTrigger value="runs">{sourceLabels[batchSettings?.source ?? "traces"]}</TabsTrigger>
-              <TabsTrigger value="activity">History</TabsTrigger>
+              <TabsTrigger value="findings">
+                <LocalizedText text={"Findings"} />
+              </TabsTrigger>
+              <TabsTrigger value="checks">
+                <LocalizedText text={"Criteria"} />
+              </TabsTrigger>
+              <TabsTrigger value="runs">
+                {localizedProperty(
+                  sourceLabels,
+                  batchSettings?.source ?? "traces",
+                  sourceLabels[batchSettings?.source ?? "traces"],
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="activity">
+                <LocalizedText text={"History"} />
+              </TabsTrigger>
             </TabsList>
           </div>
           {snapshot.error && (
             <p role="alert" className="text-sm text-destructive">
-              Could not load this run.{" "}
+              <LocalizedText text={"Could not load this run."} />{" "}
               <Button variant="link" onClick={snapshot.refetch}>
-                Retry
+                <LocalizedText text={"Retry"} />
               </Button>
             </p>
           )}
           {missingSnapshot && section !== "activity" && (
             <p className="text-sm text-muted-foreground">
-              This older batch predates saved result snapshots. Its findings remain available under All accumulated
-              findings.
+              <LocalizedText
+                text={
+                  "This older batch predates saved result snapshots. Its findings remain available under All accumulated findings."
+                }
+              />
             </p>
           )}
           <FindingsTab lens={lens} job={job} findings={batchFindings}>

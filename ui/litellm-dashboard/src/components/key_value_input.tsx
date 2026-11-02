@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 import React from "react";
 import { Minus, Plus } from "lucide-react";
 
@@ -12,6 +14,7 @@ interface KeyValueInputProps {
 }
 
 const KeyValueInput: React.FC<KeyValueInputProps> = ({ value = [], onChange }) => {
+  useUiLocale();
   const handleAdd = () => onChange?.([...value, ["", ""]]);
 
   const handleRemove = (index: number) => onChange?.(value.filter((_, i) => i !== index));
@@ -23,14 +26,22 @@ const KeyValueInput: React.FC<KeyValueInputProps> = ({ value = [], onChange }) =
     <div className="space-y-2">
       {value.map(([key, val], index) => (
         <div key={index} className="flex items-center gap-2">
-          <Input placeholder="Header Name" value={key} onChange={(e) => handleChange(index, [e.target.value, val])} />
-          <Input placeholder="Header Value" value={val} onChange={(e) => handleChange(index, [key, e.target.value])} />
+          <Input
+            placeholder={translateMessage("Header Name")}
+            value={key}
+            onChange={(e) => handleChange(index, [e.target.value, val])}
+          />
+          <Input
+            placeholder={translateMessage("Header Value")}
+            value={val}
+            onChange={(e) => handleChange(index, [key, e.target.value])}
+          />
           <Button
             type="button"
             variant="ghost"
             size="icon-sm"
             onClick={() => handleRemove(index)}
-            aria-label={`Remove header ${index + 1}`}
+            aria-label={translateMessage("Remove header %{0}", [index + 1])}
           >
             <Minus />
           </Button>
@@ -38,7 +49,7 @@ const KeyValueInput: React.FC<KeyValueInputProps> = ({ value = [], onChange }) =
       ))}
       <Button type="button" variant="outline" onClick={handleAdd}>
         <Plus />
-        Add Header
+        <LocalizedText text={"Add Header"} />
       </Button>
     </div>
   );

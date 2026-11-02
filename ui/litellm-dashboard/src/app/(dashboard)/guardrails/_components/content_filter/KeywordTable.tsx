@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import { Trash2 } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
 import React from "react";
@@ -20,39 +22,49 @@ interface KeywordTableProps {
 }
 
 const KeywordTable: React.FC<KeywordTableProps> = ({ keywords, onActionChange, onRemove }) => {
+  useUiLocale();
   const columns: ColumnDef<BlockedWord>[] = [
-    {
-      header: "Keyword",
-      accessorKey: "keyword",
-    },
-    {
-      header: "Action",
-      accessorKey: "action",
-      size: 150,
-      cell: ({ row }) => (
-        <Select
-          items={ACTION_ITEMS}
-          value={row.original.action}
-          onValueChange={(value: string | null) => value && onActionChange(row.original.id, "action", value)}
-        >
-          <SelectTrigger size="sm" className="w-[120px]" aria-label="Action">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {ACTION_ITEMS.map((item) => (
-              <SelectItem key={item.value} value={item.value}>
-                {item.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      ),
-    },
-    {
-      header: "Description",
-      accessorKey: "description",
-      cell: ({ row }) => row.original.description || "-",
-    },
+    markUiCopy(
+      {
+        header: "Keyword",
+        accessorKey: "keyword",
+      },
+      { header: "Keyword" },
+    ),
+    markUiCopy(
+      {
+        header: "Action",
+        accessorKey: "action",
+        size: 150,
+        cell: ({ row }) => (
+          <Select
+            items={ACTION_ITEMS}
+            value={row.original.action}
+            onValueChange={(value: string | null) => value && onActionChange(row.original.id, "action", value)}
+          >
+            <SelectTrigger size="sm" className="w-[120px]" aria-label={translateMessage("Action")}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {ACTION_ITEMS.map((item) => (
+                <SelectItem key={item.value} value={item.value}>
+                  {localizedProperty(item, "label", item.label)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        ),
+      },
+      { header: "Action" },
+    ),
+    markUiCopy(
+      {
+        header: "Description",
+        accessorKey: "description",
+        cell: ({ row }) => row.original.description || "-",
+      },
+      { header: "Description" },
+    ),
     {
       header: "",
       id: "actions",
@@ -60,14 +72,18 @@ const KeywordTable: React.FC<KeywordTableProps> = ({ keywords, onActionChange, o
       cell: ({ row }) => (
         <Button variant="ghost" size="sm" onClick={() => onRemove(row.original.id)}>
           <Trash2 />
-          Delete
+          <LocalizedText text={"Delete"} />
         </Button>
       ),
     },
   ];
 
   if (keywords.length === 0) {
-    return <div className="py-10 text-center text-muted-foreground">No keywords added.</div>;
+    return (
+      <div className="py-10 text-center text-muted-foreground">
+        <LocalizedText text={"No keywords added."} />
+      </div>
+    );
   }
 
   return <DataTable data={keywords} columns={columns} getRowId={(row) => row.id} size="compact" />;

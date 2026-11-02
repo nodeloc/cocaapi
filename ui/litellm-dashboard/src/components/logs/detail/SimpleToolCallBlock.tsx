@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, useUiLocale } from "@/lib/i18n";
 /**
  * SimpleToolCallBlock - Simple tool call display without copy button
  * Used in compact/tree views
@@ -12,6 +14,7 @@ interface SimpleToolCallBlockProps {
 }
 
 export function SimpleToolCallBlock({ tool, compact = false }: SimpleToolCallBlockProps) {
+  useUiLocale();
   return (
     <div
       className={cn(
@@ -21,7 +24,7 @@ export function SimpleToolCallBlock({ tool, compact = false }: SimpleToolCallBlo
     >
       {/* Function badge */}
       <div className="absolute -top-2 left-3 rounded-[3px] border border-border bg-background px-1.5 text-[10px] text-muted-foreground">
-        function
+        <LocalizedText text={"function"} />
       </div>
 
       <span className="mb-1.5 block text-[13px] font-semibold">{tool.name}</span>

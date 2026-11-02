@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, useUiLocale } from "@/lib/i18n";
 
 import React, { useCallback, useEffect, useState } from "react";
 
@@ -19,6 +20,7 @@ interface PromptCachingTabProps {
 }
 
 const PromptCachingTab: React.FC<PromptCachingTabProps> = ({ accessToken, activity }) => {
+  useUiLocale();
   const [settings, setSettings] = useState<generalSettingsItem[]>([]);
 
   const loadSettings = useCallback(() => {
@@ -51,7 +53,9 @@ const PromptCachingTab: React.FC<PromptCachingTabProps> = ({ accessToken, activi
     <div className="w-full space-y-6">
       <PromptCachingPanel accessToken={accessToken} settings={settings} onChange={handleChange} />
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm text-muted-foreground">Date range for requests and cache leakage</p>
+        <p className="text-sm text-muted-foreground">
+          <LocalizedText text={"Date range for requests and cache leakage"} />
+        </p>
         <AdvancedDatePicker value={activity.dateValue} onValueChange={activity.onDateChange} />
       </div>
       <PromptCachingRequestsTable accessToken={accessToken} dateValue={activity.dateValue} />

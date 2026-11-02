@@ -1,3 +1,5 @@
+"use client";
+import { translateMessage, useUiLocale } from "@/lib/i18n";
 import { cn } from "@/lib/cva.config";
 import { withServerRoot } from "@/lib/assetPaths";
 import { serverRootPath } from "@/lib/serverRootPath";
@@ -9,6 +11,7 @@ export function cocaApiLogoSrc({ dark = false, compact = false } = {}): string {
 }
 
 export function CocaApiLogo({ compact = false, className }: { compact?: boolean; className?: string }) {
+  useUiLocale();
   const size = compact ? "size-7" : "h-auto w-40";
   return (
     <span className="inline-flex shrink-0 items-center">
@@ -16,7 +19,7 @@ export function CocaApiLogo({ compact = false, className }: { compact?: boolean;
         src={cocaApiLogoSrc({ compact })}
         width={compact ? 104 : 446}
         height={compact ? 104 : 96}
-        alt="CocaAPI"
+        alt={translateMessage("CocaAPI")}
         loading="eager"
         className={cn(size, "object-contain dark:hidden", className)}
       />
@@ -24,7 +27,7 @@ export function CocaApiLogo({ compact = false, className }: { compact?: boolean;
         src={cocaApiLogoSrc({ compact, dark: true })}
         width={compact ? 104 : 446}
         height={compact ? 104 : 96}
-        alt="CocaAPI"
+        alt={translateMessage("CocaAPI")}
         loading="eager"
         className={cn(size, "hidden object-contain dark:block", className)}
       />

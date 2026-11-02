@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { ArrowLeft, ChevronDown, RefreshCw } from "lucide-react";
 import type { ColumnDef, ColumnFiltersState } from "@tanstack/react-table";
@@ -70,13 +72,16 @@ const STATUS_DOT: Record<RunStatus, string> = {
 };
 
 const RUN_STATUS_OPTIONS: RunStatus[] = ["pending", "running", "paused", "completed", "failed"];
-const STATUS_LABELS: Record<RunStatus, string> = {
-  pending: "Pending",
-  running: "Running",
-  paused: "Paused",
-  completed: "Completed",
-  failed: "Failed",
-};
+const STATUS_LABELS: Record<RunStatus, string> = markUiCopy(
+  {
+    pending: "Pending",
+    running: "Running",
+    paused: "Paused",
+    completed: "Completed",
+    failed: "Failed",
+  },
+  { pending: "Pending", running: "Running", paused: "Paused", completed: "Completed", failed: "Failed" },
+);
 
 const EVENT_COLOR: Record<string, { bar: string; text: string }> = {
   "step.started": { bar: "border-success/30 bg-success/10", text: "text-success" },
@@ -121,15 +126,17 @@ function shortId(id: string): string {
 
 // ── status dot ────────────────────────────────────────────────────────────────
 
-const StatusDot: React.FC<{ status: RunStatus; className?: string }> = ({ status, className }) => (
-  <span className={cn("inline-block flex-none rounded-full", STATUS_DOT[status] ?? "bg-border", className)} />
-);
+const StatusDot: React.FC<{ status: RunStatus; className?: string }> = ({ status, className }) => {
+  useUiLocale();
+  return <span className={cn("inline-block flex-none rounded-full", STATUS_DOT[status] ?? "bg-border", className)} />;
+};
 
 // ── truncated text value ──────────────────────────────────────────────────────
 
 const TRUNCATE_AT = 120;
 
 const TruncatedValue: React.FC<{ value: string }> = ({ value }) => {
+  useUiLocale();
   const [expanded, setExpanded] = useState(false);
   if (value.length <= TRUNCATE_AT) {
     return <span className="break-all text-foreground">{value}</span>;
@@ -138,7 +145,7 @@ const TruncatedValue: React.FC<{ value: string }> = ({ value }) => {
     <span className="break-all text-foreground">
       {expanded ? value : value.slice(0, TRUNCATE_AT) + "…"}
       <Button variant="link" size="xs" className="h-auto px-1 py-0 text-[11px]" onClick={() => setExpanded((e) => !e)}>
-        {expanded ? "less" : "more"}
+        {expanded ? translateMessage("less") : translateMessage("more")}
       </Button>
     </span>
   );
@@ -147,13 +154,14 @@ const TruncatedValue: React.FC<{ value: string }> = ({ value }) => {
 // ── metadata card ─────────────────────────────────────────────────────────────
 
 const MetadataCard: React.FC<{ run: WorkflowRun }> = ({ run }) => {
+  useUiLocale();
   const meta = run.metadata ?? {};
 
   const primaryFields: { key: string; label: string }[] = [
-    { key: "state", label: "state" },
-    { key: "worktree_path", label: "worktree" },
-    { key: "grill_session_id", label: "grill session" },
-    { key: "session_id", label: "session" },
+    markUiCopy({ key: "state", label: "state" }, { label: "state" }),
+    markUiCopy({ key: "worktree_path", label: "worktree" }, { label: "worktree" }),
+    markUiCopy({ key: "grill_session_id", label: "grill session" }, { label: "grill session" }),
+    markUiCopy({ key: "session_id", label: "session" }, { label: "session" }),
   ];
 
   const primaryKeys = new Set(["title", ...primaryFields.map((f) => f.key)]);
@@ -195,7 +203,8 @@ const MetadataCard: React.FC<{ run: WorkflowRun }> = ({ run }) => {
           </FieldPair>
         )}
 
-        {primaryFields.map(({ key, label }) => {
+        {primaryFields.map((cocaCopyProps0) => {
+          const { key, label } = cocaCopyProps0;
           const v = meta[key];
           if (v === null || v === undefined || v === "") return null;
           const str = typeof v === "object" ? JSON.stringify(v) : String(v);
@@ -219,12 +228,18 @@ const MetadataCard: React.FC<{ run: WorkflowRun }> = ({ run }) => {
   );
 };
 
-const FieldPair: React.FC<{ label: string; children: React.ReactNode }> = ({ label, children }) => (
-  <div className="flex flex-col gap-px">
-    <span className="text-[10px] uppercase tracking-[0.06em] text-muted-foreground">{label}</span>
-    <span className="text-xs">{children}</span>
-  </div>
-);
+const FieldPair: React.FC<{ label: string; children: React.ReactNode }> = (cocaCopyProps1) => {
+  const { label, children } = cocaCopyProps1;
+  useUiLocale();
+  return (
+    <div className="flex flex-col gap-px">
+      <span className="text-[10px] uppercase tracking-[0.06em] text-muted-foreground">
+        {localizedProperty(cocaCopyProps1, "label", label)}
+      </span>
+      <span className="text-xs">{children}</span>
+    </div>
+  );
+};
 
 // ── gantt timeline ────────────────────────────────────────────────────────────
 
@@ -232,6 +247,7 @@ const GanttTimeline: React.FC<{
   run: WorkflowRun;
   events: WorkflowRunEvent[];
 }> = ({ run, events }) => {
+  useUiLocale();
   if (events.length === 0) {
     return <div className="py-4 font-mono text-xs text-muted-foreground">No events recorded</div>;
   }
@@ -346,15 +362,18 @@ const ROLE_COLOR: Record<string, string> = {
   tool_result: "text-warning",
 };
 
-const MessageRow: React.FC<{ msg: WorkflowRunMessage }> = ({ msg }) => (
-  <div className="grid grid-cols-[80px_minmax(0,1fr)] items-start gap-x-4 border-b py-2.5 font-mono text-xs">
-    <span className={cn("pt-px", ROLE_COLOR[msg.role] ?? "text-muted-foreground")}>[{msg.role}]</span>
-    <div>
-      <span className="block whitespace-pre-wrap break-words leading-relaxed text-foreground">{msg.content}</span>
-      <span className="mt-0.5 block text-[11px] text-muted-foreground">{timeAgo(msg.created_at)}</span>
+const MessageRow: React.FC<{ msg: WorkflowRunMessage }> = ({ msg }) => {
+  useUiLocale();
+  return (
+    <div className="grid grid-cols-[80px_minmax(0,1fr)] items-start gap-x-4 border-b py-2.5 font-mono text-xs">
+      <span className={cn("pt-px", ROLE_COLOR[msg.role] ?? "text-muted-foreground")}>[{msg.role}]</span>
+      <div>
+        <span className="block whitespace-pre-wrap break-words leading-relaxed text-foreground">{msg.content}</span>
+        <span className="mt-0.5 block text-[11px] text-muted-foreground">{timeAgo(msg.created_at)}</span>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 // ── collapsible section ───────────────────────────────────────────────────────
 
@@ -363,22 +382,26 @@ const DetailSection: React.FC<{
   meta: React.ReactNode;
   defaultOpen?: boolean;
   children: React.ReactNode;
-}> = ({ title, meta, defaultOpen = false, children }) => (
-  <Collapsible defaultOpen={defaultOpen}>
-    <CollapsibleTrigger className="group flex w-full items-center gap-2 px-4 py-3 text-left text-xs font-medium text-foreground hover:bg-muted/50">
-      <ChevronDown className="size-3.5 -rotate-90 text-muted-foreground transition-transform group-data-[panel-open]:rotate-0" />
-      <span>
-        {title}
-        <span className="ml-1.5 text-[11px] font-normal text-muted-foreground">{meta}</span>
-      </span>
-    </CollapsibleTrigger>
-    <CollapsibleContent className="px-4 pb-3">{children}</CollapsibleContent>
-  </Collapsible>
-);
+}> = ({ title, meta, defaultOpen = false, children }) => {
+  useUiLocale();
+  return (
+    <Collapsible defaultOpen={defaultOpen}>
+      <CollapsibleTrigger className="group flex w-full items-center gap-2 px-4 py-3 text-left text-xs font-medium text-foreground hover:bg-muted/50">
+        <ChevronDown className="size-3.5 -rotate-90 text-muted-foreground transition-transform group-data-[panel-open]:rotate-0" />
+        <span>
+          {title}
+          <span className="ml-1.5 text-[11px] font-normal text-muted-foreground">{meta}</span>
+        </span>
+      </CollapsibleTrigger>
+      <CollapsibleContent className="px-4 pb-3">{children}</CollapsibleContent>
+    </Collapsible>
+  );
+};
 
 // ── main component ────────────────────────────────────────────────────────────
 
 const WorkflowRuns: React.FC<WorkflowRunsProps> = ({ accessToken }) => {
+  useUiLocale();
   const [runs, setRuns] = useState<WorkflowRun[]>([]);
   const [loadingRuns, setLoadingRuns] = useState(false);
   const [selectedRun, setSelectedRun] = useState<WorkflowRun | null>(null);
@@ -452,55 +475,67 @@ const WorkflowRuns: React.FC<WorkflowRunsProps> = ({ accessToken }) => {
 
   const columns = useMemo<ColumnDef<WorkflowRun, unknown>[]>(
     () => [
-      {
-        id: "run",
-        accessorFn: (row) => `${runTitle(row)} ${row.run_id}`,
-        header: "Run",
-        meta: { title: "Run", skeleton: "twoLine" },
-        cell: ({ row }) => {
-          const run = row.original;
-          return (
-            <div className="flex items-center gap-2">
-              <StatusDot status={run.status} className="size-[7px]" />
-              <div>
-                <div className="text-[13px] font-medium leading-snug text-foreground">{runTitle(run)}</div>
-                <div className="font-mono text-[11px] text-muted-foreground">{shortId(run.run_id)}</div>
+      markUiCopy(
+        {
+          id: "run",
+          accessorFn: (row) => `${runTitle(row)} ${row.run_id}`,
+          header: "Run",
+          meta: markUiCopy({ title: "Run", skeleton: "twoLine" as const }, { title: "Run" }),
+          cell: ({ row }) => {
+            const run = row.original;
+            return (
+              <div className="flex items-center gap-2">
+                <StatusDot status={run.status} className="size-[7px]" />
+                <div>
+                  <div className="text-[13px] font-medium leading-snug text-foreground">{runTitle(run)}</div>
+                  <div className="font-mono text-[11px] text-muted-foreground">{shortId(run.run_id)}</div>
+                </div>
               </div>
-            </div>
-          );
+            );
+          },
         },
-      },
-      {
-        accessorKey: "workflow_type",
-        header: "Type",
-        meta: { title: "Type" },
-        filterFn: "includesString",
-        cell: ({ row }) => (
-          <span className="font-mono text-xs text-muted-foreground">{row.original.workflow_type}</span>
-        ),
-      },
-      {
-        id: "status",
-        accessorKey: "status",
-        header: "Status",
-        meta: { title: "Status" },
-        filterFn: "equalsString",
-        cell: ({ row }) => {
-          const run = row.original;
-          return (
-            <div className="flex items-center gap-1.5">
-              <StatusDot status={run.status} className="size-[7px]" />
-              <span className="text-xs capitalize text-muted-foreground">{run.metadata?.state ?? run.status}</span>
-            </div>
-          );
+        { header: "Run" },
+      ),
+      markUiCopy(
+        {
+          accessorKey: "workflow_type",
+          header: "Type",
+          meta: markUiCopy({ title: "Type" }, { title: "Type" }),
+          filterFn: "includesString",
+          cell: ({ row }) => (
+            <span className="font-mono text-xs text-muted-foreground">{row.original.workflow_type}</span>
+          ),
         },
-      },
-      {
-        accessorKey: "created_at",
-        header: "Created",
-        meta: { title: "Created" },
-        cell: ({ row }) => <span className="text-xs text-muted-foreground">{timeAgo(row.original.created_at)}</span>,
-      },
+        { header: "Type" },
+      ),
+      markUiCopy(
+        {
+          id: "status",
+          accessorKey: "status",
+          header: "Status",
+          meta: markUiCopy({ title: "Status" }, { title: "Status" }),
+          filterFn: "equalsString",
+          cell: ({ row }) => {
+            const run = row.original;
+            return (
+              <div className="flex items-center gap-1.5">
+                <StatusDot status={run.status} className="size-[7px]" />
+                <span className="text-xs capitalize text-muted-foreground">{run.metadata?.state ?? run.status}</span>
+              </div>
+            );
+          },
+        },
+        { header: "Status" },
+      ),
+      markUiCopy(
+        {
+          accessorKey: "created_at",
+          header: "Created",
+          meta: markUiCopy({ title: "Created" }, { title: "Created" }),
+          cell: ({ row }) => <span className="text-xs text-muted-foreground">{timeAgo(row.original.created_at)}</span>,
+        },
+        { header: "Created" },
+      ),
     ],
     [],
   );
@@ -509,9 +544,11 @@ const WorkflowRuns: React.FC<WorkflowRunsProps> = ({ accessToken }) => {
     <div className="w-full px-8 py-6">
       {/* page header */}
       <div className="mb-5">
-        <div className="text-lg font-semibold text-foreground">Workflow Runs</div>
+        <div className="text-lg font-semibold text-foreground">
+          <LocalizedText text={"Workflow Runs"} />
+        </div>
         <div className="mt-0.5 text-[13px] text-muted-foreground">
-          Durable state tracking for agents and automated workflows
+          <LocalizedText text={"Durable state tracking for agents and automated workflows"} />
         </div>
       </div>
 
@@ -520,8 +557,12 @@ const WorkflowRuns: React.FC<WorkflowRunsProps> = ({ accessToken }) => {
         columns={columns}
         getRowId={(run) => run.run_id}
         isLoading={loadingRuns}
-        loadingMessage="Loading workflow runs…"
-        noDataMessage={<div className="py-6 text-center text-[13px] text-muted-foreground">No workflow runs yet</div>}
+        loadingMessage={translateMessage("Loading workflow runs…")}
+        noDataMessage={
+          <div className="py-6 text-center text-[13px] text-muted-foreground">
+            <LocalizedText text={"No workflow runs yet"} />
+          </div>
+        }
         paginationMode="client"
         pageSizeOptions={[50, 100]}
         filterMode="client"
@@ -537,7 +578,7 @@ const WorkflowRuns: React.FC<WorkflowRunsProps> = ({ accessToken }) => {
               table={table}
               searchValue={globalFilter}
               onSearchChange={setGlobalFilter}
-              searchPlaceholder="Search runs…"
+              searchPlaceholder={translateMessage("Search runs…")}
               onRefresh={fetchRuns}
               isRefreshing={loadingRuns}
               onOpenFilters={() => setFiltersOpen(true)}
@@ -546,35 +587,37 @@ const WorkflowRuns: React.FC<WorkflowRunsProps> = ({ accessToken }) => {
               table={table}
               open={filtersOpen}
               onOpenChange={setFiltersOpen}
-              title="Filters"
-              description="Narrow down workflow runs"
+              title={translateMessage("Filters")}
+              description={translateMessage("Narrow down workflow runs")}
             >
               {({ get, set }) => (
                 <>
-                  <DataTableFilterField label="Status">
+                  <DataTableFilterField label={translateMessage("Status")}>
                     <Select
                       items={STATUS_LABELS}
                       value={(get("status") as string) || null}
                       onValueChange={(value: string | null) => set("status", value ?? "")}
                     >
                       <SelectTrigger className="w-full">
-                        <SelectValue placeholder="All statuses" />
+                        <SelectValue placeholder={translateMessage("All statuses")} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value={null}>All statuses</SelectItem>
+                        <SelectItem value={null}>
+                          <LocalizedText text={"All statuses"} />
+                        </SelectItem>
                         {RUN_STATUS_OPTIONS.map((status) => (
                           <SelectItem key={status} value={status}>
-                            {STATUS_LABELS[status]}
+                            {localizedProperty(STATUS_LABELS, status, STATUS_LABELS[status])}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </DataTableFilterField>
-                  <DataTableFilterField label="Type">
+                  <DataTableFilterField label={translateMessage("Type")}>
                     <Input
                       value={(get("workflow_type") as string) ?? ""}
                       onChange={(event) => set("workflow_type", event.target.value)}
-                      placeholder="Filter by type…"
+                      placeholder={translateMessage("Filter by type…")}
                     />
                   </DataTableFilterField>
                 </>
@@ -590,9 +633,11 @@ const WorkflowRuns: React.FC<WorkflowRunsProps> = ({ accessToken }) => {
           showCloseButton={false}
           className="overflow-y-auto p-0 data-[side=right]:w-full data-[side=right]:sm:max-w-[680px]"
         >
-          <SheetTitle className="sr-only">Workflow run details</SheetTitle>
+          <SheetTitle className="sr-only">
+            <LocalizedText text={"Workflow run details"} />
+          </SheetTitle>
           <SheetDescription className="sr-only">
-            Metadata, timeline and messages for the selected workflow run
+            <LocalizedText text={"Metadata, timeline and messages for the selected workflow run"} />
           </SheetDescription>
           {!selectedRun ? null : loadingDetail ? (
             <div className="flex justify-center py-20">
@@ -609,11 +654,11 @@ const WorkflowRuns: React.FC<WorkflowRunsProps> = ({ accessToken }) => {
                   onClick={() => setDrawerOpen(false)}
                 >
                   <ArrowLeft />
-                  close
+                  <LocalizedText text={"close"} />
                 </Button>
                 <Button variant="outline" size="sm" onClick={() => fetchRunDetail(selectedRun)}>
                   <RefreshCw />
-                  Refresh
+                  <LocalizedText text={"Refresh"} />
                 </Button>
               </div>
 
@@ -623,17 +668,17 @@ const WorkflowRuns: React.FC<WorkflowRunsProps> = ({ accessToken }) => {
               {/* collapsible sections */}
               <div className="divide-y overflow-hidden rounded-lg border">
                 <DetailSection
-                  title="Timeline"
+                  title={translateMessage("Timeline")}
                   meta={
                     <>
-                      {events.length} {events.length === 1 ? "event" : "events"}
+                      {events.length} {events.length === 1 ? translateMessage("event") : translateMessage("events")}
                     </>
                   }
                   defaultOpen
                 >
                   <GanttTimeline run={selectedRun} events={events} />
                 </DetailSection>
-                <DetailSection title="Messages" meta={messages.length}>
+                <DetailSection title={translateMessage("Messages")} meta={messages.length}>
                   {messages.length === 0 ? (
                     <div className="py-3 font-mono text-xs text-muted-foreground">No messages</div>
                   ) : (

@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import React, { useId } from "react";
 import { AutoRouterAllowanceNote } from "./AutoRouterAvailability";
 import { Button } from "@/components/ui/button";
@@ -9,14 +11,24 @@ import type { ComplexityRouterConfigValue } from "./ComplexityRouterConfig";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { defaultJevClassifierConfig, fixedClassifierModels } from "./jev_classifier_config";
 
-const providerDescriptions = {
-  jev: "Uses TypeSafe System One Choice evaluation with your configured tiers",
-  laya: "Uses Laya with your configured tiers. Set LAYA_API_BASE on the gateway to connect your Laya server.",
-  bespoke:
-    "Uses Bespoke Nimble with your configured tiers. Set BESPOKE_API_BASE on the gateway to connect your Nimble server.",
-  databricks:
-    "Uses a Databricks ai_decide serving endpoint with your configured tiers. Set DATABRICKS_API_BASE and DATABRICKS_API_KEY on the gateway, and enter the serving endpoint name as the classifier model.",
-};
+const providerDescriptions = markUiCopy(
+  {
+    jev: "Uses TypeSafe System One Choice evaluation with your configured tiers",
+    laya: "Uses Laya with your configured tiers. Set LAYA_API_BASE on the gateway to connect your Laya server.",
+    bespoke:
+      "Uses Bespoke Nimble with your configured tiers. Set BESPOKE_API_BASE on the gateway to connect your Nimble server.",
+    databricks:
+      "Uses a Databricks ai_decide serving endpoint with your configured tiers. Set DATABRICKS_API_BASE and DATABRICKS_API_KEY on the gateway, and enter the serving endpoint name as the classifier model.",
+  },
+  {
+    jev: "Uses TypeSafe System One Choice evaluation with your configured tiers",
+    laya: "Uses Laya with your configured tiers. Set LAYA_API_BASE on the gateway to connect your Laya server.",
+    bespoke:
+      "Uses Bespoke Nimble with your configured tiers. Set BESPOKE_API_BASE on the gateway to connect your Nimble server.",
+    databricks:
+      "Uses a Databricks ai_decide serving endpoint with your configured tiers. Set DATABRICKS_API_BASE and DATABRICKS_API_KEY on the gateway, and enter the serving endpoint name as the classifier model.",
+  },
+);
 
 export default function JevClassifierConfig({
   value,
@@ -27,6 +39,7 @@ export default function JevClassifierConfig({
   onChange: (value: ComplexityRouterConfigValue) => void;
   section?: "all" | "model" | "advanced";
 }) {
+  useUiLocale();
   const id = useId();
   const config = value.jev_classifier_config ?? defaultJevClassifierConfig();
   const models = fixedClassifierModels(config.provider);
@@ -37,9 +50,17 @@ export default function JevClassifierConfig({
     <div className={section === "model" ? "space-y-3" : "mt-4 space-y-3"}>
       {section !== "advanced" && !config.deployment_name && (
         <>
-          <p className="text-sm text-muted-foreground">{providerDescriptions[config.provider ?? "jev"]}</p>
+          <p className="text-sm text-muted-foreground">
+            {localizedProperty(
+              providerDescriptions,
+              config.provider ?? "jev",
+              providerDescriptions[config.provider ?? "jev"],
+            )}
+          </p>
           <div className="space-y-2">
-            <Label htmlFor={`${id}-model`}>Classifier Model</Label>
+            <Label htmlFor={`${id}-model`}>
+              <LocalizedText text={"Classifier Model"} />
+            </Label>
             {models ? (
               <Select value={config.model} onValueChange={(model) => model && update({ model })}>
                 <SelectTrigger id={`${id}-model`} className="w-full">
@@ -59,7 +80,7 @@ export default function JevClassifierConfig({
                 value={config.model}
                 placeholder={
                   config.provider === "databricks"
-                    ? "Serving endpoint name, e.g. databricks-openjev-qwen35-4b"
+                    ? translateMessage("Serving endpoint name, e.g. databricks-openjev-qwen35-4b")
                     : undefined
                 }
                 onChange={(event) => update({ model: event.target.value })}
@@ -71,7 +92,9 @@ export default function JevClassifierConfig({
       {section !== "model" && (
         <>
           <div className="space-y-2">
-            <Label htmlFor={`${id}-timeout`}>Classifier Timeout (ms)</Label>
+            <Label htmlFor={`${id}-timeout`}>
+              <LocalizedText text={"Classifier Timeout (ms)"} />
+            </Label>
             <Input
               id={`${id}-timeout`}
               type="number"
@@ -91,24 +114,30 @@ export default function JevClassifierConfig({
             }
           />
           <div className="space-y-2">
-            <Label htmlFor={`${id}-instructions`}>Classifier Instructions</Label>
+            <Label htmlFor={`${id}-instructions`}>
+              <LocalizedText text={"Classifier Instructions"} />
+            </Label>
             <AutoRouterAllowanceNote
               feature="tier_or_classifier_prompt"
-              label="Custom instructions share the custom-tier allowance"
+              label={translateMessage("Custom instructions share the custom-tier allowance")}
             />
             <Textarea
               id={`${id}-instructions`}
               value={config.instructions ?? ""}
-              placeholder="Leave blank to use the built-in instructions"
+              placeholder={translateMessage("Leave blank to use the built-in instructions")}
               onChange={(event) => update({ instructions: event.target.value || undefined })}
             />
             {config.instructions && (
               <Button variant="outline" type="button" onClick={() => update({ instructions: undefined })}>
-                Restore built-in instructions
+                <LocalizedText text={"Restore built-in instructions"} />
               </Button>
             )}
             <p className="text-xs text-muted-foreground">
-              Built-in decision model classification is available without a license and uses the shipped tier criteria
+              <LocalizedText
+                text={
+                  "Built-in decision model classification is available without a license and uses the shipped tier criteria"
+                }
+              />
             </p>
           </div>
         </>

@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import { CircleMinus, Info, Plus } from "lucide-react";
 import React from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -17,8 +19,8 @@ import { matchesPattern, selectControl, selectTriggerControl, textControl } from
 import { listControl } from "./mcpFormStore";
 
 const SCOPE_OPTIONS = [
-  { value: "global", label: "Instance" },
-  { value: "user", label: "Per-user" },
+  markUiCopy({ value: "global", label: "Instance" }, { label: "Instance" }),
+  markUiCopy({ value: "user", label: "Per-user" }, { label: "Per-user" }),
 ];
 
 const VARIABLE_NAME_PATTERN = /^[A-Za-z_][A-Za-z0-9_]*$/;
@@ -34,6 +36,7 @@ const VARIABLE_NAME_PATTERN = /^[A-Za-z_][A-Za-z0-9_]*$/;
  * The parent form reads the ``env_vars`` field from the form values.
  */
 const EnvVarsSection: React.FC = () => {
+  useUiLocale();
   const { control } = useFormContext<MountedFormValues>();
   const { fields, append, remove } = useFieldArray({ control: listControl(control), name: "env_vars" });
   useMountedName("env_vars");
@@ -41,16 +44,25 @@ const EnvVarsSection: React.FC = () => {
   return (
     <div className="rounded-lg border border-border bg-muted p-4">
       <div className="flex items-center gap-2 mb-1">
-        <strong className="text-sm font-semibold">Variables</strong>
+        <strong className="text-sm font-semibold">
+          <LocalizedText text={"Variables"} />
+        </strong>
         <SimpleTooltip
           content={
             <>
-              Define variables you can interpolate in Static Headers or Authentication using{" "}
+              <LocalizedText text={"Define variables you can interpolate in Static Headers or Authentication using"} />{" "}
               <code>{"${VAR_NAME}"}</code>. <br />
-              <b>Instance</b>: admin-defined value used for every user.
+              <b>
+                <LocalizedText text={"Instance"} />
+              </b>
+              <LocalizedText text={": admin-defined value used for every user."} />
               <br />
-              <b>Per-user</b>: each user supplies their own value (e.g. personal credentials) via the MCP Gateway
-              dashboard.
+              <b>
+                <LocalizedText text={"Per-user"} />
+              </b>
+              <LocalizedText
+                text={": each user supplies their own value (e.g. personal credentials) via the MCP Gateway dashboard."}
+              />
             </>
           }
         >
@@ -58,7 +70,9 @@ const EnvVarsSection: React.FC = () => {
         </SimpleTooltip>
       </div>
       <span className="mb-3 block text-xs text-muted-foreground">
-        Reference these in Static Headers or Authentication as <code>{"${VAR_NAME}"}</code>. For example:{" "}
+        <LocalizedText text={"Reference these in Static Headers or Authentication as "} />
+        <code>{"${VAR_NAME}"}</code>
+        <LocalizedText text={". For example:"} />{" "}
         <code className="bg-card px-1 rounded-sm border border-border">
           {"${DB_PROTOCOL}://${CORP_USERNAME}:${CORP_PASSWORD}@${DB_HOSTNAME}"}
         </code>
@@ -67,9 +81,15 @@ const EnvVarsSection: React.FC = () => {
       <div className="space-y-2">
         {fields.length > 0 && (
           <div className="flex gap-3 px-1 text-xs font-medium text-muted-foreground uppercase tracking-wide">
-            <div style={{ flex: 1 }}>Variable Name</div>
-            <div style={{ flex: 1 }}>Value / Description</div>
-            <div style={{ width: 160 }}>Scope</div>
+            <div style={{ flex: 1 }}>
+              <LocalizedText text={"Variable Name"} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <LocalizedText text={"Value / Description"} />
+            </div>
+            <div style={{ width: 160 }}>
+              <LocalizedText text={"Scope"} />
+            </div>
             <div style={{ width: 24 }} />
           </div>
         )}
@@ -89,7 +109,11 @@ const EnvVarsSection: React.FC = () => {
               }}
             >
               {(control) => (
-                <Input {...textControl(control)} placeholder="e.g. DB_PROTOCOL" className="rounded-md font-mono" />
+                <Input
+                  {...textControl(control)}
+                  placeholder={translateMessage("e.g. DB_PROTOCOL")}
+                  className="rounded-md font-mono"
+                />
               )}
             </MountedFormField>
             <div style={{ flex: 1 }}>
@@ -104,7 +128,7 @@ const EnvVarsSection: React.FC = () => {
                   <SelectContent>
                     {SCOPE_OPTIONS.map((option) => (
                       <SelectItem key={option.value} value={option.value}>
-                        {option.label}
+                        {localizedProperty(option, "label", option.label)}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -121,7 +145,7 @@ const EnvVarsSection: React.FC = () => {
         ))}
         <Button variant="outline" className="w-full border-dashed" onClick={() => append({ scope: "global" })}>
           <Plus />
-          Add Variable
+          <LocalizedText text={"Add Variable"} />
         </Button>
       </div>
     </div>
@@ -132,6 +156,7 @@ const EnvVarsSection: React.FC = () => {
 // vars the value comes from each user later, so the column instead captures an
 // optional description that the per-user fill-in modal shows as a hint.
 const ScopedValueOrDescription: React.FC<{ index: number }> = ({ index }) => {
+  useUiLocale();
   const isPerUser = useWatch({ name: `env_vars.${index}.scope` }) === "user";
   if (isPerUser) {
     return (
@@ -142,13 +167,13 @@ const ScopedValueOrDescription: React.FC<{ index: number }> = ({ index }) => {
               <SimpleTooltip content="Per-user variables have no shared value. This text is only a hint shown to each user when they fill in their own value.">
                 <span className="text-xs text-muted-foreground cursor-help whitespace-nowrap">
                   <Info className="mr-1 inline size-3 align-text-bottom" />
-                  Hint
+                  <LocalizedText text={"Hint"} />
                 </span>
               </SimpleTooltip>
             </InputGroupAddon>
             <InputGroupInput
               {...textControl(control)}
-              placeholder="e.g. Your DB username"
+              placeholder={translateMessage("e.g. Your DB username")}
               className="text-muted-foreground"
             />
           </InputGroup>
@@ -158,7 +183,13 @@ const ScopedValueOrDescription: React.FC<{ index: number }> = ({ index }) => {
   }
   return (
     <MountedFormField name={["env_vars", String(index), "value"]} className="mb-0">
-      {(control) => <Input {...textControl(control)} placeholder="e.g. postgresql" className="rounded-md font-mono" />}
+      {(control) => (
+        <Input
+          {...textControl(control)}
+          placeholder={translateMessage("e.g. postgresql")}
+          className="rounded-md font-mono"
+        />
+      )}
     </MountedFormField>
   );
 };

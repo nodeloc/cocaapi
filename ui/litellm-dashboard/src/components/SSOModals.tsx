@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 import React, { useEffect, useState } from "react";
 import { FormProvider, useWatch, type UseFormReturn } from "react-hook-form";
 import { getSSOSettings, updateSSOSettings } from "./networking";
@@ -55,6 +57,7 @@ const SSOModals: React.FC<SSOModalsProps> = ({
   accessToken,
   ssoConfigured = false, // Default to false if not provided
 }) => {
+  useUiLocale();
   const [isClearConfirmModalVisible, setIsClearConfirmModalVisible] = useState(false);
   const provider = useWatch({ control: form.control, name: "sso_provider" });
   const useRoleMappings = useWatch({ control: form.control, name: "use_role_mappings" });
@@ -237,7 +240,7 @@ const SSOModals: React.FC<SSOModalsProps> = ({
       // Close the main SSO modal and trigger refresh
       handleAddSSOOk();
 
-      toast.success("SSO settings cleared successfully");
+      toast.success(translateMessage("SSO settings cleared successfully"));
     } catch (error) {
       console.error("Failed to clear SSO settings:", error);
       toast.fromError("Failed to clear SSO settings");
@@ -250,7 +253,9 @@ const SSOModals: React.FC<SSOModalsProps> = ({
       <Dialog open={isAddSSOModalVisible} onOpenChange={(open) => !open && handleAddSSOCancel()}>
         <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-[800px]">
           <DialogHeader>
-            <DialogTitle>{ssoConfigured ? "Edit SSO Settings" : "Add SSO"}</DialogTitle>
+            <DialogTitle>
+              {ssoConfigured ? translateMessage("Edit SSO Settings") : translateMessage("Add SSO")}
+            </DialogTitle>
           </DialogHeader>
           <FormProvider {...form}>
             <form
@@ -264,7 +269,9 @@ const SSOModals: React.FC<SSOModalsProps> = ({
                 {provider ? renderProviderFields(provider) : null}
                 <ProxyAdminEmailField />
                 <ProxyBaseUrlField />
-                {showRoleMappingToggle && <MappingToggleField name="use_role_mappings" label="Use Role Mappings" />}
+                {showRoleMappingToggle && (
+                  <MappingToggleField name="use_role_mappings" label={translateMessage("Use Role Mappings")} />
+                )}
                 {useRoleMappings && (
                   <>
                     <GroupClaimField />
@@ -275,10 +282,12 @@ const SSOModals: React.FC<SSOModalsProps> = ({
               <div className="mt-4 flex items-center justify-end gap-2">
                 {ssoConfigured && (
                   <Button type="button" variant="secondary" onClick={() => setIsClearConfirmModalVisible(true)}>
-                    Clear
+                    <LocalizedText text={"Clear"} />
                   </Button>
                 )}
-                <Button type="submit">Save</Button>
+                <Button type="submit">
+                  <LocalizedText text={"Save"} />
+                </Button>
               </div>
             </form>
           </FormProvider>
@@ -289,16 +298,22 @@ const SSOModals: React.FC<SSOModalsProps> = ({
       <Dialog open={isClearConfirmModalVisible} onOpenChange={(open) => !open && setIsClearConfirmModalVisible(false)}>
         <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Confirm Clear SSO Settings</DialogTitle>
+            <DialogTitle>
+              <LocalizedText text={"Confirm Clear SSO Settings"} />
+            </DialogTitle>
           </DialogHeader>
-          <p>Are you sure you want to clear all SSO settings? This action cannot be undone.</p>
-          <p>Users will no longer be able to login using SSO after this change.</p>
+          <p>
+            <LocalizedText text={"Are you sure you want to clear all SSO settings? This action cannot be undone."} />
+          </p>
+          <p>
+            <LocalizedText text={"Users will no longer be able to login using SSO after this change."} />
+          </p>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsClearConfirmModalVisible(false)}>
-              Cancel
+              <LocalizedText text={"Cancel"} />
             </Button>
             <Button onClick={handleClearSSO} variant="destructive">
-              Yes, Clear
+              <LocalizedText text={"Yes, Clear"} />
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -307,16 +322,28 @@ const SSOModals: React.FC<SSOModalsProps> = ({
       <Dialog open={isInstructionsModalVisible} onOpenChange={(open) => !open && handleInstructionsCancel()}>
         <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-[800px]">
           <DialogHeader>
-            <DialogTitle>SSO Setup Instructions</DialogTitle>
+            <DialogTitle>
+              <LocalizedText text={"SSO Setup Instructions"} />
+            </DialogTitle>
           </DialogHeader>
-          <p>Follow these steps to complete the SSO setup:</p>
-          <p className="text-sm mt-2">1. DO NOT Exit this TAB</p>
-          <p className="text-sm mt-2">2. Open a new tab, visit your proxy base url</p>
-          <p className="text-sm mt-2">3. Confirm your SSO is configured correctly and you can login on the new Tab</p>
-          <p className="text-sm mt-2">4. If Step 3 is successful, you can close this tab</p>
+          <p>
+            <LocalizedText text={"Follow these steps to complete the SSO setup:"} />
+          </p>
+          <p className="text-sm mt-2">
+            <LocalizedText text={"1. DO NOT Exit this TAB"} />
+          </p>
+          <p className="text-sm mt-2">
+            <LocalizedText text={"2. Open a new tab, visit your proxy base url"} />
+          </p>
+          <p className="text-sm mt-2">
+            <LocalizedText text={"3. Confirm your SSO is configured correctly and you can login on the new Tab"} />
+          </p>
+          <p className="text-sm mt-2">
+            <LocalizedText text={"4. If Step 3 is successful, you can close this tab"} />
+          </p>
           <div style={{ textAlign: "right", marginTop: "10px" }}>
             <Button type="button" onClick={handleInstructionsOk}>
-              Done
+              <LocalizedText text={"Done"} />
             </Button>
           </div>
         </DialogContent>

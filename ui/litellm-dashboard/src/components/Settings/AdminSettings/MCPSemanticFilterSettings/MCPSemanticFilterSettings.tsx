@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { useMCPSemanticFilterSettings } from "@/app/(dashboard)/hooks/mcpSemanticFilterSettings/useMCPSemanticFilterSettings";
 import { useUpdateMCPSemanticFilterSettings } from "@/app/(dashboard)/hooks/mcpSemanticFilterSettings/useUpdateMCPSemanticFilterSettings";
@@ -81,6 +82,7 @@ const parseTopK = (raw: string, rawAsNumber: number): number | null =>
   raw === "" || Number.isNaN(rawAsNumber) ? null : rawAsNumber;
 
 const SaveSuccessAlert = () => {
+  useUiLocale();
   const [dismissed, setDismissed] = useState(false);
 
   if (dismissed) {
@@ -90,9 +92,16 @@ const SaveSuccessAlert = () => {
   return (
     <Alert variant="success" className="mb-4">
       <CircleCheck />
-      <AlertTitle>Settings saved successfully</AlertTitle>
+      <AlertTitle>
+        <LocalizedText text={"Settings saved successfully"} />
+      </AlertTitle>
       <AlertAction>
-        <Button variant="ghost" size="icon-sm" aria-label="Close" onClick={() => setDismissed(true)}>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          aria-label={translateMessage("Close")}
+          onClick={() => setDismissed(true)}
+        >
           <X className="size-4" />
         </Button>
       </AlertAction>
@@ -101,6 +110,7 @@ const SaveSuccessAlert = () => {
 };
 
 export default function MCPSemanticFilterSettings({ accessToken }: MCPSemanticFilterSettingsProps) {
+  useUiLocale();
   const { data, isLoading, isError, error } = useMCPSemanticFilterSettings();
   const {
     mutate: updateSettings,
@@ -164,7 +174,9 @@ export default function MCPSemanticFilterSettings({ accessToken }: MCPSemanticFi
         setIsDirty(false);
         setSaveSuccess(true);
         setTimeout(() => setSaveSuccess(false), 3000);
-        toast.success("Settings updated successfully. Changes will be applied across all pods within 10 seconds.");
+        toast.success(
+          translateMessage("Settings updated successfully. Changes will be applied across all pods within 10 seconds."),
+        );
       },
       onError: (error) => {
         toast.fromError(error);
@@ -189,7 +201,9 @@ export default function MCPSemanticFilterSettings({ accessToken }: MCPSemanticFi
 
   if (!accessToken) {
     return (
-      <div className="p-6 text-center text-muted-foreground">Please log in to configure semantic filter settings.</div>
+      <div className="p-6 text-center text-muted-foreground">
+        <LocalizedText text={"Please log in to configure semantic filter settings."} />
+      </div>
     );
   }
 
@@ -204,18 +218,26 @@ export default function MCPSemanticFilterSettings({ accessToken }: MCPSemanticFi
         </div>
       ) : isError ? (
         <Alert variant="error" className="mb-6">
-          <AlertTitle>Could not load MCP Semantic Filter settings</AlertTitle>
-          {error instanceof Error && <AlertDescription>{error.message}</AlertDescription>}
+          <AlertTitle>
+            <LocalizedText text={"Could not load MCP Semantic Filter settings"} />
+          </AlertTitle>
+          {error instanceof Error && (
+            <AlertDescription>{localizedProperty(error, "message", error.message)}</AlertDescription>
+          )}
         </Alert>
       ) : (
         <>
           <Alert variant="info" className="mb-6">
             <Info />
-            <AlertTitle>Semantic Tool Filtering</AlertTitle>
+            <AlertTitle>
+              <LocalizedText text={"Semantic Tool Filtering"} />
+            </AlertTitle>
             <AlertDescription>
-              Filter MCP tools semantically based on query relevance. This reduces context window size and improves tool
-              selection accuracy. Click &apos;Save Settings&apos; to apply changes across all pods (takes effect within
-              10 seconds).
+              <LocalizedText
+                text={
+                  "Filter MCP tools semantically based on query relevance. This reduces context window size and improves tool selection accuracy. Click 'Save Settings' to apply changes across all pods (takes effect within 10 seconds)."
+                }
+              />
             </AlertDescription>
           </Alert>
 
@@ -223,8 +245,12 @@ export default function MCPSemanticFilterSettings({ accessToken }: MCPSemanticFi
 
           {updateError && (
             <Alert variant="error" className="mb-4">
-              <AlertTitle>Could not update settings</AlertTitle>
-              {updateError instanceof Error && <AlertDescription>{updateError.message}</AlertDescription>}
+              <AlertTitle>
+                <LocalizedText text={"Could not update settings"} />
+              </AlertTitle>
+              {updateError instanceof Error && (
+                <AlertDescription>{localizedProperty(updateError, "message", updateError.message)}</AlertDescription>
+              )}
             </Alert>
           )}
 
@@ -243,7 +269,7 @@ export default function MCPSemanticFilterSettings({ accessToken }: MCPSemanticFi
                             "Enable Semantic Filtering",
                             "When enabled, only the most relevant MCP tools will be included in requests based on semantic similarity",
                           )}
-                          description={schema?.properties?.enabled?.description}
+                          description={localizedProperty(schema?.properties?.enabled, "description")}
                         >
                           {({ value, onChange, onBlur, id }) => (
                             <Switch
@@ -261,7 +287,9 @@ export default function MCPSemanticFilterSettings({ accessToken }: MCPSemanticFi
 
                   <Card className="mb-4">
                     <CardHeader className="border-b">
-                      <CardTitle>Configuration</CardTitle>
+                      <CardTitle>
+                        <LocalizedText text={"Configuration"} />
+                      </CardTitle>
                     </CardHeader>
                     <CardContent>
                       <FieldGroup>
@@ -283,8 +311,16 @@ export default function MCPSemanticFilterSettings({ accessToken }: MCPSemanticFi
                               value={value}
                               onValueChange={(selected) => commitChange(onChange, selected)}
                               allowClear={false}
-                              placeholder={loadingModels ? "Loading models..." : "Select embedding model"}
-                              emptyText={loadingModels ? "Loading..." : "No embedding models available"}
+                              placeholder={
+                                loadingModels
+                                  ? translateMessage("Loading models...")
+                                  : translateMessage("Select embedding model")
+                              }
+                              emptyText={
+                                loadingModels
+                                  ? translateMessage("Loading...")
+                                  : translateMessage("No embedding models available")
+                              }
                               disabled={isUpdating || loadingModels}
                             />
                           )}
@@ -341,7 +377,7 @@ export default function MCPSemanticFilterSettings({ accessToken }: MCPSemanticFi
                                     className="absolute -translate-x-1/2"
                                     style={{ left: `${mark.value * 100}%` }}
                                   >
-                                    {mark.label}
+                                    {localizedProperty(mark, "label", mark.label)}
                                   </span>
                                 ))}
                               </div>
@@ -359,7 +395,7 @@ export default function MCPSemanticFilterSettings({ accessToken }: MCPSemanticFi
                       disabled={!isDirty || isUpdating}
                     >
                       {isUpdating ? <UiLoadingSpinner className="size-4" /> : <Save />}
-                      Save Settings
+                      <LocalizedText text={"Save Settings"} />
                     </Button>
                   </div>
                 </form>

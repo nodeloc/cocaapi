@@ -1,4 +1,5 @@
 "use client";
+import { markUiCopy, translateMessage } from "@/lib/i18n";
 
 import { ColumnDef } from "@tanstack/react-table";
 
@@ -20,8 +21,8 @@ export const getIndexesTableColumns = ({
   {
     id: "index_name",
     accessorKey: "index_name",
-    meta: { title: "Index Name" },
-    header: ({ column }) => <DataTableSortHeader column={column} title="Index Name" />,
+    meta: markUiCopy({ title: "Index Name" }, { title: "Index Name" }),
+    header: ({ column }) => <DataTableSortHeader column={column} title={translateMessage("Index Name")} />,
     size: 220,
     enableSorting: true,
     cell: ({ row }) => (
@@ -33,8 +34,8 @@ export const getIndexesTableColumns = ({
   {
     id: "vector_store_name",
     accessorFn: (row) => row.litellm_params.vector_store_name,
-    meta: { title: "Vector Store" },
-    header: ({ column }) => <DataTableSortHeader column={column} title="Vector Store" />,
+    meta: markUiCopy({ title: "Vector Store" }, { title: "Vector Store" }),
+    header: ({ column }) => <DataTableSortHeader column={column} title={translateMessage("Vector Store")} />,
     size: 200,
     enableSorting: true,
     cell: ({ row }) => {
@@ -57,50 +58,56 @@ export const getIndexesTableColumns = ({
       );
     },
   },
-  {
-    id: "vector_store_index",
-    accessorFn: (row) => row.litellm_params.vector_store_index,
-    meta: { title: "Provider Index" },
-    header: "Provider Index",
-    size: 220,
-    enableSorting: false,
-    cell: ({ row }) => (
-      <span
-        className="block max-w-60 truncate font-mono text-xs"
-        title={row.original.litellm_params.vector_store_index}
-      >
-        {row.original.litellm_params.vector_store_index || "-"}
-      </span>
-    ),
-  },
-  {
-    id: "created_by",
-    accessorKey: "created_by",
-    meta: { title: "Created By" },
-    header: "Created By",
-    size: 160,
-    enableSorting: false,
-    cell: ({ row }) => {
-      const createdBy = row.original.created_by;
-      if (createdBy) {
-        return (
-          <IdentityCell
-            title={createdBy}
-            titleClassName="font-normal"
-            className="max-w-48"
-            href={userDetailHref(createdBy)}
-          />
-        );
-      }
-      return <span className="block max-w-48 truncate text-sm">-</span>;
+  markUiCopy(
+    {
+      id: "vector_store_index",
+      accessorFn: (row) => row.litellm_params.vector_store_index,
+      meta: markUiCopy({ title: "Provider Index" }, { title: "Provider Index" }),
+      header: "Provider Index",
+      size: 220,
+      enableSorting: false,
+      cell: ({ row }) => (
+        <span
+          className="block max-w-60 truncate font-mono text-xs"
+          title={row.original.litellm_params.vector_store_index}
+        >
+          {row.original.litellm_params.vector_store_index || "-"}
+        </span>
+      ),
     },
-  },
+    { header: "Provider Index" },
+  ),
+  markUiCopy(
+    {
+      id: "created_by",
+      accessorKey: "created_by",
+      meta: markUiCopy({ title: "Created By" }, { title: "Created By" }),
+      header: "Created By",
+      size: 160,
+      enableSorting: false,
+      cell: ({ row }) => {
+        const createdBy = row.original.created_by;
+        if (createdBy) {
+          return (
+            <IdentityCell
+              title={createdBy}
+              titleClassName="font-normal"
+              className="max-w-48"
+              href={userDetailHref(createdBy)}
+            />
+          );
+        }
+        return <span className="block max-w-48 truncate text-sm">-</span>;
+      },
+    },
+    { header: "Created By" },
+  ),
   {
     id: "created_at",
     accessorKey: "created_at",
     sortingFn: "datetime",
-    meta: { title: "Created At" },
-    header: ({ column }) => <DataTableSortHeader column={column} title="Created At" />,
+    meta: markUiCopy({ title: "Created At" }, { title: "Created At" }),
+    header: ({ column }) => <DataTableSortHeader column={column} title={translateMessage("Created At")} />,
     size: 150,
     enableSorting: true,
     cell: ({ row }) => <DateCell value={row.original.created_at} precision="date" />,

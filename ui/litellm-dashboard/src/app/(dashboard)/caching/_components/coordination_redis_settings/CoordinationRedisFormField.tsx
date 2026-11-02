@@ -1,3 +1,5 @@
+"use client";
+import { localizedProperty, useUiLocale } from "@/lib/i18n";
 import React from "react";
 import { useFormContext } from "react-hook-form";
 import { FormField } from "@/components/shared/form/FormField";
@@ -16,11 +18,17 @@ interface CoordinationRedisFormFieldProps {
 }
 
 const CoordinationRedisFormField: React.FC<CoordinationRedisFormFieldProps> = ({ field, isSecretConfigured }) => {
+  useUiLocale();
   const form = useFormContext<CoordinationFormValues>();
   const placeholder = isSecretConfigured ? SECRET_ALREADY_SET_PLACEHOLDER : field.helpText;
 
   return (
-    <FormField control={form.control} name={field.name} label={field.label} description={field.helpText}>
+    <FormField
+      control={form.control}
+      name={field.name}
+      label={localizedProperty(field, "label", field.label)}
+      description={field.helpText}
+    >
       {({ ref, value, onChange, ...rest }) => {
         if (field.type === "boolean") {
           return <Switch {...rest} checked={value === true} onCheckedChange={(checked) => onChange(checked)} />;

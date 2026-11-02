@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { ColumnDef } from "@tanstack/react-table";
 import { Copy, MoreHorizontal, Trash2 } from "lucide-react";
@@ -28,6 +29,7 @@ const ENVIRONMENT_TONE: Record<string, StatusTone> = {
 };
 
 function PromptModelCell({ prompt, modelHubData }: { prompt: PromptSpec; modelHubData: Map<string, ModelGroupInfo> }) {
+  useUiLocale();
   const model = extractModel(prompt);
   if (!model) {
     return <span className="text-sm text-muted-foreground">-</span>;
@@ -69,10 +71,11 @@ interface PromptRowActionsProps {
 }
 
 function PromptRowActions({ prompt, isAdmin, onDeleteClick }: PromptRowActionsProps) {
+  useUiLocale();
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        aria-label="Open prompt actions"
+        aria-label={translateMessage("Open prompt actions")}
         data-testid={`prompt-actions-${prompt.prompt_id}`}
         className={cn(buttonVariants({ variant: "ghost", size: "icon-sm" }), "text-muted-foreground")}
       >
@@ -84,7 +87,7 @@ function PromptRowActions({ prompt, isAdmin, onDeleteClick }: PromptRowActionsPr
           onClick={() => void copyToClipboard(prompt.prompt_id, "Prompt ID copied")}
         >
           <Copy />
-          Copy prompt ID
+          <LocalizedText text={"Copy prompt ID"} />
         </DropdownMenuItem>
         {isAdmin && (
           <>
@@ -101,7 +104,7 @@ function PromptRowActions({ prompt, isAdmin, onDeleteClick }: PromptRowActionsPr
               }
             >
               <Trash2 />
-              Delete
+              <LocalizedText text={"Delete"} />
             </DropdownMenuItem>
           </>
         )}
@@ -126,8 +129,8 @@ export const getPromptTableColumns = ({
   {
     id: "prompt_id",
     accessorKey: "prompt_id",
-    meta: { title: "Prompt ID" },
-    header: ({ column }) => <DataTableSortHeader column={column} title="Prompt ID" />,
+    meta: markUiCopy({ title: "Prompt ID" }, { title: "Prompt ID" }),
+    header: ({ column }) => <DataTableSortHeader column={column} title={translateMessage("Prompt ID")} />,
     size: 220,
     enableSorting: true,
     cell: ({ row }) => (
@@ -143,20 +146,23 @@ export const getPromptTableColumns = ({
       />
     ),
   },
-  {
-    id: "model",
-    meta: { title: "Model" },
-    header: "Model",
-    size: 200,
-    enableSorting: false,
-    cell: ({ row }) => <PromptModelCell prompt={row.original} modelHubData={modelHubData} />,
-  },
+  markUiCopy(
+    {
+      id: "model",
+      meta: markUiCopy({ title: "Model" }, { title: "Model" }),
+      header: "Model",
+      size: 200,
+      enableSorting: false,
+      cell: ({ row }) => <PromptModelCell prompt={row.original} modelHubData={modelHubData} />,
+    },
+    { header: "Model" },
+  ),
   {
     id: "created_at",
     accessorKey: "created_at",
     sortingFn: "datetime",
-    meta: { title: "Created At" },
-    header: ({ column }) => <DataTableSortHeader column={column} title="Created At" />,
+    meta: markUiCopy({ title: "Created At" }, { title: "Created At" }),
+    header: ({ column }) => <DataTableSortHeader column={column} title={translateMessage("Created At")} />,
     size: 160,
     enableSorting: true,
     cell: ({ row }) => <DateCell value={row.original.created_at} />,
@@ -165,67 +171,80 @@ export const getPromptTableColumns = ({
     id: "updated_at",
     accessorKey: "updated_at",
     sortingFn: "datetime",
-    meta: { title: "Updated At" },
-    header: ({ column }) => <DataTableSortHeader column={column} title="Updated At" />,
+    meta: markUiCopy({ title: "Updated At" }, { title: "Updated At" }),
+    header: ({ column }) => <DataTableSortHeader column={column} title={translateMessage("Updated At")} />,
     size: 160,
     enableSorting: true,
     cell: ({ row }) => <DateCell value={row.original.updated_at} />,
   },
-  {
-    id: "environment",
-    accessorKey: "environment",
-    meta: { title: "Environment", skeleton: "badge" },
-    header: "Environment",
-    size: 130,
-    enableSorting: false,
-    cell: ({ row }) => {
-      const environment = row.original.environment || "development";
-      return <StatusBadge tone={ENVIRONMENT_TONE[environment] ?? "neutral"} label={environment} />;
+  markUiCopy(
+    {
+      id: "environment",
+      accessorKey: "environment",
+      meta: markUiCopy({ title: "Environment", skeleton: "badge" as const }, { title: "Environment" }),
+      header: "Environment",
+      size: 130,
+      enableSorting: false,
+      cell: ({ row }) => {
+        const environment = row.original.environment || "development";
+        return <StatusBadge tone={ENVIRONMENT_TONE[environment] ?? "neutral"} label={environment} />;
+      },
     },
-  },
-  {
-    id: "created_by",
-    accessorKey: "created_by",
-    meta: { title: "Created By" },
-    header: "Created By",
-    size: 160,
-    enableSorting: false,
-    cell: ({ row }) => {
-      const createdBy = row.original.created_by;
-      if (!createdBy) {
-        return <span className="text-muted-foreground">-</span>;
-      }
-      return (
-        <span className="block max-w-60" title={createdBy}>
-          <IdentityCell
-            title={createdBy}
-            titleClassName="font-normal text-muted-foreground"
-            href={userDetailHref(createdBy)}
-          />
-        </span>
-      );
+    { header: "Environment" },
+  ),
+  markUiCopy(
+    {
+      id: "created_by",
+      accessorKey: "created_by",
+      meta: markUiCopy({ title: "Created By" }, { title: "Created By" }),
+      header: "Created By",
+      size: 160,
+      enableSorting: false,
+      cell: ({ row }) => {
+        const createdBy = row.original.created_by;
+        if (!createdBy) {
+          return <span className="text-muted-foreground">-</span>;
+        }
+        return (
+          <span className="block max-w-60" title={createdBy}>
+            <IdentityCell
+              title={createdBy}
+              titleClassName="font-normal text-muted-foreground"
+              href={userDetailHref(createdBy)}
+            />
+          </span>
+        );
+      },
     },
-  },
-  {
-    id: "prompt_type",
-    accessorKey: "prompt_info.prompt_type",
-    meta: { title: "Type" },
-    header: "Type",
-    size: 140,
-    enableSorting: false,
-    cell: ({ row }) => {
-      const promptType = row.original.prompt_info.prompt_type;
-      return (
-        <span className="block max-w-40 truncate text-sm" title={promptType}>
-          {promptType}
-        </span>
-      );
+    { header: "Created By" },
+  ),
+  markUiCopy(
+    {
+      id: "prompt_type",
+      accessorKey: "prompt_info.prompt_type",
+      meta: markUiCopy({ title: "Type" }, { title: "Type" }),
+      header: "Type",
+      size: 140,
+      enableSorting: false,
+      cell: ({ row }) => {
+        const promptType = row.original.prompt_info.prompt_type;
+        return (
+          <span className="block max-w-40 truncate text-sm" title={promptType}>
+            {promptType}
+          </span>
+        );
+      },
     },
-  },
+    { header: "Type" },
+  ),
   {
     id: "actions",
     meta: { className: "text-right", headerClassName: "text-right" },
-    header: () => <span className="sr-only">Actions</span>,
+    header: () => (
+      <span className="sr-only">
+        <LocalizedText text={"Actions"} />
+      </span>
+    ),
     size: 64,
     enableSorting: false,
     enableHiding: false,

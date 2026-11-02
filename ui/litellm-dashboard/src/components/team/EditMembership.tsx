@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 import React, { useEffect, useMemo, useState } from "react";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -74,6 +76,7 @@ const MemberModal = <T extends BaseMember>({
   mode,
   config,
 }: MemberModalProps<T>) => {
+  useUiLocale();
   const schema = useMemo(() => buildMemberSchema(config), [config]);
   const form = useZodForm(schema, { defaultValues: emptyMemberFormValues(config) });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -107,7 +110,7 @@ const MemberModal = <T extends BaseMember>({
       : config.roleOptions;
 
   const renderField = (field: MemberAdditionalField, name: string) => (
-    <FormField key={name} control={form.control} name={name} label={field.label}>
+    <FormField key={name} control={form.control} name={name} label={localizedProperty(field, "label", field.label)}>
       {({ ref, id, value, onChange, ...rest }) => {
         switch (field.type) {
           case "input":
@@ -116,7 +119,7 @@ const MemberModal = <T extends BaseMember>({
                 {...rest}
                 id={id}
                 ref={ref}
-                placeholder={field.placeholder}
+                placeholder={localizedProperty(field, "placeholder", field.placeholder)}
                 value={typeof value === "string" ? value : ""}
                 onChange={(event) => onChange(event.target.value)}
               />
@@ -129,7 +132,10 @@ const MemberModal = <T extends BaseMember>({
                 step={field.step || 1}
                 min={field.min || 0}
                 style={{ width: "100%" }}
-                placeholder={field.placeholder || "Enter a numerical value"}
+                placeholder={
+                  localizedProperty(field, "placeholder", field.placeholder) ||
+                  translateMessage("Enter a numerical value")
+                }
                 value={value ?? ""}
                 onChange={(event: React.ChangeEvent<HTMLInputElement>) => onChange(event.target.value)}
               />
@@ -137,7 +143,12 @@ const MemberModal = <T extends BaseMember>({
           case "select":
             return (
               <Select
-                items={Object.fromEntries((field.options ?? []).map((option) => [option.value, option.label]))}
+                items={Object.fromEntries(
+                  (field.options ?? []).map((option) => [
+                    option.value,
+                    localizedProperty(option, "label", option.label),
+                  ]),
+                )}
                 value={typeof value === "string" && value !== "" ? value : null}
                 onValueChange={(selected: string | null) => onChange(selected ?? undefined)}
               >
@@ -147,7 +158,7 @@ const MemberModal = <T extends BaseMember>({
                 <SelectContent>
                   {field.options?.map((option) => (
                     <SelectItem key={option.value} value={option.value}>
-                      {option.label}
+                      {localizedProperty(option, "label", option.label)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -159,7 +170,9 @@ const MemberModal = <T extends BaseMember>({
                 options={field.options ?? []}
                 value={Array.isArray(value) ? value : []}
                 onValueChange={onChange}
-                placeholder={field.placeholder || "Select options"}
+                placeholder={
+                  localizedProperty(field, "placeholder", field.placeholder) || translateMessage("Select options")
+                }
               />
             );
           case "budget-duration":
@@ -191,17 +204,20 @@ const MemberModal = <T extends BaseMember>({
     <Dialog open={visible} onOpenChange={(open) => !open && onCancel()}>
       <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-[1000px]">
         <DialogHeader>
-          <DialogTitle>{config.title || (mode === "add" ? "Add Member" : "Edit Member")}</DialogTitle>
+          <DialogTitle>
+            {localizedProperty(config, "title", config.title) ||
+              (mode === "add" ? translateMessage("Add Member") : translateMessage("Edit Member"))}
+          </DialogTitle>
         </DialogHeader>
         <form onSubmit={form.handleSubmit(handleSubmit)}>
           <FieldGroup>
             {config.showEmail && (
-              <FormField control={form.control} name="user_email" label="Email">
+              <FormField control={form.control} name="user_email" label={translateMessage("Email")}>
                 {({ ref, value, onChange, ...rest }) => (
                   <Input
                     {...rest}
                     ref={ref}
-                    placeholder="user@example.com"
+                    placeholder={translateMessage("user@example.com")}
                     value={typeof value === "string" ? value : ""}
                     onChange={(event) => onChange(event.target.value)}
                   />
@@ -210,11 +226,13 @@ const MemberModal = <T extends BaseMember>({
             )}
 
             {config.showEmail && config.showUserId && (
-              <div className="text-center text-sm text-muted-foreground">OR</div>
+              <div className="text-center text-sm text-muted-foreground">
+                <LocalizedText text={"OR"} />
+              </div>
             )}
 
             {config.showUserId && (
-              <FormField control={form.control} name="user_id" label="User ID">
+              <FormField control={form.control} name="user_id" label={translateMessage("User ID")}>
                 {({ ref, value, onChange, ...rest }) => (
                   <Input
                     {...rest}
@@ -232,16 +250,26 @@ const MemberModal = <T extends BaseMember>({
               name="role"
               label={
                 <span className="flex items-center gap-2">
-                  <span>Role</span>
+                  <span>
+                    <LocalizedText text={"Role"} />
+                  </span>
                   {mode === "edit" && initialData && (
-                    <span className="text-sm text-muted-foreground">(Current: {getRoleLabel(initialData.role)})</span>
+                    <span className="text-sm text-muted-foreground">
+                      <LocalizedText text={"(Current: "} />
+                      {getRoleLabel(initialData.role)})
+                    </span>
                   )}
                 </span>
               }
             >
               {({ id, value, onChange }) => (
                 <Select
-                  items={Object.fromEntries(orderedRoleOptions.map((option) => [option.value, option.label]))}
+                  items={Object.fromEntries(
+                    orderedRoleOptions.map((option) => [
+                      option.value,
+                      localizedProperty(option, "label", option.label),
+                    ]),
+                  )}
                   value={typeof value === "string" && value !== "" ? value : null}
                   onValueChange={(selected: string | null) => onChange(selected ?? undefined)}
                 >
@@ -251,7 +279,7 @@ const MemberModal = <T extends BaseMember>({
                   <SelectContent>
                     {orderedRoleOptions.map((option) => (
                       <SelectItem key={option.value} value={option.value}>
-                        {option.label}
+                        {localizedProperty(option, "label", option.label)}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -264,17 +292,17 @@ const MemberModal = <T extends BaseMember>({
 
           <div className="mt-6 text-right">
             <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting} className="mr-2">
-              Cancel
+              <LocalizedText text={"Cancel"} />
             </Button>
             <Button type="submit" variant="outline" disabled={isSubmitting}>
               {isSubmitting && <UiLoadingSpinner className="size-4" />}
               {mode === "add"
                 ? isSubmitting
-                  ? "Adding..."
-                  : "Add Member"
+                  ? translateMessage("Adding...")
+                  : translateMessage("Add Member")
                 : isSubmitting
-                  ? "Saving..."
-                  : "Save Changes"}
+                  ? translateMessage("Saving...")
+                  : translateMessage("Save Changes")}
             </Button>
           </div>
         </form>

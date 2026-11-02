@@ -1,4 +1,5 @@
 "use client";
+import { translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { useState } from "react";
 
@@ -51,6 +52,7 @@ export interface HistoryTimelineProps {
 
 /** Every check as a dot column: reviewed traces in grey, affected traces in red, failed checks faded. */
 export function HistoryTimeline({ jobs, slots, onOpen }: HistoryTimelineProps) {
+  useUiLocale();
   const columns = checkColumns(jobs, slots);
   const [hover, setHover] = useState<number | null>(null);
   const hovered = hover === null ? null : columns[hover];
@@ -63,7 +65,7 @@ export function HistoryTimeline({ jobs, slots, onOpen }: HistoryTimelineProps) {
             <button
               key={job.id}
               type="button"
-              aria-label={`Check at ${when(job.created_at)}`}
+              aria-label={translateMessage("Check at %{0}", [when(job.created_at)])}
               className="relative h-full flex-1 focus-visible:outline-2 focus-visible:outline-ring"
               onPointerEnter={() => setHover(i)}
               onFocus={() => setHover(i)}

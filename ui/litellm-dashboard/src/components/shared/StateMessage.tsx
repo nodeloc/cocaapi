@@ -1,3 +1,5 @@
+"use client";
+import { localizedProperty, useUiLocale } from "@/lib/i18n";
 import type { ComponentProps, ReactNode } from "react";
 import { cva, cn } from "@/lib/cva.config";
 
@@ -16,7 +18,9 @@ export type StateMessageProps = Omit<ComponentProps<"div">, "title"> & {
   description: ReactNode;
 };
 
-export function StateMessage({ icon, tone, title, description, children, className, ...props }: StateMessageProps) {
+export function StateMessage(cocaCopyProps0: StateMessageProps) {
+  const { icon, tone, title, description, children, className, ...props } = cocaCopyProps0;
+  useUiLocale();
   return (
     <div
       data-slot="state-message"
@@ -30,8 +34,8 @@ export function StateMessage({ icon, tone, title, description, children, classNa
         {icon}
       </span>
       <div className="flex flex-col gap-1">
-        <p className="text-sm font-medium text-foreground">{title}</p>
-        <p className="text-sm text-muted-foreground">{description}</p>
+        <p className="text-sm font-medium text-foreground">{localizedProperty(cocaCopyProps0, "title", title)}</p>
+        <p className="text-sm text-muted-foreground">{localizedProperty(cocaCopyProps0, "description", description)}</p>
       </div>
       {children && <div className="mt-1 flex items-center gap-2">{children}</div>}
     </div>

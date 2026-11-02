@@ -1,4 +1,5 @@
 "use client";
+import { localizedProperty, useUiLocale } from "@/lib/i18n";
 
 import * as React from "react";
 import { Cell, Pie, PieChart } from "recharts";
@@ -50,6 +51,7 @@ export function DonutChart<TDatum extends Record<string, unknown>>({
   className,
   style,
 }: DonutChartProps<TDatum>) {
+  useUiLocale();
   const fills = categoryFills(data.length, colors);
   const config: ChartConfig = Object.fromEntries(
     data.map((datum, i) => {
@@ -64,9 +66,17 @@ export function DonutChart<TDatum extends Record<string, unknown>>({
       <PieChart>
         {showTooltip && (
           <ChartTooltip
-            content={({ active, payload, label: tooltipLabel }) => (
-              <ValueTooltip active={active} payload={payload} label={tooltipLabel} valueFormatter={valueFormatter} />
-            )}
+            content={(cocaCopyProps0) => {
+              const { active, payload, label: tooltipLabel } = cocaCopyProps0;
+              return (
+                <ValueTooltip
+                  active={active}
+                  payload={payload}
+                  label={localizedProperty(cocaCopyProps0, "label", tooltipLabel)}
+                  valueFormatter={valueFormatter}
+                />
+              );
+            }}
           />
         )}
         {showCenterLabel && (

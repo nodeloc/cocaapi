@@ -1,3 +1,5 @@
+"use client";
+import { getIntlLocale, translateMessage, useUiLocale } from "@/lib/i18n";
 import { useMemo } from "react";
 import { ChartLine } from "lucide-react";
 import { LineChart, stackedUsageColor } from "@/components/shared/charts";
@@ -44,6 +46,7 @@ function transformDailyDataToChart(dailyData: DailyData[]): Array<Record<string,
 }
 
 export function EndpointUsageLineChart({ dailyData }: EndpointUsageLineChartProps) {
+  useUiLocale();
   const chartData = useMemo(() => {
     if (!dailyData?.results || dailyData.results.length === 0) {
       return [];
@@ -62,14 +65,14 @@ export function EndpointUsageLineChart({ dailyData }: EndpointUsageLineChartProp
   const colors = useMemo(() => categories.map((_, i) => stackedUsageColor(i)), [categories]);
 
   return (
-    <Panel icon={ChartLine} title="Endpoint Usage Trends">
+    <Panel icon={ChartLine} title={translateMessage("Endpoint Usage Trends")}>
       <LineChart
         className="h-64"
         data={chartData}
         index="date"
         categories={categories}
         colors={colors}
-        valueFormatter={(value) => value.toLocaleString()}
+        valueFormatter={(value) => value.toLocaleString(getIntlLocale())}
         showLegend={true}
         showGridLines={true}
         yAxisWidth={56}

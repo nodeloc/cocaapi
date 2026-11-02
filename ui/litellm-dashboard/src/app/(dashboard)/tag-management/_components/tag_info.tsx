@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, getIntlLocale, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import React, { useState, useEffect } from "react";
 import { SimpleTooltip } from "@/components/ui/tooltip";
@@ -56,15 +57,19 @@ interface TagEditFormProps {
 }
 
 const TagEditForm: React.FC<TagEditFormProps> = ({ tag, seedBudgetFields, userModels, onCancel, onSave }) => {
+  useUiLocale();
   const [budgetSectionOpen, setBudgetSectionOpen] = useState(false);
   const form = useZodForm(tagEditSchema, {
-    defaultValues: {
-      name: tag.name,
-      description: tag.description,
-      models: tag.models,
-      max_budget: seedBudgetFields ? tag.litellm_budget_table?.max_budget : undefined,
-      budget_duration: seedBudgetFields ? tag.litellm_budget_table?.budget_duration : undefined,
-    },
+    defaultValues: markUiCopy(
+      {
+        name: tag.name,
+        description: tag.description,
+        models: tag.models,
+        max_budget: seedBudgetFields ? tag.litellm_budget_table?.max_budget : undefined,
+        budget_duration: seedBudgetFields ? tag.litellm_budget_table?.budget_duration : undefined,
+      },
+      { description: { owner: tag, field: "description" } },
+    ),
   });
 
   const submitVisibleValues = (values: TagEditFormValues): Promise<void> =>
@@ -75,22 +80,27 @@ const TagEditForm: React.FC<TagEditFormProps> = ({ tag, seedBudgetFields, userMo
   return (
     <form onSubmit={form.handleSubmit(submitVisibleValues)} noValidate>
       <FieldGroup>
-        <FormField control={form.control} name="name" label="Tag Name">
+        <FormField control={form.control} name="name" label={translateMessage("Tag Name")}>
           {({ ref, ...field }) => <Input {...field} ref={ref} />}
         </FormField>
 
-        <FormField control={form.control} name="description" label="Description">
+        <FormField control={form.control} name="description" label={translateMessage("Description")}>
           {({ ref, value, ...field }) => <Textarea {...field} ref={ref} value={value ?? ""} rows={4} />}
         </FormField>
 
         <FormField
           control={form.control}
           name="models"
-          label="Allowed Models"
-          description="Select which models are allowed to process this type of data"
+          label={translateMessage("Allowed Models")}
+          description={translateMessage("Select which models are allowed to process this type of data")}
         >
           {({ value, onChange }) => (
-            <MultiSelect options={modelOptions} value={value} onValueChange={onChange} placeholder="Select Models" />
+            <MultiSelect
+              options={modelOptions}
+              value={value}
+              onValueChange={onChange}
+              placeholder={translateMessage("Select Models")}
+            />
           )}
         </FormField>
       </FieldGroup>
@@ -101,7 +111,7 @@ const TagEditForm: React.FC<TagEditFormProps> = ({ tag, seedBudgetFields, userMo
         className="mt-4 mb-4 rounded-md border border-border"
       >
         <CollapsibleTrigger className="group flex w-full items-center justify-between px-4 py-3 text-base font-medium text-foreground">
-          Budget & Rate Limits
+          <LocalizedText text={"Budget & Rate Limits"} />
           <ChevronRight className="size-4 text-muted-foreground transition-transform group-data-panel-open:rotate-90" />
         </CollapsibleTrigger>
         <CollapsibleContent className="px-4 pb-4">
@@ -109,8 +119,8 @@ const TagEditForm: React.FC<TagEditFormProps> = ({ tag, seedBudgetFields, userMo
             <FormField
               control={form.control}
               name="max_budget"
-              label="Max Budget (USD)"
-              description="Maximum amount in USD this tag can spend"
+              label={translateMessage("Max Budget (USD)")}
+              description={translateMessage("Maximum amount in USD this tag can spend")}
             >
               {({ ref, value, ...field }) => <NumericalInput {...field} value={value ?? ""} step={0.01} />}
             </FormField>
@@ -118,8 +128,8 @@ const TagEditForm: React.FC<TagEditFormProps> = ({ tag, seedBudgetFields, userMo
             <FormField
               control={form.control}
               name="budget_duration"
-              label="Reset Budget"
-              description="How often the budget should reset"
+              label={translateMessage("Reset Budget")}
+              description={translateMessage("How often the budget should reset")}
             >
               {({ id, value, onChange }) => (
                 <BudgetDurationDropdown id={id} value={value ?? null} onChange={onChange} />
@@ -129,14 +139,16 @@ const TagEditForm: React.FC<TagEditFormProps> = ({ tag, seedBudgetFields, userMo
 
           <div className="mt-4 rounded-md border border-border bg-muted p-3">
             <p className="text-sm text-muted-foreground">
-              TPM/RPM limits for tags are not currently supported. If you need this feature, please{" "}
+              <LocalizedText
+                text={"TPM/RPM limits for tags are not currently supported. If you need this feature, please"}
+              />{" "}
               <a
                 href="https://github.com/BerriAI/litellm/issues/new"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-info underline hover:text-info/80"
               >
-                create a GitHub issue
+                <LocalizedText text={"create a GitHub issue"} />
               </a>
               .
             </p>
@@ -146,9 +158,11 @@ const TagEditForm: React.FC<TagEditFormProps> = ({ tag, seedBudgetFields, userMo
 
       <div className="flex justify-end space-x-2">
         <Button type="button" variant="outline" onClick={onCancel}>
-          Cancel
+          <LocalizedText text={"Cancel"} />
         </Button>
-        <Button type="submit">Save Changes</Button>
+        <Button type="submit">
+          <LocalizedText text={"Save Changes"} />
+        </Button>
       </div>
     </form>
   );
@@ -163,6 +177,7 @@ interface TagInfoViewProps {
 }
 
 const TagInfoView: React.FC<TagInfoViewProps> = ({ tagId, onClose, accessToken, is_admin, editTag }) => {
+  useUiLocale();
   const [tagDetails, setTagDetails] = useState<Tag | null>(null);
   const [isEditing, setIsEditing] = useState<boolean>(editTag);
   const [userModels, setUserModels] = useState<string[]>([]);
@@ -207,16 +222,22 @@ const TagInfoView: React.FC<TagInfoViewProps> = ({ tagId, onClose, accessToken, 
   const handleSave = async (values: TagEditFormValues) => {
     if (!accessToken) return;
     try {
-      await tagUpdateCall(accessToken, {
-        name: values.name,
-        description: values.description,
-        models: values.models,
-        max_budget: budgetPayload(values.max_budget),
-        tpm_limit: undefined,
-        rpm_limit: undefined,
-        budget_duration: values.budget_duration,
-      });
-      toast.success("Tag updated successfully");
+      await tagUpdateCall(
+        accessToken,
+        markUiCopy(
+          {
+            name: values.name,
+            description: values.description,
+            models: values.models,
+            max_budget: budgetPayload(values.max_budget),
+            tpm_limit: undefined,
+            rpm_limit: undefined,
+            budget_duration: values.budget_duration,
+          },
+          { description: { owner: values, field: "description" } },
+        ),
+      );
+      toast.success(translateMessage("Tag updated successfully"));
       setIsEditing(false);
       fetchTagDetails();
     } catch (error) {
@@ -226,7 +247,11 @@ const TagInfoView: React.FC<TagInfoViewProps> = ({ tagId, onClose, accessToken, 
   };
 
   if (!tagDetails) {
-    return <div>Loading...</div>;
+    return (
+      <div>
+        <LocalizedText text={"Loading..."} />
+      </div>
+    );
   }
 
   return (
@@ -234,10 +259,12 @@ const TagInfoView: React.FC<TagInfoViewProps> = ({ tagId, onClose, accessToken, 
       <div className="flex justify-between items-center mb-6">
         <div>
           <Button onClick={onClose} className="mb-4">
-            ← Back to Tags
+            <LocalizedText text={"← Back to Tags"} />
           </Button>
           <div className="flex items-center gap-2">
-            <span className="text-sm font-medium">Tag Name:</span>
+            <span className="text-sm font-medium">
+              <LocalizedText text={"Tag Name:"} />
+            </span>
             <span className="font-mono px-2 py-1 bg-muted rounded-sm text-sm border border-border">
               {tagDetails.name}
             </span>
@@ -254,9 +281,15 @@ const TagInfoView: React.FC<TagInfoViewProps> = ({ tagId, onClose, accessToken, 
               {copiedStates["tag-name"] ? <CheckIcon size={12} /> : <CopyIcon size={12} />}
             </Button>
           </div>
-          <p className="text-sm text-muted-foreground">{tagDetails.description || "No description"}</p>
+          <p className="text-sm text-muted-foreground">
+            {localizedProperty(tagDetails, "description", tagDetails.description) || translateMessage("No description")}
+          </p>
         </div>
-        {is_admin && !isEditing && <Button onClick={() => setIsEditing(true)}>Edit Tag</Button>}
+        {is_admin && !isEditing && (
+          <Button onClick={() => setIsEditing(true)}>
+            <LocalizedText text={"Edit Tag"} />
+          </Button>
+        )}
       </div>
 
       {isEditing ? (
@@ -275,21 +308,31 @@ const TagInfoView: React.FC<TagInfoViewProps> = ({ tagId, onClose, accessToken, 
         <div className="space-y-6">
           <Card>
             <CardContent>
-              <CardTitle>Tag Details</CardTitle>
+              <CardTitle>
+                <LocalizedText text={"Tag Details"} />
+              </CardTitle>
               <div className="space-y-4 mt-4">
                 <div>
-                  <p className="font-medium">Name</p>
+                  <p className="font-medium">
+                    <LocalizedText text={"Name"} />
+                  </p>
                   <p>{tagDetails.name}</p>
                 </div>
                 <div>
-                  <p className="font-medium">Description</p>
-                  <p>{tagDetails.description || "-"}</p>
+                  <p className="font-medium">
+                    <LocalizedText text={"Description"} />
+                  </p>
+                  <p>{localizedProperty(tagDetails, "description", tagDetails.description) || "-"}</p>
                 </div>
                 <div>
-                  <p className="font-medium">Allowed Models</p>
+                  <p className="font-medium">
+                    <LocalizedText text={"Allowed Models"} />
+                  </p>
                   <div className="flex flex-wrap gap-2 mt-2">
                     {!tagDetails.models || tagDetails.models.length === 0 ? (
-                      <Badge variant="secondary">All Models</Badge>
+                      <Badge variant="secondary">
+                        <LocalizedText text={"All Models"} />
+                      </Badge>
                     ) : (
                       tagDetails.models.map((modelId) => (
                         <Badge key={modelId} variant="secondary">
@@ -302,12 +345,16 @@ const TagInfoView: React.FC<TagInfoViewProps> = ({ tagId, onClose, accessToken, 
                   </div>
                 </div>
                 <div>
-                  <p className="font-medium">Created</p>
-                  <p>{tagDetails.created_at ? new Date(tagDetails.created_at).toLocaleString() : "-"}</p>
+                  <p className="font-medium">
+                    <LocalizedText text={"Created"} />
+                  </p>
+                  <p>{tagDetails.created_at ? new Date(tagDetails.created_at).toLocaleString(getIntlLocale()) : "-"}</p>
                 </div>
                 <div>
-                  <p className="font-medium">Last Updated</p>
-                  <p>{tagDetails.updated_at ? new Date(tagDetails.updated_at).toLocaleString() : "-"}</p>
+                  <p className="font-medium">
+                    <LocalizedText text={"Last Updated"} />
+                  </p>
+                  <p>{tagDetails.updated_at ? new Date(tagDetails.updated_at).toLocaleString(getIntlLocale()) : "-"}</p>
                 </div>
               </div>
             </CardContent>
@@ -316,33 +363,43 @@ const TagInfoView: React.FC<TagInfoViewProps> = ({ tagId, onClose, accessToken, 
           {tagDetails.litellm_budget_table && (
             <Card>
               <CardContent>
-                <CardTitle>Budget & Rate Limits</CardTitle>
+                <CardTitle>
+                  <LocalizedText text={"Budget & Rate Limits"} />
+                </CardTitle>
                 <div className="space-y-4 mt-4">
                   {tagDetails.litellm_budget_table.max_budget !== undefined &&
                     tagDetails.litellm_budget_table.max_budget !== null && (
                       <div>
-                        <p className="font-medium">Max Budget</p>
+                        <p className="font-medium">
+                          <LocalizedText text={"Max Budget"} />
+                        </p>
                         <p>${tagDetails.litellm_budget_table.max_budget}</p>
                       </div>
                     )}
                   {tagDetails.litellm_budget_table.budget_duration && (
                     <div>
-                      <p className="font-medium">Budget Duration</p>
+                      <p className="font-medium">
+                        <LocalizedText text={"Budget Duration"} />
+                      </p>
                       <p>{tagDetails.litellm_budget_table.budget_duration}</p>
                     </div>
                   )}
                   {tagDetails.litellm_budget_table.tpm_limit !== undefined &&
                     tagDetails.litellm_budget_table.tpm_limit !== null && (
                       <div>
-                        <p className="font-medium">TPM Limit</p>
-                        <p>{tagDetails.litellm_budget_table.tpm_limit.toLocaleString()}</p>
+                        <p className="font-medium">
+                          <LocalizedText text={"TPM Limit"} />
+                        </p>
+                        <p>{tagDetails.litellm_budget_table.tpm_limit.toLocaleString(getIntlLocale())}</p>
                       </div>
                     )}
                   {tagDetails.litellm_budget_table.rpm_limit !== undefined &&
                     tagDetails.litellm_budget_table.rpm_limit !== null && (
                       <div>
-                        <p className="font-medium">RPM Limit</p>
-                        <p>{tagDetails.litellm_budget_table.rpm_limit.toLocaleString()}</p>
+                        <p className="font-medium">
+                          <LocalizedText text={"RPM Limit"} />
+                        </p>
+                        <p>{tagDetails.litellm_budget_table.rpm_limit.toLocaleString(getIntlLocale())}</p>
                       </div>
                     )}
                 </div>

@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, getIntlLocale, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { ChartGantt, ListTree, MoreHorizontal, PanelRightOpen, Search, X } from "lucide-react";
 import { useEffect, useMemo, useRef } from "react";
@@ -44,30 +45,38 @@ interface SpanTreeProps {
 }
 
 const LAYOUTS: readonly { id: TreeLayout; label: string; icon: typeof ListTree }[] = [
-  { id: "tree", label: "Tree", icon: ListTree },
-  { id: "waterfall", label: "Waterfall", icon: ChartGantt },
+  markUiCopy({ id: "tree", label: "Tree", icon: ListTree }, { label: "Tree" }),
+  markUiCopy({ id: "waterfall", label: "Waterfall", icon: ChartGantt }, { label: "Waterfall" }),
 ];
 
 function LayoutSwitch({ layout, onChange }: { layout: TreeLayout; onChange: (layout: TreeLayout) => void }) {
+  useUiLocale();
   return (
-    <div role="radiogroup" aria-label="Step layout" className="flex items-center rounded-md bg-muted p-0.5">
-      {LAYOUTS.map(({ id, label, icon: Icon }) => (
-        <button
-          key={id}
-          type="button"
-          role="radio"
-          aria-checked={layout === id}
-          aria-label={label}
-          title={label}
-          onClick={() => onChange(id)}
-          className={cn(
-            "grid h-6 w-7 place-items-center rounded-sm transition-colors duration-150 motion-reduce:transition-none",
-            layout === id ? "bg-background text-foreground shadow-xs" : "text-muted-foreground hover:text-foreground",
-          )}
-        >
-          <Icon className="size-3.5" />
-        </button>
-      ))}
+    <div
+      role="radiogroup"
+      aria-label={translateMessage("Step layout")}
+      className="flex items-center rounded-md bg-muted p-0.5"
+    >
+      {LAYOUTS.map((cocaCopyProps0) => {
+        const { id, label, icon: Icon } = cocaCopyProps0;
+        return (
+          <button
+            key={id}
+            type="button"
+            role="radio"
+            aria-checked={layout === id}
+            aria-label={localizedProperty(cocaCopyProps0, "label", label)}
+            title={localizedProperty(cocaCopyProps0, "label", label)}
+            onClick={() => onChange(id)}
+            className={cn(
+              "grid h-6 w-7 place-items-center rounded-sm transition-colors duration-150 motion-reduce:transition-none",
+              layout === id ? "bg-background text-foreground shadow-xs" : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            <Icon className="size-3.5" />
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -81,6 +90,7 @@ function FilterChip({
   onClick: () => void;
   children: React.ReactNode;
 }) {
+  useUiLocale();
   return (
     <button
       type="button"
@@ -97,6 +107,7 @@ function FilterChip({
 }
 
 function TimeAxis({ totalMs }: { totalMs: number }) {
+  useUiLocale();
   return (
     <div aria-hidden="true" className="sticky top-0 z-raised flex h-6 items-end border-b bg-background pr-7 pl-2">
       <span className="flex-1" />
@@ -136,6 +147,7 @@ export function SpanTree({
   onClearFilters,
   onCollapseAll,
 }: SpanTreeProps) {
+  useUiLocale();
   const scrollRef = useRef<HTMLDivElement>(null);
   const guides = useMemo(() => treeGuides(rows.map((row) => row.depth)), [rows]);
   const traceStartMs = Date.parse(summary.start_time);
@@ -149,33 +161,42 @@ export function SpanTree({
   return (
     <section
       className="flex h-full min-h-0 min-w-0 flex-col border-r border-border bg-background"
-      aria-label="Run spans"
+      aria-label={translateMessage("Run spans")}
     >
       <div className="flex shrink-0 flex-col gap-2 border-b px-3 py-2.5">
         <div className="flex items-center gap-2">
           <span className="text-sm font-semibold text-foreground">
-            Steps{" "}
+            <LocalizedText text={"Steps"} />{" "}
             <span className="ml-0.5 text-xs font-normal text-muted-foreground tabular-nums">
-              {filtering && `${rows.length.toLocaleString()} of `}
-              {summary.span_count.toLocaleString()}
+              {filtering && translateMessage("%{0} of ", [rows.length.toLocaleString()])}
+              {summary.span_count.toLocaleString(getIntlLocale())}
             </span>
           </span>
           <div className="ml-auto flex items-center gap-1">
             <LayoutSwitch layout={layout} onChange={onLayoutChange} />
             <DropdownMenu>
-              <DropdownMenuTrigger render={<Button variant="ghost" size="icon-xs" aria-label="Step display options" />}>
+              <DropdownMenuTrigger
+                render={<Button variant="ghost" size="icon-xs" aria-label={translateMessage("Step display options")} />}
+              >
                 <MoreHorizontal className="size-4" />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-52">
                 <DropdownMenuCheckboxItem checked={hideFramework} onCheckedChange={onToggleHideFramework}>
-                  Hide framework spans
+                  <LocalizedText text={"Hide framework spans"} />
                 </DropdownMenuCheckboxItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={onCollapseAll}>Collapse branches</DropdownMenuItem>
+                <DropdownMenuItem onClick={onCollapseAll}>
+                  <LocalizedText text={"Collapse branches"} />
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
             {onOpenDetails && (
-              <Button variant="ghost" size="icon-xs" onClick={onOpenDetails} aria-label="Show details">
+              <Button
+                variant="ghost"
+                size="icon-xs"
+                onClick={onOpenDetails}
+                aria-label={translateMessage("Show details")}
+              >
                 <PanelRightOpen className="size-4" />
               </Button>
             )}
@@ -185,8 +206,8 @@ export function SpanTree({
           <div className="relative min-w-0 flex-1">
             <Search className="pointer-events-none absolute top-1/2 left-2 size-3.5 -translate-y-1/2 text-muted-foreground" />
             <Input
-              aria-label="Search steps"
-              placeholder="Filter steps"
+              aria-label={translateMessage("Search steps")}
+              placeholder={translateMessage("Filter steps")}
               value={query}
               onChange={(event) => onQueryChange(event.target.value)}
               className="h-7 pr-7 pl-7 text-xs shadow-none md:text-xs"
@@ -195,7 +216,7 @@ export function SpanTree({
               <Button
                 variant="ghost"
                 size="icon-xs"
-                aria-label="Clear step search"
+                aria-label={translateMessage("Clear step search")}
                 className="absolute top-1/2 right-0.5 -translate-y-1/2"
                 onClick={() => onQueryChange("")}
               >
@@ -204,10 +225,10 @@ export function SpanTree({
             )}
           </div>
           <FilterChip pressed={!errorsOnly} onClick={() => onErrorsOnlyChange(false)}>
-            All
+            <LocalizedText text={"All"} />
           </FilterChip>
           <FilterChip pressed={errorsOnly} onClick={() => onErrorsOnlyChange(true)}>
-            Errors
+            <LocalizedText text={"Errors"} />
             <span
               className={cn("tabular-nums", summary.error_count > 0 ? "text-destructive" : "text-muted-foreground")}
             >
@@ -216,7 +237,8 @@ export function SpanTree({
           </FilterChip>
           {filtering && (
             <span role="status" className="sr-only">
-              {rows.length} found
+              {rows.length}
+              <LocalizedText text={" found"} />
             </span>
           )}
         </div>
@@ -225,13 +247,15 @@ export function SpanTree({
         {layout === "waterfall" && rows.length > 0 && <TimeAxis totalMs={summary.duration_ms} />}
         {rows.length === 0 && (
           <div className="px-4 py-8 text-center text-sm text-muted-foreground">
-            <p>No matching steps</p>
+            <p>
+              <LocalizedText text={"No matching steps"} />
+            </p>
             <Button variant="link" size="sm" onClick={onClearFilters}>
-              Clear filters
+              <LocalizedText text={"Clear filters"} />
             </Button>
           </div>
         )}
-        <div role="tree" aria-label="Spans in time order" className="pt-1">
+        <div role="tree" aria-label={translateMessage("Spans in time order")} className="pt-1">
           {rows.map((row, i) => {
             if (row.kind === "load-more")
               return <LoadMoreRow key={row.id} row={row} guide={guides[i]} onLoadMore={onLoadMore} />;

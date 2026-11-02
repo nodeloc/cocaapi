@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { useState } from "react";
 import { Controller, useFormContext, useWatch } from "react-hook-form";
@@ -19,6 +20,7 @@ import { MetadataFilters } from "./MetadataFilters";
 const selectClass = "h-9 w-full rounded-md border border-input bg-background px-3 text-sm";
 
 export function ScopeFields({ names, agentsLoading, agentsError, retryAgents, attributes, keys }: ScopeOptions) {
+  useUiLocale();
   const { control, register, setValue } = useFormContext<InvestigationInput>();
   const selection = useWatch({ control, name: "selection" });
   const filters = selection.filters ?? [];
@@ -45,13 +47,19 @@ export function ScopeFields({ names, agentsLoading, agentsError, retryAgents, at
             >
               <ComboboxInput
                 aria-label={nameLabel}
-                placeholder={selection.source === "requests" ? "All model groups" : "All agents and activity"}
+                placeholder={
+                  selection.source === "requests"
+                    ? translateMessage("All model groups")
+                    : translateMessage("All agents and activity")
+                }
                 showClear={!!selectedName}
                 className="w-full h-9"
               />
               <ComboboxContent>
                 <ComboboxEmpty>
-                  {agentsLoading ? "Loading agents…" : "No matches. You can enter a recorded name."}
+                  {agentsLoading
+                    ? translateMessage("Loading agents…")
+                    : translateMessage("No matches. You can enter a recorded name.")}
                 </ComboboxEmpty>
                 <ComboboxList>
                   {(name: string) => (
@@ -67,25 +75,26 @@ export function ScopeFields({ names, agentsLoading, agentsError, retryAgents, at
       </label>
       {selection.source !== "requests" && agentsError && (
         <p role="alert" className="text-sm text-destructive">
-          Could not load agents.{" "}
+          <LocalizedText text={"Could not load agents."} />{" "}
           <button type="button" className="underline" onClick={retryAgents}>
-            Retry
+            <LocalizedText text={"Retry"} />
           </button>
         </p>
       )}
       <details open={advanced} onToggle={(event) => setAdvanced(event.currentTarget.open)} className="group">
         <summary className="cursor-pointer text-sm font-medium">
-          Advanced filters{filters.length ? ` (${filters.length})` : ""}
+          <LocalizedText text={"Advanced filters"} />
+          {filters.length ? ` (${filters.length})` : ""}
         </summary>
         <div className="mt-4 space-y-4">
           {selection.source !== "requests" && (
             <label className="grid gap-2 text-sm">
-              Application (optional)
-              <Input {...register("selection.service")} placeholder="All applications" />
+              <LocalizedText text={"Application (optional)"} />
+              <Input {...register("selection.service")} placeholder={translateMessage("All applications")} />
             </label>
           )}
           <label className="grid gap-2 text-sm">
-            Activity type
+            <LocalizedText text={"Activity type"} />
             <select
               {...register("selection.source", {
                 onChange: () => {
@@ -96,18 +105,26 @@ export function ScopeFields({ names, agentsLoading, agentsError, retryAgents, at
               })}
               className={selectClass}
             >
-              <option value="traces">Agent traces</option>
-              <option value="requests">LLM requests</option>
-              <option value="both">Traces and LLM requests</option>
+              <option value="traces">
+                <LocalizedText text={"Agent traces"} />
+              </option>
+              <option value="requests">
+                <LocalizedText text={"LLM requests"} />
+              </option>
+              <option value="both">
+                <LocalizedText text={"Traces and LLM requests"} />
+              </option>
             </select>
           </label>
           <p className="text-xs leading-5 text-muted-foreground">
-            Match any recorded metadata, such as a user ID, environment, or tag. All conditions must match.
+            <LocalizedText
+              text={"Match any recorded metadata, such as a user ID, environment, or tag. All conditions must match."}
+            />
           </p>
           <MetadataFilters attributes={attributes} keys={keys} />
           <label className="grid gap-2 text-sm">
-            Team ID (optional)
-            <Input {...register("selection.team_id")} placeholder="All accessible teams" />
+            <LocalizedText text={"Team ID (optional)"} />
+            <Input {...register("selection.team_id")} placeholder={translateMessage("All accessible teams")} />
           </label>
         </div>
       </details>

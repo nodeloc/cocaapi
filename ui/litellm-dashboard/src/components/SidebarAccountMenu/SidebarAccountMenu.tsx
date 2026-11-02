@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import useAuthorized from "@/app/(dashboard)/hooks/useAuthorized";
 import { useHealthReadinessDetails } from "@/app/(dashboard)/hooks/healthReadiness/useHealthReadinessDetails";
 import { useDisableBlogPosts } from "@/app/(dashboard)/hooks/useDisableBlogPosts";
@@ -56,28 +58,31 @@ function initialsFromIdentity(email: string | null, userId: string | null): stri
   return "?";
 }
 
-const InfoRow: React.FC<{ icon: React.ReactNode; label: string; children: React.ReactNode }> = ({
-  icon,
-  label,
-  children,
-}) => (
-  <div className="flex min-h-[34px] items-center justify-between gap-3">
-    <span className="flex items-center gap-2 text-[13px] text-muted-foreground">
-      {icon}
-      {label}
-    </span>
-    {children}
-  </div>
-);
+const InfoRow: React.FC<{ icon: React.ReactNode; label: string; children: React.ReactNode }> = (cocaCopyProps0) => {
+  const { icon, label, children } = cocaCopyProps0;
+  useUiLocale();
+  return (
+    <div className="flex min-h-[34px] items-center justify-between gap-3">
+      <span className="flex items-center gap-2 text-[13px] text-muted-foreground">
+        {icon}
+        {localizedProperty(cocaCopyProps0, "label", label)}
+      </span>
+      {children}
+    </div>
+  );
+};
 
-const MonoValue: React.FC<{ value: string | null; copyLabel: string }> = ({ value, copyLabel }) => (
-  <span className="flex min-w-0 items-center gap-1">
-    <span className="max-w-[150px] truncate font-mono text-[13px] font-medium text-foreground" title={value || "-"}>
-      {value || "-"}
+const MonoValue: React.FC<{ value: string | null; copyLabel: string }> = ({ value, copyLabel }) => {
+  useUiLocale();
+  return (
+    <span className="flex min-w-0 items-center gap-1">
+      <span className="max-w-[150px] truncate font-mono text-[13px] font-medium text-foreground" title={value || "-"}>
+        {value || "-"}
+      </span>
+      <CopyButton value={value} label={copyLabel} />
     </span>
-    <CopyButton value={value} label={copyLabel} />
-  </span>
-);
+  );
+};
 
 interface SidebarAccountMenuProps {
   onLogout: () => void;
@@ -85,6 +90,7 @@ interface SidebarAccountMenuProps {
 }
 
 const SidebarAccountMenu: React.FC<SidebarAccountMenuProps> = ({ onLogout, collapsed = false }) => {
+  useUiLocale();
   const {
     userId,
     userEmail,
@@ -116,34 +122,46 @@ const SidebarAccountMenu: React.FC<SidebarAccountMenuProps> = ({ onLogout, colla
   };
 
   const toggles = [
-    {
-      key: "disableShowNewBadge",
-      label: "Hide New Feature Indicators",
-      ariaLabel: "Toggle hide new feature indicators",
-      checked: disableShowNewBadge,
-      onCheckedChange: (checked: boolean) => setFlag("disableShowNewBadge", checked),
-    },
-    {
-      key: "disableShowPrompts",
-      label: "Hide All Prompts",
-      ariaLabel: "Toggle hide all prompts",
-      checked: disableShowPrompts,
-      onCheckedChange: (checked: boolean) => setFlag("disableShowPrompts", checked),
-    },
-    {
-      key: "disableBlogPosts",
-      label: "Hide Blog Posts",
-      ariaLabel: "Toggle hide blog posts",
-      checked: disableBlogPosts,
-      onCheckedChange: (checked: boolean) => setFlag("disableBlogPosts", checked),
-    },
-    {
-      key: "disableBouncingIcon",
-      label: "Hide Bouncing Icon",
-      ariaLabel: "Toggle hide bouncing icon",
-      checked: disableBouncingIcon,
-      onCheckedChange: (checked: boolean) => setFlag("disableBouncingIcon", checked),
-    },
+    markUiCopy(
+      {
+        key: "disableShowNewBadge",
+        label: "Hide New Feature Indicators",
+        ariaLabel: "Toggle hide new feature indicators",
+        checked: disableShowNewBadge,
+        onCheckedChange: (checked: boolean) => setFlag("disableShowNewBadge", checked),
+      },
+      { label: "Hide New Feature Indicators" },
+    ),
+    markUiCopy(
+      {
+        key: "disableShowPrompts",
+        label: "Hide All Prompts",
+        ariaLabel: "Toggle hide all prompts",
+        checked: disableShowPrompts,
+        onCheckedChange: (checked: boolean) => setFlag("disableShowPrompts", checked),
+      },
+      { label: "Hide All Prompts" },
+    ),
+    markUiCopy(
+      {
+        key: "disableBlogPosts",
+        label: "Hide Blog Posts",
+        ariaLabel: "Toggle hide blog posts",
+        checked: disableBlogPosts,
+        onCheckedChange: (checked: boolean) => setFlag("disableBlogPosts", checked),
+      },
+      { label: "Hide Blog Posts" },
+    ),
+    markUiCopy(
+      {
+        key: "disableBouncingIcon",
+        label: "Hide Bouncing Icon",
+        ariaLabel: "Toggle hide bouncing icon",
+        checked: disableBouncingIcon,
+        onCheckedChange: (checked: boolean) => setFlag("disableBouncingIcon", checked),
+      },
+      { label: "Hide Bouncing Icon" },
+    ),
   ];
 
   const seed = userEmail || userId || "user";
@@ -186,12 +204,14 @@ const SidebarAccountMenu: React.FC<SidebarAccountMenuProps> = ({ onLogout, colla
         data-testid="sidebar-account-menu-panel"
       >
         <div className="flex items-center gap-2 border-b border-border px-3 py-3">
-          <span className="text-[15px] font-bold tracking-tight text-foreground">LiteLLM</span>
+          <span className="text-[15px] font-bold tracking-tight text-foreground">
+            <LocalizedText text={"LiteLLM"} />
+          </span>
           {!disableBouncingIcon && (
             <span
               className="animate-bounce text-lg leading-none"
               style={{ animationDuration: "2s" }}
-              title="Thanks for using LiteLLM!"
+              title={translateMessage("Thanks for using LiteLLM!")}
               aria-hidden
             >
               🌴
@@ -210,26 +230,30 @@ const SidebarAccountMenu: React.FC<SidebarAccountMenuProps> = ({ onLogout, colla
         </div>
 
         <div className="flex flex-col px-3 py-2">
-          <InfoRow icon={<Crown className="size-[17px]" />} label="Tier">
+          <InfoRow icon={<Crown className="size-[17px]" />} label={translateMessage("Tier")}>
             {premiumUser ? (
               <Badge variant="outline" className="gap-1 border-warning/30 bg-warning/10 text-warning">
                 <Crown />
-                Premium
+                <LocalizedText text={"Premium"} />
               </Badge>
             ) : (
-              <Badge variant="secondary" className="gap-1" title="Upgrade to Premium for advanced features">
+              <Badge
+                variant="secondary"
+                className="gap-1"
+                title={translateMessage("Upgrade to Premium for advanced features")}
+              >
                 <Crown />
-                Standard
+                <LocalizedText text={"Standard"} />
               </Badge>
             )}
           </InfoRow>
-          <InfoRow icon={<ShieldCheck className="size-[17px]" />} label="Role">
+          <InfoRow icon={<ShieldCheck className="size-[17px]" />} label={translateMessage("Role")}>
             <Badge variant="secondary">{userRole}</Badge>
           </InfoRow>
-          <InfoRow icon={<Mail className="size-[17px]" />} label="Email">
+          <InfoRow icon={<Mail className="size-[17px]" />} label={translateMessage("Email")}>
             <MonoValue value={userEmail} copyLabel="Copy email" />
           </InfoRow>
-          <InfoRow icon={<IdCard className="size-[17px]" />} label="User ID">
+          <InfoRow icon={<IdCard className="size-[17px]" />} label={translateMessage("User ID")}>
             <MonoValue value={userId} copyLabel="Copy user ID" />
           </InfoRow>
         </div>
@@ -239,7 +263,7 @@ const SidebarAccountMenu: React.FC<SidebarAccountMenuProps> = ({ onLogout, colla
         <div className="py-1">
           {toggles.map((toggle) => (
             <div key={toggle.key} className="flex h-[38px] items-center justify-between gap-3 px-3">
-              <span className="text-[13px] text-foreground">{toggle.label}</span>
+              <span className="text-[13px] text-foreground">{localizedProperty(toggle, "label", toggle.label)}</span>
               <Switch
                 size="sm"
                 checked={toggle.checked}
@@ -250,12 +274,14 @@ const SidebarAccountMenu: React.FC<SidebarAccountMenuProps> = ({ onLogout, colla
           ))}
           {premiumUser === true && canUseLiteAdmin && (
             <div className="flex h-[38px] items-center justify-between gap-3 px-3">
-              <span className="text-[13px] text-foreground">Hide LiteAdmin</span>
+              <span className="text-[13px] text-foreground">
+                <LocalizedText text={"Hide LiteAdmin"} />
+              </span>
               <Switch
                 size="sm"
                 checked={disableLiteAdmin}
                 onCheckedChange={setDisableLiteAdmin}
-                aria-label="Toggle hide LiteAdmin"
+                aria-label={translateMessage("Toggle hide LiteAdmin")}
               />
             </div>
           )}
@@ -273,7 +299,7 @@ const SidebarAccountMenu: React.FC<SidebarAccountMenuProps> = ({ onLogout, colla
             className="h-[42px] w-full justify-start gap-2.5 rounded-none px-3 text-sm font-medium text-foreground"
           >
             <KeyRound className="size-[19px] text-muted-foreground" />
-            Change Password
+            <LocalizedText text={"Change Password"} />
           </Button>
         )}
 
@@ -283,7 +309,7 @@ const SidebarAccountMenu: React.FC<SidebarAccountMenuProps> = ({ onLogout, colla
           className="h-[42px] w-full justify-start gap-2.5 rounded-none px-3 text-sm font-medium text-foreground"
         >
           <LogOut className="size-[19px] text-muted-foreground" />
-          Logout
+          <LocalizedText text={"Logout"} />
         </Button>
       </PopoverContent>
     </Popover>

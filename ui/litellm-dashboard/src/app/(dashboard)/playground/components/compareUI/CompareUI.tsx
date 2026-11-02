@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { toast } from "@/lib/toast";
 import { DEBOUNCE_WAIT_MS } from "@/utils/debounceConstants";
@@ -58,6 +59,7 @@ const GENERIC_FOLLOW_UPS = [
 const SUGGESTED_PROMPTS = ["Write me a poem", "Explain quantum computing", "Draft a polite email requesting a meeting"];
 const DEFAULT_ENDPOINT = EndpointId.CHAT_COMPLETIONS;
 export default function CompareUI({ accessToken, disabledPersonalKeyCreation }: CompareUIProps) {
+  useUiLocale();
   const [comparisons, setComparisons] = useState<ComparisonInstance[]>([
     {
       id: "1",
@@ -692,20 +694,28 @@ export default function CompareUI({ accessToken, disabledPersonalKeyCreation }: 
         <div className="border-b px-4 py-2">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-muted-foreground">Virtual Key Source</span>
+              <span className="text-sm font-medium text-muted-foreground">
+                <LocalizedText text={"Virtual Key Source"} />
+              </span>
               <Select
                 value={apiKeySource}
                 onValueChange={(value) => setApiKeySource(value as "session" | "custom")}
                 disabled={disabledPersonalKeyCreation}
               >
-                <SelectTrigger className="w-48" aria-label="Virtual Key Source">
-                  <SelectValue>{apiKeySource === "custom" ? "Virtual Key" : "Current UI Session"}</SelectValue>
+                <SelectTrigger className="w-48" aria-label={translateMessage("Virtual Key Source")}>
+                  <SelectValue>
+                    {apiKeySource === "custom"
+                      ? translateMessage("Virtual Key")
+                      : translateMessage("Current UI Session")}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="session" disabled={!canUseSessionKey}>
-                    Current UI Session
+                    <LocalizedText text={"Current UI Session"} />
                   </SelectItem>
-                  <SelectItem value="custom">Virtual Key</SelectItem>
+                  <SelectItem value="custom">
+                    <LocalizedText text={"Virtual Key"} />
+                  </SelectItem>
                 </SelectContent>
               </Select>
               {apiKeySource === "custom" && (
@@ -713,21 +723,23 @@ export default function CompareUI({ accessToken, disabledPersonalKeyCreation }: 
                   type="password"
                   value={customApiKey}
                   onChange={(event) => setCustomApiKey(event.target.value)}
-                  placeholder="Enter Virtual Key"
+                  placeholder={translateMessage("Enter Virtual Key")}
                   className="w-56"
                 />
               )}
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-muted-foreground">Endpoint</span>
+              <span className="text-sm font-medium text-muted-foreground">
+                <LocalizedText text={"Endpoint"} />
+              </span>
               <Select value={selectedEndpoint} onValueChange={(value) => setSelectedEndpoint(value as EndpointIdType)}>
-                <SelectTrigger className="w-56" aria-label="Endpoint">
-                  <SelectValue>{endpointConfig.label}</SelectValue>
+                <SelectTrigger className="w-56" aria-label={translateMessage("Endpoint")}>
+                  <SelectValue>{localizedProperty(endpointConfig, "label", endpointConfig.label)}</SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {getAvailableEndpoints().map((endpoint) => (
                     <SelectItem key={endpoint.value} value={endpoint.value}>
-                      {endpoint.label}
+                      {localizedProperty(endpoint, "label", endpoint.label)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -736,17 +748,19 @@ export default function CompareUI({ accessToken, disabledPersonalKeyCreation }: 
             <div className="flex items-center gap-3">
               <Button variant="outline" onClick={clearAllChats} disabled={!hasMessages}>
                 <Eraser />
-                Clear All Chats
+                <LocalizedText text={"Clear All Chats"} />
               </Button>
               <Tooltip>
                 <TooltipTrigger render={<span className="inline-flex" />}>
                   <Button variant="outline" onClick={addComparison} disabled={comparisons.length >= maxComparisons}>
                     <Plus />
-                    Add Comparison
+                    <LocalizedText text={"Add Comparison"} />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  {comparisons.length >= maxComparisons ? "Compare up to 3 models at a time" : "Add another comparison"}
+                  {comparisons.length >= maxComparisons
+                    ? translateMessage("Compare up to 3 models at a time")
+                    : translateMessage("Add another comparison")}
                 </TooltipContent>
               </Tooltip>
             </div>
@@ -778,7 +792,9 @@ export default function CompareUI({ accessToken, disabledPersonalKeyCreation }: 
             <div className="border border-border shadow-lg rounded-xl bg-card p-4">
               <div className="flex items-center justify-between gap-4 mb-3 min-h-8">
                 {hasAttachment ? (
-                  <span className="text-sm text-muted-foreground">Attachment ready to send</span>
+                  <span className="text-sm text-muted-foreground">
+                    <LocalizedText text={"Attachment ready to send"} />
+                  </span>
                 ) : showSuggestedPrompts ? (
                   <div className="flex items-center gap-2 overflow-x-auto">
                     {SUGGESTED_PROMPTS.map((prompt) => (
@@ -820,24 +836,26 @@ export default function CompareUI({ accessToken, disabledPersonalKeyCreation }: 
                     <div className="relative inline-block">
                       {isUploadedFilePdf ? (
                         <div className="w-10 h-10 rounded-md bg-destructive flex items-center justify-center text-destructive-foreground">
-                          <FileText className="size-4" aria-label="file-pdf" />
+                          <FileText className="size-4" aria-label={translateMessage("file-pdf")} />
                         </div>
                       ) : (
                         <img
                           src={uploadedFilePreviewUrl || ""}
-                          alt="Upload preview"
+                          alt={translateMessage("Upload preview")}
                           className="w-10 h-10 rounded-md border border-border object-cover"
                         />
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-medium text-foreground truncate">{uploadedFile.name}</div>
-                      <div className="text-xs text-muted-foreground">{isUploadedFilePdf ? "PDF" : "Image"}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {isUploadedFilePdf ? translateMessage("PDF") : translateMessage("Image")}
+                      </div>
                     </div>
                     <button
                       className="flex items-center justify-center w-6 h-6 text-muted-foreground hover:text-foreground hover:bg-accent rounded-full transition-colors"
                       onClick={handleRemoveFile}
-                      aria-label="Remove attachment"
+                      aria-label={translateMessage("Remove attachment")}
                     >
                       <Trash2 className="size-3" />
                     </button>

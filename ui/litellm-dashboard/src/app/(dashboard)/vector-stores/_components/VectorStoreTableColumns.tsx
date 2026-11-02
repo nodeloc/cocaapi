@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { ColumnDef } from "@tanstack/react-table";
 import { Copy, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
@@ -22,6 +23,7 @@ const CONFIG_STORE_HINT =
   "Read only: this vector store is defined in the config file and cannot be edited or deleted on the dashboard.";
 
 function VectorStoreProviderCell({ provider }: { provider: string }) {
+  useUiLocale();
   const { displayName, logo } = getVectorStoreProviderLogoAndName(provider);
   return (
     <div className="flex items-center gap-2">
@@ -41,6 +43,7 @@ function VectorStoreProviderCell({ provider }: { provider: string }) {
 }
 
 function VectorStoreFilesCell({ vectorStore }: { vectorStore: VectorStore }) {
+  useUiLocale();
   const ingestedFiles = vectorStore.vector_store_metadata?.ingested_files || [];
   if (ingestedFiles.length === 0) {
     return <span className="text-sm text-muted-foreground">-</span>;
@@ -67,11 +70,12 @@ interface VectorStoreRowActionsProps {
 }
 
 function VectorStoreRowActions({ vectorStore, onEdit, onDelete }: VectorStoreRowActionsProps) {
+  useUiLocale();
   const isFromConfig = vectorStore.is_config ?? false;
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        aria-label="Open vector store actions"
+        aria-label={translateMessage("Open vector store actions")}
         data-testid={`vector-store-actions-${vectorStore.vector_store_id}`}
         className={cn(buttonVariants({ variant: "ghost", size: "icon-sm" }), "text-muted-foreground")}
       >
@@ -84,14 +88,14 @@ function VectorStoreRowActions({ vectorStore, onEdit, onDelete }: VectorStoreRow
           onClick={() => onEdit(vectorStore.vector_store_id)}
         >
           <Pencil />
-          Edit
+          <LocalizedText text={"Edit"} />
         </DropdownMenuItem>
         <DropdownMenuItem
           data-testid="vector-store-action-copy"
           onClick={() => void copyToClipboard(vectorStore.vector_store_id, "Vector store ID copied")}
         >
           <Copy />
-          Copy vector store ID
+          <LocalizedText text={"Copy vector store ID"} />
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
@@ -101,7 +105,7 @@ function VectorStoreRowActions({ vectorStore, onEdit, onDelete }: VectorStoreRow
           onClick={() => onDelete(vectorStore.vector_store_id)}
         >
           <Trash2 />
-          Delete
+          <LocalizedText text={"Delete"} />
         </DropdownMenuItem>
         {isFromConfig && (
           <div data-testid="vector-store-config-hint" className="px-2 py-1.5 text-xs text-muted-foreground">
@@ -127,8 +131,8 @@ export const getVectorStoreTableColumns = ({
   {
     id: "vector_store_id",
     accessorKey: "vector_store_id",
-    meta: { title: "Vector Store ID" },
-    header: ({ column }) => <DataTableSortHeader column={column} title="Vector Store ID" />,
+    meta: markUiCopy({ title: "Vector Store ID" }, { title: "Vector Store ID" }),
+    header: ({ column }) => <DataTableSortHeader column={column} title={translateMessage("Vector Store ID")} />,
     size: 220,
     enableSorting: true,
     cell: ({ row }) => (
@@ -143,8 +147,8 @@ export const getVectorStoreTableColumns = ({
   {
     id: "vector_store_name",
     accessorKey: "vector_store_name",
-    meta: { title: "Name" },
-    header: ({ column }) => <DataTableSortHeader column={column} title="Name" />,
+    meta: markUiCopy({ title: "Name" }, { title: "Name" }),
+    header: ({ column }) => <DataTableSortHeader column={column} title={translateMessage("Name")} />,
     size: 200,
     enableSorting: true,
     cell: ({ row }) => {
@@ -156,57 +160,71 @@ export const getVectorStoreTableColumns = ({
       );
     },
   },
-  {
-    id: "vector_store_description",
-    accessorKey: "vector_store_description",
-    meta: { title: "Description" },
-    header: "Description",
-    size: 280,
-    enableSorting: false,
-    cell: ({ row }) => {
-      const description = row.original.vector_store_description;
-      return (
-        <span className="block max-w-72 truncate text-sm text-muted-foreground" title={description ?? undefined}>
-          {description || "-"}
-        </span>
-      );
+  markUiCopy(
+    {
+      id: "vector_store_description",
+      accessorKey: "vector_store_description",
+      meta: markUiCopy({ title: "Description" }, { title: "Description" }),
+      header: "Description",
+      size: 280,
+      enableSorting: false,
+      cell: ({ row }) => {
+        const description = row.original.vector_store_description;
+        return (
+          <span className="block max-w-72 truncate text-sm text-muted-foreground" title={description ?? undefined}>
+            {description || "-"}
+          </span>
+        );
+      },
     },
-  },
+    { header: "Description" },
+  ),
   {
     id: "source",
     accessorFn: (row) => row.is_config ?? false,
-    meta: { title: "Source", skeleton: "badge" },
-    header: ({ column }) => <DataTableSortHeader column={column} title="Source" />,
+    meta: markUiCopy({ title: "Source", skeleton: "badge" as const }, { title: "Source" }),
+    header: ({ column }) => <DataTableSortHeader column={column} title={translateMessage("Source")} />,
     size: 110,
     enableSorting: true,
     cell: ({ row }) => {
       const isFromConfig = row.original.is_config ?? false;
-      return <StatusBadge tone={isFromConfig ? "neutral" : "info"} label={isFromConfig ? "Config" : "DB"} />;
+      return (
+        <StatusBadge
+          tone={isFromConfig ? "neutral" : "info"}
+          label={isFromConfig ? translateMessage("Config") : translateMessage("DB")}
+        />
+      );
     },
   },
-  {
-    id: "files",
-    meta: { title: "Files" },
-    header: "Files",
-    size: 160,
-    enableSorting: false,
-    cell: ({ row }) => <VectorStoreFilesCell vectorStore={row.original} />,
-  },
-  {
-    id: "provider",
-    accessorKey: "custom_llm_provider",
-    meta: { title: "Provider" },
-    header: "Provider",
-    size: 160,
-    enableSorting: false,
-    cell: ({ row }) => <VectorStoreProviderCell provider={row.original.custom_llm_provider} />,
-  },
+  markUiCopy(
+    {
+      id: "files",
+      meta: markUiCopy({ title: "Files" }, { title: "Files" }),
+      header: "Files",
+      size: 160,
+      enableSorting: false,
+      cell: ({ row }) => <VectorStoreFilesCell vectorStore={row.original} />,
+    },
+    { header: "Files" },
+  ),
+  markUiCopy(
+    {
+      id: "provider",
+      accessorKey: "custom_llm_provider",
+      meta: markUiCopy({ title: "Provider" }, { title: "Provider" }),
+      header: "Provider",
+      size: 160,
+      enableSorting: false,
+      cell: ({ row }) => <VectorStoreProviderCell provider={row.original.custom_llm_provider} />,
+    },
+    { header: "Provider" },
+  ),
   {
     id: "created_at",
     accessorKey: "created_at",
     sortingFn: "datetime",
-    meta: { title: "Created At" },
-    header: ({ column }) => <DataTableSortHeader column={column} title="Created At" />,
+    meta: markUiCopy({ title: "Created At" }, { title: "Created At" }),
+    header: ({ column }) => <DataTableSortHeader column={column} title={translateMessage("Created At")} />,
     size: 150,
     enableSorting: true,
     cell: ({ row }) => <DateCell value={row.original.created_at} precision="date" />,
@@ -215,8 +233,8 @@ export const getVectorStoreTableColumns = ({
     id: "updated_at",
     accessorKey: "updated_at",
     sortingFn: "datetime",
-    meta: { title: "Updated At" },
-    header: ({ column }) => <DataTableSortHeader column={column} title="Updated At" />,
+    meta: markUiCopy({ title: "Updated At" }, { title: "Updated At" }),
+    header: ({ column }) => <DataTableSortHeader column={column} title={translateMessage("Updated At")} />,
     size: 150,
     enableSorting: true,
     cell: ({ row }) => <DateCell value={row.original.updated_at} precision="date" />,
@@ -224,7 +242,11 @@ export const getVectorStoreTableColumns = ({
   {
     id: "actions",
     meta: { className: "text-right", headerClassName: "text-right" },
-    header: () => <span className="sr-only">Actions</span>,
+    header: () => (
+      <span className="sr-only">
+        <LocalizedText text={"Actions"} />
+      </span>
+    ),
     size: 64,
     enableSorting: false,
     enableHiding: false,

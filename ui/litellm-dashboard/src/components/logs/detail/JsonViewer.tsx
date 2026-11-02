@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, useUiLocale } from "@/lib/i18n";
 import { useTheme } from "next-themes";
 import { JsonView, darkStyles, defaultStyles } from "react-json-view-lite";
 import "react-json-view-lite/dist/index.css";
@@ -13,9 +15,15 @@ interface JsonViewerProps {
  * Uses an interactive tree component for easy navigation.
  */
 export function JsonViewer({ data }: JsonViewerProps) {
+  useUiLocale();
   const { resolvedTheme } = useTheme();
 
-  if (!data) return <span className="text-muted-foreground">No data</span>;
+  if (!data)
+    return (
+      <span className="text-muted-foreground">
+        <LocalizedText text={"No data"} />
+      </span>
+    );
 
   return (
     <div

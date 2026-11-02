@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, useUiLocale } from "@/lib/i18n";
 
 import moment from "moment";
 import { CalendarDays } from "lucide-react";
@@ -34,6 +35,7 @@ const relativeTimeRange = (interval: LogsTimeRange["interval"]): LogsTimeRange =
 export const defaultLogsTimeRange = (): LogsTimeRange => relativeTimeRange({ value: 24, unit: "hours" });
 
 export function LogsToolbar({ className, ...props }: ComponentProps<"div">) {
+  useUiLocale();
   return <div className={cn("flex flex-wrap items-center gap-2", className)} {...props} />;
 }
 
@@ -43,6 +45,7 @@ interface LogsTimeRangePickerProps {
 }
 
 export function LogsTimeRangePicker({ value, onValueChange }: LogsTimeRangePickerProps) {
+  useUiLocale();
   const [open, setOpen] = useState(false);
 
   const selectedOption = QUICK_SELECT_OPTIONS.find(
@@ -75,7 +78,7 @@ export function LogsTimeRangePicker({ value, onValueChange }: LogsTimeRangePicke
                   setOpen(false);
                 }}
               >
-                {option.label}
+                {localizedProperty(option, "label", option.label)}
               </Button>
             ))}
             <div className="my-2 border-t" />
@@ -84,7 +87,7 @@ export function LogsTimeRangePicker({ value, onValueChange }: LogsTimeRangePicke
               className="w-full justify-start font-normal"
               onClick={() => onValueChange({ ...value, isCustomDate: !value.isCustomDate })}
             >
-              Custom Range
+              <LocalizedText text={"Custom Range"} />
             </Button>
           </div>
         </PopoverContent>
@@ -98,7 +101,9 @@ export function LogsTimeRangePicker({ value, onValueChange }: LogsTimeRangePicke
             value={value.startTime}
             onChange={(event) => onValueChange({ ...value, startTime: event.target.value })}
           />
-          <span className="text-sm text-muted-foreground">to</span>
+          <span className="text-sm text-muted-foreground">
+            <LocalizedText text={"to"} />
+          </span>
           <Input
             type="datetime-local"
             className="w-auto"
@@ -111,11 +116,13 @@ export function LogsTimeRangePicker({ value, onValueChange }: LogsTimeRangePicke
   );
 }
 
-export function LogsToolbarSwitch({ label, ...props }: ComponentProps<typeof Switch> & { label: string }) {
+export function LogsToolbarSwitch(cocaCopyProps0: ComponentProps<typeof Switch> & { label: string }) {
+  const { label, ...props } = cocaCopyProps0;
+  useUiLocale();
   return (
     <div className="flex items-center gap-2">
-      <span className="text-sm font-medium">{label}</span>
-      <Switch aria-label={label} {...props} />
+      <span className="text-sm font-medium">{localizedProperty(cocaCopyProps0, "label", label)}</span>
+      <Switch aria-label={localizedProperty(cocaCopyProps0, "label", label)} {...props} />
     </div>
   );
 }

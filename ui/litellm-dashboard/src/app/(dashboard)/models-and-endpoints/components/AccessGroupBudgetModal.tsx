@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { CircleHelp } from "lucide-react";
 import React from "react";
@@ -31,10 +32,16 @@ const budgetSchema = z
     soft_budget: z.string().optional(),
     budget_duration: z.string().optional(),
   })
-  .refine(hasAnyBudgetValue, {
-    message: "Set at least one of max budget, soft budget or reset window",
-    path: ["max_budget"],
-  });
+  .refine(
+    hasAnyBudgetValue,
+    markUiCopy(
+      {
+        message: "Set at least one of max budget, soft budget or reset window",
+        path: ["max_budget"],
+      },
+      { message: "Set at least one of max budget, soft budget or reset window" },
+    ),
+  );
 
 interface AccessGroupBudgetModalProps {
   accessGroup: ModelAccessGroup | null;
@@ -49,6 +56,7 @@ const AccessGroupBudgetModal: React.FC<AccessGroupBudgetModalProps> = ({
   onCancel,
   onSubmit,
 }) => {
+  useUiLocale();
   const budget = accessGroup?.budget ?? null;
   const form = useZodForm(budgetSchema, { values: accessGroupBudgetFormValues(budget) });
 
@@ -57,12 +65,19 @@ const AccessGroupBudgetModal: React.FC<AccessGroupBudgetModalProps> = ({
       <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-[560px]">
         <DialogHeader>
           <DialogTitle>
-            {budget ? "Edit" : "Set"} budget for &quot;{accessGroup?.access_group}&quot;
+            {budget ? translateMessage("Edit") : translateMessage("Set")}
+            <LocalizedText text={' budget for "'} />
+            {accessGroup?.access_group}&quot;
           </DialogTitle>
         </DialogHeader>
         <p className="text-sm text-muted-foreground">
-          Every key granted this access group by name draws from this one budget. A key that reaches the group&apos;s
-          models through a wildcard or <code>all-proxy-models</code> is not charged against it.
+          <LocalizedText
+            text={
+              "Every key granted this access group by name draws from this one budget. A key that reaches the group's models through a wildcard or "
+            }
+          />
+          <code>all-proxy-models</code>
+          <LocalizedText text={" is not charged against it."} />
         </p>
         <form onSubmit={form.handleSubmit((values) => onSubmit(buildAccessGroupBudgetBody(values)))} noValidate>
           <TooltipProvider>
@@ -108,15 +123,19 @@ const AccessGroupBudgetModal: React.FC<AccessGroupBudgetModalProps> = ({
             </FieldGroup>
 
             <p className="mt-3 text-xs text-muted-foreground">
-              A field left blank keeps whatever the budget already has. Use Clear budget to remove the budget itself.
+              <LocalizedText
+                text={
+                  "A field left blank keeps whatever the budget already has. Use Clear budget to remove the budget itself."
+                }
+              />
             </p>
 
             <div className="mt-6 flex justify-end gap-2">
               <Button type="button" variant="outline" onClick={onCancel}>
-                Cancel
+                <LocalizedText text={"Cancel"} />
               </Button>
               <Button type="submit" disabled={isSaving}>
-                {isSaving ? "Saving..." : "Save Budget"}
+                {isSaving ? translateMessage("Saving...") : translateMessage("Save Budget")}
               </Button>
             </div>
           </TooltipProvider>

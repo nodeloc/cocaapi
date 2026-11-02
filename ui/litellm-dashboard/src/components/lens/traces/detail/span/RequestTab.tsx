@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import CopyButton from "@/components/shared/CopyButton";
 
@@ -18,8 +19,13 @@ interface RequestTabProps {
 }
 
 export function RequestTab({ span, accessToken, traceStartMs }: RequestTabProps) {
+  useUiLocale();
   if (span.type !== "llm") {
-    return <div className="py-16 text-center text-sm text-muted-foreground">This span is not a model request.</div>;
+    return (
+      <div className="py-16 text-center text-sm text-muted-foreground">
+        <LocalizedText text={"This span is not a model request."} />
+      </div>
+    );
   }
 
   const usage = fieldEntries([
@@ -33,17 +39,22 @@ export function RequestTab({ span, accessToken, traceStartMs }: RequestTabProps)
 
   return (
     <div className="flex flex-col gap-5 px-4 pt-3 pb-5">
-      <DetailGroup title="Usage">
+      <DetailGroup title={translateMessage("Usage")}>
         <FieldTree entries={usage} />
       </DetailGroup>
-      <DetailGroup title="Spend log">
+      <DetailGroup title={translateMessage("Spend log")}>
         <div className="flex flex-col gap-2 py-1.5">
           {span.spend_log_request_id && (
             <div className="flex min-w-0 items-center gap-1">
               <div className="min-w-0 flex-1">
                 <FieldTree entries={fieldEntries([["request_id", span.spend_log_request_id]])} mono />
               </div>
-              <CopyButton variant="action" value={span.spend_log_request_id} label="Copy request ID" iconOnly />
+              <CopyButton
+                variant="action"
+                value={span.spend_log_request_id}
+                label={translateMessage("Copy request ID")}
+                iconOnly
+              />
             </div>
           )}
           <div className="self-start">

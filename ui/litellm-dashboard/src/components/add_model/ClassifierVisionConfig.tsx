@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -16,6 +18,7 @@ interface ClassifierVisionConfigProps {
 }
 
 const ClassifierVisionConfig: React.FC<ClassifierVisionConfigProps> = ({ value, onChange }) => {
+  useUiLocale();
   const [draftMaxImages, setDraftMaxImages] = React.useState<string | null>(null);
   const enabled = value.vision?.enabled ?? DEFAULT_CLASSIFIER_VISION_ENABLED;
 
@@ -49,17 +52,21 @@ const ClassifierVisionConfig: React.FC<ClassifierVisionConfigProps> = ({ value, 
               },
             });
           }}
-          aria-label="Use images for classification"
+          aria-label={translateMessage("Use images for classification")}
         />
-        <strong className="font-semibold">Use images for classification</strong>
+        <strong className="font-semibold">
+          <LocalizedText text={"Use images for classification"} />
+        </strong>
       </div>
       <span className="block text-xs text-muted-foreground">
-        Send inline image data to the classifier so it can choose a tier from what the image shows.
+        <LocalizedText
+          text={"Send inline image data to the classifier so it can choose a tier from what the image shows."}
+        />
       </span>
       {enabled && (
         <div>
           <Label htmlFor={MAX_IMAGES_ID} className="block mb-1 font-semibold">
-            Maximum images per request
+            <LocalizedText text={"Maximum images per request"} />
           </Label>
           <Input
             id={MAX_IMAGES_ID}

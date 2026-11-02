@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, useUiLocale } from "@/lib/i18n";
 import React from "react";
 import { Input } from "@/components/ui/input";
 
@@ -16,6 +18,7 @@ interface LatencyBasedConfigurationProps {
 }
 
 const LatencyBasedConfiguration: React.FC<LatencyBasedConfigurationProps> = ({ routingStrategyArgs }) => {
+  useUiLocale();
   const paramExplanation: { [key: string]: string } = {
     ttl: "Sliding window to look back over when calculating the average latency of a deployment. Default - 1 hour (in seconds).",
     lowest_latency_buffer:
@@ -26,8 +29,12 @@ const LatencyBasedConfiguration: React.FC<LatencyBasedConfigurationProps> = ({ r
     <>
       <div className="space-y-6">
         <div className="max-w-3xl">
-          <h3 className="text-sm font-medium text-foreground">Latency-Based Configuration</h3>
-          <p className="text-xs text-muted-foreground mt-1">Fine-tune latency-based routing behavior</p>
+          <h3 className="text-sm font-medium text-foreground">
+            <LocalizedText text={"Latency-Based Configuration"} />
+          </h3>
+          <p className="text-xs text-muted-foreground mt-1">
+            <LocalizedText text={"Fine-tune latency-based routing behavior"} />
+          </p>
         </div>
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-3">

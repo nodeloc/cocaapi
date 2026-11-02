@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, useUiLocale } from "@/lib/i18n";
 
 import * as React from "react";
 import { Area, AreaChart as RechartsAreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
@@ -38,6 +39,7 @@ export function AreaChart<TDatum extends Record<string, unknown>>({
   className,
   style,
 }: AreaChartProps<TDatum>) {
+  useUiLocale();
   const gradientId = React.useId().replace(/:/g, "");
 
   if (data.length === 0) {
@@ -46,7 +48,9 @@ export function AreaChart<TDatum extends Record<string, unknown>>({
         className={cn("flex h-80 w-full items-center justify-center rounded-lg border border-dashed", className)}
         style={style}
       >
-        <p className="text-sm text-muted-foreground">No data</p>
+        <p className="text-sm text-muted-foreground">
+          <LocalizedText text={"No data"} />
+        </p>
       </div>
     );
   }
@@ -71,14 +75,17 @@ export function AreaChart<TDatum extends Record<string, unknown>>({
         <YAxis width={yAxisWidth} tickLine={false} axisLine={false} tickFormatter={valueFormatter} />
         {showTooltip && (
           <ChartTooltip
-            content={({ active, payload, label }) => (
-              <TooltipContent
-                active={active}
-                payload={payload}
-                label={label}
-                {...(customTooltip ? {} : { valueFormatter })}
-              />
-            )}
+            content={(cocaCopyProps0) => {
+              const { active, payload, label } = cocaCopyProps0;
+              return (
+                <TooltipContent
+                  active={active}
+                  payload={payload}
+                  label={localizedProperty(cocaCopyProps0, "label", label)}
+                  {...(customTooltip ? {} : { valueFormatter })}
+                />
+              );
+            }}
           />
         )}
         {showLegend && (

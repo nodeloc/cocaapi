@@ -1,3 +1,5 @@
+"use client";
+import { getIntlLocale, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import { BarChart } from "@/components/shared/charts";
 import { DataTable } from "@/components/shared/DataTable";
 import { MoneyCell } from "@/components/shared/table_cells";
@@ -27,14 +29,15 @@ type ViewMode = "chart" | "table";
 
 const LIMIT_OPTIONS = TOP_MODEL_LIMITS.map((limit) => ({ value: String(limit), label: String(limit) }));
 const VIEW_OPTIONS = [
-  { value: "table", label: "Table View" },
-  { value: "chart", label: "Chart View" },
+  markUiCopy({ value: "table", label: "Table View" }, { label: "Table View" }),
+  markUiCopy({ value: "chart", label: "Chart View" }, { label: "Chart View" }),
 ] as const satisfies readonly { value: ViewMode; label: string }[];
 
 const BAR_COLOR = "#2b3fd6";
 const QUIET_HEADER = { headerClassName: "font-normal" };
 
 function ModelName({ name }: { name: string | undefined }) {
+  useUiLocale();
   if (!name) return <>-</>;
   const provider = providerForModel(name);
   return (
@@ -50,39 +53,59 @@ function ModelName({ name }: { name: string | undefined }) {
 }
 
 export default function TopModelView({ topModels, topModelsLimit, setTopModelsLimit }: TopModelViewProps) {
+  useUiLocale();
   const [modelViewMode, setModelViewMode] = useState<ViewMode>("table");
 
   const columns = [
-    {
-      header: "Model",
-      accessorKey: "key",
-      meta: QUIET_HEADER,
-      cell: (info: any) => <ModelName name={info.getValue()} />,
-    },
-    {
-      header: "Spend (USD)",
-      accessorKey: "spend",
-      meta: { numeric: true, ...QUIET_HEADER },
-      cell: (info: any) => <MoneyCell value={info.getValue()} decimals={2} />,
-    },
-    {
-      header: "Successful",
-      accessorKey: "successful_requests",
-      meta: { numeric: true, ...QUIET_HEADER },
-      cell: (info: any) => <span className="text-success">{info.getValue()?.toLocaleString() || 0}</span>,
-    },
-    {
-      header: "Failed",
-      accessorKey: "failed_requests",
-      meta: { numeric: true, ...QUIET_HEADER },
-      cell: (info: any) => <span className="text-destructive">{info.getValue()?.toLocaleString() || 0}</span>,
-    },
-    {
-      header: "Tokens",
-      accessorKey: "tokens",
-      meta: { numeric: true, ...QUIET_HEADER },
-      cell: (info: any) => info.getValue()?.toLocaleString() || 0,
-    },
+    markUiCopy(
+      {
+        header: "Model",
+        accessorKey: "key",
+        meta: QUIET_HEADER,
+        cell: (info: any) => <ModelName name={info.getValue()} />,
+      },
+      { header: "Model" },
+    ),
+    markUiCopy(
+      {
+        header: "Spend (USD)",
+        accessorKey: "spend",
+        meta: { numeric: true, ...QUIET_HEADER },
+        cell: (info: any) => <MoneyCell value={info.getValue()} decimals={2} />,
+      },
+      { header: "Spend (USD)" },
+    ),
+    markUiCopy(
+      {
+        header: "Successful",
+        accessorKey: "successful_requests",
+        meta: { numeric: true, ...QUIET_HEADER },
+        cell: (info: any) => (
+          <span className="text-success">{info.getValue()?.toLocaleString(getIntlLocale()) || 0}</span>
+        ),
+      },
+      { header: "Successful" },
+    ),
+    markUiCopy(
+      {
+        header: "Failed",
+        accessorKey: "failed_requests",
+        meta: { numeric: true, ...QUIET_HEADER },
+        cell: (info: any) => (
+          <span className="text-destructive">{info.getValue()?.toLocaleString(getIntlLocale()) || 0}</span>
+        ),
+      },
+      { header: "Failed" },
+    ),
+    markUiCopy(
+      {
+        header: "Tokens",
+        accessorKey: "tokens",
+        meta: { numeric: true, ...QUIET_HEADER },
+        cell: (info: any) => info.getValue()?.toLocaleString(getIntlLocale()) || 0,
+      },
+      { header: "Tokens" },
+    ),
   ];
   const processedTopModels = topModels.slice(0, topModelsLimit);
 
@@ -90,13 +113,13 @@ export default function TopModelView({ topModels, topModelsLimit, setTopModelsLi
     <>
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <Segmented
-          label="Number of models to show"
+          label={translateMessage("Number of models to show")}
           value={String(topModelsLimit)}
           options={LIMIT_OPTIONS}
           onChange={(limit) => setTopModelsLimit(Number(limit))}
         />
         <Segmented
-          label="Top model view mode"
+          label={translateMessage("Top model view mode")}
           value={modelViewMode}
           options={VIEW_OPTIONS}
           onChange={setModelViewMode}

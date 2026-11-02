@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import React, { useState } from "react";
 import {
@@ -31,6 +32,7 @@ const AccessGroupTagsCombobox: React.FC<AccessGroupTagsComboboxProps> = ({
   ariaInvalid,
   ariaDescribedBy,
 }) => {
+  useUiLocale();
   const anchor = useComboboxAnchor();
   const [query, setQuery] = useState("");
   const selected = value ?? [];
@@ -79,14 +81,16 @@ const AccessGroupTagsCombobox: React.FC<AccessGroupTagsComboboxProps> = ({
                 id={id}
                 aria-invalid={ariaInvalid}
                 aria-describedby={ariaDescribedBy}
-                placeholder="Select existing groups or type to create new ones"
+                placeholder={translateMessage("Select existing groups or type to create new ones")}
               />
             </>
           )}
         </ComboboxValue>
       </ComboboxChips>
       <ComboboxContent anchor={anchor}>
-        <ComboboxEmpty>No access groups found</ComboboxEmpty>
+        <ComboboxEmpty>
+          <LocalizedText text={"No access groups found"} />
+        </ComboboxEmpty>
         <ComboboxList>
           {(group: string) => (
             <ComboboxItem key={group} value={group}>

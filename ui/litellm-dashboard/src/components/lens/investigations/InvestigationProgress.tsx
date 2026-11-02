@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, getIntlLocale, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { useNow } from "@/hooks/useNow";
 import {
@@ -15,6 +16,7 @@ import { QueueReasonText } from "./QueueReasonText";
 import { useQueueReason, type QueueContext } from "./useQueueReason";
 
 export function InvestigationProgress({ job, queue }: { job: Job; queue?: QueueContext }) {
+  useUiLocale();
   const now = useNow(1000);
   const reason = useQueueReason(job, queue);
   const progress = analysisProgress(job);
@@ -23,27 +25,34 @@ export function InvestigationProgress({ job, queue }: { job: Job; queue?: QueueC
   const { secondsLeft } = analysisPace(useProgressSamples(progress), now);
   const queued = progress.step < 0;
   return (
-    <section aria-label="Analysis progress" className="space-y-2">
+    <section aria-label={translateMessage("Analysis progress")} className="space-y-2">
       <div className="flex items-baseline justify-between gap-3 tabular-nums">
         <span
           role="progressbar"
-          aria-label="Investigation progress"
+          aria-label={translateMessage("Investigation progress")}
           aria-valuemin={0}
           aria-valuemax={100}
           aria-valuenow={percent}
           aria-valuetext={`${percent}% overall. ${progress.title}: ${progress.detail}`}
-          title={`Overall progress: ${stages.map((stage) => `${stage.label} ${stage.weight * 100}%`).join(", ")}`}
+          title={translateMessage("Overall progress: %{0}", [
+            stages.map((stage) => `${stage.label} ${stage.weight * 100}%`).join(", "),
+          ])}
           className="text-2xl font-semibold"
         >
           {queued ? "–" : `${percent}%`}
-          {!queued && <span className="ml-1.5 text-xs font-normal text-muted-foreground">overall</span>}
+          {!queued && (
+            <span className="ml-1.5 text-xs font-normal text-muted-foreground">
+              <LocalizedText text={"overall"} />
+            </span>
+          )}
         </span>
         <span className="text-xs text-muted-foreground">
-          {analysisElapsed(job.created_at, now)} elapsed
-          {!queued && ` · ${remainingLabel(secondsLeft)} left`}
+          {analysisElapsed(job.created_at, now)}
+          <LocalizedText text={" elapsed"} />
+          {!queued && translateMessage(" · %{0} left", [remainingLabel(secondsLeft)])}
         </span>
       </div>
-      <ol aria-label="Analysis stages" className="flex gap-1">
+      <ol aria-label={translateMessage("Analysis stages")} className="flex gap-1">
         {stages.map((stage) => (
           <li
             key={stage.label}
@@ -59,10 +68,12 @@ export function InvestigationProgress({ job, queue }: { job: Job; queue?: QueueC
               />
             </div>
             <div className="flex items-baseline justify-between gap-2 text-xs text-muted-foreground group-data-[state=active]:text-foreground">
-              <span className="truncate group-data-[state=active]:font-medium">{stage.label}</span>
+              <span className="truncate group-data-[state=active]:font-medium">
+                {localizedProperty(stage, "label", stage.label)}
+              </span>
               {stage.state !== "todo" && stage.total > 0 && (
                 <span className="shrink-0 tabular-nums">
-                  {stage.done.toLocaleString()} / {stage.total.toLocaleString()}
+                  {stage.done.toLocaleString(getIntlLocale())} / {stage.total.toLocaleString(getIntlLocale())}
                 </span>
               )}
             </div>

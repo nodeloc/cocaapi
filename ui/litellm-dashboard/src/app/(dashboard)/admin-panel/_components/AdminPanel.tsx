@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 /**
  * Allow proxy admin to add other people to view global spend
  * Use this to avoid sharing master key with others
@@ -44,16 +46,19 @@ const allowedIPSchema = z.object({
 type AllowedIPFormValues = z.infer<typeof allowedIPSchema>;
 
 const AddAllowedIPForm = ({ onSubmit }: { onSubmit: (values: AllowedIPFormValues) => Promise<void> }) => {
+  useUiLocale();
   const form = useZodForm(allowedIPSchema, { defaultValues: { ip: "" } });
 
   return (
     <form onSubmit={form.handleSubmit(onSubmit)}>
       <FieldGroup>
         <FormField control={form.control} name="ip">
-          {({ ref, ...field }) => <Input ref={ref} placeholder="Enter IP address" {...field} />}
+          {({ ref, ...field }) => <Input ref={ref} placeholder={translateMessage("Enter IP address")} {...field} />}
         </FormField>
         <div>
-          <Button type="submit">Add IP Address</Button>
+          <Button type="submit">
+            <LocalizedText text={"Add IP Address"} />
+          </Button>
         </div>
       </FieldGroup>
     </form>
@@ -65,6 +70,7 @@ interface AdminPanelProps {
 }
 
 const AdminPanel: React.FC<AdminPanelProps> = ({ proxySettings }) => {
+  useUiLocale();
   const { premiumUser, accessToken, userId: userID } = useAuthorized();
   const form = useSSOSettingsForm("admin-panel");
   const [isAddSSOModalVisible, setIsAddSSOModalVisible] = useState(false);
@@ -134,7 +140,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ proxySettings }) => {
         // Fetch the updated list of IPs
         const updatedIPs = await getAllowedIPs(accessToken);
         setAllowedIPs(updatedIPs);
-        toast.success("IP address added successfully");
+        toast.success(translateMessage("IP address added successfully"));
       }
     } catch (error) {
       console.error("Error adding IP:", error);
@@ -156,7 +162,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ proxySettings }) => {
         // Fetch the updated list of IPs
         const updatedIPs = await getAllowedIPs(accessToken);
         setAllowedIPs(updatedIPs.length > 0 ? updatedIPs : [all_ip_address_allowed]);
-        toast.success("IP address deleted successfully");
+        toast.success(translateMessage("IP address deleted successfully"));
       } catch (error) {
         console.error("Error deleting IP:", error);
         toast.fromError(`Failed to delete IP address ${error}`);
@@ -212,219 +218,279 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ proxySettings }) => {
   };
 
   const tabItems = [
-    {
-      key: "sso-settings",
-      label: "SSO Settings",
-      children: <SSOSettings />,
-    },
-    {
-      key: "security-settings",
-      label: "Security Settings",
-      children: (
-        <>
-          <Card className="block p-6">
-            <h3 className="mb-2 text-base font-semibold text-foreground">✨ Security Settings</h3>
-            <Alert variant="warning">
-              <TriangleAlert />
-              <AlertTitle>SSO Configuration Deprecated</AlertTitle>
+    markUiCopy(
+      {
+        key: "sso-settings",
+        label: "SSO Settings",
+        children: <SSOSettings />,
+      },
+      { label: "SSO Settings" },
+    ),
+    markUiCopy(
+      {
+        key: "security-settings",
+        label: "Security Settings",
+        children: (
+          <>
+            <Card className="block p-6">
+              <h3 className="mb-2 text-base font-semibold text-foreground">
+                <LocalizedText text={"✨ Security Settings"} />
+              </h3>
+              <Alert variant="warning">
+                <TriangleAlert />
+                <AlertTitle>
+                  <LocalizedText text={"SSO Configuration Deprecated"} />
+                </AlertTitle>
+                <AlertDescription>
+                  <LocalizedText
+                    text={
+                      "Editing SSO Settings on this page is deprecated and will be removed in a future version. Please use the SSO Settings tab for SSO configuration."
+                    }
+                  />
+                </AlertDescription>
+              </Alert>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "1rem",
+                  marginTop: "1rem",
+                  marginLeft: "0.5rem",
+                }}
+              >
+                <div>
+                  <Button style={{ width: "150px" }} onClick={() => setIsAddSSOModalVisible(true)}>
+                    {ssoConfigured ? translateMessage("Edit SSO Settings") : translateMessage("Add SSO")}
+                  </Button>
+                </div>
+                <div>
+                  <Button style={{ width: "150px" }} onClick={handleShowAllowedIPs}>
+                    <LocalizedText text={"Allowed IPs"} />
+                  </Button>
+                </div>
+                <div>
+                  <Button
+                    style={{ width: "150px" }}
+                    onClick={() =>
+                      premiumUser === true
+                        ? setIsUIAccessControlModalVisible(true)
+                        : toast.fromError("Only premium users can configure UI access control")
+                    }
+                  >
+                    <LocalizedText text={"UI Access Control"} />
+                  </Button>
+                </div>
+              </div>
+            </Card>
+
+            <div className="flex justify-start mb-4">
+              <SSOModals
+                isAddSSOModalVisible={isAddSSOModalVisible}
+                isInstructionsModalVisible={isInstructionsModalVisible}
+                handleAddSSOOk={handleAddSSOOk}
+                handleAddSSOCancel={handleAddSSOCancel}
+                handleShowInstructions={handleShowInstructions}
+                handleInstructionsOk={handleInstructionsOk}
+                handleInstructionsCancel={handleInstructionsCancel}
+                form={form}
+                accessToken={accessToken}
+                ssoConfigured={ssoConfigured}
+              />
+              <Dialog
+                open={isAllowedIPModalVisible}
+                onOpenChange={(open) => !open && setIsAllowedIPModalVisible(false)}
+              >
+                <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-[800px]">
+                  <DialogHeader>
+                    <DialogTitle>
+                      <LocalizedText text={"Manage Allowed IP Addresses"} />
+                    </DialogTitle>
+                  </DialogHeader>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>
+                          <LocalizedText text={"IP Address"} />
+                        </TableHead>
+                        <TableHead className="text-right">
+                          <LocalizedText text={"Action"} />
+                        </TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {allowedIPs.map((ip, index) => (
+                        <TableRow key={index}>
+                          <TableCell>{ip}</TableCell>
+                          <TableCell className="text-right">
+                            {ip !== all_ip_address_allowed && (
+                              <Button onClick={() => handleDeleteIP(ip)} variant="destructive" size="sm">
+                                <LocalizedText text={"Delete"} />
+                              </Button>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                  <DialogFooter>
+                    <Button className="mx-1" onClick={() => setIsAddIPModalVisible(true)}>
+                      <LocalizedText text={"Add IP Address"} />
+                    </Button>
+                    <Button onClick={() => setIsAllowedIPModalVisible(false)}>
+                      <LocalizedText text={"Close"} />
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+
+              <Dialog open={isAddIPModalVisible} onOpenChange={(open) => !open && setIsAddIPModalVisible(false)}>
+                <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>
+                      <LocalizedText text={"Add Allowed IP Address"} />
+                    </DialogTitle>
+                  </DialogHeader>
+                  <AddAllowedIPForm onSubmit={handleAddIP} />
+                </DialogContent>
+              </Dialog>
+
+              <Dialog open={isDeleteIPModalVisible} onOpenChange={(open) => !open && setIsDeleteIPModalVisible(false)}>
+                <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>
+                      <LocalizedText text={"Confirm Delete"} />
+                    </DialogTitle>
+                  </DialogHeader>
+                  <span className="text-sm text-foreground">
+                    <LocalizedText text={"Are you sure you want to delete the IP address: "} />
+                    {ipToDelete}?
+                  </span>
+                  <DialogFooter>
+                    <Button className="mx-1" onClick={() => confirmDeleteIP()}>
+                      <LocalizedText text={"Yes"} />
+                    </Button>
+                    <Button onClick={() => setIsDeleteIPModalVisible(false)}>
+                      <LocalizedText text={"Close"} />
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+
+              {/* UI Access Control Modal */}
+              <Dialog
+                open={isUIAccessControlModalVisible}
+                onOpenChange={(open) => !open && handleUIAccessControlCancel()}
+              >
+                <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-[600px]">
+                  <DialogHeader>
+                    <DialogTitle>
+                      <LocalizedText text={"UI Access Control Settings"} />
+                    </DialogTitle>
+                  </DialogHeader>
+                  <UIAccessControlForm
+                    accessToken={accessToken}
+                    onSuccess={() => {
+                      handleUIAccessControlOk();
+                      toast.success(translateMessage("UI Access Control settings updated successfully"));
+                    }}
+                  />
+                </DialogContent>
+              </Dialog>
+            </div>
+            <Alert variant="info">
+              <Info />
+              <AlertTitle>
+                <LocalizedText text={"Login without SSO"} />
+              </AlertTitle>
               <AlertDescription>
-                Editing SSO Settings on this page is deprecated and will be removed in a future version. Please use the
-                SSO Settings tab for SSO configuration.
+                <LocalizedText text={"If you need to login without sso, you can access"} />{" "}
+                <a href={nonSssoUrl} target="_blank" rel="noopener noreferrer">
+                  <b>{nonSssoUrl}</b>{" "}
+                </a>
               </AlertDescription>
             </Alert>
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "1rem",
-                marginTop: "1rem",
-                marginLeft: "0.5rem",
-              }}
-            >
-              <div>
-                <Button style={{ width: "150px" }} onClick={() => setIsAddSSOModalVisible(true)}>
-                  {ssoConfigured ? "Edit SSO Settings" : "Add SSO"}
-                </Button>
-              </div>
-              <div>
-                <Button style={{ width: "150px" }} onClick={handleShowAllowedIPs}>
-                  Allowed IPs
-                </Button>
-              </div>
-              <div>
-                <Button
-                  style={{ width: "150px" }}
-                  onClick={() =>
-                    premiumUser === true
-                      ? setIsUIAccessControlModalVisible(true)
-                      : toast.fromError("Only premium users can configure UI access control")
-                  }
-                >
-                  UI Access Control
-                </Button>
-              </div>
-            </div>
-          </Card>
-
-          <div className="flex justify-start mb-4">
-            <SSOModals
-              isAddSSOModalVisible={isAddSSOModalVisible}
-              isInstructionsModalVisible={isInstructionsModalVisible}
-              handleAddSSOOk={handleAddSSOOk}
-              handleAddSSOCancel={handleAddSSOCancel}
-              handleShowInstructions={handleShowInstructions}
-              handleInstructionsOk={handleInstructionsOk}
-              handleInstructionsCancel={handleInstructionsCancel}
-              form={form}
-              accessToken={accessToken}
-              ssoConfigured={ssoConfigured}
-            />
-            <Dialog open={isAllowedIPModalVisible} onOpenChange={(open) => !open && setIsAllowedIPModalVisible(false)}>
-              <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-[800px]">
-                <DialogHeader>
-                  <DialogTitle>Manage Allowed IP Addresses</DialogTitle>
-                </DialogHeader>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>IP Address</TableHead>
-                      <TableHead className="text-right">Action</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {allowedIPs.map((ip, index) => (
-                      <TableRow key={index}>
-                        <TableCell>{ip}</TableCell>
-                        <TableCell className="text-right">
-                          {ip !== all_ip_address_allowed && (
-                            <Button onClick={() => handleDeleteIP(ip)} variant="destructive" size="sm">
-                              Delete
-                            </Button>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-                <DialogFooter>
-                  <Button className="mx-1" onClick={() => setIsAddIPModalVisible(true)}>
-                    Add IP Address
-                  </Button>
-                  <Button onClick={() => setIsAllowedIPModalVisible(false)}>Close</Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-
-            <Dialog open={isAddIPModalVisible} onOpenChange={(open) => !open && setIsAddIPModalVisible(false)}>
-              <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>Add Allowed IP Address</DialogTitle>
-                </DialogHeader>
-                <AddAllowedIPForm onSubmit={handleAddIP} />
-              </DialogContent>
-            </Dialog>
-
-            <Dialog open={isDeleteIPModalVisible} onOpenChange={(open) => !open && setIsDeleteIPModalVisible(false)}>
-              <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>Confirm Delete</DialogTitle>
-                </DialogHeader>
-                <span className="text-sm text-foreground">
-                  Are you sure you want to delete the IP address: {ipToDelete}?
-                </span>
-                <DialogFooter>
-                  <Button className="mx-1" onClick={() => confirmDeleteIP()}>
-                    Yes
-                  </Button>
-                  <Button onClick={() => setIsDeleteIPModalVisible(false)}>Close</Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-
-            {/* UI Access Control Modal */}
-            <Dialog
-              open={isUIAccessControlModalVisible}
-              onOpenChange={(open) => !open && handleUIAccessControlCancel()}
-            >
-              <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-[600px]">
-                <DialogHeader>
-                  <DialogTitle>UI Access Control Settings</DialogTitle>
-                </DialogHeader>
-                <UIAccessControlForm
-                  accessToken={accessToken}
-                  onSuccess={() => {
-                    handleUIAccessControlOk();
-                    toast.success("UI Access Control settings updated successfully");
-                  }}
-                />
-              </DialogContent>
-            </Dialog>
+          </>
+        ),
+      },
+      { label: "Security Settings" },
+    ),
+    markUiCopy(
+      {
+        key: "scim",
+        label: "SCIM",
+        children: <SCIMConfig accessToken={accessToken} userID={userID} proxySettings={proxySettings} />,
+      },
+      { label: "SCIM" },
+    ),
+    markUiCopy(
+      {
+        key: "ui-settings",
+        label: "UI Settings",
+        children: (
+          <div className="flex flex-col gap-4">
+            <UISettings />
+            <TeamAdminEditableFieldsSettings />
+            <UserBannerSettings />
           </div>
-          <Alert variant="info">
-            <Info />
-            <AlertTitle>Login without SSO</AlertTitle>
-            <AlertDescription>
-              If you need to login without sso, you can access{" "}
-              <a href={nonSssoUrl} target="_blank" rel="noopener noreferrer">
-                <b>{nonSssoUrl}</b>{" "}
-              </a>
-            </AlertDescription>
-          </Alert>
-        </>
-      ),
-    },
-    {
-      key: "scim",
-      label: "SCIM",
-      children: <SCIMConfig accessToken={accessToken} userID={userID} proxySettings={proxySettings} />,
-    },
-    {
-      key: "ui-settings",
-      label: "UI Settings",
-      children: (
-        <div className="flex flex-col gap-4">
-          <UISettings />
-          <TeamAdminEditableFieldsSettings />
-          <UserBannerSettings />
-        </div>
-      ),
-    },
-    {
-      key: "logging-settings",
-      label: "Logging Settings",
-      children: <LoggingSettings />,
-    },
-    {
-      key: "hashicorp-vault",
-      label: "Hashicorp Vault",
-      children: <HashicorpVault />,
-    },
-    {
-      key: "cyberark",
-      label: "CyberArk Conjur",
-      children: <CyberArk />,
-    },
-    {
-      key: "plugins",
-      label: "Plugins",
-      children: <PluginSettings />,
-    },
-    {
-      key: "web-search-interception",
-      label: "Web Search Interception",
-      children: <WebSearchInterceptionSettings />,
-    },
+        ),
+      },
+      { label: "UI Settings" },
+    ),
+    markUiCopy(
+      {
+        key: "logging-settings",
+        label: "Logging Settings",
+        children: <LoggingSettings />,
+      },
+      { label: "Logging Settings" },
+    ),
+    markUiCopy(
+      {
+        key: "hashicorp-vault",
+        label: "Hashicorp Vault",
+        children: <HashicorpVault />,
+      },
+      { label: "Hashicorp Vault" },
+    ),
+    markUiCopy(
+      {
+        key: "cyberark",
+        label: "CyberArk Conjur",
+        children: <CyberArk />,
+      },
+      { label: "CyberArk Conjur" },
+    ),
+    markUiCopy(
+      {
+        key: "plugins",
+        label: "Plugins",
+        children: <PluginSettings />,
+      },
+      { label: "Plugins" },
+    ),
+    markUiCopy(
+      {
+        key: "web-search-interception",
+        label: "Web Search Interception",
+        children: <WebSearchInterceptionSettings />,
+      },
+      { label: "Web Search Interception" },
+    ),
   ];
 
   return (
     <div className="w-full m-2 mt-2 p-8">
-      <h2 className="mb-2 text-base font-semibold text-foreground">Admin Access</h2>
-      <p className="mb-4 text-sm text-foreground">Go to &apos;Internal Users&apos; page to add other admins.</p>
+      <h2 className="mb-2 text-base font-semibold text-foreground">
+        <LocalizedText text={"Admin Access"} />
+      </h2>
+      <p className="mb-4 text-sm text-foreground">
+        <LocalizedText text={"Go to 'Internal Users' page to add other admins."} />
+      </p>
       <Tabs defaultValue={tabItems[0].key}>
         <TabsList variant="line" className="mb-4 h-auto flex-wrap">
           {tabItems.map((item) => (
             <TabsTrigger key={item.key} value={item.key} className="flex-none">
-              {item.label}
+              {localizedProperty(item, "label", item.label)}
             </TabsTrigger>
           ))}
         </TabsList>

@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import { AutoRouterAvailabilityContext, useAutoRouterAvailability } from "./AutoRouterAvailability";
 import { decisionDeploymentName } from "./jev_classifier_config";
 import DecisionModelSelect from "./DecisionModelSelect";
@@ -179,8 +181,9 @@ const teamScopePayload = (requiresTeamScope: boolean, teamId: string | null): { 
 const BlockedReasonTooltip: React.FC<{ reason: string | null; children: React.ReactElement }> = ({
   reason,
   children,
-}) =>
-  reason === null ? (
+}) => {
+  useUiLocale();
+  return reason === null ? (
     children
   ) : (
     <Tooltip>
@@ -188,6 +191,7 @@ const BlockedReasonTooltip: React.FC<{ reason: string | null; children: React.Re
       <TooltipContent>{reason}</TooltipContent>
     </Tooltip>
   );
+};
 
 const AddAutoRouterTab: React.FC<AddAutoRouterTabProps> = ({
   handleOk,
@@ -197,6 +201,7 @@ const AddAutoRouterTab: React.FC<AddAutoRouterTabProps> = ({
   createScope = "unscoped-ok",
   teams = null,
 }) => {
+  useUiLocale();
   const requiresTeamScope = createScope === "team-required";
   const form = useZodForm(autoRouterSchema(requiresTeamScope), { defaultValues: EMPTY_FORM_VALUES });
   const watchedName = useWatch({ control: form.control, name: "auto_router_name" });
@@ -332,8 +337,10 @@ const AddAutoRouterTab: React.FC<AddAutoRouterTabProps> = ({
 
   const templateItems = React.useMemo(
     () => [
-      ...sortedPresetOptions.map(({ preset }) => ({ value: preset.key, label: preset.label })),
-      { value: "custom", label: "Start from scratch" },
+      ...sortedPresetOptions.map(({ preset }) =>
+        markUiCopy({ value: preset.key, label: preset.label }, { label: { owner: preset, field: "label" } }),
+      ),
+      markUiCopy({ value: "custom", label: "Start from scratch" }, { label: "Start from scratch" }),
     ],
     [sortedPresetOptions],
   );
@@ -548,8 +555,12 @@ const AddAutoRouterTab: React.FC<AddAutoRouterTabProps> = ({
           value={selectedPreset ?? null}
           onValueChange={(presetKey: string | null) => handlePresetChange(presetKey ?? undefined)}
         >
-          <SelectTrigger aria-label="Use a template" data-testid="template-selector" className="w-full">
-            <SelectValue placeholder="Use a template" />
+          <SelectTrigger
+            aria-label={translateMessage("Use a template")}
+            data-testid="template-selector"
+            className="w-full"
+          >
+            <SelectValue placeholder={translateMessage("Use a template")} />
           </SelectTrigger>
           <SelectContent className="[&_[data-slot=select-item]>div]:min-w-0 [&_[data-slot=select-item]>div]:shrink [&_[data-slot=select-item]>div]:whitespace-normal [&_[data-slot=select-item]>div]:break-words">
             {sortedPresetOptions.map(({ preset, availability: presetState }) => {
@@ -562,14 +573,18 @@ const AddAutoRouterTab: React.FC<AddAutoRouterTabProps> = ({
                 <SelectItem
                   key={preset.key}
                   value={preset.key}
-                  label={preset.label}
+                  label={localizedProperty(preset, "label", preset.label)}
                   disabled={disabledHint !== null}
-                  title={disabledHint ?? preset.description}
+                  title={disabledHint ?? localizedProperty(preset, "description", preset.description)}
                 >
                   <div>
-                    <div className="font-medium">{preset.label}</div>
-                    <div className="text-xs text-muted-foreground">{preset.description}</div>
-                    <div className="text-xs text-muted-foreground">Replaces classifier and model choices</div>
+                    <div className="font-medium">{localizedProperty(preset, "label", preset.label)}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {localizedProperty(preset, "description", preset.description)}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      <LocalizedText text={"Replaces classifier and model choices"} />
+                    </div>
                     {disabledHint && <div className={`text-xs mt-1 ${hintClass}`}>{disabledHint}</div>}
                     {matchedHint && <div className="text-xs mt-1 text-success">{matchedHint}</div>}
                   </div>
@@ -577,23 +592,31 @@ const AddAutoRouterTab: React.FC<AddAutoRouterTabProps> = ({
               );
             })}
             <SelectSeparator className="mx-0" />
-            <SelectItem value="custom" label="Start from scratch">
+            <SelectItem value="custom" label={translateMessage("Start from scratch")}>
               <div>
-                <div className="font-medium">Start from scratch</div>
+                <div className="font-medium">
+                  <LocalizedText text={"Start from scratch"} />
+                </div>
                 <div className="text-xs text-muted-foreground">
-                  Clears tier models, switches to Heuristics, and resets routing settings
+                  <LocalizedText text={"Clears tier models, switches to Heuristics, and resets routing settings"} />
                 </div>
               </div>
             </SelectItem>
           </SelectContent>
         </Select>
-        <p className="text-xs text-muted-foreground">Replaces classifier and model choices</p>
-        {presetsPending && <div className="text-xs mt-1 text-muted-foreground">Loading templates...</div>}
+        <p className="text-xs text-muted-foreground">
+          <LocalizedText text={"Replaces classifier and model choices"} />
+        </p>
+        {presetsPending && (
+          <div className="text-xs mt-1 text-muted-foreground">
+            <LocalizedText text={"Loading templates..."} />
+          </div>
+        )}
         {presetsUnavailable && (
           <div className="text-xs mt-1 text-destructive">
-            Could not load templates, so only Start from scratch is shown.{" "}
+            <LocalizedText text={"Could not load templates, so only Start from scratch is shown."} />{" "}
             <button type="button" className="underline" onClick={() => void refetchPresets()}>
-              Retry
+              <LocalizedText text={"Retry"} />
             </button>
           </div>
         )}
@@ -642,7 +665,7 @@ const AddAutoRouterTab: React.FC<AddAutoRouterTabProps> = ({
                   label={labelWithHint("Auto Router Name", "Unique name for this auto router configuration")}
                 >
                   {({ ref, ...field }) => (
-                    <Input {...field} ref={ref} placeholder="e.g., smart_router, auto_router_1" />
+                    <Input {...field} ref={ref} placeholder={translateMessage("e.g., smart_router, auto_router_1")} />
                   )}
                 </FormField>
               </div>
@@ -717,9 +740,9 @@ const AddAutoRouterTab: React.FC<AddAutoRouterTabProps> = ({
                 <FieldGroup>
                   {modelsUnverifiable && (
                     <p className="text-sm text-destructive">
-                      Could not load available models.{" "}
+                      <LocalizedText text={"Could not load available models."} />{" "}
                       <button type="button" className="underline" onClick={() => void refetchModels()}>
-                        Retry
+                        <LocalizedText text={"Retry"} />
                       </button>
                     </p>
                   )}
@@ -733,11 +756,13 @@ const AddAutoRouterTab: React.FC<AddAutoRouterTabProps> = ({
                             href="https://github.com/BerriAI/litellm/issues"
                             className="text-sm text-primary underline-offset-4 hover:underline"
                           >
-                            Need Help?
+                            <LocalizedText text={"Need Help?"} />
                           </a>
                         }
                       />
-                      <TooltipContent>Get help on our github</TooltipContent>
+                      <TooltipContent>
+                        <LocalizedText text={"Get help on our github"} />
+                      </TooltipContent>
                     </Tooltip>
                     <div className="flex flex-wrap gap-2">
                       <BlockedReasonTooltip reason={submitBlockedReason}>
@@ -748,7 +773,7 @@ const AddAutoRouterTab: React.FC<AddAutoRouterTabProps> = ({
                           disabled={submitBlockedReason !== null || isSubmitting}
                           onClick={() => setIsRoutingTestVisible(true)}
                         >
-                          Test Routing
+                          <LocalizedText text={"Test Routing"} />
                         </Button>
                       </BlockedReasonTooltip>
                       <Button
@@ -759,7 +784,7 @@ const AddAutoRouterTab: React.FC<AddAutoRouterTabProps> = ({
                         disabled={isTestingConnection}
                       >
                         {isTestingConnection && <UiLoadingSpinner className="size-4" />}
-                        Test Connection
+                        <LocalizedText text={"Test Connection"} />
                       </Button>
                       <BlockedReasonTooltip reason={saveBlockedReason}>
                         <Button
@@ -769,7 +794,7 @@ const AddAutoRouterTab: React.FC<AddAutoRouterTabProps> = ({
                             void handleAutoRouterSubmit();
                           }}
                         >
-                          Add Auto Router
+                          <LocalizedText text={"Add Auto Router"} />
                         </Button>
                       </BlockedReasonTooltip>
                     </div>
@@ -783,7 +808,9 @@ const AddAutoRouterTab: React.FC<AddAutoRouterTabProps> = ({
         <Dialog open={isRoutingTestVisible} onOpenChange={(open) => !open && setIsRoutingTestVisible(false)}>
           <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-[760px]">
             <DialogHeader>
-              <DialogTitle>Test Routing</DialogTitle>
+              <DialogTitle>
+                <LocalizedText text={"Test Routing"} />
+              </DialogTitle>
             </DialogHeader>
             {isRoutingTestVisible && (
               <AutoRouterRoutingTest
@@ -800,7 +827,7 @@ const AddAutoRouterTab: React.FC<AddAutoRouterTabProps> = ({
             <DialogFooter>
               {" "}
               <Button variant="outline" onClick={() => setIsRoutingTestVisible(false)}>
-                Close
+                <LocalizedText text={"Close"} />
               </Button>
             </DialogFooter>
           </DialogContent>

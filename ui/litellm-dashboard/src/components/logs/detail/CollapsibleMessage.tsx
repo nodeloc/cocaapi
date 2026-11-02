@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, getIntlLocale, useUiLocale } from "@/lib/i18n";
 /**
  * CollapsibleMessage - Collapsible message with arrow and char count
  * Used for system messages
@@ -14,6 +16,7 @@ interface CollapsibleMessageProps {
 }
 
 export function CollapsibleMessage({ label, content, defaultExpanded = false }: CollapsibleMessageProps) {
+  useUiLocale();
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
   const charCount = content?.length || 0;
 
@@ -30,7 +33,10 @@ export function CollapsibleMessage({ label, content, defaultExpanded = false }: 
           <ChevronRight className="size-3 shrink-0 text-muted-foreground" />
         )}
         <span className="text-[10px] uppercase tracking-[0.5px] text-muted-foreground">{label}</span>
-        <span className="text-[10px] text-muted-foreground">({charCount.toLocaleString()} chars)</span>
+        <span className="text-[10px] text-muted-foreground">
+          ({charCount.toLocaleString(getIntlLocale())}
+          <LocalizedText text={" chars)"} />
+        </span>
       </CollapsibleTrigger>
 
       <CollapsibleContent

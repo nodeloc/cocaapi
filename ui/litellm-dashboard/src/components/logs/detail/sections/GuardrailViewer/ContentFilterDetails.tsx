@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 import React, { useState } from "react";
 
 export interface ContentFilterDetection {
@@ -34,6 +36,7 @@ interface SectionProps {
 }
 
 const Section: React.FC<SectionProps> = ({ title, count, defaultOpen = true, children }) => {
+  useUiLocale();
   const [open, setOpen] = useState(defaultOpen);
   return (
     <div className="border rounded-lg overflow-hidden">
@@ -66,21 +69,28 @@ interface KVProps {
   mono?: boolean;
 }
 
-const KV: React.FC<KVProps> = ({ label, children, mono }) => (
-  <div className="flex">
-    <span className="font-medium w-1/3">{label}</span>
-    <span className={mono ? "font-mono text-sm break-all" : ""}>{children}</span>
-  </div>
-);
+const KV: React.FC<KVProps> = (cocaCopyProps0) => {
+  const { label, children, mono } = cocaCopyProps0;
+  useUiLocale();
+  return (
+    <div className="flex">
+      <span className="font-medium w-1/3">{localizedProperty(cocaCopyProps0, "label", label)}</span>
+      <span className={mono ? "font-mono text-sm break-all" : ""}>{children}</span>
+    </div>
+  );
+};
 
 const ContentFilterDetails: React.FC<ContentFilterDetailsProps> = ({ response }) => {
+  useUiLocale();
   // Handle case where response is a string (error message) or null
   if (!response || typeof response === "string") {
     if (typeof response === "string" && response) {
       return (
         <div className="bg-card rounded-lg border border-destructive/20 p-4">
           <div className="text-destructive">
-            <h5 className="font-medium mb-2">Error</h5>
+            <h5 className="font-medium mb-2">
+              <LocalizedText text={"Error"} />
+            </h5>
             <p className="text-sm">{response}</p>
           </div>
         </div>
@@ -95,7 +105,9 @@ const ContentFilterDetails: React.FC<ContentFilterDetailsProps> = ({ response })
   if (detections.length === 0) {
     return (
       <div className="bg-card rounded-lg border border-border p-4">
-        <div className="text-muted-foreground text-sm">No detections found</div>
+        <div className="text-muted-foreground text-sm">
+          <LocalizedText text={"No detections found"} />
+        </div>
       </div>
     );
   }
@@ -118,10 +130,10 @@ const ContentFilterDetails: React.FC<ContentFilterDetailsProps> = ({ response })
       <div className="bg-card rounded-lg border border-border p-4">
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <KV label="Total Detections:">
+            <KV label={translateMessage("Total Detections:")}>
               <span className="font-semibold">{totalDetections}</span>
             </KV>
-            <KV label="Actions:">
+            <KV label={translateMessage("Actions:")}>
               <div className="flex flex-wrap gap-2">
                 {blockedCount > 0 && chip(`${blockedCount} blocked`, "red")}
                 {maskedCount > 0 && chip(`${maskedCount} masked`, "blue")}
@@ -130,7 +142,7 @@ const ContentFilterDetails: React.FC<ContentFilterDetailsProps> = ({ response })
             </KV>
           </div>
           <div className="space-y-2">
-            <KV label="By Type:">
+            <KV label={translateMessage("By Type:")}>
               <div className="flex flex-wrap gap-2">
                 {patterns.length > 0 && chip(`${patterns.length} patterns`, "slate")}
                 {blockedWords.length > 0 && chip(`${blockedWords.length} keywords`, "slate")}
@@ -143,16 +155,20 @@ const ContentFilterDetails: React.FC<ContentFilterDetailsProps> = ({ response })
 
       {/* Patterns Section */}
       {patterns.length > 0 && (
-        <Section title="Patterns Matched" count={patterns.length} defaultOpen={true}>
+        <Section title={translateMessage("Patterns Matched")} count={patterns.length} defaultOpen={true}>
           <div className="space-y-2">
             {patterns.map((detection, idx) => (
               <div key={idx} className="p-3 bg-muted rounded-md">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <KV label="Pattern:">{detection.pattern_name || "unknown"}</KV>
+                    <KV label={translateMessage("Pattern:")}>
+                      {detection.pattern_name || translateMessage("unknown")}
+                    </KV>
                   </div>
                   <div className="space-y-1">
-                    <KV label="Action:">{chip(detection.action, detection.action === "BLOCK" ? "red" : "blue")}</KV>
+                    <KV label={translateMessage("Action:")}>
+                      {chip(detection.action, detection.action === "BLOCK" ? "red" : "blue")}
+                    </KV>
                   </div>
                 </div>
               </div>
@@ -163,19 +179,25 @@ const ContentFilterDetails: React.FC<ContentFilterDetailsProps> = ({ response })
 
       {/* Blocked Words Section */}
       {blockedWords.length > 0 && (
-        <Section title="Blocked Words Detected" count={blockedWords.length} defaultOpen={true}>
+        <Section title={translateMessage("Blocked Words Detected")} count={blockedWords.length} defaultOpen={true}>
           <div className="space-y-2">
             {blockedWords.map((detection, idx) => (
               <div key={idx} className="p-3 bg-muted rounded-md">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <KV label="Keyword:" mono>
-                      {detection.keyword || "unknown"}
+                    <KV label={translateMessage("Keyword:")} mono>
+                      {detection.keyword || translateMessage("unknown")}
                     </KV>
-                    {detection.description && <KV label="Description:">{detection.description}</KV>}
+                    {detection.description && (
+                      <KV label={translateMessage("Description:")}>
+                        {localizedProperty(detection, "description", detection.description)}
+                      </KV>
+                    )}
                   </div>
                   <div className="space-y-1">
-                    <KV label="Action:">{chip(detection.action, detection.action === "BLOCK" ? "red" : "blue")}</KV>
+                    <KV label={translateMessage("Action:")}>
+                      {chip(detection.action, detection.action === "BLOCK" ? "red" : "blue")}
+                    </KV>
                   </div>
                 </div>
               </div>
@@ -186,18 +208,22 @@ const ContentFilterDetails: React.FC<ContentFilterDetailsProps> = ({ response })
 
       {/* Category Keywords Section */}
       {categoryKeywords.length > 0 && (
-        <Section title="Category Keywords Detected" count={categoryKeywords.length} defaultOpen={true}>
+        <Section
+          title={translateMessage("Category Keywords Detected")}
+          count={categoryKeywords.length}
+          defaultOpen={true}
+        >
           <div className="space-y-2">
             {categoryKeywords.map((detection, idx) => (
               <div key={idx} className="p-3 bg-muted rounded-md">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <KV label="Category:">{detection.category || "unknown"}</KV>
-                    <KV label="Keyword:" mono>
-                      {detection.keyword || "unknown"}
+                    <KV label={translateMessage("Category:")}>{detection.category || translateMessage("unknown")}</KV>
+                    <KV label={translateMessage("Keyword:")} mono>
+                      {detection.keyword || translateMessage("unknown")}
                     </KV>
                     {detection.severity && (
-                      <KV label="Severity:">
+                      <KV label={translateMessage("Severity:")}>
                         {chip(
                           detection.severity,
                           detection.severity === "high" ? "red" : detection.severity === "medium" ? "amber" : "slate",
@@ -206,7 +232,9 @@ const ContentFilterDetails: React.FC<ContentFilterDetailsProps> = ({ response })
                     )}
                   </div>
                   <div className="space-y-1">
-                    <KV label="Action:">{chip(detection.action, detection.action === "BLOCK" ? "red" : "blue")}</KV>
+                    <KV label={translateMessage("Action:")}>
+                      {chip(detection.action, detection.action === "BLOCK" ? "red" : "blue")}
+                    </KV>
                   </div>
                 </div>
               </div>
@@ -216,7 +244,7 @@ const ContentFilterDetails: React.FC<ContentFilterDetailsProps> = ({ response })
       )}
 
       {/* Raw JSON (for debugging) */}
-      <Section title="Raw Detection Data" defaultOpen={false}>
+      <Section title={translateMessage("Raw Detection Data")} defaultOpen={false}>
         <pre className="bg-muted rounded-sm p-3 text-xs overflow-x-auto">{JSON.stringify(detections, null, 2)}</pre>
       </Section>
     </div>

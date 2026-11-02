@@ -1,4 +1,5 @@
 "use client";
+import { localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { Globe } from "lucide-react";
 import React, { useState } from "react";
@@ -54,6 +55,7 @@ export const GuardrailsSelect: React.FC<GuardrailsSelectProps> = ({
   placeholder = "Select guardrails",
   emptyText = "No guardrails found",
 }) => {
+  useUiLocale();
   const anchor = useComboboxAnchor();
   const [query, setQuery] = useState("");
 
@@ -62,8 +64,8 @@ export const GuardrailsSelect: React.FC<GuardrailsSelectProps> = ({
   const grouped = globalGuardrails.length > 0 && otherGuardrails.length > 0;
   const groups: GuardrailGroup[] = grouped
     ? [
-        { label: "Global", icon: true, items: [...globalGuardrails] },
-        { label: "Other", icon: false, items: [...otherGuardrails] },
+        markUiCopy({ label: "Global", icon: true, items: [...globalGuardrails] }, { label: "Global" }),
+        markUiCopy({ label: "Other", icon: false, items: [...otherGuardrails] }, { label: "Other" }),
       ]
     : [{ label: "", icon: false, items: known }];
 
@@ -89,7 +91,9 @@ export const GuardrailsSelect: React.FC<GuardrailsSelectProps> = ({
             <>
               {chips.map((option) => (
                 <ComboboxChip key={option.name} aria-label={option.name}>
-                  {globalGuardrailNames.has(option.name) && <Globe className="size-3" aria-label="Global guardrail" />}
+                  {globalGuardrailNames.has(option.name) && (
+                    <Globe className="size-3" aria-label={translateMessage("Global guardrail")} />
+                  )}
                   {option.name}
                 </ComboboxChip>
               ))}
@@ -106,7 +110,7 @@ export const GuardrailsSelect: React.FC<GuardrailsSelectProps> = ({
               {group.label !== "" && (
                 <ComboboxLabel>
                   {group.icon ? <Globe className="mr-1 inline size-3" aria-hidden="true" /> : null}
-                  {group.label}
+                  {localizedProperty(group, "label", group.label)}
                 </ComboboxLabel>
               )}
               <ComboboxCollection>

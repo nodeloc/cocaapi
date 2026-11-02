@@ -1,3 +1,5 @@
+"use client";
+import { markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import { useMCPAccessGroups } from "@/app/(dashboard)/hooks/mcpServers/useMCPAccessGroups";
 import { useMCPServers } from "@/app/(dashboard)/hooks/mcpServers/useMCPServers";
 import { useMCPToolsets } from "@/app/(dashboard)/hooks/mcpServers/useMCPToolsets";
@@ -34,6 +36,7 @@ const MCPServerSelector: React.FC<MCPServerSelectorProps> = ({
   allowNoMcpServers = false,
   allowAllProxyMcpServers = false,
 }) => {
+  useUiLocale();
   const { data: mcpServers = [], isLoading: serversLoading } = useMCPServers(teamId);
   const { data: accessGroups = [], isLoading: groupsLoading } = useMCPAccessGroups();
   const { data: toolsets = [], isLoading: toolsetsLoading } = useMCPToolsets();
@@ -44,21 +47,36 @@ const MCPServerSelector: React.FC<MCPServerSelectorProps> = ({
 
   // Combine options: access groups + servers + toolsets
   const options = [
-    ...accessGroups.map((group) => ({
-      label: group,
-      value: group,
-      description: "Access Group",
-    })),
-    ...mcpServers.map((server) => ({
-      label: `${server.server_name || server.server_id} (${server.server_id})`,
-      value: server.server_id,
-      description: "MCP Server",
-    })),
-    ...toolsets.map((toolset) => ({
-      label: toolset.toolset_name,
-      value: `${TOOLSET_PREFIX}${toolset.toolset_id}`,
-      description: "Toolset",
-    })),
+    ...accessGroups.map((group) =>
+      markUiCopy(
+        {
+          label: group,
+          value: group,
+          description: "Access Group",
+        },
+        { description: "Access Group" },
+      ),
+    ),
+    ...mcpServers.map((server) =>
+      markUiCopy(
+        {
+          label: `${server.server_name || server.server_id} (${server.server_id})`,
+          value: server.server_id,
+          description: "MCP Server",
+        },
+        { description: "MCP Server" },
+      ),
+    ),
+    ...toolsets.map((toolset) =>
+      markUiCopy(
+        {
+          label: toolset.toolset_name,
+          value: `${TOOLSET_PREFIX}${toolset.toolset_id}`,
+          description: "Toolset",
+        },
+        { description: "Toolset" },
+      ),
+    ),
   ];
 
   // Flatten value for Select — prefix toolset IDs
@@ -93,10 +111,20 @@ const MCPServerSelector: React.FC<MCPServerSelectorProps> = ({
 
   const selectOptions: MultiSelectOption[] = [
     ...(allowAllProxyMcpServers || hasAllProxyMcpServersSelected
-      ? [{ label: "All Proxy MCP Servers", value: ALL_PROXY_MCP_SERVERS_SENTINEL }]
+      ? [
+          markUiCopy(
+            { label: "All Proxy MCP Servers", value: ALL_PROXY_MCP_SERVERS_SENTINEL },
+            { label: "All Proxy MCP Servers" },
+          ),
+        ]
       : []),
     ...(allowNoMcpServers
-      ? [{ label: "No MCP Servers", value: NO_MCP_SERVERS_SENTINEL, description: "Block all" }]
+      ? [
+          markUiCopy(
+            { label: "No MCP Servers", value: NO_MCP_SERVERS_SENTINEL, description: "Block all" },
+            { label: "No MCP Servers", description: "Block all" },
+          ),
+        ]
       : []),
     ...options.map((opt) => ({
       ...opt,
@@ -111,7 +139,7 @@ const MCPServerSelector: React.FC<MCPServerSelectorProps> = ({
         value={selectedValues}
         onValueChange={handleChange}
         placeholder={placeholder}
-        emptyText="No MCP servers found"
+        emptyText={translateMessage("No MCP servers found")}
         loading={loading}
         disabled={disabled}
         className={`w-full ${className ?? ""}`}

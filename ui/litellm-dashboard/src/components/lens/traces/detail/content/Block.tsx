@@ -1,4 +1,5 @@
 "use client";
+import { translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { useState } from "react";
 
@@ -33,6 +34,7 @@ export function Block({
   defaultOpen = true,
   children,
 }: BlockProps) {
+  useUiLocale();
   const [open, setOpen] = useState(defaultOpen);
   const foldable = children !== undefined && children !== null && children !== false;
   const expanded = open && foldable;
@@ -48,7 +50,7 @@ export function Block({
           <button
             type="button"
             aria-expanded={open}
-            aria-label={`${open ? "Collapse" : "Expand"} ${name}`}
+            aria-label={`${open ? translateMessage("Collapse") : translateMessage("Expand")} ${name}`}
             onClick={() => setOpen((value) => !value)}
             className="flex min-w-0 flex-1 cursor-pointer items-center gap-2 rounded-sm py-0.5 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
@@ -64,7 +66,13 @@ export function Block({
         )}
         {meta}
         {copyValue !== undefined && (
-          <CopyButton variant="action" value={copyValue} label={`Copy ${name}`} iconOnly className={COPY} />
+          <CopyButton
+            variant="action"
+            value={copyValue}
+            label={translateMessage("Copy %{0}", [name])}
+            iconOnly
+            className={COPY}
+          />
         )}
       </header>
       {expanded && (
@@ -87,6 +95,7 @@ const BADGE_TONE = {
 export type BadgeTone = keyof typeof BADGE_TONE;
 
 export function BlockBadge({ tone, children }: { tone: BadgeTone; children: React.ReactNode }) {
+  useUiLocale();
   return (
     <span className={cn("grid size-5 shrink-0 place-items-center rounded-md [&_svg]:size-3", BADGE_TONE[tone])}>
       {children}

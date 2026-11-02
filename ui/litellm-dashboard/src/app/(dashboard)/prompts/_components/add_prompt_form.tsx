@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import React, { useRef, useState } from "react";
 import { Upload as UploadIcon, X } from "lucide-react";
 import { z } from "zod";
@@ -31,7 +33,7 @@ interface CreatePromptRequest {
   };
 }
 
-const PROMPT_INTEGRATION_OPTIONS = [{ label: "dotprompt", value: "dotprompt" }];
+const PROMPT_INTEGRATION_OPTIONS = [markUiCopy({ label: "dotprompt", value: "dotprompt" }, { label: "dotprompt" })];
 
 const addPromptSchema = z.object({
   prompt_id: z
@@ -46,6 +48,7 @@ type AddPromptFormValues = z.infer<typeof addPromptSchema>;
 const EMPTY_VALUES: AddPromptFormValues = { prompt_id: "", prompt_integration: "dotprompt" };
 
 const AddPromptForm: React.FC<AddPromptFormProps> = ({ visible, onClose, accessToken, onSuccess }) => {
+  useUiLocale();
   const form = useZodForm(addPromptSchema, { defaultValues: EMPTY_VALUES });
   const [loading, setLoading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -134,7 +137,7 @@ const AddPromptForm: React.FC<AddPromptFormProps> = ({ visible, onClose, accessT
 
     try {
       await createPromptCall(accessToken, promptData);
-      toast.success("Prompt created successfully!");
+      toast.success(translateMessage("Prompt created successfully!"));
       handleCancel();
       onSuccess();
     } catch (createError) {
@@ -149,17 +152,23 @@ const AddPromptForm: React.FC<AddPromptFormProps> = ({ visible, onClose, accessT
     <Dialog open={visible} onOpenChange={(open) => !open && handleCancel()}>
       <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle>Add New Prompt</DialogTitle>
+          <DialogTitle>
+            <LocalizedText text={"Add New Prompt"} />
+          </DialogTitle>
         </DialogHeader>
         <form onSubmit={(event) => event.preventDefault()} noValidate>
           <FieldGroup>
-            <FormField control={form.control} name="prompt_id" label="Prompt ID">
+            <FormField control={form.control} name="prompt_id" label={translateMessage("Prompt ID")}>
               {({ ref, ...field }) => (
-                <Input {...field} ref={ref} placeholder="Enter unique prompt ID (e.g., my_prompt_id)" />
+                <Input
+                  {...field}
+                  ref={ref}
+                  placeholder={translateMessage("Enter unique prompt ID (e.g., my_prompt_id)")}
+                />
               )}
             </FormField>
 
-            <FormField control={form.control} name="prompt_integration" label="Prompt Integration">
+            <FormField control={form.control} name="prompt_integration" label={translateMessage("Prompt Integration")}>
               {({ id, value, "aria-invalid": ariaInvalid, "aria-describedby": ariaDescribedBy }) => (
                 <Select items={PROMPT_INTEGRATION_OPTIONS} value={value} onValueChange={handleIntegrationChange}>
                   <SelectTrigger id={id} aria-invalid={ariaInvalid} aria-describedby={ariaDescribedBy}>
@@ -168,7 +177,7 @@ const AddPromptForm: React.FC<AddPromptFormProps> = ({ visible, onClose, accessT
                   <SelectContent>
                     {PROMPT_INTEGRATION_OPTIONS.map((option) => (
                       <SelectItem key={option.value} value={option.value}>
-                        {option.label}
+                        {localizedProperty(option, "label", option.label)}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -180,25 +189,30 @@ const AddPromptForm: React.FC<AddPromptFormProps> = ({ visible, onClose, accessT
               <>
                 <FieldSeparator />
                 <Field>
-                  <FieldTitle>Prompt File</FieldTitle>
+                  <FieldTitle>
+                    <LocalizedText text={"Prompt File"} />
+                  </FieldTitle>
                   <input
                     ref={fileInputRef}
                     type="file"
                     accept=".prompt"
-                    aria-label="Prompt file"
+                    aria-label={translateMessage("Prompt file")}
                     className="sr-only"
                     onChange={handleFileChange}
                   />
                   <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
                     <UploadIcon />
-                    Select .prompt File
+                    <LocalizedText text={"Select .prompt File"} />
                   </Button>
                   {selectedFile && (
                     <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
-                      <span>Selected: {selectedFile.name}</span>
+                      <span>
+                        <LocalizedText text={"Selected: "} />
+                        {selectedFile.name}
+                      </span>
                       <button
                         type="button"
-                        aria-label={`Remove ${selectedFile.name}`}
+                        aria-label={translateMessage("Remove %{0}", [selectedFile.name])}
                         onClick={clearSelectedFile}
                         className="text-muted-foreground hover:text-destructive"
                       >
@@ -206,7 +220,9 @@ const AddPromptForm: React.FC<AddPromptFormProps> = ({ visible, onClose, accessT
                       </button>
                     </div>
                   )}
-                  <FieldDescription>Upload a .prompt file that follows the Dotprompt specification</FieldDescription>
+                  <FieldDescription>
+                    <LocalizedText text={"Upload a .prompt file that follows the Dotprompt specification"} />
+                  </FieldDescription>
                 </Field>
               </>
             )}
@@ -214,11 +230,11 @@ const AddPromptForm: React.FC<AddPromptFormProps> = ({ visible, onClose, accessT
         </form>
         <DialogFooter>
           <Button type="button" variant="outline" onClick={handleCancel}>
-            Cancel
+            <LocalizedText text={"Cancel"} />
           </Button>
           <Button type="button" disabled={loading} onClick={() => void form.handleSubmit(handleSubmit)()}>
             {loading && <UiLoadingSpinner className="size-4" />}
-            Create Prompt
+            <LocalizedText text={"Create Prompt"} />
           </Button>
         </DialogFooter>
       </DialogContent>

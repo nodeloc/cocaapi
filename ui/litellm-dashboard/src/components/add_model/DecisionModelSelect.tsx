@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 import React from "react";
 import { SearchSelect } from "@/components/shared/SearchSelect";
 import { Label } from "@/components/ui/label";
@@ -19,6 +21,7 @@ export default function DecisionModelSelect({
   modelInfo: ModelGroup[];
   deployments: AutoRouterDeployment[] | undefined;
 }) {
+  useUiLocale();
   const id = React.useId();
   const { data: modelCostMapData } = useModelCostMap(true, true);
   const decisionCatalog = React.useMemo(() => buildDecisionCatalog(modelCostMapData), [modelCostMapData]);
@@ -38,13 +41,15 @@ export default function DecisionModelSelect({
 
   return (
     <div className="space-y-2">
-      <Label htmlFor={id}>Decision model</Label>
+      <Label htmlFor={id}>
+        <LocalizedText text={"Decision model"} />
+      </Label>
       <SearchSelect
         inputId={id}
-        aria-label="Decision model"
+        aria-label={translateMessage("Decision model")}
         options={decisionModels.map((model) => ({ value: model.model_group, label: model.model_group }))}
         value={value.jev_classifier_config?.deployment_name ?? ""}
-        placeholder="Select the decision model"
+        placeholder={translateMessage("Select the decision model")}
         allowClear={false}
         onValueChange={(deploymentName) => {
           if (!deploymentName) return;

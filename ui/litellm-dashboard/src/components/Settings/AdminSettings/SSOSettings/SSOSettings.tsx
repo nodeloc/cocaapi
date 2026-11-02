@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { Copy, Edit, Shield, Trash2 } from "lucide-react";
 import { useState } from "react";
@@ -21,19 +22,29 @@ import { ssoProviderDisplayNames, ssoProviderLogoMap } from "./constants";
 import { detectSSOProvider } from "./utils";
 
 function NotConfigured() {
-  return <span className="text-muted-foreground italic">Not configured</span>;
+  useUiLocale();
+  return (
+    <span className="text-muted-foreground italic">
+      <LocalizedText text={"Not configured"} />
+    </span>
+  );
 }
 
-function DetailRow({ children, label }: { children: React.ReactNode; label: string }) {
+function DetailRow(cocaCopyProps0: { children: React.ReactNode; label: string }) {
+  const { children, label } = cocaCopyProps0;
+  useUiLocale();
   return (
     <div className="grid grid-cols-1 sm:grid-cols-3">
-      <dt className="bg-muted/50 px-4 py-3 text-sm font-medium text-foreground">{label}</dt>
+      <dt className="bg-muted/50 px-4 py-3 text-sm font-medium text-foreground">
+        {localizedProperty(cocaCopyProps0, "label", label)}
+      </dt>
       <dd className="min-w-0 px-4 py-3 text-sm text-foreground sm:col-span-2">{children}</dd>
     </div>
   );
 }
 
 function EndpointValue({ value }: { value?: string | null }) {
+  useUiLocale();
   if (!value) return <span className="font-mono text-muted-foreground">-</span>;
 
   return (
@@ -43,7 +54,7 @@ function EndpointValue({ value }: { value?: string | null }) {
         type="button"
         variant="ghost"
         size="icon-sm"
-        aria-label="Copy value"
+        aria-label={translateMessage("Copy value")}
         onClick={() => void copyToClipboard(value, "Copied to clipboard")}
       >
         <Copy className="size-3.5" />
@@ -53,6 +64,7 @@ function EndpointValue({ value }: { value?: string | null }) {
 }
 
 export default function SSOSettings() {
+  useUiLocale();
   const { data: ssoSettings, refetch, isLoading } = useSSOSettings();
   const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
   const [isAddModalVisible, setIsAddModalVisible] = useState(false);
@@ -80,117 +92,207 @@ export default function SSOSettings() {
     google: {
       providerText: ssoProviderDisplayNames.google,
       fields: [
-        {
-          label: "Client ID",
-          render: (values: SSOSettingsValues) => <RedactableField value={values.google_client_id} />,
-        },
-        {
-          label: "Client Secret",
-          render: (values: SSOSettingsValues) => <RedactableField value={values.google_client_secret} />,
-        },
-        { label: "Proxy Base URL", render: (values: SSOSettingsValues) => renderSimpleValue(values.proxy_base_url) },
+        markUiCopy(
+          {
+            label: "Client ID",
+            render: (values: SSOSettingsValues) => <RedactableField value={values.google_client_id} />,
+          },
+          { label: "Client ID" },
+        ),
+        markUiCopy(
+          {
+            label: "Client Secret",
+            render: (values: SSOSettingsValues) => <RedactableField value={values.google_client_secret} />,
+          },
+          { label: "Client Secret" },
+        ),
+        markUiCopy(
+          { label: "Proxy Base URL", render: (values: SSOSettingsValues) => renderSimpleValue(values.proxy_base_url) },
+          { label: "Proxy Base URL" },
+        ),
       ],
     },
     microsoft: {
       providerText: ssoProviderDisplayNames.microsoft,
       fields: [
-        {
-          label: "Client ID",
-          render: (values: SSOSettingsValues) => <RedactableField value={values.microsoft_client_id} />,
-        },
-        {
-          label: "Client Secret",
-          render: (values: SSOSettingsValues) => <RedactableField value={values.microsoft_client_secret} />,
-        },
-        { label: "Tenant", render: (values: SSOSettingsValues) => renderSimpleValue(values.microsoft_tenant) },
-        { label: "Proxy Base URL", render: (values: SSOSettingsValues) => renderSimpleValue(values.proxy_base_url) },
+        markUiCopy(
+          {
+            label: "Client ID",
+            render: (values: SSOSettingsValues) => <RedactableField value={values.microsoft_client_id} />,
+          },
+          { label: "Client ID" },
+        ),
+        markUiCopy(
+          {
+            label: "Client Secret",
+            render: (values: SSOSettingsValues) => <RedactableField value={values.microsoft_client_secret} />,
+          },
+          { label: "Client Secret" },
+        ),
+        markUiCopy(
+          { label: "Tenant", render: (values: SSOSettingsValues) => renderSimpleValue(values.microsoft_tenant) },
+          { label: "Tenant" },
+        ),
+        markUiCopy(
+          { label: "Proxy Base URL", render: (values: SSOSettingsValues) => renderSimpleValue(values.proxy_base_url) },
+          { label: "Proxy Base URL" },
+        ),
       ],
     },
     okta: {
       providerText: ssoProviderDisplayNames.okta,
       fields: [
-        {
-          label: "Client ID",
-          render: (values: SSOSettingsValues) => <RedactableField value={values.generic_client_id} />,
-        },
-        {
-          label: "Client Secret",
-          render: (values: SSOSettingsValues) => <RedactableField value={values.generic_client_secret} />,
-        },
-        {
-          label: "Authorization Endpoint",
-          render: (values: SSOSettingsValues) => <EndpointValue value={values.generic_authorization_endpoint} />,
-        },
-        {
-          label: "Token Endpoint",
-          render: (values: SSOSettingsValues) => <EndpointValue value={values.generic_token_endpoint} />,
-        },
-        {
-          label: "User Info Endpoint",
-          render: (values: SSOSettingsValues) => <EndpointValue value={values.generic_userinfo_endpoint} />,
-        },
-        { label: "Scopes", render: (values: SSOSettingsValues) => renderSimpleValue(values.generic_scope) },
-        { label: "Proxy Base URL", render: (values: SSOSettingsValues) => renderSimpleValue(values.proxy_base_url) },
+        markUiCopy(
+          {
+            label: "Client ID",
+            render: (values: SSOSettingsValues) => <RedactableField value={values.generic_client_id} />,
+          },
+          { label: "Client ID" },
+        ),
+        markUiCopy(
+          {
+            label: "Client Secret",
+            render: (values: SSOSettingsValues) => <RedactableField value={values.generic_client_secret} />,
+          },
+          { label: "Client Secret" },
+        ),
+        markUiCopy(
+          {
+            label: "Authorization Endpoint",
+            render: (values: SSOSettingsValues) => <EndpointValue value={values.generic_authorization_endpoint} />,
+          },
+          { label: "Authorization Endpoint" },
+        ),
+        markUiCopy(
+          {
+            label: "Token Endpoint",
+            render: (values: SSOSettingsValues) => <EndpointValue value={values.generic_token_endpoint} />,
+          },
+          { label: "Token Endpoint" },
+        ),
+        markUiCopy(
+          {
+            label: "User Info Endpoint",
+            render: (values: SSOSettingsValues) => <EndpointValue value={values.generic_userinfo_endpoint} />,
+          },
+          { label: "User Info Endpoint" },
+        ),
+        markUiCopy(
+          { label: "Scopes", render: (values: SSOSettingsValues) => renderSimpleValue(values.generic_scope) },
+          { label: "Scopes" },
+        ),
+        markUiCopy(
+          { label: "Proxy Base URL", render: (values: SSOSettingsValues) => renderSimpleValue(values.proxy_base_url) },
+          { label: "Proxy Base URL" },
+        ),
         isTeamMappingsEnabled
-          ? { label: "Team IDs JWT Field", render: (values: SSOSettingsValues) => renderTeamMappingsField(values) }
+          ? markUiCopy(
+              { label: "Team IDs JWT Field", render: (values: SSOSettingsValues) => renderTeamMappingsField(values) },
+              { label: "Team IDs JWT Field" },
+            )
           : null,
       ],
     },
     generic: {
       providerText: ssoProviderDisplayNames.generic,
       fields: [
-        {
-          label: "Client ID",
-          render: (values: SSOSettingsValues) => <RedactableField value={values.generic_client_id} />,
-        },
-        {
-          label: "Client Secret",
-          render: (values: SSOSettingsValues) => <RedactableField value={values.generic_client_secret} />,
-        },
-        {
-          label: "Authorization Endpoint",
-          render: (values: SSOSettingsValues) => <EndpointValue value={values.generic_authorization_endpoint} />,
-        },
-        {
-          label: "Token Endpoint",
-          render: (values: SSOSettingsValues) => <EndpointValue value={values.generic_token_endpoint} />,
-        },
-        {
-          label: "User Info Endpoint",
-          render: (values: SSOSettingsValues) => <EndpointValue value={values.generic_userinfo_endpoint} />,
-        },
-        { label: "Scopes", render: (values: SSOSettingsValues) => renderSimpleValue(values.generic_scope) },
-        { label: "Proxy Base URL", render: (values: SSOSettingsValues) => renderSimpleValue(values.proxy_base_url) },
+        markUiCopy(
+          {
+            label: "Client ID",
+            render: (values: SSOSettingsValues) => <RedactableField value={values.generic_client_id} />,
+          },
+          { label: "Client ID" },
+        ),
+        markUiCopy(
+          {
+            label: "Client Secret",
+            render: (values: SSOSettingsValues) => <RedactableField value={values.generic_client_secret} />,
+          },
+          { label: "Client Secret" },
+        ),
+        markUiCopy(
+          {
+            label: "Authorization Endpoint",
+            render: (values: SSOSettingsValues) => <EndpointValue value={values.generic_authorization_endpoint} />,
+          },
+          { label: "Authorization Endpoint" },
+        ),
+        markUiCopy(
+          {
+            label: "Token Endpoint",
+            render: (values: SSOSettingsValues) => <EndpointValue value={values.generic_token_endpoint} />,
+          },
+          { label: "Token Endpoint" },
+        ),
+        markUiCopy(
+          {
+            label: "User Info Endpoint",
+            render: (values: SSOSettingsValues) => <EndpointValue value={values.generic_userinfo_endpoint} />,
+          },
+          { label: "User Info Endpoint" },
+        ),
+        markUiCopy(
+          { label: "Scopes", render: (values: SSOSettingsValues) => renderSimpleValue(values.generic_scope) },
+          { label: "Scopes" },
+        ),
+        markUiCopy(
+          { label: "Proxy Base URL", render: (values: SSOSettingsValues) => renderSimpleValue(values.proxy_base_url) },
+          { label: "Proxy Base URL" },
+        ),
         isTeamMappingsEnabled
-          ? { label: "Team IDs JWT Field", render: (values: SSOSettingsValues) => renderTeamMappingsField(values) }
+          ? markUiCopy(
+              { label: "Team IDs JWT Field", render: (values: SSOSettingsValues) => renderTeamMappingsField(values) },
+              { label: "Team IDs JWT Field" },
+            )
           : null,
       ],
     },
     saml: {
       providerText: ssoProviderDisplayNames.saml,
       fields: [
-        {
-          label: "IdP Metadata URL",
-          render: (values: SSOSettingsValues) => <EndpointValue value={values.saml_idp_metadata_url} />,
-        },
-        {
-          label: "IdP Metadata XML",
-          render: (values: SSOSettingsValues) =>
-            values.saml_idp_metadata_xml ? <Badge variant="secondary">Provided</Badge> : <NotConfigured />,
-        },
-        {
-          label: "SP Entity ID",
-          render: (values: SSOSettingsValues) => <EndpointValue value={values.saml_sp_entity_id} />,
-        },
-        {
-          label: "Allow IdP-initiated (unsolicited) responses",
-          render: (values: SSOSettingsValues) => (
-            <Badge variant={values.saml_allow_unsolicited === "true" ? "default" : "secondary"}>
-              {values.saml_allow_unsolicited === "true" ? "Enabled" : "Disabled"}
-            </Badge>
-          ),
-        },
-        { label: "Proxy Base URL", render: (values: SSOSettingsValues) => renderSimpleValue(values.proxy_base_url) },
+        markUiCopy(
+          {
+            label: "IdP Metadata URL",
+            render: (values: SSOSettingsValues) => <EndpointValue value={values.saml_idp_metadata_url} />,
+          },
+          { label: "IdP Metadata URL" },
+        ),
+        markUiCopy(
+          {
+            label: "IdP Metadata XML",
+            render: (values: SSOSettingsValues) =>
+              values.saml_idp_metadata_xml ? (
+                <Badge variant="secondary">
+                  <LocalizedText text={"Provided"} />
+                </Badge>
+              ) : (
+                <NotConfigured />
+              ),
+          },
+          { label: "IdP Metadata XML" },
+        ),
+        markUiCopy(
+          {
+            label: "SP Entity ID",
+            render: (values: SSOSettingsValues) => <EndpointValue value={values.saml_sp_entity_id} />,
+          },
+          { label: "SP Entity ID" },
+        ),
+        markUiCopy(
+          {
+            label: "Allow IdP-initiated (unsolicited) responses",
+            render: (values: SSOSettingsValues) => (
+              <Badge variant={values.saml_allow_unsolicited === "true" ? "default" : "secondary"}>
+                {values.saml_allow_unsolicited === "true" ? translateMessage("Enabled") : translateMessage("Disabled")}
+              </Badge>
+            ),
+          },
+          { label: "Allow IdP-initiated (unsolicited) responses" },
+        ),
+        markUiCopy(
+          { label: "Proxy Base URL", render: (values: SSOSettingsValues) => renderSimpleValue(values.proxy_base_url) },
+          { label: "Proxy Base URL" },
+        ),
       ],
     },
   };
@@ -202,7 +304,7 @@ export default function SSOSettings() {
 
     return (
       <dl className="divide-y divide-border overflow-hidden rounded-md border border-border">
-        <DetailRow label="Provider">
+        <DetailRow label={translateMessage("Provider")}>
           <div className="flex items-center gap-2">
             {ssoProviderLogoMap[selectedProvider] && (
               <Logo
@@ -217,7 +319,7 @@ export default function SSOSettings() {
         {config.fields.map(
           (field) =>
             field && (
-              <DetailRow key={field.label} label={field.label}>
+              <DetailRow key={field.label} label={localizedProperty(field, "label", field.label)}>
                 {field.render(ssoSettings.values)}
               </DetailRow>
             ),
@@ -238,20 +340,24 @@ export default function SSOSettings() {
                 <Shield className="size-6 text-muted-foreground" />
                 <div>
                   <CardTitle>
-                    <h3>SSO Configuration</h3>
+                    <h3>
+                      <LocalizedText text={"SSO Configuration"} />
+                    </h3>
                   </CardTitle>
-                  <CardDescription>Manage Single Sign-On authentication settings</CardDescription>
+                  <CardDescription>
+                    <LocalizedText text={"Manage Single Sign-On authentication settings"} />
+                  </CardDescription>
                 </div>
               </div>
               {isSSOConfigured && (
                 <CardAction className="flex gap-2">
                   <Button type="button" variant="outline" onClick={() => setIsEditModalVisible(true)}>
                     <Edit />
-                    Edit SSO Settings
+                    <LocalizedText text={"Edit SSO Settings"} />
                   </Button>
                   <Button type="button" variant="destructive" onClick={() => setIsDeleteModalVisible(true)}>
                     <Trash2 />
-                    Delete SSO Settings
+                    <LocalizedText text={"Delete SSO Settings"} />
                   </Button>
                 </CardAction>
               )}

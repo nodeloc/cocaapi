@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, useUiLocale } from "@/lib/i18n";
 
 import { useId, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -29,11 +30,13 @@ import { AgentBreadcrumb, useLensAgents } from "./agents/AgentScoped";
 type WorkspaceProps = { accessToken: string; userRole: string; readOnly: boolean };
 
 export function LensWorkspace(props: WorkspaceProps) {
+  useUiLocale();
   const { demo } = useLensRoute();
   return demo ? <SampleSession /> : <LiveSession {...props} />;
 }
 
 function LiveSession(props: WorkspaceProps) {
+  useUiLocale();
   const services = useLiveLensServices(props.accessToken);
   return (
     <LensServicesProvider services={services}>
@@ -43,6 +46,7 @@ function LiveSession(props: WorkspaceProps) {
 }
 
 function SampleSession() {
+  useUiLocale();
   const [services] = useState(() => createLensDemo());
   return (
     <LensServicesProvider services={services}>
@@ -52,6 +56,7 @@ function SampleSession() {
 }
 
 function DemoToggle({ demo, onChange }: { demo: boolean; onChange: (demo: boolean) => void }) {
+  useUiLocale();
   const id = useId();
   return (
     <div
@@ -60,7 +65,9 @@ function DemoToggle({ demo, onChange }: { demo: boolean; onChange: (demo: boolea
         demo ? "font-medium text-info" : "text-muted-foreground",
       )}
     >
-      <label htmlFor={id}>Demo data</label>
+      <label htmlFor={id}>
+        <LocalizedText text={"Demo data"} />
+      </label>
       <Switch id={id} size="sm" checked={demo} onCheckedChange={onChange} className="data-checked:bg-info" />
     </div>
   );
@@ -68,6 +75,7 @@ function DemoToggle({ demo, onChange }: { demo: boolean; onChange: (demo: boolea
 
 /** The one always-mounted `/lens` observer; every other reader is a plain cache subscriber. */
 function useLensOverview(enabled: boolean, settingsOpen: boolean) {
+  useUiLocale();
   const api = useLensApi();
   const { data } = useQuery({
     ...lensQueries.list(api),
@@ -81,6 +89,7 @@ const PANEL =
   "flex min-h-0 flex-1 flex-col overflow-y-auto animate-in fade-in-0 duration-300 motion-reduce:animate-none";
 
 function LensContent({ userRole, readOnly }: Omit<WorkspaceProps, "accessToken">) {
+  useUiLocale();
   const accessToken = useLensAccessToken();
   const { tab, lensId, demo, settingUp, setTab, setDemo, setSetup } = useLensRoute();
   const { dialog, openDialog } = useDialogRoute();
@@ -160,7 +169,7 @@ function LensContent({ userRole, readOnly }: Omit<WorkspaceProps, "accessToken">
             <div className="flex min-w-0 items-center gap-2">
               <h1 className="flex items-center gap-1.5 text-sm font-semibold">
                 <Aperture aria-hidden="true" className="size-4" strokeWidth={2} />
-                Lens
+                <LocalizedText text={"Lens"} />
               </h1>
               <AgentBreadcrumb agents={agents} />
             </div>
@@ -174,7 +183,7 @@ function LensContent({ userRole, readOnly }: Omit<WorkspaceProps, "accessToken">
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-0.5 text-xs text-muted-foreground hover:text-foreground"
               >
-                Docs
+                <LocalizedText text={"Docs"} />
                 <ArrowUpRight aria-hidden="true" className="size-3" />
               </a>
               <DemoToggle demo={demo} onChange={toggleDemo} />
@@ -186,7 +195,7 @@ function LensContent({ userRole, readOnly }: Omit<WorkspaceProps, "accessToken">
                 {setupState.loading ? (
                   <p role="status" className="flex items-center gap-2 py-8 text-sm text-muted-foreground">
                     <Loader2 aria-hidden="true" className="size-4 animate-spin" />
-                    Checking Lens setup…
+                    <LocalizedText text={"Checking Lens setup…"} />
                   </p>
                 ) : (
                   <LensGettingStarted state={setupState} onStart={startSetup} onExit={exitSetup} />
@@ -208,7 +217,9 @@ function LensContent({ userRole, readOnly }: Omit<WorkspaceProps, "accessToken">
                   {canViewInvestigations ? (
                     <FindingsView readOnly={readOnly || !isAdmin} />
                   ) : (
-                    <p className="py-6 text-sm text-muted-foreground">Findings require proxy administrator access.</p>
+                    <p className="py-6 text-sm text-muted-foreground">
+                      <LocalizedText text={"Findings require proxy administrator access."} />
+                    </p>
                   )}
                 </TabsContent>
                 <TabsContent value="investigations" className={PANEL}>
@@ -216,7 +227,9 @@ function LensContent({ userRole, readOnly }: Omit<WorkspaceProps, "accessToken">
                     <InvestigationsView readOnly={readOnly || !isAdmin} />
                   ) : (
                     <p className="py-6 text-sm text-muted-foreground">
-                      Investigations require proxy administrator access. You can still view your traces.
+                      <LocalizedText
+                        text={"Investigations require proxy administrator access. You can still view your traces."}
+                      />
                     </p>
                   )}
                 </TabsContent>
@@ -232,7 +245,7 @@ function LensContent({ userRole, readOnly }: Omit<WorkspaceProps, "accessToken">
                   workerReadyAction={
                     list.lenses.length === 0 ? (
                       <Button className="w-full" onClick={startFirstInvestigation}>
-                        New investigation
+                        <LocalizedText text={"New investigation"} />
                       </Button>
                     ) : undefined
                   }
@@ -248,8 +261,13 @@ function LensContent({ userRole, readOnly }: Omit<WorkspaceProps, "accessToken">
 }
 
 function DatasetsPanel({ canView, isAdmin, readOnly }: { canView: boolean; isAdmin: boolean; readOnly: boolean }) {
+  useUiLocale();
   if (!canView)
-    return <p className="py-6 text-sm text-muted-foreground">Datasets require proxy administrator access.</p>;
+    return (
+      <p className="py-6 text-sm text-muted-foreground">
+        <LocalizedText text={"Datasets require proxy administrator access."} />
+      </p>
+    );
   return <DatasetsView readOnly={readOnly || !isAdmin} />;
 }
 

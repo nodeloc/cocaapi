@@ -1,3 +1,4 @@
+import { markUiCopy } from "@/lib/i18n";
 import { serializeCustomDimensions, type CustomDimensionRow } from "./custom_dimensions";
 import { heuristicScoringRoleFor, type ClassifierFallback } from "./ComplexityRouterConfig";
 import { isHeuristicChain, type ClassifierType, type LocalHeuristic } from "./classifier_types";
@@ -42,15 +43,26 @@ export const scorerKnobPayload = (knobs: ScorerKnobInputs) => {
  * shipped weights come from the proxy (GET /public/complexity_router/scorer_defaults), so a dimension
  * added backend-side still renders, under its raw key until it is given a label here.
  */
-export const DIMENSION_LABELS: Record<string, string> = {
-  codePresence: "Code presence",
-  reasoningMarkers: "Reasoning markers",
-  technicalTerms: "Technical terms",
-  tokenCount: "Token count",
-  simpleIndicators: "Simple indicators",
-  multiStepPatterns: "Multi-step patterns",
-  questionComplexity: "Question complexity",
-};
+export const DIMENSION_LABELS: Record<string, string> = markUiCopy(
+  {
+    codePresence: "Code presence",
+    reasoningMarkers: "Reasoning markers",
+    technicalTerms: "Technical terms",
+    tokenCount: "Token count",
+    simpleIndicators: "Simple indicators",
+    multiStepPatterns: "Multi-step patterns",
+    questionComplexity: "Question complexity",
+  },
+  {
+    codePresence: "Code presence",
+    reasoningMarkers: "Reasoning markers",
+    technicalTerms: "Technical terms",
+    tokenCount: "Token count",
+    simpleIndicators: "Simple indicators",
+    multiStepPatterns: "Multi-step patterns",
+    questionComplexity: "Question complexity",
+  },
+);
 
 export const dimensionLabel = (key: string): string => DIMENSION_LABELS[key] ?? key;
 

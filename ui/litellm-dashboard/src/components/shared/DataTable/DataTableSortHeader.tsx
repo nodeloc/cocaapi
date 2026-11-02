@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { Menu } from "@base-ui/react/menu";
 import type { Column, SortDirection, Table } from "@tanstack/react-table";
@@ -17,6 +18,7 @@ interface DataTableSortHeaderProps<TData, TValue> {
 }
 
 function SortIndicator({ sorted }: { sorted: false | SortDirection }) {
+  useUiLocale();
   if (sorted === "asc") {
     return <ChevronUp className="size-3.5" data-sort-indicator="asc" />;
   }
@@ -35,6 +37,7 @@ export function DataTableSortHeader<TData, TValue>({
   variant = "header-cycle",
   className,
 }: DataTableSortHeaderProps<TData, TValue>) {
+  useUiLocale();
   const sorted = column.getIsSorted();
 
   if (!column.getCanSort()) {
@@ -51,7 +54,7 @@ export function DataTableSortHeader<TData, TValue>({
               <button
                 type="button"
                 data-testid={`sort-trigger-${column.id}`}
-                aria-label={`Sort options for ${column.id}`}
+                aria-label={translateMessage("Sort options for %{0}", [column.id])}
                 onClick={(event) => event.stopPropagation()}
                 className={cn(
                   "inline-flex size-6 items-center justify-center rounded-md hover:bg-muted",
@@ -66,13 +69,16 @@ export function DataTableSortHeader<TData, TValue>({
             <Menu.Positioner side="bottom" align="start" sideOffset={4} className="isolate z-popup">
               <Menu.Popup className="min-w-[9rem] rounded-md bg-popover p-1 text-sm text-popover-foreground shadow-md ring-1 ring-foreground/10 outline-hidden">
                 <Menu.Item className={MENU_ITEM_CLASS} onClick={() => column.toggleSorting(false)}>
-                  <ChevronUp className="size-3.5" /> Ascending
+                  <ChevronUp className="size-3.5" />
+                  <LocalizedText text={" Ascending"} />
                 </Menu.Item>
                 <Menu.Item className={MENU_ITEM_CLASS} onClick={() => column.toggleSorting(true)}>
-                  <ChevronDown className="size-3.5" /> Descending
+                  <ChevronDown className="size-3.5" />
+                  <LocalizedText text={" Descending"} />
                 </Menu.Item>
                 <Menu.Item className={MENU_ITEM_CLASS} onClick={() => column.clearSorting()}>
-                  <X className="size-3.5" /> Reset
+                  <X className="size-3.5" />
+                  <LocalizedText text={" Reset"} />
                 </Menu.Item>
               </Menu.Popup>
             </Menu.Positioner>
@@ -114,6 +120,7 @@ interface DataTableMultiSortHeaderProps<TData> {
  * without opening the menu. The chevron opens a menu offering each field in both directions.
  */
 export function DataTableMultiSortHeader<TData>({ table, fields, className }: DataTableMultiSortHeaderProps<TData>) {
+  useUiLocale();
   const active = table.getState().sorting[0];
   const activeField = active !== undefined && fields.some((field) => field.id === active.id) ? active : undefined;
   const activeDirection: SortDirection = activeField?.desc === true ? "desc" : "asc";
@@ -134,7 +141,7 @@ export function DataTableMultiSortHeader<TData>({ table, fields, className }: Da
     const isActive = activeField?.id === field.id;
     const segment = (
       <span key={field.id} data-sort-field={field.id} className={segmentClass(isActive)}>
-        {field.label}
+        {localizedProperty(field, "label", field.label)}
       </span>
     );
     if (index === 0) return [segment];
@@ -155,7 +162,7 @@ export function DataTableMultiSortHeader<TData>({ table, fields, className }: Da
             <button
               type="button"
               data-testid={`sort-trigger-${fields[0]?.id ?? "field"}`}
-              aria-label={`Sort options for ${fields.map((field) => field.label).join(" or ")}`}
+              aria-label={translateMessage("Sort options for %{0}", [fields.map((field) => field.label).join(" or ")])}
               onClick={(event) => event.stopPropagation()}
               className={cn(
                 "inline-flex size-6 items-center justify-center rounded-md hover:bg-muted",
@@ -177,13 +184,14 @@ export function DataTableMultiSortHeader<TData>({ table, fields, className }: Da
                     className={cn(MENU_ITEM_CLASS, isActive ? "text-primary" : "")}
                     onClick={() => table.setSorting([{ id: option.id, desc: option.desc }])}
                   >
-                    <option.Icon className="size-3.5" /> {option.label}
+                    <option.Icon className="size-3.5" /> {localizedProperty(option, "label", option.label)}
                     {isActive && <Check className="ml-auto size-3.5" />}
                   </Menu.Item>
                 );
               })}
               <Menu.Item className={MENU_ITEM_CLASS} onClick={() => table.setSorting([])}>
-                <X className="size-3.5" /> Reset
+                <X className="size-3.5" />
+                <LocalizedText text={" Reset"} />
               </Menu.Item>
             </Menu.Popup>
           </Menu.Positioner>

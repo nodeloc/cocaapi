@@ -1,3 +1,5 @@
+"use client";
+import { markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import React, { useEffect, useState } from "react";
 import { MultiSelect, type MultiSelectOption } from "@/components/shared/MultiSelect";
 import { getAgentsList } from "../networking";
@@ -29,6 +31,7 @@ const AgentSelector: React.FC<AgentSelectorProps> = ({
   placeholder = "Select agents",
   disabled = false,
 }) => {
+  useUiLocale();
   const [agents, setAgents] = useState<Agent[]>([]);
   const [accessGroups, setAccessGroups] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
@@ -62,16 +65,26 @@ const AgentSelector: React.FC<AgentSelectorProps> = ({
 
   // Combine options, access groups first
   const options: MultiSelectOption[] = [
-    ...accessGroups.map((group) => ({
-      label: group,
-      value: `group:${group}`,
-      description: "Access Group",
-    })),
-    ...agents.map((agent) => ({
-      label: `${agent.agent_name || agent.agent_id}`,
-      value: agent.agent_id,
-      description: "Agent",
-    })),
+    ...accessGroups.map((group) =>
+      markUiCopy(
+        {
+          label: group,
+          value: `group:${group}`,
+          description: "Access Group",
+        },
+        { description: "Access Group" },
+      ),
+    ),
+    ...agents.map((agent) =>
+      markUiCopy(
+        {
+          label: `${agent.agent_name || agent.agent_id}`,
+          value: agent.agent_id,
+          description: "Agent",
+        },
+        { description: "Agent" },
+      ),
+    ),
   ];
 
   // Flatten value for Select
@@ -91,7 +104,7 @@ const AgentSelector: React.FC<AgentSelectorProps> = ({
         value={selectedValues}
         onValueChange={handleChange}
         placeholder={placeholder}
-        emptyText="No agents found"
+        emptyText={translateMessage("No agents found")}
         loading={loading}
         disabled={disabled}
         className={`w-full ${className ?? ""}`}

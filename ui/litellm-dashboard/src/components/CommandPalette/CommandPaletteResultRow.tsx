@@ -1,4 +1,5 @@
 "use client";
+import { localizedProperty, useUiLocale } from "@/lib/i18n";
 
 import type { ReactNode } from "react";
 import { cn } from "@/lib/cva.config";
@@ -24,6 +25,7 @@ export function CommandPaletteResultRow({
   onActivate: () => void;
   onHover: () => void;
 }) {
+  useUiLocale();
   return (
     <button
       id={optionId}
@@ -41,7 +43,7 @@ export function CommandPaletteResultRow({
     >
       <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-muted">{item.icon}</span>
       <span className="flex min-w-0 flex-1 items-baseline gap-2">
-        <span className="truncate text-sm font-medium">{item.title}</span>
+        <span className="truncate text-sm font-medium">{localizedProperty(item, "title", item.title)}</span>
         {item.subtitle && <span className="truncate text-xs text-muted-foreground">{item.subtitle}</span>}
       </span>
       <span className="shrink-0 text-xs text-muted-foreground">{item.typeLabel}</span>

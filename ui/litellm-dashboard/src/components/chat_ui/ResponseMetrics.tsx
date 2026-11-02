@@ -1,3 +1,5 @@
+"use client";
+import { localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 import React from "react";
 import {
   ArrowDownToLine,
@@ -42,24 +44,34 @@ interface MetricItemProps {
   value: string;
 }
 
-function MetricItem({ label, tooltip, icon, value }: MetricItemProps) {
+function MetricItem(cocaCopyProps0: MetricItemProps) {
+  const { label, tooltip, icon, value } = cocaCopyProps0;
+  useUiLocale();
   return (
     <Tooltip>
-      <TooltipTrigger render={<div className="flex items-center gap-1" aria-label={`${label}: ${value}`} />}>
+      <TooltipTrigger
+        render={
+          <div
+            className="flex items-center gap-1"
+            aria-label={`${localizedProperty(cocaCopyProps0, "label", label)}: ${value}`}
+          />
+        }
+      >
         {icon}
         <span>
-          {label}: {value}
+          {localizedProperty(cocaCopyProps0, "label", label)}: {value}
         </span>
       </TooltipTrigger>
-      <TooltipContent>{tooltip}</TooltipContent>
+      <TooltipContent>{localizedProperty(cocaCopyProps0, "tooltip", tooltip)}</TooltipContent>
     </Tooltip>
   );
 }
 
 function ResponseCacheIndicator() {
+  useUiLocale();
   return (
     <MetricItem
-      label="Response Cache"
+      label={translateMessage("Response Cache")}
       tooltip={RESPONSE_CACHE_TOOLTIP}
       icon={<History className="size-3" aria-hidden="true" />}
       value="Hit"
@@ -68,6 +80,7 @@ function ResponseCacheIndicator() {
 }
 
 function PromptCacheChips({ usage }: { usage?: TokenUsage }) {
+  useUiLocale();
   if (usage?.servedFromResponseCache) {
     return <ResponseCacheIndicator />;
   }
@@ -79,7 +92,7 @@ function PromptCacheChips({ usage }: { usage?: TokenUsage }) {
     <>
       {readTokens > 0 && (
         <MetricItem
-          label="Cache Read"
+          label={translateMessage("Cache Read")}
           tooltip={PROMPT_CACHE_READ_TOOLTIP}
           icon={<Database className="size-3" aria-hidden="true" />}
           value={String(readTokens)}
@@ -88,7 +101,7 @@ function PromptCacheChips({ usage }: { usage?: TokenUsage }) {
 
       {creationTokens > 0 && (
         <MetricItem
-          label="Cache Write"
+          label={translateMessage("Cache Write")}
           tooltip={PROMPT_CACHE_CREATION_TOOLTIP}
           icon={<DatabaseBackup className="size-3" aria-hidden="true" />}
           value={String(creationTokens)}
@@ -99,14 +112,15 @@ function PromptCacheChips({ usage }: { usage?: TokenUsage }) {
 }
 
 const ResponseMetrics: React.FC<ResponseMetricsProps> = ({ timeToFirstToken, totalLatency, usage, toolName }) => {
+  useUiLocale();
   if (!timeToFirstToken && !totalLatency && !usage) return null;
 
   return (
     <div className="response-metrics mt-2 flex flex-wrap gap-3 border-t border-border pt-2 text-xs text-muted-foreground">
       {timeToFirstToken !== undefined && (
         <MetricItem
-          label="TTFT"
-          tooltip="Time to first token"
+          label={translateMessage("TTFT")}
+          tooltip={translateMessage("Time to first token")}
           icon={<Clock className="size-3" aria-hidden="true" />}
           value={`${(timeToFirstToken / 1000).toFixed(2)}s`}
         />
@@ -114,8 +128,8 @@ const ResponseMetrics: React.FC<ResponseMetricsProps> = ({ timeToFirstToken, tot
 
       {totalLatency !== undefined && (
         <MetricItem
-          label="Total Latency"
-          tooltip="Total latency"
+          label={translateMessage("Total Latency")}
+          tooltip={translateMessage("Total latency")}
           icon={<Clock className="size-3" aria-hidden="true" />}
           value={`${(totalLatency / 1000).toFixed(2)}s`}
         />
@@ -123,8 +137,8 @@ const ResponseMetrics: React.FC<ResponseMetricsProps> = ({ timeToFirstToken, tot
 
       {usage?.promptTokens !== undefined && (
         <MetricItem
-          label="In"
-          tooltip="Prompt tokens"
+          label={translateMessage("In")}
+          tooltip={translateMessage("Prompt tokens")}
           icon={<ArrowDownToLine className="size-3" aria-hidden="true" />}
           value={String(usage.promptTokens)}
         />
@@ -134,8 +148,8 @@ const ResponseMetrics: React.FC<ResponseMetricsProps> = ({ timeToFirstToken, tot
 
       {usage?.completionTokens !== undefined && (
         <MetricItem
-          label="Out"
-          tooltip="Completion tokens"
+          label={translateMessage("Out")}
+          tooltip={translateMessage("Completion tokens")}
           icon={<ArrowUpFromLine className="size-3" aria-hidden="true" />}
           value={String(usage.completionTokens)}
         />
@@ -143,8 +157,8 @@ const ResponseMetrics: React.FC<ResponseMetricsProps> = ({ timeToFirstToken, tot
 
       {usage?.reasoningTokens !== undefined && (
         <MetricItem
-          label="Reasoning"
-          tooltip="Reasoning tokens"
+          label={translateMessage("Reasoning")}
+          tooltip={translateMessage("Reasoning tokens")}
           icon={<Lightbulb className="size-3" aria-hidden="true" />}
           value={String(usage.reasoningTokens)}
         />
@@ -152,8 +166,8 @@ const ResponseMetrics: React.FC<ResponseMetricsProps> = ({ timeToFirstToken, tot
 
       {usage?.totalTokens !== undefined && (
         <MetricItem
-          label="Total"
-          tooltip="Total tokens"
+          label={translateMessage("Total")}
+          tooltip={translateMessage("Total tokens")}
           icon={<Hash className="size-3" aria-hidden="true" />}
           value={String(usage.totalTokens)}
         />
@@ -161,8 +175,8 @@ const ResponseMetrics: React.FC<ResponseMetricsProps> = ({ timeToFirstToken, tot
 
       {typeof usage?.cost === "number" && Number.isFinite(usage.cost) && (
         <MetricItem
-          label="Cost"
-          tooltip="Cost"
+          label={translateMessage("Cost")}
+          tooltip={translateMessage("Cost")}
           icon={<DollarSign className="size-3" aria-hidden="true" />}
           value={`$${usage.cost.toFixed(6)}`}
         />
@@ -170,8 +184,8 @@ const ResponseMetrics: React.FC<ResponseMetricsProps> = ({ timeToFirstToken, tot
 
       {toolName && (
         <MetricItem
-          label="Tool"
-          tooltip="Tool used"
+          label={translateMessage("Tool")}
+          tooltip={translateMessage("Tool used")}
           icon={<Wrench className="size-3" aria-hidden="true" />}
           value={toolName}
         />

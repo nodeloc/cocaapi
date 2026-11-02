@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { ColumnDef } from "@tanstack/react-table";
 import { Copy, MoreHorizontal, Trash2 } from "lucide-react";
@@ -16,10 +17,10 @@ import { cn } from "@/lib/cva.config";
 import { copyToClipboard } from "@/utils/dataUtils";
 
 const STATUS_CONFIG: Record<DocumentUpload["status"], { tone: StatusTone; label: string }> = {
-  uploading: { tone: "info", label: "Uploading" },
-  done: { tone: "success", label: "Ready" },
-  error: { tone: "error", label: "Error" },
-  removed: { tone: "neutral", label: "Removed" },
+  uploading: markUiCopy({ tone: "info", label: "Uploading" }, { label: "Uploading" }),
+  done: markUiCopy({ tone: "success", label: "Ready" }, { label: "Ready" }),
+  error: markUiCopy({ tone: "error", label: "Error" }, { label: "Error" }),
+  removed: markUiCopy({ tone: "neutral", label: "Removed" }, { label: "Removed" }),
 };
 
 function formatFileSize(bytes?: number): string {
@@ -30,10 +31,11 @@ function formatFileSize(bytes?: number): string {
 }
 
 function DocumentRowActions({ document, onRemove }: { document: DocumentUpload; onRemove: (uid: string) => void }) {
+  useUiLocale();
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        aria-label="Open document actions"
+        aria-label={translateMessage("Open document actions")}
         data-testid={`document-actions-${document.uid}`}
         className={cn(buttonVariants({ variant: "ghost", size: "icon-sm" }), "text-muted-foreground")}
       >
@@ -45,7 +47,7 @@ function DocumentRowActions({ document, onRemove }: { document: DocumentUpload; 
           onClick={() => void copyToClipboard(document.uid, "Document ID copied to clipboard")}
         >
           <Copy />
-          Copy document ID
+          <LocalizedText text={"Copy document ID"} />
         </DropdownMenuItem>
         <DropdownMenuItem
           variant="destructive"
@@ -53,7 +55,7 @@ function DocumentRowActions({ document, onRemove }: { document: DocumentUpload; 
           onClick={() => onRemove(document.uid)}
         >
           <Trash2 />
-          Remove
+          <LocalizedText text={"Remove"} />
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -65,39 +67,49 @@ interface DocumentsTableColumnsDeps {
 }
 
 export const getDocumentsTableColumns = ({ onRemove }: DocumentsTableColumnsDeps): ColumnDef<DocumentUpload>[] => [
-  {
-    id: "name",
-    accessorKey: "name",
-    meta: { title: "Name" },
-    header: "Name",
-    enableSorting: false,
-    cell: ({ row }) => (
-      <div className="flex items-center gap-2">
-        <span className="block max-w-72 truncate text-sm" title={row.original.name}>
-          {row.original.name}
-        </span>
-        {row.original.size ? (
-          <span className="text-xs text-muted-foreground">({formatFileSize(row.original.size)})</span>
-        ) : null}
-      </div>
-    ),
-  },
-  {
-    id: "status",
-    accessorKey: "status",
-    meta: { title: "Status", skeleton: "badge" },
-    header: "Status",
-    size: 150,
-    enableSorting: false,
-    cell: ({ row }) => {
-      const config = STATUS_CONFIG[row.original.status] ?? { tone: "neutral", label: row.original.status };
-      return <StatusBadge tone={config.tone} label={config.label} />;
+  markUiCopy(
+    {
+      id: "name",
+      accessorKey: "name",
+      meta: markUiCopy({ title: "Name" }, { title: "Name" }),
+      header: "Name",
+      enableSorting: false,
+      cell: ({ row }) => (
+        <div className="flex items-center gap-2">
+          <span className="block max-w-72 truncate text-sm" title={row.original.name}>
+            {row.original.name}
+          </span>
+          {row.original.size ? (
+            <span className="text-xs text-muted-foreground">({formatFileSize(row.original.size)})</span>
+          ) : null}
+        </div>
+      ),
     },
-  },
+    { header: "Name" },
+  ),
+  markUiCopy(
+    {
+      id: "status",
+      accessorKey: "status",
+      meta: markUiCopy({ title: "Status", skeleton: "badge" as const }, { title: "Status" }),
+      header: "Status",
+      size: 150,
+      enableSorting: false,
+      cell: ({ row }) => {
+        const config = STATUS_CONFIG[row.original.status] ?? { tone: "neutral", label: row.original.status };
+        return <StatusBadge tone={config.tone} label={localizedProperty(config, "label", config.label)} />;
+      },
+    },
+    { header: "Status" },
+  ),
   {
     id: "actions",
     meta: { className: "text-right", headerClassName: "text-right" },
-    header: () => <span className="sr-only">Actions</span>,
+    header: () => (
+      <span className="sr-only">
+        <LocalizedText text={"Actions"} />
+      </span>
+    ),
     size: 64,
     enableSorting: false,
     enableHiding: false,

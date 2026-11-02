@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import { Info } from "lucide-react";
 import { SimpleTooltip } from "@/components/ui/tooltip";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -29,6 +31,7 @@ const ClassifierReasoningEffortSelect = ({
   explicitlySupported,
   onChange,
 }: ClassifierReasoningEffortSelectProps) => {
+  useUiLocale();
   const status = effortStatusFor(value, explicitlySupported);
   const options = Array.from(new Set([...(explicitlySupported ?? []), ...(value ? [value] : [])]));
 
@@ -40,14 +43,16 @@ const ClassifierReasoningEffortSelect = ({
   return (
     <div>
       <div className="flex items-center gap-2 mb-1">
-        <strong className="font-semibold">Reasoning Effort</strong>
+        <strong className="font-semibold">
+          <LocalizedText text={"Reasoning Effort"} />
+        </strong>
         <SimpleTooltip content="Sent only to the classifier call. Default leaves the classifier deployment or provider setting unchanged.">
           <Info className="size-4 text-muted-foreground" />
         </SimpleTooltip>
       </div>
       <Select
         items={[
-          { value: PROVIDER_DEFAULT, label: "Default" },
+          markUiCopy({ value: PROVIDER_DEFAULT, label: "Default" }, { label: "Default" }),
           ...options.map((effort) => ({ value: effort, label: optionLabel(effort) })),
         ]}
         value={value ?? PROVIDER_DEFAULT}
@@ -55,11 +60,16 @@ const ClassifierReasoningEffortSelect = ({
           effort && onChange(effort === PROVIDER_DEFAULT ? undefined : (effort as ReasoningEffort))
         }
       >
-        <SelectTrigger aria-label={`Reasoning effort for classifier model ${model}`} className="w-full">
+        <SelectTrigger
+          aria-label={translateMessage("Reasoning effort for classifier model %{0}", [model])}
+          className="w-full"
+        >
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value={PROVIDER_DEFAULT}>Default</SelectItem>
+          <SelectItem value={PROVIDER_DEFAULT}>
+            <LocalizedText text={"Default"} />
+          </SelectItem>
           {options.map((effort) => (
             <SelectItem key={effort} value={effort}>
               {optionLabel(effort)}
@@ -69,14 +79,20 @@ const ClassifierReasoningEffortSelect = ({
       </Select>
       {status === "unverified" && (
         <p className="mt-1 text-xs text-amber-700 dark:text-amber-400">
-          This saved effort cannot be verified for the selected model. Choose Default unless you have confirmed provider
-          support.
+          <LocalizedText
+            text={
+              "This saved effort cannot be verified for the selected model. Choose Default unless you have confirmed provider support."
+            }
+          />
         </p>
       )}
       {status === "unsupported" && (
         <p className="mt-1 text-xs text-destructive">
-          This saved effort is not supported by every deployment in the selected model group. Choose Default or a
-          supported value before saving.
+          <LocalizedText
+            text={
+              "This saved effort is not supported by every deployment in the selected model group. Choose Default or a supported value before saving."
+            }
+          />
         </p>
       )}
     </div>

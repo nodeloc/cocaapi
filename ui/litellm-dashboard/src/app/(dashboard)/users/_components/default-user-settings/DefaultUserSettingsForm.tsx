@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as React from "react";
@@ -30,20 +31,23 @@ import {
 const NO_RESET = "never";
 
 const BUDGET_DURATION_OPTIONS = [
-  { value: NO_RESET, label: "No reset" },
-  { value: "1h", label: "hourly" },
-  { value: "24h", label: "daily" },
-  { value: "7d", label: "weekly" },
-  { value: "30d", label: "monthly" },
+  markUiCopy({ value: NO_RESET, label: "No reset" }, { label: "No reset" }),
+  markUiCopy({ value: "1h", label: "hourly" }, { label: "hourly" }),
+  markUiCopy({ value: "24h", label: "daily" }, { label: "daily" }),
+  markUiCopy({ value: "7d", label: "weekly" }, { label: "weekly" }),
+  markUiCopy({ value: "30d", label: "monthly" }, { label: "monthly" }),
 ] as const;
 
 const TEAM_ROLE_OPTIONS = [
-  { value: "user", label: "User" },
-  { value: "admin", label: "Admin" },
+  markUiCopy({ value: "user", label: "User" }, { label: "User" }),
+  markUiCopy({ value: "admin", label: "Admin" }, { label: "Admin" }),
 ] as const;
 
 const MODEL_SENTINEL_LABELS: ReadonlyMap<string, string> = new Map(
-  MODEL_SENTINEL_OPTIONS.map(({ value, label }) => [value, label]),
+  MODEL_SENTINEL_OPTIONS.map((cocaCopyProps0) => {
+    const { value, label } = cocaCopyProps0;
+    return [value, label];
+  }),
 );
 
 const TEAMS_PAGE_SIZE = 50;
@@ -71,6 +75,7 @@ interface RoleOption {
 type SettingsControl = Control<DefaultUserSettingsFormValues, unknown, DefaultUserSettingsSubmitValues>;
 
 const TeamPickerField = ({ control, index }: { control: SettingsControl; index: number }) => {
+  useUiLocale();
   const [search, setSearch] = React.useState("");
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useInfiniteTeams(
     TEAMS_PAGE_SIZE,
@@ -90,7 +95,7 @@ const TeamPickerField = ({ control, index }: { control: SettingsControl; index: 
   );
 
   return (
-    <FormField control={control} name={`teams.${index}.team_id`} label="Team">
+    <FormField control={control} name={`teams.${index}.team_id`} label={translateMessage("Team")}>
       {({ id, value, onChange, "aria-invalid": ariaInvalid, "aria-describedby": ariaDescribedBy }) => (
         <PaginatedSearchSelect
           options={options}
@@ -101,8 +106,8 @@ const TeamPickerField = ({ control, index }: { control: SettingsControl; index: 
           hasNextPage={hasNextPage}
           isLoading={isLoading}
           isFetchingNextPage={isFetchingNextPage}
-          placeholder="Search a team"
-          emptyText="No teams found"
+          placeholder={translateMessage("Search a team")}
+          emptyText={translateMessage("No teams found")}
           inputId={id}
           aria-invalid={ariaInvalid}
           aria-describedby={ariaDescribedBy}
@@ -113,36 +118,53 @@ const TeamPickerField = ({ control, index }: { control: SettingsControl; index: 
 };
 
 const TeamsField = ({ control }: { control: SettingsControl }) => {
+  useUiLocale();
   const { fields, append, remove } = useFieldArray({ control, name: "teams" });
 
   return (
     <div className="flex w-full flex-col gap-3">
       <div>
-        <p className="text-sm font-medium">Default Teams</p>
+        <p className="text-sm font-medium">
+          <LocalizedText text={"Default Teams"} />
+        </p>
         <p className="text-sm text-muted-foreground">
-          New users are added to these teams. Only teams that already exist can be selected.
+          <LocalizedText text={"New users are added to these teams. Only teams that already exist can be selected."} />
         </p>
       </div>
 
       {fields.map((field, index) => (
         <div key={field.id} className="rounded-lg border border-border p-4">
           <div className="mb-3 flex items-center justify-between">
-            <p className="text-sm font-medium">Team {index + 1}</p>
+            <p className="text-sm font-medium">
+              <LocalizedText text={"Team "} />
+              {index + 1}
+            </p>
             <Button type="button" variant="destructive" size="sm" onClick={() => remove(index)}>
-              Remove
+              <LocalizedText text={"Remove"} />
             </Button>
           </div>
 
           <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
             <TeamPickerField control={control} index={index} />
 
-            <FormField control={control} name={`teams.${index}.max_budget_in_team`} label="Max Budget in Team (USD)">
+            <FormField
+              control={control}
+              name={`teams.${index}.max_budget_in_team`}
+              label={translateMessage("Max Budget in Team (USD)")}
+            >
               {({ ref, ...budgetField }) => (
-                <Input {...budgetField} ref={ref} type="number" step="any" min={0} placeholder="Optional" />
+                <Input
+                  {...budgetField}
+                  ref={ref}
+                  type="number"
+                  step="any"
+                  min={0}
+                  placeholder={translateMessage("Optional")}
+                />
               )}
             </FormField>
 
-            <FormField control={control} name={`teams.${index}.user_role`} label="Team Role">
+            <FormField control={control} name={`teams.${index}.user_role`} label={translateMessage("Team Role")}>
               {({ id, value, onChange, "aria-invalid": ariaInvalid, "aria-describedby": ariaDescribedBy }) => (
                 <Select
                   items={TEAM_ROLE_OPTIONS}
@@ -160,7 +182,7 @@ const TeamsField = ({ control }: { control: SettingsControl }) => {
                   <SelectContent>
                     {TEAM_ROLE_OPTIONS.map((option) => (
                       <SelectItem key={option.value} value={option.value}>
-                        {option.label}
+                        {localizedProperty(option, "label", option.label)}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -172,18 +194,22 @@ const TeamsField = ({ control }: { control: SettingsControl }) => {
       ))}
 
       <Button type="button" variant="outline" onClick={() => append(EMPTY_TEAM_ROW)}>
-        Add Team
+        <LocalizedText text={"Add Team"} />
       </Button>
     </div>
   );
 };
 
-const ViewRow = ({ label, children }: { label: string; children: React.ReactNode }) => (
-  <div>
-    <p className="text-sm font-medium">{label}</p>
-    <p className="text-sm text-muted-foreground">{children}</p>
-  </div>
-);
+const ViewRow = (cocaCopyProps1: { label: string; children: React.ReactNode }) => {
+  const { label, children } = cocaCopyProps1;
+  useUiLocale();
+  return (
+    <div>
+      <p className="text-sm font-medium">{localizedProperty(cocaCopyProps1, "label", label)}</p>
+      <p className="text-sm text-muted-foreground">{children}</p>
+    </div>
+  );
+};
 
 interface SettingsViewProps {
   values: DefaultUserSettingsFormValues;
@@ -191,6 +217,7 @@ interface SettingsViewProps {
 }
 
 const SettingsView = ({ values, roleOptions }: SettingsViewProps) => {
+  useUiLocale();
   const roleLabel = roleOptions.find((option) => option.value === values.user_role)?.label ?? values.user_role;
   const durationValue = values.budget_duration === "" ? NO_RESET : values.budget_duration;
   const durationLabel =
@@ -198,23 +225,37 @@ const SettingsView = ({ values, roleOptions }: SettingsViewProps) => {
 
   return (
     <div className="flex flex-col gap-4">
-      <ViewRow label="Default Role">{roleLabel === "" ? "Not set" : roleLabel}</ViewRow>
-      <ViewRow label="Max Budget (USD)">{values.max_budget === "" ? "Not set" : values.max_budget}</ViewRow>
-      <ViewRow label="Reset Budget">{durationLabel}</ViewRow>
-      <ViewRow label="Default Models">
+      <ViewRow label={translateMessage("Default Role")}>
+        {roleLabel === "" ? translateMessage("Not set") : roleLabel}
+      </ViewRow>
+      <ViewRow label={translateMessage("Max Budget (USD)")}>
+        {values.max_budget === "" ? translateMessage("Not set") : values.max_budget}
+      </ViewRow>
+      <ViewRow label={translateMessage("Reset Budget")}>{durationLabel}</ViewRow>
+      <ViewRow label={translateMessage("Default Models")}>
         {values.models.length === 0
-          ? "Not set"
+          ? translateMessage("Not set")
           : values.models.map((model) => MODEL_SENTINEL_LABELS.get(model) ?? model).join(", ")}
       </ViewRow>
       <div>
-        <p className="text-sm font-medium">Default Teams</p>
+        <p className="text-sm font-medium">
+          <LocalizedText text={"Default Teams"} />
+        </p>
         {values.teams.length === 0 ? (
-          <p className="text-sm text-muted-foreground">None</p>
+          <p className="text-sm text-muted-foreground">
+            <LocalizedText text={"None"} />
+          </p>
         ) : (
           values.teams.map((team) => (
             <p key={team.team_id} className="text-sm text-muted-foreground">
               {team.team_id}
-              {team.max_budget_in_team !== "" && <> · ${team.max_budget_in_team} max budget</>}
+              {team.max_budget_in_team !== "" && (
+                <>
+                  {" "}
+                  · ${team.max_budget_in_team}
+                  <LocalizedText text={" max budget"} />
+                </>
+              )}
               <> · {team.user_role}</>
             </p>
           ))
@@ -233,6 +274,7 @@ interface SettingsFormProps {
 }
 
 const SettingsForm = ({ initialValues, roleOptions, updateSettings, onCancel, onSaved }: SettingsFormProps) => {
+  useUiLocale();
   const queryClient = useQueryClient();
   const form = useZodForm(defaultUserSettingsSchema, { defaultValues: initialValues });
   const { isDirty } = form.formState;
@@ -240,7 +282,7 @@ const SettingsForm = ({ initialValues, roleOptions, updateSettings, onCancel, on
   const mutation = useMutation({
     mutationFn: (values: DefaultUserSettingsSubmitValues) => updateSettings(buildBody(values)),
     onSuccess: (_result, values) => {
-      toast.success("Default user settings updated successfully");
+      toast.success(translateMessage("Default user settings updated successfully"));
       queryClient.invalidateQueries({ queryKey: SETTINGS_QUERY_KEY });
       form.reset(values);
       onSaved();
@@ -257,8 +299,8 @@ const SettingsForm = ({ initialValues, roleOptions, updateSettings, onCancel, on
         <FormField
           control={form.control}
           name="user_role"
-          label="Default Role"
-          description="Role assigned to new users"
+          label={translateMessage("Default Role")}
+          description={translateMessage("Role assigned to new users")}
         >
           {({ id, value, onChange, "aria-invalid": ariaInvalid, "aria-describedby": ariaDescribedBy }) => (
             <Select
@@ -267,14 +309,16 @@ const SettingsForm = ({ initialValues, roleOptions, updateSettings, onCancel, on
               onValueChange={(selected) => onChange(selected ?? "")}
             >
               <SelectTrigger id={id} className="w-full" aria-invalid={ariaInvalid} aria-describedby={ariaDescribedBy}>
-                <SelectValue placeholder="Not set" />
+                <SelectValue placeholder={translateMessage("Not set")} />
               </SelectTrigger>
               <SelectContent>
                 {roleOptions.map((option) => (
                   <SelectItem key={option.value} value={option.value}>
-                    <span>{option.label}</span>
+                    <span>{localizedProperty(option, "label", option.label)}</span>
                     {option.description !== "" && (
-                      <span className="text-xs text-muted-foreground">{option.description}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {localizedProperty(option, "description", option.description)}
+                      </span>
                     )}
                   </SelectItem>
                 ))}
@@ -286,8 +330,8 @@ const SettingsForm = ({ initialValues, roleOptions, updateSettings, onCancel, on
         <FormField
           control={form.control}
           name="max_budget"
-          label="Max Budget (USD)"
-          description="Default maximum budget for new users"
+          label={translateMessage("Max Budget (USD)")}
+          description={translateMessage("Default maximum budget for new users")}
         >
           {({ ref, ...field }) => <Input {...field} ref={ref} type="number" step="any" min={0} />}
         </FormField>
@@ -295,8 +339,8 @@ const SettingsForm = ({ initialValues, roleOptions, updateSettings, onCancel, on
         <FormField
           control={form.control}
           name="budget_duration"
-          label="Reset Budget"
-          description="How often the default budget resets"
+          label={translateMessage("Reset Budget")}
+          description={translateMessage("How often the default budget resets")}
         >
           {({ id, value, onChange, "aria-invalid": ariaInvalid, "aria-describedby": ariaDescribedBy }) => (
             <Select
@@ -310,7 +354,7 @@ const SettingsForm = ({ initialValues, roleOptions, updateSettings, onCancel, on
               <SelectContent>
                 {BUDGET_DURATION_OPTIONS.map((option) => (
                   <SelectItem key={option.value} value={option.value}>
-                    {option.label}
+                    {localizedProperty(option, "label", option.label)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -321,8 +365,8 @@ const SettingsForm = ({ initialValues, roleOptions, updateSettings, onCancel, on
         <FormField
           control={form.control}
           name="models"
-          label="Default Models"
-          description="Models new users can access"
+          label={translateMessage("Default Models")}
+          description={translateMessage("Models new users can access")}
         >
           {(field) => (
             <ModelSelect
@@ -347,28 +391,33 @@ const SettingsForm = ({ initialValues, roleOptions, updateSettings, onCancel, on
           }}
           disabled={mutation.isPending}
         >
-          Cancel
+          <LocalizedText text={"Cancel"} />
         </Button>
         <Button type="submit" disabled={!isDirty || mutation.isPending}>
-          {mutation.isPending ? "Saving..." : "Save Changes"}
+          {mutation.isPending ? translateMessage("Saving...") : translateMessage("Save Changes")}
         </Button>
       </div>
     </form>
   );
 };
 
-const SettingsCard = ({ action, children }: { action?: React.ReactNode; children: React.ReactNode }) => (
-  <Card>
-    <CardHeader>
-      <CardTitle>Default User Settings</CardTitle>
-      <CardDescription>
-        Applied to every new internal user created through SSO or the user management APIs.
-      </CardDescription>
-      {action !== undefined && <CardAction>{action}</CardAction>}
-    </CardHeader>
-    <CardContent>{children}</CardContent>
-  </Card>
-);
+const SettingsCard = ({ action, children }: { action?: React.ReactNode; children: React.ReactNode }) => {
+  useUiLocale();
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>
+          <LocalizedText text={"Default User Settings"} />
+        </CardTitle>
+        <CardDescription>
+          <LocalizedText text={"Applied to every new internal user created through SSO or the user management APIs."} />
+        </CardDescription>
+        {action !== undefined && <CardAction>{action}</CardAction>}
+      </CardHeader>
+      <CardContent>{children}</CardContent>
+    </Card>
+  );
+};
 
 export interface DefaultUserSettingsFormProps {
   possibleUIRoles?: Record<string, Record<string, string>> | null;
@@ -381,6 +430,7 @@ export const DefaultUserSettingsForm = ({
   fetchSettings = defaultFetchSettings,
   updateSettings = defaultUpdateSettings,
 }: DefaultUserSettingsFormProps) => {
+  useUiLocale();
   const [isEditing, setIsEditing] = React.useState(false);
   const { data, isPending, isError } = useQuery({ queryKey: SETTINGS_QUERY_KEY, queryFn: fetchSettings });
 
@@ -405,7 +455,9 @@ export const DefaultUserSettingsForm = ({
   if (isError || initialValues === undefined) {
     return (
       <SettingsCard>
-        <p role="alert">Could not load the default user settings.</p>
+        <p role="alert">
+          <LocalizedText text={"Could not load the default user settings."} />
+        </p>
       </SettingsCard>
     );
   }
@@ -415,7 +467,7 @@ export const DefaultUserSettingsForm = ({
       action={
         isEditing ? undefined : (
           <Button type="button" onClick={() => setIsEditing(true)}>
-            Edit Settings
+            <LocalizedText text={"Edit Settings"} />
           </Button>
         )
       }

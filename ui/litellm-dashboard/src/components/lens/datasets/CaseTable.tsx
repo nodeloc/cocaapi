@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import {
   getCoreRowModel,
@@ -33,6 +34,7 @@ interface CaseTableContextValue {
 const CaseTableContext = createContext<CaseTableContextValue | null>(null);
 
 function useCaseTable(): CaseTableContextValue {
+  useUiLocale();
   const value = useContext(CaseTableContext);
   if (value === null) throw new Error("Case cells must be rendered inside CaseTable");
   return value;
@@ -43,10 +45,11 @@ export const caseLabel = (index: number): string => `Case ${index + 1}`;
 type Cell = CellContext<DatasetCase, unknown>;
 
 function IncludeCell({ row }: Cell) {
+  useUiLocale();
   const { editable, onToggle } = useCaseTable();
   return (
     <Checkbox
-      aria-label={`Include ${caseLabel(row.index).toLowerCase()}`}
+      aria-label={translateMessage("Include %{0}", [caseLabel(row.index).toLowerCase()])}
       checked={row.original.included}
       disabled={!editable}
       onClick={(event) => event.stopPropagation()}
@@ -57,8 +60,14 @@ function IncludeCell({ row }: Cell) {
 }
 
 function InputText({ item }: { item: DatasetCase }) {
+  useUiLocale();
   const input = caseInput(item);
-  if (!input) return <span className={MUTED_ITALIC}>No input</span>;
+  if (!input)
+    return (
+      <span className={MUTED_ITALIC}>
+        <LocalizedText text={"No input"} />
+      </span>
+    );
   return (
     <>
       <span className="text-muted-foreground">{input.role}: </span>
@@ -68,11 +77,19 @@ function InputText({ item }: { item: DatasetCase }) {
 }
 
 function ReplyText({ item }: { item: DatasetCase }) {
+  useUiLocale();
   const reply = caseReplyText(item);
-  return reply ? <span>{reply}</span> : <span className={MUTED_ITALIC}>No reply</span>;
+  return reply ? (
+    <span>{reply}</span>
+  ) : (
+    <span className={MUTED_ITALIC}>
+      <LocalizedText text={"No reply"} />
+    </span>
+  );
 }
 
 function InputCell({ row: { original: item } }: Cell) {
+  useUiLocale();
   return (
     <span className="flex min-w-0 flex-col gap-0.5">
       <span className="truncate">
@@ -86,6 +103,7 @@ function InputCell({ row: { original: item } }: Cell) {
 }
 
 function ReplyCell({ row: { original: item } }: Cell) {
+  useUiLocale();
   return (
     <span className="block truncate text-foreground">
       <ReplyText item={item} />
@@ -94,22 +112,26 @@ function ReplyCell({ row: { original: item } }: Cell) {
 }
 
 function ExpectedCell({ row: { original: item } }: Cell) {
+  useUiLocale();
   return item.expected ? (
     <span className="block truncate text-foreground">{item.expected}</span>
   ) : (
-    <span className={MUTED_ITALIC}>Not set</span>
+    <span className={MUTED_ITALIC}>
+      <LocalizedText text={"Not set"} />
+    </span>
   );
 }
 
 function SourceCell({ row: { original: item } }: Cell) {
+  useUiLocale();
   const openSourceTrace = useOpenSourceTrace();
   const { trace_id: traceId, trace_ref: traceRef, span_id: spanId } = item.source;
   if (!traceId) return null;
   return (
     <button
       type="button"
-      aria-label="Open source trace"
-      title="Open source trace"
+      aria-label={translateMessage("Open source trace")}
+      title={translateMessage("Open source trace")}
       onClick={(event) => {
         event.stopPropagation();
         openSourceTrace({ traceId, traceRef, spanId });
@@ -122,6 +144,7 @@ function SourceCell({ row: { original: item } }: Cell) {
 }
 
 function ToolCallsCell({ row: { original: item } }: Cell) {
+  useUiLocale();
   const count = toolCallCount(item);
   if (count === 0) return null;
   return (
@@ -135,18 +158,24 @@ function ToolCallsCell({ row: { original: item } }: Cell) {
 }
 
 const COLUMNS: ColumnDef<DatasetCase>[] = [
-  {
-    id: "include",
-    size: 40,
-    header: "Include",
-    cell: IncludeCell,
-    meta: { headerClassName: "sr-only", className: "pr-0" },
-  },
-  { id: "input", header: "Input", cell: InputCell },
-  { id: "reply", header: "Reply", cell: ReplyCell },
-  { id: "expected", size: 220, header: "Expected", cell: ExpectedCell },
-  { id: "source", size: 72, header: "Source", cell: SourceCell },
-  { id: "tools", size: 104, header: "Tool calls", cell: ToolCallsCell, meta: { numeric: true } },
+  markUiCopy(
+    {
+      id: "include",
+      size: 40,
+      header: "Include",
+      cell: IncludeCell,
+      meta: { headerClassName: "sr-only", className: "pr-0" },
+    },
+    { header: "Include" },
+  ),
+  markUiCopy({ id: "input", header: "Input", cell: InputCell }, { header: "Input" }),
+  markUiCopy({ id: "reply", header: "Reply", cell: ReplyCell }, { header: "Reply" }),
+  markUiCopy({ id: "expected", size: 220, header: "Expected", cell: ExpectedCell }, { header: "Expected" }),
+  markUiCopy({ id: "source", size: 72, header: "Source", cell: SourceCell }, { header: "Source" }),
+  markUiCopy(
+    { id: "tools", size: 104, header: "Tool calls", cell: ToolCallsCell, meta: { numeric: true } },
+    { header: "Tool calls" },
+  ),
 ];
 
 export interface CaseTableProps {
@@ -159,6 +188,7 @@ export interface CaseTableProps {
 }
 
 export function CaseTable({ cases, editable, selectedId, onSelect, onToggle, children }: CaseTableProps) {
+  useUiLocale();
   const desktop = useMediaQuery("(min-width: 768px)");
   const tableOptions: TableOptions<DatasetCase> = {
     data: [...cases],
@@ -184,7 +214,7 @@ export function CaseTable({ cases, editable, selectedId, onSelect, onToggle, chi
       <CaseTableContext.Provider value={{ editable, onToggle }}>
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-card">
           <InspectorTable.Root table={table}>
-            <InspectorTable.Grid aria-label="Cases" className="text-xs md:min-w-[860px]">
+            <InspectorTable.Grid aria-label={translateMessage("Cases")} className="text-xs md:min-w-[860px]">
               <InspectorTable.Header />
               <InspectorTable.Body<DatasetCase> rowHeight={() => (desktop ? CASE_HEIGHT : MOBILE_CASE_HEIGHT)}>
                 {(row) => (
@@ -200,11 +230,12 @@ export function CaseTable({ cases, editable, selectedId, onSelect, onToggle, chi
             </InspectorTable.Grid>
           </InspectorTable.Root>
           <footer className="flex h-8 shrink-0 items-center border-t bg-muted/30 px-3 text-xs text-muted-foreground">
-            {cases.length} {cases.length === 1 ? "case" : "cases"} · {included} included
+            {cases.length} {cases.length === 1 ? translateMessage("case") : translateMessage("cases")} · {included}
+            <LocalizedText text={" included"} />
           </footer>
         </div>
       </CaseTableContext.Provider>
-      <Inspector.Panel<DatasetCase> label="Case details" testId="case-panel">
+      <Inspector.Panel<DatasetCase> label={translateMessage("Case details")} testId="case-panel">
         {children}
       </Inspector.Panel>
     </Inspector.Root>

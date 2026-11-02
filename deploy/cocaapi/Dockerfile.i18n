@@ -1,0 +1,4 @@
+ARG COCAAPI_RUNTIME_IMAGE
+FROM ${COCAAPI_RUNTIME_IMAGE}
+
+COPY ui/litellm-dashboard/out/ /app/cocaapi-ui/

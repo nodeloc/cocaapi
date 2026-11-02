@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import React, { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -66,6 +67,7 @@ function expiryLabel(isoString: string | null | undefined): {
 }
 
 const MCPCredentialsTab: React.FC<Props> = ({ accessToken }) => {
+  useUiLocale();
   const queryClient = useQueryClient();
   const [revoking, setRevoking] = useState<Set<string>>(new Set());
 
@@ -83,7 +85,7 @@ const MCPCredentialsTab: React.FC<Props> = ({ accessToken }) => {
         (prev ?? []).filter((c) => c.server_id !== serverId),
       );
     } catch {
-      toast.error("Failed to revoke connection. Please try again.");
+      toast.error(translateMessage("Failed to revoke connection. Please try again."));
     } finally {
       setRevoking((prev) => {
         const n = new Set(prev);
@@ -98,8 +100,12 @@ const MCPCredentialsTab: React.FC<Props> = ({ accessToken }) => {
   return (
     <div className="w-full">
       <div className="mb-4">
-        <h2 className="text-base font-semibold text-foreground mb-0.5">App Credentials</h2>
-        <p className="text-sm text-muted-foreground m-0">Your stored OAuth connections; used automatically in chat</p>
+        <h2 className="text-base font-semibold text-foreground mb-0.5">
+          <LocalizedText text={"App Credentials"} />
+        </h2>
+        <p className="text-sm text-muted-foreground m-0">
+          <LocalizedText text={"Your stored OAuth connections; used automatically in chat"} />
+        </p>
       </div>
 
       {loading ? (
@@ -108,16 +114,16 @@ const MCPCredentialsTab: React.FC<Props> = ({ accessToken }) => {
             <TableHeader>
               <TableRow className="bg-muted/50">
                 <TableHead className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-                  App
+                  <LocalizedText text={"App"} />
                 </TableHead>
                 <TableHead className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-                  Connected
+                  <LocalizedText text={"Connected"} />
                 </TableHead>
                 <TableHead className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-                  Status
+                  <LocalizedText text={"Status"} />
                 </TableHead>
                 <TableHead className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground text-right">
-                  Actions
+                  <LocalizedText text={"Actions"} />
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -144,10 +150,19 @@ const MCPCredentialsTab: React.FC<Props> = ({ accessToken }) => {
       ) : credentials.length === 0 ? (
         <div className="text-center text-muted-foreground text-sm py-12 border border-dashed rounded-lg">
           <Link className="h-6 w-6 mb-3 mx-auto text-muted-foreground/50" />
-          <p className="m-0">No connections yet</p>
+          <p className="m-0">
+            <LocalizedText text={"No connections yet"} />
+          </p>
           <p className="m-0 mt-1 text-xs">
-            Go to <span className="font-medium">Integrations</span> and click{" "}
-            <span className="font-medium">Connect</span> to authorize an MCP server
+            <LocalizedText text={"Go to "} />
+            <span className="font-medium">
+              <LocalizedText text={"Integrations"} />
+            </span>
+            <LocalizedText text={" and click"} />{" "}
+            <span className="font-medium">
+              <LocalizedText text={"Connect"} />
+            </span>
+            <LocalizedText text={" to authorize an MCP server"} />
           </p>
         </div>
       ) : (
@@ -156,16 +171,16 @@ const MCPCredentialsTab: React.FC<Props> = ({ accessToken }) => {
             <TableHeader>
               <TableRow className="bg-muted/50">
                 <TableHead className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-                  App
+                  <LocalizedText text={"App"} />
                 </TableHead>
                 <TableHead className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-                  Connected
+                  <LocalizedText text={"Connected"} />
                 </TableHead>
                 <TableHead className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-                  Status
+                  <LocalizedText text={"Status"} />
                 </TableHead>
                 <TableHead className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground text-right">
-                  Actions
+                  <LocalizedText text={"Actions"} />
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -190,7 +205,7 @@ const MCPCredentialsTab: React.FC<Props> = ({ accessToken }) => {
                               variant="outline"
                               size="icon-sm"
                               disabled={isRevoking}
-                              title="Revoke connection"
+                              title={translateMessage("Revoke connection")}
                               className="text-muted-foreground hover:text-destructive hover:border-destructive/50"
                             >
                               {isRevoking ? (
@@ -203,16 +218,21 @@ const MCPCredentialsTab: React.FC<Props> = ({ accessToken }) => {
                         />
                         <AlertDialogContent>
                           <AlertDialogHeader>
-                            <AlertDialogTitle>Revoke connection?</AlertDialogTitle>
+                            <AlertDialogTitle>
+                              <LocalizedText text={"Revoke connection?"} />
+                            </AlertDialogTitle>
                             <AlertDialogDescription>
-                              This removes the stored OAuth credential for {displayName(cred)}. You&apos;ll need to
-                              reconnect to use it in chat again.
+                              <LocalizedText text={"This removes the stored OAuth credential for "} />
+                              {displayName(cred)}
+                              <LocalizedText text={". You'll need to reconnect to use it in chat again."} />
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogCancel>
+                              <LocalizedText text={"Cancel"} />
+                            </AlertDialogCancel>
                             <AlertDialogAction variant="destructive" onClick={() => handleRevoke(cred.server_id)}>
-                              Revoke
+                              <LocalizedText text={"Revoke"} />
                             </AlertDialogAction>
                           </AlertDialogFooter>
                         </AlertDialogContent>

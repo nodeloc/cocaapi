@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import React, { useCallback, useEffect, useRef, useState, useLayoutEffect } from "react";
 import { Plus, ChevronDown, Check, X } from "lucide-react";
@@ -51,6 +52,7 @@ function getProviderFromModelName(modelName: string): string {
 }
 
 export default function ChatConversationPage() {
+  useUiLocale();
   const [, setConversationIdInUrl] = useQueryState("id", { history: "push" });
   const router = useRouter();
   const {
@@ -113,7 +115,7 @@ export default function ChatConversationPage() {
           localStorage.setItem(LOCALSTORAGE_MODEL_KEY, names[0]);
         }
       })
-      .catch(() => toast.error("Could not load models"))
+      .catch(() => toast.error(translateMessage("Could not load models")))
       .finally(() => setIsLoadingModels(false));
   }, [accessToken]);
 
@@ -364,7 +366,7 @@ export default function ChatConversationPage() {
           autoFocus
           value={modelSearchText}
           onChange={(e) => setModelSearchText(e.target.value)}
-          placeholder="Search models..."
+          placeholder={translateMessage("Search models...")}
           className="h-8 text-[13px]"
         />
       </div>
@@ -435,7 +437,9 @@ export default function ChatConversationPage() {
                 <span className="overflow-hidden text-ellipsis whitespace-nowrap">{selectedModel}</span>
               </>
             ) : (
-              <span className="text-muted-foreground">Select model</span>
+              <span className="text-muted-foreground">
+                <LocalizedText text={"Select model"} />
+              </span>
             )}
             <ChevronDown className="h-3 w-3 text-muted-foreground shrink-0" />
           </Button>
@@ -454,7 +458,9 @@ export default function ChatConversationPage() {
         value={inputText}
         onChange={(e) => setInputText(e.target.value)}
         onKeyDown={handleKeyDown}
-        placeholder={inConversation ? "Send a message..." : "How can I help you today?"}
+        placeholder={
+          inConversation ? translateMessage("Send a message...") : translateMessage("How can I help you today?")
+        }
         className="w-full border-none outline-none resize-none text-[15px] text-foreground bg-transparent font-[inherit] box-border"
         style={{
           minHeight: inConversation ? 52 : 80,
@@ -491,7 +497,10 @@ export default function ChatConversationPage() {
         <div className="flex items-center gap-2">
           {inConversation && selectedMCPServers.length > 0 && (
             <span className="text-xs text-muted-foreground max-w-[160px] overflow-hidden text-ellipsis whitespace-nowrap">
-              {selectedMCPServers.length} tool{selectedMCPServers.length > 1 ? "s" : ""} connected
+              {selectedMCPServers.length}
+              <LocalizedText text={" tool"} />
+              {selectedMCPServers.length > 1 ? translateMessage("s") : ""}
+              <LocalizedText text={" connected"} />
             </span>
           )}
           {isStreaming ? (
@@ -504,7 +513,7 @@ export default function ChatConversationPage() {
               onClick={() => handleSend(inputText)}
               disabled={!inputText.trim() || isLoadingModels || !selectedModel}
             >
-              Send
+              <LocalizedText text={"Send"} />
             </Button>
           )}
         </div>
@@ -516,7 +525,9 @@ export default function ChatConversationPage() {
     <>
       {storageUnavailable && !storageBannerDismissed && (
         <div className="bg-warning/10 border-b border-warning/20 px-5 py-1.5 text-[13px] text-warning flex justify-between items-center">
-          <span>Chat history won&apos;t be saved in this browser session</span>
+          <span>
+            <LocalizedText text={"Chat history won't be saved in this browser session"} />
+          </span>
           <Button
             variant="ghost"
             size="icon-xs"
@@ -536,13 +547,13 @@ export default function ChatConversationPage() {
             </h1>
 
             <p className="-mt-4 mb-7 text-sm text-muted-foreground text-center max-w-[520px] leading-relaxed">
-              Chat with 100+ LLMs + MCP tools; authenticate once, use them here.{" "}
+              <LocalizedText text={"Chat with 100+ LLMs + MCP tools; authenticate once, use them here."} />{" "}
               <Button
                 variant="link"
                 onClick={() => router.push(getChatRoutes().integrations)}
                 className="h-auto p-0 text-sm font-medium"
               >
-                Open Integrations -&gt;
+                <LocalizedText text={"Open Integrations ->"} />
               </Button>
             </p>
 
@@ -589,7 +600,7 @@ export default function ChatConversationPage() {
                   }
                 }}
                 className="absolute bottom-[100px] left-1/2 -translate-x-1/2 z-chrome rounded-full border bg-background/75 text-muted-foreground shadow-sm backdrop-blur-md hover:bg-background/95"
-                aria-label="Scroll to bottom"
+                aria-label={translateMessage("Scroll to bottom")}
               >
                 <ChevronDown className="h-3 w-3" />
               </Button>

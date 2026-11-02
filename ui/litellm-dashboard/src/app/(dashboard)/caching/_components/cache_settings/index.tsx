@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 import React, { useState, useEffect, useCallback } from "react";
 import { ChevronRight } from "lucide-react";
 import { FormProvider, useForm } from "react-hook-form";
@@ -30,6 +32,7 @@ const toRedisType = (value: unknown): RedisType =>
   REDIS_TYPES.includes(value as RedisType) ? (value as RedisType) : "node";
 
 const CacheSettings: React.FC<CacheSettingsProps> = ({ accessToken }) => {
+  useUiLocale();
   const form = useForm<CacheFormValues>({ defaultValues: buildInitialValues({}) });
   const [redisType, setRedisType] = useState<RedisType>("node");
   const [advancedOpen, setAdvancedOpen] = useState(false);
@@ -105,7 +108,7 @@ const CacheSettings: React.FC<CacheSettingsProps> = ({ accessToken }) => {
         buildCachePayload(redisType, values, { forTesting: true }),
       );
       if (result.status === "success") {
-        toast.success("Cache connection test successful!");
+        toast.success(translateMessage("Cache connection test successful!"));
       } else {
         toast.fromError(`Connection test failed: ${result.message || result.error}`);
       }
@@ -129,7 +132,7 @@ const CacheSettings: React.FC<CacheSettingsProps> = ({ accessToken }) => {
     setIsSaving(true);
     try {
       await updateCacheSettingsCall(accessToken, buildCachePayload(redisType, values, { forTesting: false }));
-      toast.success("Cache settings updated successfully");
+      toast.success(translateMessage("Cache settings updated successfully"));
       await loadCacheSettings();
     } catch (error) {
       console.error("Failed to save cache settings:", error);
@@ -148,8 +151,12 @@ const CacheSettings: React.FC<CacheSettingsProps> = ({ accessToken }) => {
       <FormProvider {...form}>
         <form onSubmit={(event) => event.preventDefault()} className="space-y-6">
           <div className="max-w-3xl">
-            <h3 className="text-sm font-medium text-foreground">Cache Settings</h3>
-            <p className="text-xs text-muted-foreground mt-1">Configure Redis cache for LiteLLM</p>
+            <h3 className="text-sm font-medium text-foreground">
+              <LocalizedText text={"Cache Settings"} />
+            </h3>
+            <p className="text-xs text-muted-foreground mt-1">
+              <LocalizedText text={"Configure Redis cache for LiteLLM"} />
+            </p>
           </div>
 
           <RedisTypeSelector
@@ -160,7 +167,7 @@ const CacheSettings: React.FC<CacheSettingsProps> = ({ accessToken }) => {
 
           <div className="pt-4 border-t border-border">
             <CacheFieldSection
-              title="Connection Settings"
+              title={translateMessage("Connection Settings")}
               section="connection"
               redisType={redisType}
               embeddingModels={embeddingModels}
@@ -171,7 +178,7 @@ const CacheSettings: React.FC<CacheSettingsProps> = ({ accessToken }) => {
           {redisType === "cluster" && (
             <div className="pt-4 border-t border-border">
               <CacheFieldSection
-                title="Cluster Configuration"
+                title={translateMessage("Cluster Configuration")}
                 section="cluster"
                 redisType={redisType}
                 embeddingModels={embeddingModels}
@@ -183,7 +190,7 @@ const CacheSettings: React.FC<CacheSettingsProps> = ({ accessToken }) => {
           {redisType === "sentinel" && (
             <div className="pt-4 border-t border-border">
               <CacheFieldSection
-                title="Sentinel Configuration"
+                title={translateMessage("Sentinel Configuration")}
                 section="sentinel"
                 redisType={redisType}
                 embeddingModels={embeddingModels}
@@ -195,7 +202,7 @@ const CacheSettings: React.FC<CacheSettingsProps> = ({ accessToken }) => {
           {redisType === "semantic" && (
             <div className="pt-4 border-t border-border">
               <CacheFieldSection
-                title="Semantic Configuration"
+                title={translateMessage("Semantic Configuration")}
                 section="semantic"
                 redisType={redisType}
                 embeddingModels={embeddingModels}
@@ -205,27 +212,29 @@ const CacheSettings: React.FC<CacheSettingsProps> = ({ accessToken }) => {
 
           <Collapsible open={advancedOpen} onOpenChange={setAdvancedOpen} className="mt-4">
             <CollapsibleTrigger className="group flex w-full items-center justify-between py-2 text-left">
-              <span className="text-sm font-medium text-foreground">Advanced Settings</span>
+              <span className="text-sm font-medium text-foreground">
+                <LocalizedText text={"Advanced Settings"} />
+              </span>
               <ChevronRight className="size-4 text-muted-foreground transition-transform group-data-panel-open:rotate-90" />
             </CollapsibleTrigger>
             <CollapsibleContent>
               <div className="space-y-6">
                 <CacheFieldSection
-                  title="SSL Settings"
+                  title={translateMessage("SSL Settings")}
                   section="ssl"
                   redisType={redisType}
                   embeddingModels={embeddingModels}
                   headingLevel="h5"
                 />
                 <CacheFieldSection
-                  title="Cache Management"
+                  title={translateMessage("Cache Management")}
                   section="cacheManagement"
                   redisType={redisType}
                   embeddingModels={embeddingModels}
                   headingLevel="h5"
                 />
                 <CacheFieldSection
-                  title="GCP Authentication"
+                  title={translateMessage("GCP Authentication")}
                   section="gcp"
                   redisType={redisType}
                   embeddingModels={embeddingModels}
@@ -239,10 +248,10 @@ const CacheSettings: React.FC<CacheSettingsProps> = ({ accessToken }) => {
 
       <div className="border-t border-border pt-6 flex justify-end gap-3">
         <Button variant="secondary" size="sm" onClick={handleTestConnection} disabled={isTesting} className="text-sm">
-          {isTesting ? "Testing..." : "Test Connection"}
+          {isTesting ? translateMessage("Testing...") : translateMessage("Test Connection")}
         </Button>
         <Button size="sm" onClick={handleSaveChanges} disabled={isSaving} className="text-sm font-medium">
-          {isSaving ? "Saving..." : "Save Changes"}
+          {isSaving ? translateMessage("Saving...") : translateMessage("Save Changes")}
         </Button>
       </div>
     </div>

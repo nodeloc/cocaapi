@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 import React from "react";
 import {
   choiceToLoggingOnlyScope,
@@ -18,29 +20,34 @@ const isLoggingOnlyScopeChoice = (value: unknown): value is LoggingOnlyScopeChoi
 export const CustomCodeLoggingOnlyScopeSelect: React.FC<{
   value: LoggingOnlyScopeChoice;
   onChange: (choice: LoggingOnlyScopeChoice) => void;
-}> = ({ value, onChange }) => (
-  <div className="w-[240px]">
-    <label className="mb-1 block text-xs font-medium text-muted-foreground">Logging only scope</label>
-    <Select
-      items={LOGGING_ONLY_SCOPE_ITEMS}
-      value={value}
-      onValueChange={(nextValue) => {
-        if (isLoggingOnlyScopeChoice(nextValue)) onChange(nextValue);
-      }}
-    >
-      <SelectTrigger className="w-full" aria-label="Logging only scope">
-        <SelectValue />
-      </SelectTrigger>
-      <SelectContent>
-        {LOGGING_ONLY_SCOPE_ITEMS.map((option) => (
-          <SelectItem key={option.value} value={option.value}>
-            {option.label}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
-  </div>
-);
+}> = ({ value, onChange }) => {
+  useUiLocale();
+  return (
+    <div className="w-[240px]">
+      <label className="mb-1 block text-xs font-medium text-muted-foreground">
+        <LocalizedText text={"Logging only scope"} />
+      </label>
+      <Select
+        items={LOGGING_ONLY_SCOPE_ITEMS}
+        value={value}
+        onValueChange={(nextValue) => {
+          if (isLoggingOnlyScopeChoice(nextValue)) onChange(nextValue);
+        }}
+      >
+        <SelectTrigger className="w-full" aria-label={translateMessage("Logging only scope")}>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {LOGGING_ONLY_SCOPE_ITEMS.map((option) => (
+            <SelectItem key={option.value} value={option.value}>
+              {localizedProperty(option, "label", option.label)}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+};
 
 export const getCustomCodeLoggingOnlyScopeCreate = (
   mode: string[],

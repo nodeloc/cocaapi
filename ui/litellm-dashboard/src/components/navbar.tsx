@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 import { useHealthReadinessDetails } from "@/app/(dashboard)/hooks/healthReadiness/useHealthReadinessDetails";
 import { useDisableBouncingIcon } from "@/app/(dashboard)/hooks/useDisableBouncingIcon";
 import { useDisableShowPrompts } from "@/app/(dashboard)/hooks/useDisableShowPrompts";
@@ -19,6 +21,7 @@ import { NotificationsBell } from "./Navbar/NotificationsBell/NotificationsBell"
 import UserDropdown from "./Navbar/UserDropdown/UserDropdown";
 import ThemeToggle from "./ThemeToggle/ThemeToggle";
 import ViewSwitcher from "./Navbar/ViewSwitcher";
+import { LanguageSwitcher } from "@/lib/i18n/LanguageSwitcher";
 import WorkerDropdown from "./Navbar/WorkerDropdown/WorkerDropdown";
 
 interface NavbarProps {
@@ -36,6 +39,7 @@ const Navbar: React.FC<NavbarProps> = ({
   sidebarCollapsed = false,
   onToggleSidebar,
 }) => {
+  useUiLocale();
   const baseUrl = getProxyBaseUrl();
   const { logoUrl } = useTheme();
   const { data: healthData } = useHealthReadinessDetails(accessToken);
@@ -65,7 +69,7 @@ const Navbar: React.FC<NavbarProps> = ({
               <button
                 onClick={onToggleSidebar}
                 className="mr-2 flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-                title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+                title={sidebarCollapsed ? translateMessage("Expand sidebar") : translateMessage("Collapse sidebar")}
               >
                 <span className="text-lg">
                   {sidebarCollapsed ? (
@@ -78,10 +82,14 @@ const Navbar: React.FC<NavbarProps> = ({
             )}
 
             <div className="flex items-center gap-2">
-              <Link href={uiHref("")} className="flex items-center" aria-label="CocaAPI 管理后台">
+              <Link href={uiHref("")} className="flex items-center" aria-label={translateMessage("CocaAPI 管理后台")}>
                 <div className="relative">
                   <div className="flex h-10 max-w-48 items-center justify-center overflow-hidden">
-                    <img src={imageUrl} alt="CocaAPI" className={cn(NAV_LOGO_CLASS_NAME, "dark:hidden")} />
+                    <img
+                      src={imageUrl}
+                      alt={translateMessage("CocaAPI")}
+                      className={cn(NAV_LOGO_CLASS_NAME, "dark:hidden")}
+                    />
                     <img
                       src={darkImageUrl}
                       alt=""
@@ -97,7 +105,7 @@ const Navbar: React.FC<NavbarProps> = ({
                     <span
                       className="absolute -left-2 -top-1 animate-bounce text-lg"
                       style={{ animationDuration: "2s" }}
-                      title="Thanks for using LiteLLM!"
+                      title={translateMessage("Thanks for using LiteLLM!")}
                     >
                       🌑
                     </span>
@@ -109,7 +117,8 @@ const Navbar: React.FC<NavbarProps> = ({
                       rel="noopener noreferrer"
                       className="shrink-0"
                     >
-                      v{version}
+                      <LocalizedText text={"v"} />
+                      {version}
                     </a>
                   </Badge>
                 </div>
@@ -131,7 +140,7 @@ const Navbar: React.FC<NavbarProps> = ({
             )}
 
             <nav
-              aria-label="Product documentation"
+              aria-label={translateMessage("Product documentation")}
               className={`flex min-w-0 items-center gap-2 ${showWorkerSwitch ? "border-l border-border pl-4" : ""}`}
             >
               <DocsLink />
@@ -144,6 +153,7 @@ const Navbar: React.FC<NavbarProps> = ({
               </div>
             )}
 
+            <LanguageSwitcher />
             {!isPublicPage && (
               <div className="flex shrink-0 items-center border-l border-border pl-4">
                 <div className="flex items-center gap-0.5 rounded-lg bg-muted px-1 py-0 transition-colors hover:bg-accent">

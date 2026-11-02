@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { SortingState } from "@tanstack/react-table";
 import { Inbox } from "lucide-react";
@@ -20,18 +21,24 @@ interface PluginTableProps {
 const DEFAULT_SORTING: SortingState = [{ id: "created_at", desc: true }];
 
 function EmptyState() {
+  useUiLocale();
   return (
     <div className="flex flex-col items-center gap-1 py-6">
       <div className="mb-1 flex size-10 items-center justify-center rounded-lg bg-muted">
         <Inbox className="size-5 text-muted-foreground" />
       </div>
-      <div className="text-sm font-medium text-foreground">No skills found</div>
-      <div className="text-sm text-muted-foreground">Add one to get started.</div>
+      <div className="text-sm font-medium text-foreground">
+        <LocalizedText text={"No skills found"} />
+      </div>
+      <div className="text-sm text-muted-foreground">
+        <LocalizedText text={"Add one to get started."} />
+      </div>
     </div>
   );
 }
 
 const PluginTable: React.FC<PluginTableProps> = ({ pluginsList, isLoading, onDeleteClick, isAdmin, onPluginClick }) => {
+  useUiLocale();
   const [sorting, setSorting] = useState<SortingState>(DEFAULT_SORTING);
 
   const columns = useMemo(
@@ -49,7 +56,7 @@ const PluginTable: React.FC<PluginTableProps> = ({ pluginsList, isLoading, onDel
       sorting={sorting}
       onSortingChange={setSorting}
       isLoading={isLoading}
-      loadingMessage="Loading skills…"
+      loadingMessage={translateMessage("Loading skills…")}
       noDataMessage={<EmptyState />}
       size="compact"
     />

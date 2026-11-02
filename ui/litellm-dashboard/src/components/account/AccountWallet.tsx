@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
@@ -17,6 +18,7 @@ import { formatCredits } from "./money";
 import { LedgerTable, OrdersTable, Pager } from "./WalletTables";
 
 export default function AccountWallet({ ordersOnly = false }: { ordersOnly?: boolean }) {
+  useUiLocale();
   const router = useRouter();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [wallet, setWallet] = useState<Wallet | null>(null);
@@ -37,7 +39,11 @@ export default function AccountWallet({ ordersOnly = false }: { ordersOnly?: boo
         router.replace("/account/login/");
         return;
       }
-      setError(reason instanceof Error ? reason.message : "请求失败，请稍后重试。");
+      setError(
+        reason instanceof Error
+          ? localizedProperty(reason, "message", reason.message)
+          : translateMessage("请求失败，请稍后重试。"),
+      );
     },
     [router],
   );
@@ -80,7 +86,7 @@ export default function AccountWallet({ ordersOnly = false }: { ordersOnly?: boo
     void run(async () => {
       const entry = await walletApi.redeem(code, profile.csrf_token);
       setCode("");
-      setMessage(`兑换成功，已入账 ${formatCredits(entry.delta_units)}。`);
+      setMessage(translateMessage("兑换成功，已入账 %{0}。", [formatCredits(entry.delta_units)]));
     });
   };
   const create = (event: FormEvent) => {
@@ -97,25 +103,32 @@ export default function AccountWallet({ ordersOnly = false }: { ordersOnly?: boo
   };
   return (
     <AccountDashboardShell
-      title={ordersOnly ? "充值订单" : "余额与充值"}
-      description="查看余额、兑换额度和充值记录"
+      title={ordersOnly ? translateMessage("充值订单") : translateMessage("余额与充值")}
+      description={translateMessage("查看余额、兑换额度和充值记录")}
       profile={profile}
     >
       <AccountNotice error={error} message={message} />
-      {!wallet && !error && <p role="status">正在加载钱包…</p>}
+      {!wallet && !error && (
+        <p role="status">
+          <LocalizedText text={"正在加载钱包…"} />
+        </p>
+      )}
       {wallet && (
         <>
           <div className="grid overflow-hidden rounded-xl border bg-card sm:grid-cols-2 lg:grid-cols-5 lg:divide-x">
             {[
-              { label: "可用余额（USD 额度）", value: wallet.available_units },
-              { label: "累计入账", value: wallet.credited_units },
-              { label: "累计扣减", value: wallet.debited_units },
-              { label: "调用冻结", value: wallet.reserved_units },
-              { label: "待补缴", value: wallet.debt_units ?? "0" },
+              markUiCopy(
+                { label: "可用余额（USD 额度）", value: wallet.available_units },
+                { label: "可用余额（USD 额度）" },
+              ),
+              markUiCopy({ label: "累计入账", value: wallet.credited_units }, { label: "累计入账" }),
+              markUiCopy({ label: "累计扣减", value: wallet.debited_units }, { label: "累计扣减" }),
+              markUiCopy({ label: "调用冻结", value: wallet.reserved_units }, { label: "调用冻结" }),
+              markUiCopy({ label: "待补缴", value: wallet.debt_units ?? "0" }, { label: "待补缴" }),
             ].map((item) => (
               <div key={item.label} className="min-w-0 border-b px-5 py-4 last:border-b-0 sm:border-b-0">
                 <Stat
-                  label={item.label}
+                  label={localizedProperty(item, "label", item.label)}
                   value={formatCredits(item.value)}
                   size="lg"
                   exact={formatCredits(item.value)}
@@ -124,25 +137,29 @@ export default function AccountWallet({ ordersOnly = false }: { ordersOnly?: boo
             ))}
           </div>
           <p className="text-sm text-muted-foreground">
-            API 调用先冻结预计费用，再按模型实际费用扣款并退回差额。余额不足时无法调用，已有模型权限与调用限额继续生效。
+            <LocalizedText
+              text={
+                "API 调用先冻结预计费用，再按模型实际费用扣款并退回差额。余额不足时无法调用，已有模型权限与调用限额继续生效。"
+              }
+            />
           </p>
           {wallet.debt_units && BigInt(wallet.debt_units) > BigInt(0) && (
             <p role="alert" className="text-sm text-destructive">
-              有待补缴的调用费用，后续充值或兑换将优先抵扣，结清后可继续调用。
+              <LocalizedText text={"有待补缴的调用费用，后续充值或兑换将优先抵扣，结清后可继续调用。"} />
             </p>
           )}
           {BigInt(wallet.reserved_units) > BigInt(0) && (
             <p className="text-sm text-muted-foreground">
-              冻结额度用于进行中的调用；异常中断的请求会保留额度，待费用核对后结算。
+              <LocalizedText text={"冻结额度用于进行中的调用；异常中断的请求会保留额度，待费用核对后结算。"} />
             </p>
           )}
           {!profile?.email_verified && (
             <p className="text-sm text-muted-foreground">
-              请先在
+              <LocalizedText text={"请先在"} />
               <a href="/account/profile/" className="underline">
-                我的账号
+                <LocalizedText text={"我的账号"} />
               </a>
-              验证邮箱，再进行兑换或充值。
+              <LocalizedText text={"验证邮箱，再进行兑换或充值。"} />
             </p>
           )}
           {!ordersOnly && (
@@ -151,12 +168,16 @@ export default function AccountWallet({ ordersOnly = false }: { ordersOnly?: boo
                 <Card>
                   <CardHeader>
                     <CardTitle>
-                      <h2>兑换码</h2>
+                      <h2>
+                        <LocalizedText text={"兑换码"} />
+                      </h2>
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <form onSubmit={redeem} className="space-y-4">
-                      <Label htmlFor="redeem-code">兑换码</Label>
+                      <Label htmlFor="redeem-code">
+                        <LocalizedText text={"兑换码"} />
+                      </Label>
                       <div className="flex flex-col sm:flex-row gap-2">
                         <Input
                           id="redeem-code"
@@ -173,11 +194,13 @@ export default function AccountWallet({ ordersOnly = false }: { ordersOnly?: boo
                           type="submit"
                           disabled={busy || !profile?.email_verified || !methods?.redemption_enabled}
                         >
-                          兑换
+                          <LocalizedText text={"兑换"} />
                         </Button>
                       </div>
                       {methods && !methods.redemption_enabled && (
-                        <p className="text-xs text-muted-foreground">兑换服务尚未开放。</p>
+                        <p className="text-xs text-muted-foreground">
+                          <LocalizedText text={"兑换服务尚未开放。"} />
+                        </p>
                       )}
                     </form>
                   </CardContent>
@@ -185,18 +208,22 @@ export default function AccountWallet({ ordersOnly = false }: { ordersOnly?: boo
                 <Card>
                   <CardHeader>
                     <CardTitle>
-                      <h2>USDT 充值</h2>
+                      <h2>
+                        <LocalizedText text={"USDT 充值"} />
+                      </h2>
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <form onSubmit={create} className="space-y-4">
                       {!methods?.enabled ? (
                         <p className="text-sm text-muted-foreground">
-                          USDT 支付尚未开放，网关接入后可选择网络并创建订单。
+                          <LocalizedText text={"USDT 支付尚未开放，网关接入后可选择网络并创建订单。"} />
                         </p>
                       ) : (
                         <fieldset disabled={busy || !profile?.email_verified} className="space-y-3">
-                          <Label htmlFor="recharge-amount">充值额度（USD）</Label>
+                          <Label htmlFor="recharge-amount">
+                            <LocalizedText text={"充值额度（USD）"} />
+                          </Label>
                           <Input
                             id="recharge-amount"
                             inputMode="decimal"
@@ -205,10 +232,17 @@ export default function AccountWallet({ ordersOnly = false }: { ordersOnly?: boo
                             required
                             pattern="[0-9]+(\.[0-9]{1,2})?"
                           />
-                          <Label htmlFor="recharge-network">支付网络</Label>
+                          <Label htmlFor="recharge-network">
+                            <LocalizedText text={"支付网络"} />
+                          </Label>
                           <Select
                             value={network}
-                            items={methods.networks.map((item) => ({ value: item.id, label: item.label }))}
+                            items={methods.networks.map((item) =>
+                              markUiCopy(
+                                { value: item.id, label: item.label },
+                                { label: { owner: item, field: "label" } },
+                              ),
+                            )}
                             onValueChange={(value) => {
                               const option = methods.networks.find((item) => item.id === value);
                               if (option) setNetwork(option.id);
@@ -221,15 +255,19 @@ export default function AccountWallet({ ordersOnly = false }: { ordersOnly?: boo
                             <SelectContent>
                               {methods.networks.map((item) => (
                                 <SelectItem value={item.id} key={item.id}>
-                                  {item.label}
+                                  {localizedProperty(item, "label", item.label)}
                                 </SelectItem>
                               ))}
                             </SelectContent>
                           </Select>
                           <p className="text-xs text-muted-foreground">
-                            以支付页面显示的 USDT 数量和网络为准，支付后由服务端查单确认入账。
+                            <LocalizedText
+                              text={"以支付页面显示的 USDT 数量和网络为准，支付后由服务端查单确认入账。"}
+                            />
                           </p>
-                          <Button type="submit">创建充值订单</Button>
+                          <Button type="submit">
+                            <LocalizedText text={"创建充值订单"} />
+                          </Button>
                         </fieldset>
                       )}
                     </form>
@@ -238,7 +276,7 @@ export default function AccountWallet({ ordersOnly = false }: { ordersOnly?: boo
               </div>
               <section className="space-y-3" aria-labelledby="wallet-ledger-heading">
                 <h2 id="wallet-ledger-heading" className="text-base font-medium">
-                  余额明细
+                  <LocalizedText text={"余额明细"} />
                 </h2>
                 {ledger && (
                   <>
@@ -253,11 +291,11 @@ export default function AccountWallet({ ordersOnly = false }: { ordersOnly?: boo
             <section className="space-y-3" aria-labelledby="wallet-orders-heading">
               <div className="flex items-center justify-between">
                 <h2 id="wallet-orders-heading" className="text-base font-medium">
-                  订单记录
+                  <LocalizedText text={"订单记录"} />
                 </h2>
                 <Button variant="outline" disabled={busy} onClick={() => run(async () => {})}>
                   <RefreshCw />
-                  刷新列表
+                  <LocalizedText text={"刷新列表"} />
                 </Button>
               </div>
               <OrdersTable
@@ -268,7 +306,11 @@ export default function AccountWallet({ ordersOnly = false }: { ordersOnly?: boo
                   if (profile)
                     void run(async () => {
                       const order = await walletApi.refresh(id, profile.csrf_token);
-                      setMessage(order.status === "paid" ? "充值已到账。" : "已更新订单状态。");
+                      setMessage(
+                        order.status === "paid"
+                          ? translateMessage("充值已到账。")
+                          : translateMessage("已更新订单状态。"),
+                      );
                     });
                 }}
               />

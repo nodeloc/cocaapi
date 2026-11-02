@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import type { ColumnDef, ColumnFiltersState } from "@tanstack/react-table";
 import { Crown, Info, User, UserPlus } from "lucide-react";
 import React, { useState } from "react";
@@ -54,11 +56,13 @@ const isAdminRole = (role: string): boolean => {
   return normalized === "admin" || normalized === "org_admin";
 };
 
-function RoleHeaderTitle({ title, tooltip }: { title: string; tooltip?: string }) {
-  if (tooltip === undefined) return <>{title}</>;
+function RoleHeaderTitle(cocaCopyProps0: { title: string; tooltip?: string }) {
+  const { title, tooltip } = cocaCopyProps0;
+  useUiLocale();
+  if (tooltip === undefined) return <>{localizedProperty(cocaCopyProps0, "title", title)}</>;
   return (
     <span className="inline-flex items-center gap-2">
-      {title}
+      {localizedProperty(cocaCopyProps0, "title", title)}
       <SimpleTooltip content={tooltip}>
         <Info className="size-3.5" />
       </SimpleTooltip>
@@ -67,6 +71,7 @@ function RoleHeaderTitle({ title, tooltip }: { title: string; tooltip?: string }
 }
 
 function ResetSpendAction({ disabledReason, onClick }: { disabledReason: string | null; onClick: () => void }) {
+  useUiLocale();
   return (
     <TableIconActionButton
       variant="Reset"
@@ -98,7 +103,7 @@ const extraColumnDef = (column: MemberTableColumn): ColumnDef<Member> => {
   if (sortValue === undefined) {
     return {
       id: column.key,
-      header: () => <span className="font-medium">{column.title}</span>,
+      header: () => <span className="font-medium">{localizedProperty(column, "title", column.title)}</span>,
       enableSorting: false,
       enableGlobalFilter: false,
       meta: { numeric: column.numeric },
@@ -108,7 +113,9 @@ const extraColumnDef = (column: MemberTableColumn): ColumnDef<Member> => {
   return {
     id: column.key,
     accessorFn: (member) => sortValue(member) ?? undefined,
-    header: ({ column: tableColumn }) => <DataTableSortHeader column={tableColumn} title={column.title} />,
+    header: ({ column: tableColumn }) => (
+      <DataTableSortHeader column={tableColumn} title={localizedProperty(column, "title", column.title)} />
+    ),
     sortDescFirst: false,
     sortUndefined: "last",
     enableGlobalFilter: false,
@@ -131,36 +138,39 @@ const buildColumns = ({
   {
     id: "user_alias",
     accessorFn: (member) => member.user_alias || undefined,
-    header: ({ column }) => <DataTableSortHeader column={column} title="Name" />,
+    header: ({ column }) => <DataTableSortHeader column={column} title={translateMessage("Name")} />,
     sortingFn: "text",
     sortUndefined: "last",
     enableGlobalFilter: true,
-    meta: { title: "Name" },
+    meta: markUiCopy({ title: "Name" }, { title: "Name" }),
     cell: ({ row }) => row.original.user_alias || <span className="text-muted-foreground">-</span>,
   },
   {
     id: "user_email",
     accessorFn: (member) => member.user_email || undefined,
-    header: ({ column }) => <DataTableSortHeader column={column} title="User Email" />,
+    header: ({ column }) => <DataTableSortHeader column={column} title={translateMessage("User Email")} />,
     sortingFn: "text",
     sortUndefined: "last",
     enableGlobalFilter: true,
-    meta: { title: "User Email" },
+    meta: markUiCopy({ title: "User Email" }, { title: "User Email" }),
     cell: ({ row }) => row.original.user_email || "-",
   },
-  {
-    id: "user_id",
-    accessorFn: (member) => member.user_id ?? undefined,
-    header: "User ID",
-    enableSorting: false,
-    enableGlobalFilter: true,
-    cell: ({ row }) =>
-      row.original.user_id === "default_user_id" ? (
-        <StatusBadge tone="info" label="Default Proxy Admin" />
-      ) : (
-        row.original.user_id || "-"
-      ),
-  },
+  markUiCopy(
+    {
+      id: "user_id",
+      accessorFn: (member) => member.user_id ?? undefined,
+      header: "User ID",
+      enableSorting: false,
+      enableGlobalFilter: true,
+      cell: ({ row }) =>
+        row.original.user_id === "default_user_id" ? (
+          <StatusBadge tone="info" label={translateMessage("Default Proxy Admin")} />
+        ) : (
+          row.original.user_id || "-"
+        ),
+    },
+    { header: "User ID" },
+  ),
   {
     id: "role",
     accessorFn: (member) => member.role,
@@ -179,39 +189,42 @@ const buildColumns = ({
     ),
   },
   ...extraColumns.map(extraColumnDef),
-  {
-    id: "actions",
-    header: "Actions",
-    size: ACTIONS_COLUMN_WIDTH,
-    enableSorting: false,
-    enableGlobalFilter: false,
-    meta: { pinned: "right" },
-    cell: ({ row }) =>
-      canEdit ? (
-        <span className="inline-flex items-center gap-2">
-          <TableIconActionButton
-            variant="Edit"
-            tooltipText="Edit member"
-            dataTestId="edit-member"
-            onClick={() => onEdit(row.original)}
-          />
-          {onResetSpend && (
-            <ResetSpendAction
-              disabledReason={resetSpendDisabledReason?.(row.original) ?? null}
-              onClick={() => onResetSpend(row.original)}
-            />
-          )}
-          {(!showDeleteForMember || showDeleteForMember(row.original)) && (
+  markUiCopy(
+    {
+      id: "actions",
+      header: "Actions",
+      size: ACTIONS_COLUMN_WIDTH,
+      enableSorting: false,
+      enableGlobalFilter: false,
+      meta: { pinned: "right" },
+      cell: ({ row }) =>
+        canEdit ? (
+          <span className="inline-flex items-center gap-2">
             <TableIconActionButton
-              variant="Delete"
-              tooltipText="Delete member"
-              dataTestId="delete-member"
-              onClick={() => onDelete(row.original)}
+              variant="Edit"
+              tooltipText="Edit member"
+              dataTestId="edit-member"
+              onClick={() => onEdit(row.original)}
             />
-          )}
-        </span>
-      ) : null,
-  },
+            {onResetSpend && (
+              <ResetSpendAction
+                disabledReason={resetSpendDisabledReason?.(row.original) ?? null}
+                onClick={() => onResetSpend(row.original)}
+              />
+            )}
+            {(!showDeleteForMember || showDeleteForMember(row.original)) && (
+              <TableIconActionButton
+                variant="Delete"
+                tooltipText="Delete member"
+                dataTestId="delete-member"
+                onClick={() => onDelete(row.original)}
+              />
+            )}
+          </span>
+        ) : null,
+    },
+    { header: "Actions" },
+  ),
 ];
 
 export default function MemberTable({
@@ -228,6 +241,7 @@ export default function MemberTable({
   resetSpendDisabledReason,
   emptyText,
 }: MemberTableProps) {
+  useUiLocale();
   const [globalFilter, setGlobalFilter] = useState("");
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -245,7 +259,7 @@ export default function MemberTable({
   };
   const columns = buildColumns(columnDeps);
   const roleFilterItems = [
-    { value: ALL_ROLES, label: "All Roles" },
+    markUiCopy({ value: ALL_ROLES, label: "All Roles" }, { label: "All Roles" }),
     ...memberRoleOptions(members).map((role) => ({ value: role, label: role })),
   ];
 
@@ -254,7 +268,9 @@ export default function MemberTable({
   return (
     <div className="flex w-full flex-col gap-2">
       <span className="inline-flex text-sm text-foreground">
-        {members.length} Member{members.length !== 1 ? "s" : ""}
+        {members.length}
+        <LocalizedText text={" Member"} />
+        {members.length !== 1 ? translateMessage("s") : ""}
       </span>
       <DataTable
         data={members}
@@ -269,7 +285,9 @@ export default function MemberTable({
         onGlobalFilterChange={setGlobalFilter}
         noDataMessage={
           <span className="text-muted-foreground">
-            {isNarrowed ? "No members match your search or filters" : emptyText ?? "No data"}
+            {isNarrowed
+              ? translateMessage("No members match your search or filters")
+              : emptyText ?? translateMessage("No data")}
           </span>
         }
         toolbar={(table) => (
@@ -278,7 +296,7 @@ export default function MemberTable({
               table={table}
               searchValue={globalFilter}
               onSearchChange={setGlobalFilter}
-              searchPlaceholder="Search by name, email, or user ID"
+              searchPlaceholder={translateMessage("Search by name, email, or user ID")}
               onOpenFilters={() => setFiltersOpen(true)}
               showViewOptions={false}
             />
@@ -286,8 +304,8 @@ export default function MemberTable({
               table={table}
               open={filtersOpen}
               onOpenChange={setFiltersOpen}
-              title="Filters"
-              description="Narrow down members"
+              title={translateMessage("Filters")}
+              description={translateMessage("Narrow down members")}
             >
               {({ get, set }) => (
                 <DataTableFilterField label={roleColumnTitle}>
@@ -297,12 +315,12 @@ export default function MemberTable({
                     onValueChange={(value) => set("role", value === ALL_ROLES ? undefined : value)}
                   >
                     <SelectTrigger className="w-full" data-testid="filter-role">
-                      <SelectValue placeholder="All Roles" />
+                      <SelectValue placeholder={translateMessage("All Roles")} />
                     </SelectTrigger>
                     <SelectContent>
                       {roleFilterItems.map((item) => (
                         <SelectItem key={item.value} value={item.value}>
-                          {item.label}
+                          {localizedProperty(item, "label", item.label)}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -316,7 +334,7 @@ export default function MemberTable({
       {onAddMember && canEdit && (
         <Button onClick={onAddMember} className="self-start">
           <UserPlus className="size-4" />
-          Add Member
+          <LocalizedText text={"Add Member"} />
         </Button>
       )}
     </div>

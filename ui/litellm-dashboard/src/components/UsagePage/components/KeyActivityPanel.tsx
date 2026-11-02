@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, getIntlLocale, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 import { KeyRound, Search, X } from "lucide-react";
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
@@ -60,8 +62,8 @@ type KeyDetailState =
 
 const keyCountText = (searching: boolean, isFiltering: boolean, shownKeys: number, total: number): string => {
   if (searching) return "Searching...";
-  if (isFiltering) return `${shownKeys.toLocaleString()} matching keys`;
-  return `${total.toLocaleString()} keys`;
+  if (isFiltering) return `${shownKeys.toLocaleString(getIntlLocale())} matching keys`;
+  return `${total.toLocaleString(getIntlLocale())} keys`;
 };
 
 interface KeyDetailContentProps {
@@ -72,21 +74,30 @@ interface KeyDetailContentProps {
 }
 
 const KeyDetailContent: React.FC<KeyDetailContentProps> = ({ apiKey, detail, hidePromptCachingMetrics, onRetry }) => {
+  useUiLocale();
   if (detail?.status === "loading") {
-    return <p className="py-4 text-sm text-muted-foreground">Loading key details...</p>;
+    return (
+      <p className="py-4 text-sm text-muted-foreground">
+        <LocalizedText text={"Loading key details..."} />
+      </p>
+    );
   }
   if (detail?.status === "failed") {
     return (
       <p className="py-4 text-sm text-muted-foreground">
-        Could not load key details.{" "}
+        <LocalizedText text={"Could not load key details."} />{" "}
         <button type="button" className="font-medium text-foreground underline" onClick={onRetry}>
-          Retry
+          <LocalizedText text={"Retry"} />
         </button>
       </p>
     );
   }
   if (detail?.status !== "loaded" || detail.metrics === undefined) {
-    return <p className="py-4 text-sm text-muted-foreground">No daily details available</p>;
+    return (
+      <p className="py-4 text-sm text-muted-foreground">
+        <LocalizedText text={"No daily details available"} />
+      </p>
+    );
   }
   return (
     <ModelSection modelName={apiKey} metrics={detail.metrics} hidePromptCachingMetrics={hidePromptCachingMetrics} />
@@ -104,12 +115,15 @@ const summarySeries = (summary: ModelActivityData): SeriesDay[] =>
       tokens: day.metrics.total_tokens,
     }));
 
-const StatCell: React.FC<{ children: React.ReactNode; trend?: React.ReactNode }> = ({ children, trend }) => (
-  <div className="flex min-w-0 flex-col justify-between gap-3 border-b px-4 pt-3.5 pb-3 last:border-b-0 lg:border-b-0">
-    <div className="min-w-0">{children}</div>
-    {trend}
-  </div>
-);
+const StatCell: React.FC<{ children: React.ReactNode; trend?: React.ReactNode }> = ({ children, trend }) => {
+  useUiLocale();
+  return (
+    <div className="flex min-w-0 flex-col justify-between gap-3 border-b px-4 pt-3.5 pb-3 last:border-b-0 lg:border-b-0">
+      <div className="min-w-0">{children}</div>
+      {trend}
+    </div>
+  );
+};
 
 interface KeySummaryStripProps {
   summary: ModelActivityData;
@@ -118,6 +132,7 @@ interface KeySummaryStripProps {
 }
 
 const KeySummaryStrip: React.FC<KeySummaryStripProps> = ({ summary, loading, hidePromptCachingMetrics }) => {
+  useUiLocale();
   const daily = useMemo(() => summarySeries(summary), [summary]);
   const trend = (dataKey: string) =>
     loading || daily.length < 2 ? undefined : (
@@ -131,34 +146,43 @@ const KeySummaryStrip: React.FC<KeySummaryStripProps> = ({ summary, loading, hid
     >
       {loading ? (
         <span role="status" className="sr-only">
-          Loading chart data...
+          <LocalizedText text={"Loading chart data..."} />
         </span>
       ) : (
-        <h3 className="sr-only">Overall Usage</h3>
+        <h3 className="sr-only">
+          <LocalizedText text={"Overall Usage"} />
+        </h3>
       )}
       <StatCell trend={trend("spend")}>
-        <Stat label="Spend" value={formatUsd(summary.total_spend)} pending={loading} />
+        <Stat label={translateMessage("Spend")} value={formatUsd(summary.total_spend)} pending={loading} />
       </StatCell>
       <StatCell trend={trend("requests")}>
-        <Stat label="Requests" value={summary.total_requests.toLocaleString()} pending={loading} />
+        <Stat
+          label={translateMessage("Requests")}
+          value={summary.total_requests.toLocaleString(getIntlLocale())}
+          pending={loading}
+        />
         {!loading && (
           <div className="mt-0.5 flex gap-3 text-xs text-muted-foreground">
             <span>
-              <span className="text-success tabular-nums">{summary.total_successful_requests.toLocaleString()}</span> ok
+              <span className="text-success tabular-nums">
+                {summary.total_successful_requests.toLocaleString(getIntlLocale())}
+              </span>
+              <LocalizedText text={" ok"} />
             </span>
             <span>
               <span className={summary.total_failed_requests > 0 ? "text-destructive tabular-nums" : "tabular-nums"}>
-                {summary.total_failed_requests.toLocaleString()}
+                {summary.total_failed_requests.toLocaleString(getIntlLocale())}
               </span>{" "}
-              failed
+              <LocalizedText text={"failed"} />
             </span>
           </div>
         )}
       </StatCell>
       <StatCell trend={trend("tokens")}>
         <Stat
-          label="Tokens"
-          value={summary.total_tokens.toLocaleString()}
+          label={translateMessage("Tokens")}
+          value={summary.total_tokens.toLocaleString(getIntlLocale())}
           pending={loading}
           hint={
             loading
@@ -169,7 +193,7 @@ const KeySummaryStrip: React.FC<KeySummaryStripProps> = ({ summary, loading, hid
       </StatCell>
       <StatCell>
         <Stat
-          label="Avg cost / request"
+          label={translateMessage("Avg cost / request")}
           value={formatUsd(avgCost, 4)}
           pending={loading}
           hint={
@@ -192,6 +216,7 @@ const KeyActivityPanel: React.FC<KeyActivityPanelProps> = ({
   teams,
   hidePromptCachingMetrics = false,
 }) => {
+  useUiLocale();
   const [queryState, setQueryState] = useState<{ scope: FetchKeyPage; value: string } | null>(null);
   const query = queryState?.scope === fetchKeyPage ? queryState.value : "";
   const updateQuery = useCallback((value: string) => setQueryState({ scope: fetchKeyPage, value }), [fetchKeyPage]);
@@ -383,16 +408,20 @@ const KeyActivityPanel: React.FC<KeyActivityPanelProps> = ({
   };
   const firstPageError = (
     <p className="px-4 py-8 text-center text-sm text-muted-foreground">
-      Could not load keys for this range.{" "}
+      <LocalizedText text={"Could not load keys for this range."} />{" "}
       <button type="button" className="font-medium text-foreground underline" onClick={retryFirstPage}>
-        Retry
+        <LocalizedText text={"Retry"} />
       </button>
     </p>
   );
   const emptyListBody = (() => {
     if (failed) return firstPageError;
     if (!loading) return null;
-    return <p className="px-4 py-8 text-center text-sm text-muted-foreground">Loading keys...</p>;
+    return (
+      <p className="px-4 py-8 text-center text-sm text-muted-foreground">
+        <LocalizedText text={"Loading keys..."} />
+      </p>
+    );
   })();
   const maxSpend = Math.max(0, ...Object.values(filteredMetrics).map((metrics) => metrics.total_spend));
   const keyList = Object.entries(filteredMetrics).map(([apiKey, metrics]) => {
@@ -406,7 +435,9 @@ const KeyActivityPanel: React.FC<KeyActivityPanelProps> = ({
         header={
           <div className={KEY_ROW_GRID}>
             <div className="min-w-0">
-              <div className="truncate text-sm text-foreground">{metrics.label}</div>
+              <div className="truncate text-sm text-foreground">
+                {localizedProperty(metrics, "label", metrics.label)}
+              </div>
               <div aria-hidden="true" className="mt-1 h-1 w-full max-w-xs overflow-hidden rounded-full bg-muted">
                 <div
                   className="h-full rounded-full opacity-80"
@@ -416,7 +447,10 @@ const KeyActivityPanel: React.FC<KeyActivityPanelProps> = ({
             </div>
             <span className="text-right text-sm tabular-nums text-foreground">{formatUsd(metrics.total_spend)}</span>
             <span className="text-right text-sm tabular-nums text-muted-foreground">
-              {metrics.total_requests.toLocaleString()} <span className="sr-only">requests</span>
+              {metrics.total_requests.toLocaleString(getIntlLocale())}{" "}
+              <span className="sr-only">
+                <LocalizedText text={"requests"} />
+              </span>
             </span>
           </div>
         }
@@ -440,14 +474,19 @@ const KeyActivityPanel: React.FC<KeyActivityPanelProps> = ({
   const showSearchErrorNote = !noMatches && searchFailed && !searching;
   const searchRetryButton = (
     <button type="button" className="font-medium text-foreground underline" onClick={retrySearch}>
-      Retry search
+      <LocalizedText text={"Retry search"} />
     </button>
   );
   const emptyFilterBody = searchFailed ? (
-    <p className="px-4 py-8 text-center text-sm text-muted-foreground">Could not search keys. {searchRetryButton}</p>
+    <p className="px-4 py-8 text-center text-sm text-muted-foreground">
+      <LocalizedText text={"Could not search keys. "} />
+      {searchRetryButton}
+    </p>
   ) : (
     <p className="px-4 py-8 text-center text-sm text-muted-foreground">
-      No keys match &quot;{trimmedQuery}&quot; in this date range
+      <LocalizedText text={'No keys match "'} />
+      {trimmedQuery}
+      <LocalizedText text={'" in this date range'} />
     </p>
   );
 
@@ -489,14 +528,18 @@ const KeyActivityPanel: React.FC<KeyActivityPanelProps> = ({
         <Search className="size-3.5 text-muted-foreground" />
       </InputGroupAddon>
       <InputGroupInput
-        aria-label="Search keys"
-        placeholder="Search alias, hash, user ID, or email"
+        aria-label={translateMessage("Search keys")}
+        placeholder={translateMessage("Search alias, hash, user ID, or email")}
         value={query}
         onChange={(event) => updateQuery(event.target.value)}
       />
       {isFiltering && (
         <InputGroupAddon align="inline-end">
-          <InputGroupButton size="icon-xs" aria-label="Clear key search" onClick={() => updateQuery("")}>
+          <InputGroupButton
+            size="icon-xs"
+            aria-label={translateMessage("Clear key search")}
+            onClick={() => updateQuery("")}
+          >
             <X />
           </InputGroupButton>
         </InputGroupAddon>
@@ -515,27 +558,47 @@ const KeyActivityPanel: React.FC<KeyActivityPanelProps> = ({
         )}
       </div>
       <KeySummaryStrip summary={summary} loading={summaryLoading} hidePromptCachingMetrics={hidePromptCachingMetrics} />
-      <Panel icon={KeyRound} title="Virtual keys" className="overflow-hidden" bodyClassName="px-0 pt-3 pb-0">
+      <Panel
+        icon={KeyRound}
+        title={translateMessage("Virtual keys")}
+        className="overflow-hidden"
+        bodyClassName="px-0 pt-3 pb-0"
+      >
         {showColumnHeaders && (
           <div
             aria-hidden="true"
             className={`${KEY_ROW_GRID} border-y bg-muted/40 py-2 pr-4 pl-10 text-xs font-medium text-muted-foreground`}
           >
-            <span>Key</span>
-            <span className="text-right">Spend</span>
-            <span className="text-right">Requests</span>
+            <span>
+              <LocalizedText text={"Key"} />
+            </span>
+            <span className="text-right">
+              <LocalizedText text={"Spend"} />
+            </span>
+            <span className="text-right">
+              <LocalizedText text={"Requests"} />
+            </span>
           </div>
         )}
         <div className={showColumnHeaders ? undefined : "border-t"}>{noMatches ? emptyFilterBody : listBody}</div>
         {showFooter && (
           <div className="border-t px-4 py-2.5 text-xs text-muted-foreground">
-            {showSearchErrorNote && <p>Could not search all keys. {searchRetryButton}</p>}
-            {loadingMore && <p>Loading more keys...</p>}
+            {showSearchErrorNote && (
+              <p>
+                <LocalizedText text={"Could not search all keys. "} />
+                {searchRetryButton}
+              </p>
+            )}
+            {loadingMore && (
+              <p>
+                <LocalizedText text={"Loading more keys..."} />
+              </p>
+            )}
             {showNextPageRetry && (
               <p>
-                Could not load more keys.{" "}
+                <LocalizedText text={"Could not load more keys."} />{" "}
                 <button type="button" className="font-medium text-foreground underline" onClick={retryNextPage}>
-                  Retry
+                  <LocalizedText text={"Retry"} />
                 </button>
               </p>
             )}

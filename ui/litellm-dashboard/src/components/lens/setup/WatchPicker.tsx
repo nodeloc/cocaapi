@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, useUiLocale } from "@/lib/i18n";
 
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { watches as defaultWatches } from "../model/watches";
@@ -16,6 +17,7 @@ function dotColor(lit: boolean, pastLens: boolean, incoming: string, blue: strin
 }
 
 function DotFlow({ active }: { active: readonly string[] }) {
+  useUiLocale();
   const canvas = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
     const node = canvas.current;
@@ -96,6 +98,7 @@ export function WatchPicker({
   label?: string;
   addDisabled?: boolean;
 }) {
+  useUiLocale();
   const [cursor, setCursor] = useState(0);
   const items = useRef<(HTMLButtonElement | null)[]>([]);
   const toggle = (id: string) =>
@@ -126,7 +129,10 @@ export function WatchPicker({
       <div className="flex items-end justify-between gap-3">
         <legend className="text-sm font-medium">{label}</legend>
         <span className="text-xs tabular-nums text-muted-foreground">
-          {watches.filter((watch) => selected.has(watch.id)).length} of {watches.length} selected
+          {watches.filter((watch) => selected.has(watch.id)).length}
+          <LocalizedText text={" of "} />
+          {watches.length}
+          <LocalizedText text={" selected"} />
         </span>
       </div>
       <DotFlow active={activeColors} />
@@ -187,8 +193,12 @@ export function WatchPicker({
         >
           +
         </span>
-        <span className="font-medium">Add your own</span>
-        <span className="text-muted-foreground">describe anything else in plain English</span>
+        <span className="font-medium">
+          <LocalizedText text={"Add your own"} />
+        </span>
+        <span className="text-muted-foreground">
+          <LocalizedText text={"describe anything else in plain English"} />
+        </span>
       </button>
     </fieldset>
   );

@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { Plus } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -35,6 +36,7 @@ export function AutoRoutersPanel({
   teams,
   createScope,
 }: AutoRoutersPanelProps) {
+  useUiLocale();
   const canCreate = createScope !== "forbidden";
   const { data: deployments, isLoading } = useAutoRouters();
   const invalidateAutoRouters = useInvalidateAutoRouters();
@@ -61,7 +63,7 @@ export function AutoRoutersPanel({
     setIsDeleting(true);
     try {
       await modelDeleteCall(accessToken, deletingRouter.id);
-      toast.success(`Deleted auto router: ${deletingRouter.name}`);
+      toast.success(translateMessage("Deleted auto router: %{0}", [deletingRouter.name]));
       setDeletingRouter(null);
       await invalidateAutoRouters();
     } catch (error) {
@@ -75,16 +77,21 @@ export function AutoRoutersPanel({
     <div className="w-full space-y-4">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-base font-semibold text-foreground">Auto routers</h2>
+          <h2 className="text-base font-semibold text-foreground">
+            <LocalizedText text={"Auto routers"} />
+          </h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Auto routers sit above your deployments and pick a model per request. They are called like any other model,
-            so clients keep using a single model name.
+            <LocalizedText
+              text={
+                "Auto routers sit above your deployments and pick a model per request. They are called like any other model, so clients keep using a single model name."
+              }
+            />
           </p>
         </div>
         {canCreate && (
           <Button onClick={() => setIsCreating(true)} className="shrink-0">
             <Plus />
-            Add Auto Router
+            <LocalizedText text={"Add Auto Router"} />
           </Button>
         )}
       </div>
@@ -105,10 +112,15 @@ export function AutoRoutersPanel({
           className="max-h-[90vh] overflow-y-auto sm:max-w-4xl"
         >
           <DialogHeader>
-            <DialogTitle>Add Auto Router</DialogTitle>
+            <DialogTitle>
+              <LocalizedText text={"Add Auto Router"} />
+            </DialogTitle>
             <DialogDescription>
-              Choose a classifier to route each request to a model. Called like any other model, so clients keep using a
-              single model name.
+              <LocalizedText
+                text={
+                  "Choose a classifier to route each request to a model. Called like any other model, so clients keep using a single model name."
+                }
+              />
             </DialogDescription>
           </DialogHeader>
           <AddAutoRouterTab
@@ -125,13 +137,16 @@ export function AutoRoutersPanel({
       {deletingRouter && (
         <DeleteResourceModal
           isOpen
-          title="Delete Auto Router"
-          message={`Are you sure you want to delete "${deletingRouter.name}"? Any client still calling this model name will start failing.`}
+          title={translateMessage("Delete Auto Router")}
+          message={translateMessage(
+            'Are you sure you want to delete "%{0}"? Any client still calling this model name will start failing.',
+            [deletingRouter.name],
+          )}
           resourceInformationTitle="Auto router"
           resourceInformation={[
-            { label: "Name", value: deletingRouter.name },
-            { label: "Type", value: deletingRouter.typeLabel },
-            { label: "ID", value: deletingRouter.id },
+            markUiCopy({ label: "Name", value: deletingRouter.name }, { label: "Name" }),
+            markUiCopy({ label: "Type", value: deletingRouter.typeLabel }, { label: "Type" }),
+            markUiCopy({ label: "ID", value: deletingRouter.id }, { label: "ID" }),
           ]}
           onCancel={() => setDeletingRouter(null)}
           onOk={handleConfirmDelete}

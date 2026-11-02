@@ -1,4 +1,5 @@
 "use client";
+import { translateMessage, useUiLocale } from "@/lib/i18n";
 
 import React from "react";
 import { Tooltip as TooltipPrimitive } from "@base-ui/react/tooltip";
@@ -7,14 +8,17 @@ import { CircleHelp } from "lucide-react";
 import { cn } from "@/lib/cva.config";
 
 function TooltipProvider({ delay = 0, ...props }: TooltipPrimitive.Provider.Props) {
+  useUiLocale();
   return <TooltipPrimitive.Provider data-slot="tooltip-provider" delay={delay} {...props} />;
 }
 
 function Tooltip({ ...props }: TooltipPrimitive.Root.Props) {
+  useUiLocale();
   return <TooltipPrimitive.Root data-slot="tooltip" {...props} />;
 }
 
 function TooltipTrigger({ ...props }: TooltipPrimitive.Trigger.Props) {
+  useUiLocale();
   return <TooltipPrimitive.Trigger data-slot="tooltip-trigger" {...props} />;
 }
 
@@ -28,6 +32,7 @@ function TooltipContent({
   ...props
 }: TooltipPrimitive.Popup.Props &
   Pick<TooltipPrimitive.Positioner.Props, "align" | "alignOffset" | "side" | "sideOffset">) {
+  useUiLocale();
   return (
     <TooltipPrimitive.Portal>
       <TooltipPrimitive.Positioner
@@ -73,10 +78,13 @@ const triggerClassName = (className?: string): string =>
     className,
   );
 
-const defaultTrigger = <CircleHelp aria-label="question-circle" className="ml-1 size-4 text-muted-foreground" />;
+const defaultTrigger = (
+  <CircleHelp aria-label={translateMessage("question-circle")} className="ml-1 size-4 text-muted-foreground" />
+);
 
-const SimpleTooltip: React.FC<SimpleTooltipProps> = ({ content, children, width = "auto", className, side }) =>
-  content === undefined || content === null || content === "" ? (
+const SimpleTooltip: React.FC<SimpleTooltipProps> = ({ content, children, width = "auto", className, side }) => {
+  useUiLocale();
+  return content === undefined || content === null || content === "" ? (
     <span className={triggerClassName(className)}>{children ?? defaultTrigger}</span>
   ) : (
     <TooltipProvider>
@@ -90,5 +98,6 @@ const SimpleTooltip: React.FC<SimpleTooltipProps> = ({ content, children, width 
       </Tooltip>
     </TooltipProvider>
   );
+};
 
 export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider, SimpleTooltip };

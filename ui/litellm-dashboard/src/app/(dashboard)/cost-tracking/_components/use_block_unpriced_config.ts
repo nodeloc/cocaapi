@@ -1,3 +1,5 @@
+"use client";
+import { translateMessage, useUiLocale } from "@/lib/i18n";
 import { useState, useCallback } from "react";
 import { apiClient } from "@/components/networking";
 import { toast } from "@/lib/toast";
@@ -20,6 +22,7 @@ interface BlockUnpricedResponse {
 const ENDPOINT = "/config/block_requests_for_models_without_pricing";
 
 export function useBlockUnpricedConfig({ accessToken }: UseBlockUnpricedConfigProps): UseBlockUnpricedConfigReturn {
+  useUiLocale();
   const [blockUnpriced, setBlockUnpricedState] = useState<boolean>(false);
   const [isUpdating, setIsUpdating] = useState<boolean>(false);
 
@@ -43,8 +46,8 @@ export function useBlockUnpricedConfig({ accessToken }: UseBlockUnpricedConfigPr
         setBlockUnpricedState(Boolean(data?.enabled));
         toast.success(
           enabled
-            ? "Requests for models without pricing will now be blocked"
-            : "Requests for models without pricing are now allowed",
+            ? translateMessage("Requests for models without pricing will now be blocked")
+            : translateMessage("Requests for models without pricing are now allowed"),
         );
       } catch (error) {
         console.error("Error updating block-unpriced-models setting:", error);

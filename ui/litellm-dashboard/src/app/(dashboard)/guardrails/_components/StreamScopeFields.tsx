@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { GuardrailField, labelWithHint, type GuardrailFormControl } from "./GuardrailFormField";
 import {
@@ -7,10 +9,15 @@ import {
   isGuardrailStreamScope,
 } from "./guardrail_info_helpers";
 
-const STREAM_SCOPE_ITEMS = STREAM_SCOPE_OPTIONS.map((option) => ({
-  label: option.label,
-  value: option.value,
-}));
+const STREAM_SCOPE_ITEMS = STREAM_SCOPE_OPTIONS.map((option) =>
+  markUiCopy(
+    {
+      label: option.label,
+      value: option.value,
+    },
+    { label: { owner: option, field: "label" } },
+  ),
+);
 
 const REQUEST_SHAPE_HINT =
   "Run this guardrail on streaming requests, non-streaming requests, or both, for each selected mode.";
@@ -24,6 +31,7 @@ export const StreamScopeFields = ({
   value: Record<string, GuardrailStreamScope>;
   onChange: (next: Record<string, GuardrailStreamScope>) => void;
 }) => {
+  useUiLocale();
   if (modes.length === 0) return null;
 
   return (
@@ -33,7 +41,8 @@ export const StreamScopeFields = ({
         return (
           <div key={mode} className="space-y-1">
             <label htmlFor={`stream-scope-${mode}`} className="block text-sm font-medium text-foreground">
-              {mode} applies to
+              {mode}
+              <LocalizedText text={" applies to"} />
             </label>
             <Select
               items={STREAM_SCOPE_ITEMS}
@@ -44,12 +53,12 @@ export const StreamScopeFields = ({
               }}
             >
               <SelectTrigger id={`stream-scope-${mode}`} className="w-full">
-                <SelectValue placeholder="Streaming and non-streaming" />
+                <SelectValue placeholder={translateMessage("Streaming and non-streaming")} />
               </SelectTrigger>
               <SelectContent>
                 {STREAM_SCOPE_OPTIONS.map((option) => (
                   <SelectItem key={option.value} value={option.value}>
-                    {option.label}
+                    {localizedProperty(option, "label", option.label)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -61,34 +70,41 @@ export const StreamScopeFields = ({
   );
 };
 
-export const StreamScopeFormField = ({ control, modes }: { control: GuardrailFormControl; modes: string[] }) => (
-  <GuardrailField
-    control={control}
-    name="stream_scope_by_mode"
-    label={labelWithHint("Request shape", REQUEST_SHAPE_HINT)}
-  >
-    {({ value, onChange }) => (
-      <StreamScopeFields
-        modes={modes}
-        value={(value as Record<string, GuardrailStreamScope> | undefined) ?? {}}
-        onChange={onChange}
-      />
-    )}
-  </GuardrailField>
-);
+export const StreamScopeFormField = ({ control, modes }: { control: GuardrailFormControl; modes: string[] }) => {
+  useUiLocale();
+  return (
+    <GuardrailField
+      control={control}
+      name="stream_scope_by_mode"
+      label={labelWithHint("Request shape", REQUEST_SHAPE_HINT)}
+    >
+      {({ value, onChange }) => (
+        <StreamScopeFields
+          modes={modes}
+          value={(value as Record<string, GuardrailStreamScope> | undefined) ?? {}}
+          onChange={onChange}
+        />
+      )}
+    </GuardrailField>
+  );
+};
 
 export const GuardrailStreamScopeCaption = ({ raw }: { raw: unknown }) => {
+  useUiLocale();
   const label = formatGuardrailStreamScope(raw);
   if (!label) return null;
   return <p className="mt-1 text-sm text-muted-foreground">{label}</p>;
 };
 
 export const GuardrailStreamScopeDetail = ({ raw }: { raw: unknown }) => {
+  useUiLocale();
   const label = formatGuardrailStreamScope(raw);
   if (!label) return null;
   return (
     <div>
-      <p className="font-medium">Request shape</p>
+      <p className="font-medium">
+        <LocalizedText text={"Request shape"} />
+      </p>
       <div>{label}</div>
     </div>
   );

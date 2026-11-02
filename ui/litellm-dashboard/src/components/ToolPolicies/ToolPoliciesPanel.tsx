@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import React, { useCallback, useMemo, useState } from "react";
@@ -49,6 +50,7 @@ interface ToolPoliciesPanelProps {
 }
 
 export const ToolPoliciesPanel: React.FC<ToolPoliciesPanelProps> = ({ accessToken, onSelectTool }) => {
+  useUiLocale();
   const queryClient = useQueryClient();
   const canViewToolPolicies = useCan("viewToolPolicies");
   const [savingInput, setSavingInput] = useState<ReadonlySet<string>>(() => new Set());
@@ -131,11 +133,13 @@ export const ToolPoliciesPanel: React.FC<ToolPoliciesPanelProps> = ({ accessToke
 
   return (
     <div className="w-full">
-      <h1 className="text-2xl font-semibold text-foreground mb-6">Tool Policies</h1>
+      <h1 className="text-2xl font-semibold text-foreground mb-6">
+        <LocalizedText text={"Tool Policies"} />
+      </h1>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <MetricCard
-          label="New Today"
+          label={translateMessage("New Today")}
           value={newToday}
           valueColor="text-success"
           subtitle={trendSubtitle}
@@ -145,21 +149,25 @@ export const ToolPoliciesPanel: React.FC<ToolPoliciesPanelProps> = ({ accessToke
             </svg>
           }
         />
-        <MetricCard label="Total Tools Discovered" value={totalTools} />
+        <MetricCard label={translateMessage("Total Tools Discovered")} value={totalTools} />
         <MetricCard
-          label="Blocked Tools"
+          label={translateMessage("Blocked Tools")}
           value={blockedCount}
           valueColor={blockedCount > 0 ? "text-destructive" : undefined}
         />
-        <MetricCard label="Active Teams" value={activeTeamsCount > 0 ? activeTeamsCount : "—"} />
+        <MetricCard label={translateMessage("Active Teams")} value={activeTeamsCount > 0 ? activeTeamsCount : "—"} />
       </div>
 
       {needsReviewTools.length > 0 && (
         <div className="bg-warning/10 border border-warning/20 rounded-lg p-4 mb-6">
-          <h2 className="text-sm font-semibold text-warning mb-1">Needs Review</h2>
+          <h2 className="text-sm font-semibold text-warning mb-1">
+            <LocalizedText text={"Needs Review"} />
+          </h2>
           <p className="text-sm text-warning mb-3">
-            {needsReviewTools.length} new tool{needsReviewTools.length !== 1 ? "s" : ""} discovered that require policy
-            decisions.
+            {needsReviewTools.length}
+            <LocalizedText text={" new tool"} />
+            {needsReviewTools.length !== 1 ? translateMessage("s") : ""}
+            <LocalizedText text={" discovered that require policy decisions."} />
           </p>
           <div className="flex flex-wrap gap-2">
             {needsReviewTools.map((tool) => (
@@ -175,7 +183,7 @@ export const ToolPoliciesPanel: React.FC<ToolPoliciesPanelProps> = ({ accessToke
                   onClick={() => scrollToToolRow(tool.tool_id)}
                   className="text-warning hover:text-warning/80 font-medium text-xs whitespace-nowrap"
                 >
-                  Review
+                  <LocalizedText text={"Review"} />
                 </button>
               </span>
             ))}

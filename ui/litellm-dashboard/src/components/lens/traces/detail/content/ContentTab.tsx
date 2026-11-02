@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { useQuery, type UseQueryOptions } from "@tanstack/react-query";
 
@@ -16,6 +17,7 @@ const COLLAPSE_INPUT_ABOVE = 8;
 
 /** Shared lazy fetch of one span's full input / output / attributes. */
 export function useSpanDetail(accessToken: string, traceId: string, spanId: string | null, traceRef?: string) {
+  useUiLocale();
   const traces = useTracesApi(accessToken);
   const queryOptions: UseQueryOptions<SpanDetail, Error> = {
     queryKey: ["agentTraceSpan", traceId, traceRef, spanId, accessToken],
@@ -29,19 +31,15 @@ export function useSpanDetail(accessToken: string, traceId: string, spanId: stri
 const messageCount = (raw: string, content: UIContent | undefined): number | undefined =>
   content?.kind === "messages" ? content.messages.length : parseMessages(raw)?.length;
 
-function PayloadSection({
-  title,
-  raw,
-  content,
-  span,
-  role,
-}: {
+function PayloadSection(cocaCopyProps0: {
   title: string;
   raw: string;
   content: UIContent | undefined;
   span: Span;
   role: "input" | "output";
 }) {
+  const { title, raw, content, span, role } = cocaCopyProps0;
+  useUiLocale();
   const view = payloadView(
     raw,
     content,
@@ -52,7 +50,7 @@ function PayloadSection({
   return (
     <Section
       key={`${span.span_id}:${count}`}
-      title={title}
+      title={localizedProperty(cocaCopyProps0, "title", title)}
       count={count}
       defaultOpen={!count || count <= COLLAPSE_INPUT_ABOVE}
     >
@@ -74,6 +72,7 @@ interface ContentTabProps {
 
 /** The error first (if any), then collapsible Input and Output. */
 export function ContentTab({ accessToken, traceId, traceRef, span }: ContentTabProps) {
+  useUiLocale();
   const detailQuery = useSpanDetail(accessToken, traceId, span.span_id, traceRef);
   const detail = detailQuery.data;
   const empty = detail && !detail.input && !detail.output;
@@ -93,16 +92,39 @@ export function ContentTab({ accessToken, traceId, traceRef, span }: ContentTabP
           )}
         </div>
       )}
-      {detailQuery.isLoading && <div className={STATUS_TEXT}>Loading span…</div>}
-      {detailQuery.isError && <div className={STATUS_TEXT}>Could not load span: {detailQuery.error.message}</div>}
+      {detailQuery.isLoading && (
+        <div className={STATUS_TEXT}>
+          <LocalizedText text={"Loading span…"} />
+        </div>
+      )}
+      {detailQuery.isError && (
+        <div className={STATUS_TEXT}>
+          <LocalizedText text={"Could not load span: "} />
+          {localizedProperty(detailQuery.error, "message")}
+        </div>
+      )}
       {detail?.input ? (
-        <PayloadSection title="Input" raw={detail.input} content={detail.input_ui} span={span} role="input" />
+        <PayloadSection
+          title={translateMessage("Input")}
+          raw={detail.input}
+          content={detail.input_ui}
+          span={span}
+          role="input"
+        />
       ) : null}
       {detail?.output ? (
-        <PayloadSection title="Output" raw={detail.output} content={detail.output_ui} span={span} role="output" />
+        <PayloadSection
+          title={translateMessage("Output")}
+          raw={detail.output}
+          content={detail.output_ui}
+          span={span}
+          role="output"
+        />
       ) : null}
       {empty && span.status !== "error" && (
-        <div className="py-12 text-center text-sm text-muted-foreground">No content recorded for this span.</div>
+        <div className="py-12 text-center text-sm text-muted-foreground">
+          <LocalizedText text={"No content recorded for this span."} />
+        </div>
       )}
     </div>
   );

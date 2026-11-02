@@ -1,3 +1,5 @@
+"use client";
+import { localizedProperty, markUiCopy, useUiLocale } from "@/lib/i18n";
 import { useCustomerNative } from "@/components/account/native/CustomerNativeContext";
 import { BarChart3, Bot, Building2, Globe, LineChart, ShoppingCart, Tags, User, Users } from "lucide-react";
 import React from "react";
@@ -39,71 +41,98 @@ interface OptionConfig {
   badgeText?: string;
 }
 const OPTIONS: OptionConfig[] = [
-  {
-    value: "global",
-    label: "Global Usage",
-    showForAdmin: "Global Usage",
-    showForNonAdmin: "Your Usage",
-    description: "View usage across all resources",
-    descriptionForAdmin: "View usage across all resources",
-    descriptionForNonAdmin: "View your usage",
-    icon: <Globe className="size-4" />,
-  },
-  {
-    value: "my-usage",
-    label: "Your Usage",
-    description: "View your own usage",
-    icon: <User className="size-4" />,
-    adminOnly: true,
-  },
-  {
-    value: "organization",
-    label: "Organization Usage",
-    description: "View usage across all organizations",
-    icon: <Building2 className="size-4" />,
-    capability: "viewOrganizationUsage",
-  },
-  {
-    value: "team",
-    label: "Team Usage",
-    description: "View usage by team",
-    icon: <Users className="size-4" />,
-  },
-  {
-    value: "customer",
-    label: "Customer Usage",
-    description: "View usage by customer accounts",
-    icon: <ShoppingCart className="size-4" />,
-    adminOnly: true,
-  },
-  {
-    value: "tag",
-    label: "Tag Usage",
-    description: "View usage grouped by tags",
-    icon: <Tags className="size-4" />,
-    adminOnly: true,
-  },
-  {
-    value: "agent",
-    label: "Agent Usage (A2A)",
-    description: "View usage by AI agents",
-    icon: <Bot className="size-4" />,
-    capability: "viewAgentUsage",
-  },
-  {
-    value: "user",
-    label: "User Usage",
-    description: "View usage by individual users",
-    icon: <User className="size-4" />,
-    adminOnly: true,
-  },
-  {
-    value: "user-agent-activity",
-    label: "User Agent Activity",
-    description: "View detailed user agent activity logs",
-    icon: <LineChart className="size-4" />,
-    adminOnly: true,
-  },
+  markUiCopy(
+    {
+      value: "global",
+      label: "Global Usage",
+      showForAdmin: "Global Usage",
+      showForNonAdmin: "Your Usage",
+      description: "View usage across all resources",
+      descriptionForAdmin: "View usage across all resources",
+      descriptionForNonAdmin: "View your usage",
+      icon: <Globe className="size-4" />,
+    },
+    { label: "Global Usage", description: "View usage across all resources" },
+  ),
+  markUiCopy(
+    {
+      value: "my-usage",
+      label: "Your Usage",
+      description: "View your own usage",
+      icon: <User className="size-4" />,
+      adminOnly: true,
+    },
+    { label: "Your Usage", description: "View your own usage" },
+  ),
+  markUiCopy(
+    {
+      value: "organization",
+      label: "Organization Usage",
+      description: "View usage across all organizations",
+      icon: <Building2 className="size-4" />,
+      capability: "viewOrganizationUsage",
+    },
+    { label: "Organization Usage", description: "View usage across all organizations" },
+  ),
+  markUiCopy(
+    {
+      value: "team",
+      label: "Team Usage",
+      description: "View usage by team",
+      icon: <Users className="size-4" />,
+    },
+    { label: "Team Usage", description: "View usage by team" },
+  ),
+  markUiCopy(
+    {
+      value: "customer",
+      label: "Customer Usage",
+      description: "View usage by customer accounts",
+      icon: <ShoppingCart className="size-4" />,
+      adminOnly: true,
+    },
+    { label: "Customer Usage", description: "View usage by customer accounts" },
+  ),
+  markUiCopy(
+    {
+      value: "tag",
+      label: "Tag Usage",
+      description: "View usage grouped by tags",
+      icon: <Tags className="size-4" />,
+      adminOnly: true,
+    },
+    { label: "Tag Usage", description: "View usage grouped by tags" },
+  ),
+  markUiCopy(
+    {
+      value: "agent",
+      label: "Agent Usage (A2A)",
+      description: "View usage by AI agents",
+      icon: <Bot className="size-4" />,
+      capability: "viewAgentUsage",
+    },
+    { label: "Agent Usage (A2A)", description: "View usage by AI agents" },
+  ),
+  markUiCopy(
+    {
+      value: "user",
+      label: "User Usage",
+      description: "View usage by individual users",
+      icon: <User className="size-4" />,
+      adminOnly: true,
+    },
+    { label: "User Usage", description: "View usage by individual users" },
+  ),
+  markUiCopy(
+    {
+      value: "user-agent-activity",
+      label: "User Agent Activity",
+      description: "View detailed user agent activity logs",
+      icon: <LineChart className="size-4" />,
+      adminOnly: true,
+    },
+    { label: "User Agent Activity", description: "View detailed user agent activity logs" },
+  ),
 ];
 export const UsageViewSelect: React.FC<UsageViewSelectProps> = ({
   value,
@@ -115,6 +144,7 @@ export const UsageViewSelect: React.FC<UsageViewSelectProps> = ({
   description = "Select the usage data you want to view",
   "data-id": dataId,
 }) => {
+  useUiLocale();
   const customer = useCustomerNative();
   const isAdmin = all_admin_roles.includes(userRole ?? "");
   const getFilteredOptions = () => {
@@ -167,7 +197,7 @@ export const UsageViewSelect: React.FC<UsageViewSelectProps> = ({
             {selectedOption && (
               <span className="flex items-center gap-2">
                 {selectedOption.icon}
-                <span className="text-sm">{selectedOption.label}</span>
+                <span className="text-sm">{localizedProperty(selectedOption, "label", selectedOption.label)}</span>
               </span>
             )}
           </SelectValue>
@@ -179,8 +209,12 @@ export const UsageViewSelect: React.FC<UsageViewSelectProps> = ({
               <span className="flex items-start gap-2.5">
                 <span className="mt-0.5 shrink-0 text-muted-foreground">{option.icon}</span>
                 <span className="min-w-0">
-                  <span className="block text-sm leading-5 text-foreground">{option.label}</span>
-                  <span className="block text-xs leading-4 text-muted-foreground">{option.description}</span>
+                  <span className="block text-sm leading-5 text-foreground">
+                    {localizedProperty(option, "label", option.label)}
+                  </span>
+                  <span className="block text-xs leading-4 text-muted-foreground">
+                    {localizedProperty(option, "description", option.description)}
+                  </span>
                 </span>
                 {option.badgeText && <Badge>{option.badgeText}</Badge>}
               </span>

@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { ColumnFiltersState } from "@tanstack/react-table";
 import { Wrench } from "lucide-react";
@@ -19,13 +20,17 @@ import { getToolPoliciesTableColumns } from "./ToolPoliciesTableColumns";
 const ALL_VALUE = "all";
 
 const INPUT_POLICY_FILTER_ITEMS = [
-  { value: ALL_VALUE, label: "All Input Policies" },
-  ...INPUT_POLICY_OPTIONS.map((option) => ({ value: option.value, label: option.label })),
+  markUiCopy({ value: ALL_VALUE, label: "All Input Policies" }, { label: "All Input Policies" }),
+  ...INPUT_POLICY_OPTIONS.map((option) =>
+    markUiCopy({ value: option.value, label: option.label }, { label: { owner: option, field: "label" } }),
+  ),
 ];
 
 const OUTPUT_POLICY_FILTER_ITEMS = [
-  { value: ALL_VALUE, label: "All Output Policies" },
-  ...OUTPUT_POLICY_OPTIONS.map((option) => ({ value: option.value, label: option.label })),
+  markUiCopy({ value: ALL_VALUE, label: "All Output Policies" }, { label: "All Output Policies" }),
+  ...OUTPUT_POLICY_OPTIONS.map((option) =>
+    markUiCopy({ value: option.value, label: option.label }, { label: { owner: option, field: "label" } }),
+  ),
 ];
 
 const toFilterValue = (value: string | null): string | undefined =>
@@ -44,18 +49,19 @@ interface ToolPoliciesTableProps {
 }
 
 function ToolPoliciesEmptyState({ filtered }: { filtered: boolean }) {
+  useUiLocale();
   return (
     <div className="flex flex-col items-center gap-1 py-6">
       <div className="mb-1 flex size-10 items-center justify-center rounded-lg bg-muted">
         <Wrench className="size-5 text-muted-foreground" />
       </div>
       <div className="text-sm font-medium text-foreground">
-        {filtered ? "No matching tools" : "No tools discovered"}
+        {filtered ? translateMessage("No matching tools") : translateMessage("No tools discovered")}
       </div>
       <div className="max-w-xs text-center text-sm text-muted-foreground">
         {filtered
-          ? "No tools match your search or filters."
-          : "Make a chat completion that returns tool_calls to start auto-discovery."}
+          ? translateMessage("No tools match your search or filters.")
+          : translateMessage("Make a chat completion that returns tool_calls to start auto-discovery.")}
       </div>
     </div>
   );
@@ -76,6 +82,7 @@ export function ToolPoliciesTable({
   onInputPolicyChange,
   onOutputPolicyChange,
 }: ToolPoliciesTableProps) {
+  useUiLocale();
   const [globalFilter, setGlobalFilter] = useState("");
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -89,14 +96,14 @@ export function ToolPoliciesTable({
   const keyAliasOptions = useMemo(() => uniqueValues(data, (row) => row.key_alias), [data]);
   const teamFilterItems = useMemo(
     () => [
-      { value: ALL_VALUE, label: "All Teams" },
+      markUiCopy({ value: ALL_VALUE, label: "All Teams" }, { label: "All Teams" }),
       ...teamOptions.map((option) => ({ value: option, label: option })),
     ],
     [teamOptions],
   );
   const keyAliasFilterItems = useMemo(
     () => [
-      { value: ALL_VALUE, label: "All Keys" },
+      markUiCopy({ value: ALL_VALUE, label: "All Keys" }, { label: "All Keys" }),
       ...keyAliasOptions.map((option) => ({ value: option, label: option })),
     ],
     [keyAliasOptions],
@@ -117,7 +124,7 @@ export function ToolPoliciesTable({
       globalFilter={globalFilter}
       onGlobalFilterChange={setGlobalFilter}
       isLoading={isLoading}
-      loadingMessage="Loading tools…"
+      loadingMessage={translateMessage("Loading tools…")}
       noDataMessage={<ToolPoliciesEmptyState filtered={columnFilters.length > 0 || globalFilter !== ""} />}
       size="compact"
       toolbar={(table) => (
@@ -126,7 +133,7 @@ export function ToolPoliciesTable({
             table={table}
             searchValue={globalFilter}
             onSearchChange={setGlobalFilter}
-            searchPlaceholder="Search by Tool Name"
+            searchPlaceholder={translateMessage("Search by Tool Name")}
             onRefresh={onRefresh}
             isRefreshing={isRefreshing}
             onOpenFilters={() => setFiltersOpen(true)}
@@ -136,60 +143,66 @@ export function ToolPoliciesTable({
             table={table}
             open={filtersOpen}
             onOpenChange={setFiltersOpen}
-            title="Filters"
-            description="Narrow down discovered tools"
+            title={translateMessage("Filters")}
+            description={translateMessage("Narrow down discovered tools")}
           >
             {({ get, set }) => (
               <>
-                <DataTableFilterField label="Input Policy">
+                <DataTableFilterField label={translateMessage("Input Policy")}>
                   <Select
                     items={INPUT_POLICY_FILTER_ITEMS}
                     value={(get("input_policy") as string) ?? ALL_VALUE}
                     onValueChange={(value) => set("input_policy", toFilterValue(value))}
                   >
                     <SelectTrigger className="w-full" data-testid="filter-input-policy">
-                      <SelectValue placeholder="All Input Policies" />
+                      <SelectValue placeholder={translateMessage("All Input Policies")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value={ALL_VALUE}>All Input Policies</SelectItem>
+                      <SelectItem value={ALL_VALUE}>
+                        <LocalizedText text={"All Input Policies"} />
+                      </SelectItem>
                       {INPUT_POLICY_OPTIONS.map((option) => (
                         <SelectItem key={option.value} value={option.value}>
-                          {option.label}
+                          {localizedProperty(option, "label", option.label)}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </DataTableFilterField>
-                <DataTableFilterField label="Output Policy">
+                <DataTableFilterField label={translateMessage("Output Policy")}>
                   <Select
                     items={OUTPUT_POLICY_FILTER_ITEMS}
                     value={(get("output_policy") as string) ?? ALL_VALUE}
                     onValueChange={(value) => set("output_policy", toFilterValue(value))}
                   >
                     <SelectTrigger className="w-full" data-testid="filter-output-policy">
-                      <SelectValue placeholder="All Output Policies" />
+                      <SelectValue placeholder={translateMessage("All Output Policies")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value={ALL_VALUE}>All Output Policies</SelectItem>
+                      <SelectItem value={ALL_VALUE}>
+                        <LocalizedText text={"All Output Policies"} />
+                      </SelectItem>
                       {OUTPUT_POLICY_OPTIONS.map((option) => (
                         <SelectItem key={option.value} value={option.value}>
-                          {option.label}
+                          {localizedProperty(option, "label", option.label)}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </DataTableFilterField>
-                <DataTableFilterField label="Team Name">
+                <DataTableFilterField label={translateMessage("Team Name")}>
                   <Select
                     items={teamFilterItems}
                     value={(get("team_id") as string) ?? ALL_VALUE}
                     onValueChange={(value) => set("team_id", toFilterValue(value))}
                   >
                     <SelectTrigger className="w-full" data-testid="filter-team">
-                      <SelectValue placeholder="All Teams" />
+                      <SelectValue placeholder={translateMessage("All Teams")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value={ALL_VALUE}>All Teams</SelectItem>
+                      <SelectItem value={ALL_VALUE}>
+                        <LocalizedText text={"All Teams"} />
+                      </SelectItem>
                       {teamOptions.map((option) => (
                         <SelectItem key={option} value={option}>
                           {option}
@@ -198,17 +211,19 @@ export function ToolPoliciesTable({
                     </SelectContent>
                   </Select>
                 </DataTableFilterField>
-                <DataTableFilterField label="Key Name">
+                <DataTableFilterField label={translateMessage("Key Name")}>
                   <Select
                     items={keyAliasFilterItems}
                     value={(get("key_alias") as string) ?? ALL_VALUE}
                     onValueChange={(value) => set("key_alias", toFilterValue(value))}
                   >
                     <SelectTrigger className="w-full" data-testid="filter-key-alias">
-                      <SelectValue placeholder="All Keys" />
+                      <SelectValue placeholder={translateMessage("All Keys")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value={ALL_VALUE}>All Keys</SelectItem>
+                      <SelectItem value={ALL_VALUE}>
+                        <LocalizedText text={"All Keys"} />
+                      </SelectItem>
                       {keyAliasOptions.map((option) => (
                         <SelectItem key={option} value={option}>
                           {option}

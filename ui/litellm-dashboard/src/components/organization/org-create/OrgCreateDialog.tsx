@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import * as React from "react";
@@ -40,6 +41,7 @@ export const OrgCreateDialog = ({
   accessToken,
   createOrganization = defaultCreateOrganization,
 }: OrgCreateDialogProps) => {
+  useUiLocale();
   const queryClient = useQueryClient();
   const form = useZodForm(orgSettingsSchema, { defaultValues: emptyOrgFormValues });
 
@@ -51,7 +53,7 @@ export const OrgCreateDialog = ({
   const mutation = useMutation({
     mutationFn: (body: OrgCreateBody) => createOrganization(body),
     onSuccess: () => {
-      toast.success("Organization created successfully");
+      toast.success(translateMessage("Organization created successfully"));
       queryClient.invalidateQueries({ queryKey: organizationKeys.all });
       closeAndReset();
     },
@@ -76,16 +78,18 @@ export const OrgCreateDialog = ({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Create Organization</DialogTitle>
+          <DialogTitle>
+            <LocalizedText text={"Create Organization"} />
+          </DialogTitle>
         </DialogHeader>
 
         <form onSubmit={onSubmit} noValidate>
           <FieldGroup>
-            <FormField control={form.control} name="organization_alias" label="Organization Name">
+            <FormField control={form.control} name="organization_alias" label={translateMessage("Organization Name")}>
               {({ ref, ...field }) => <Input {...field} ref={ref} />}
             </FormField>
 
-            <FormField control={form.control} name="models" label="Models">
+            <FormField control={form.control} name="models" label={translateMessage("Models")}>
               {(field) => (
                 <ModelSelect
                   value={field.value}
@@ -96,11 +100,11 @@ export const OrgCreateDialog = ({
               )}
             </FormField>
 
-            <FormField control={form.control} name="max_budget" label="Max Budget (USD)">
+            <FormField control={form.control} name="max_budget" label={translateMessage("Max Budget (USD)")}>
               {({ ref, ...field }) => <Input {...field} ref={ref} type="number" step="any" min={0} />}
             </FormField>
 
-            <FormField control={form.control} name="budget_duration" label="Reset Budget">
+            <FormField control={form.control} name="budget_duration" label={translateMessage("Reset Budget")}>
               {({ id, value, onChange, "aria-invalid": ariaInvalid, "aria-describedby": ariaDescribedBy }) => (
                 <Select
                   items={BUDGET_DURATION_OPTIONS}
@@ -113,7 +117,7 @@ export const OrgCreateDialog = ({
                   <SelectContent>
                     {BUDGET_DURATION_OPTIONS.map((option) => (
                       <SelectItem key={option.value} value={option.value}>
-                        {option.label}
+                        {localizedProperty(option, "label", option.label)}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -121,26 +125,36 @@ export const OrgCreateDialog = ({
               )}
             </FormField>
 
-            <FormField control={form.control} name="tpm_limit" label="Tokens per minute Limit (TPM)">
+            <FormField
+              control={form.control}
+              name="tpm_limit"
+              label={translateMessage("Tokens per minute Limit (TPM)")}
+            >
               {({ ref, ...field }) => <Input {...field} ref={ref} type="number" step={1} min={0} />}
             </FormField>
 
-            <FormField control={form.control} name="rpm_limit" label="Requests per minute Limit (RPM)">
+            <FormField
+              control={form.control}
+              name="rpm_limit"
+              label={translateMessage("Requests per minute Limit (RPM)")}
+            >
               {({ ref, ...field }) => <Input {...field} ref={ref} type="number" step={1} min={0} />}
             </FormField>
 
             <FormField
               control={form.control}
               name="vector_stores"
-              label="Allowed Vector Stores"
-              description="Select vector stores this organization can access. Leave empty for access to all vector stores"
+              label={translateMessage("Allowed Vector Stores")}
+              description={translateMessage(
+                "Select vector stores this organization can access. Leave empty for access to all vector stores",
+              )}
             >
               {(field) => (
                 <VectorStoreSelector
                   value={field.value}
                   onChange={field.onChange}
                   accessToken={accessToken}
-                  placeholder="Select vector stores (optional)"
+                  placeholder={translateMessage("Select vector stores (optional)")}
                 />
               )}
             </FormField>
@@ -148,20 +162,22 @@ export const OrgCreateDialog = ({
             <FormField
               control={form.control}
               name="mcp"
-              label="Allowed MCP Servers"
-              description="Select MCP servers, access groups, and toolsets this organization can access. Leave empty for access to all"
+              label={translateMessage("Allowed MCP Servers")}
+              description={translateMessage(
+                "Select MCP servers, access groups, and toolsets this organization can access. Leave empty for access to all",
+              )}
             >
               {(field) => (
                 <MCPServerSelector
                   value={field.value}
                   onChange={field.onChange}
                   accessToken={accessToken}
-                  placeholder="Select MCP servers and access groups (optional)"
+                  placeholder={translateMessage("Select MCP servers and access groups (optional)")}
                 />
               )}
             </FormField>
 
-            <FormField control={form.control} name="metadata" label="Metadata">
+            <FormField control={form.control} name="metadata" label={translateMessage("Metadata")}>
               {({ ref, ...field }) => <Textarea {...field} ref={ref} rows={4} />}
             </FormField>
           </FieldGroup>
@@ -173,10 +189,10 @@ export const OrgCreateDialog = ({
               onClick={() => handleOpenChange(false)}
               disabled={mutation.isPending}
             >
-              Cancel
+              <LocalizedText text={"Cancel"} />
             </Button>
             <Button type="submit" disabled={mutation.isPending}>
-              {mutation.isPending ? "Creating..." : "Create Organization"}
+              {mutation.isPending ? translateMessage("Creating...") : translateMessage("Create Organization")}
             </Button>
           </DialogFooter>
         </form>

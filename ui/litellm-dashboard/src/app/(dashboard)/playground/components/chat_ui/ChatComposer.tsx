@@ -1,3 +1,5 @@
+"use client";
+import { translateMessage, useUiLocale } from "@/lib/i18n";
 import React from "react";
 import { ArrowUp, Code2, Square } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -38,6 +40,7 @@ export function ChatComposer({
   onSuggestionSelect,
   className,
 }: ChatComposerProps) {
+  useUiLocale();
   const submitIfAllowed = () => {
     if (!submitDisabled && !isLoading) {
       onSubmit();
@@ -112,7 +115,7 @@ export function ChatComposer({
               <InputGroupButton
                 type="button"
                 size="icon-sm"
-                aria-label="Stop request"
+                aria-label={translateMessage("Stop request")}
                 data-testid="chat-stop-button"
                 className="size-8 rounded-xl bg-foreground text-background hover:bg-foreground/90"
                 onClick={onCancel}
@@ -123,7 +126,7 @@ export function ChatComposer({
               <InputGroupButton
                 type="button"
                 size="icon-sm"
-                aria-label="Send message"
+                aria-label={translateMessage("Send message")}
                 data-testid="chat-send-button"
                 disabled={submitDisabled || isLoading}
                 onClick={submitIfAllowed}
@@ -150,6 +153,7 @@ interface CodeInterpreterToggleProps {
 }
 
 export function CodeInterpreterToggle({ enabled, onToggle }: CodeInterpreterToggleProps) {
+  useUiLocale();
   return (
     <Tooltip>
       <TooltipTrigger
@@ -164,7 +168,11 @@ export function CodeInterpreterToggle({ enabled, onToggle }: CodeInterpreterTogg
                 ? "border-info/20 bg-info/10 text-info hover:bg-info/15"
                 : "text-muted-foreground hover:text-foreground",
             )}
-            aria-label={enabled ? "Code Interpreter enabled (click to disable)" : "Enable Code Interpreter"}
+            aria-label={
+              enabled
+                ? translateMessage("Code Interpreter enabled (click to disable)")
+                : translateMessage("Enable Code Interpreter")
+            }
             onClick={onToggle}
           />
         }
@@ -172,7 +180,9 @@ export function CodeInterpreterToggle({ enabled, onToggle }: CodeInterpreterTogg
         <Code2 className="size-4" />
       </TooltipTrigger>
       <TooltipContent>
-        {enabled ? "Code Interpreter enabled (click to disable)" : "Enable Code Interpreter"}
+        {enabled
+          ? translateMessage("Code Interpreter enabled (click to disable)")
+          : translateMessage("Enable Code Interpreter")}
       </TooltipContent>
     </Tooltip>
   );

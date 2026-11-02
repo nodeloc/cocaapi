@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { useEffect, useMemo, useState, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from "react";
 import { useDebouncedValue } from "@tanstack/react-pacer/debouncer";
@@ -34,11 +35,13 @@ const shortcutChipClass =
   "rounded-sm border border-border border-b-2 bg-muted px-[3px] font-mono text-muted-foreground";
 
 export function CommandPalette({ open, setOpen }: { open: boolean; setOpen: (open: boolean) => void }) {
+  useUiLocale();
   if (!open) return null;
   return <CommandPaletteDialog setOpen={setOpen} />;
 }
 
 function CommandPaletteDialog({ setOpen }: { setOpen: (open: boolean) => void }) {
+  useUiLocale();
   const pathname = usePathname();
   const router = useRouter();
   const [query, setQuery] = useState("");
@@ -74,37 +77,48 @@ function CommandPaletteDialog({ setOpen }: { setOpen: (open: boolean) => void })
     [navItems, query, scope, trimmedQuery],
   );
   const groups = useMemo<PaletteGroup[]>(() => {
-    const pages: PaletteEntry[] = navMatches.map((page) => ({
-      id: `page:${page.route}`,
-      kind: "page",
-      title: page.label,
-      subtitle: page.section,
-      icon: page.icon ?? <FileText className="size-4" />,
-      typeLabel: "Page",
-      page,
-    }));
+    const pages: PaletteEntry[] = navMatches.map((page) =>
+      markUiCopy(
+        {
+          id: `page:${page.route}`,
+          kind: "page" as const,
+          title: page.label,
+          subtitle: page.section,
+          icon: page.icon ?? <FileText className="size-4" />,
+          typeLabel: "Page",
+          page,
+        },
+        { title: { owner: page, field: "label" } },
+      ),
+    );
 
     if (scope === "global") {
       const searchKeysAction = !trimmedQuery || "search virtual keys".includes(trimmedQuery.toLowerCase());
       return [
         ...(searchKeysAction
           ? [
-              {
-                label: "Actions",
-                entries: [
-                  {
-                    id: "action:search-keys",
-                    kind: "search-keys" as const,
-                    title: "Search virtual keys",
-                    subtitle: "Find a key by alias or ID",
-                    icon: <KeyRound className="size-4" />,
-                    typeLabel: "Action" as const,
-                  },
-                ],
-              },
+              markUiCopy(
+                {
+                  label: "Actions",
+                  entries: [
+                    markUiCopy(
+                      {
+                        id: "action:search-keys",
+                        kind: "search-keys" as const,
+                        title: "Search virtual keys",
+                        subtitle: "Find a key by alias or ID",
+                        icon: <KeyRound className="size-4" />,
+                        typeLabel: "Action" as const,
+                      },
+                      { title: "Search virtual keys" },
+                    ),
+                  ],
+                },
+                { label: "Actions" },
+              ),
             ]
           : []),
-        ...(pages.length > 0 ? [{ label: "Pages", entries: pages }] : []),
+        ...(pages.length > 0 ? [markUiCopy({ label: "Pages", entries: pages }, { label: "Pages" })] : []),
       ];
     }
 
@@ -128,12 +142,15 @@ function CommandPaletteDialog({ setOpen }: { setOpen: (open: boolean) => void })
         key,
       };
     });
-    const keysGroup: PaletteGroup = {
-      label: trimmedQuery ? "Keys" : "Recent keys",
-      entries: keyEntries,
-      emptyMessage: trimmedQuery ? `No keys match “${trimmedQuery}”` : "No recent keys",
-      isLoading: isLoadingKeys,
-    };
+    const keysGroup: PaletteGroup = markUiCopy(
+      {
+        label: trimmedQuery ? "Keys" : "Recent keys",
+        entries: keyEntries,
+        emptyMessage: trimmedQuery ? `No keys match “${trimmedQuery}”` : "No recent keys",
+        isLoading: isLoadingKeys,
+      },
+      { label: ["Keys", "Recent keys"] },
+    );
 
     if (!trimmedQuery) return [keysGroup];
 
@@ -148,8 +165,8 @@ function CommandPaletteDialog({ setOpen }: { setOpen: (open: boolean) => void })
 
     return [
       keysGroup,
-      { label: "Actions", entries: [filterEntry] },
-      ...(pages.length > 0 ? [{ label: "Pages", entries: pages }] : []),
+      markUiCopy({ label: "Actions", entries: [filterEntry] }, { label: "Actions" }),
+      ...(pages.length > 0 ? [markUiCopy({ label: "Pages", entries: pages }, { label: "Pages" })] : []),
     ];
   }, [isLoadingKeys, keyResults.data?.keys, navMatches, scope, teamAliases, trimmedQuery]);
   const selectableEntries = useMemo(() => groups.flatMap((group) => group.entries), [groups]);
@@ -214,7 +231,7 @@ function CommandPaletteDialog({ setOpen }: { setOpen: (open: boolean) => void })
       return (
         <div className="flex h-20 items-center justify-center gap-2 text-sm text-muted-foreground">
           <LoaderCircle className="size-4 animate-spin" />
-          Searching…
+          <LocalizedText text={"Searching…"} />
         </div>
       );
     }
@@ -242,26 +259,32 @@ function CommandPaletteDialog({ setOpen }: { setOpen: (open: boolean) => void })
         overlayClassName="bg-black/35 backdrop-blur-sm"
         className="top-[15vh] max-h-[70vh] translate-y-0 gap-0 overflow-hidden rounded-xl border border-border p-0 shadow-2xl sm:max-w-[640px]"
       >
-        <DialogTitle className="sr-only">Command palette</DialogTitle>
+        <DialogTitle className="sr-only">
+          <LocalizedText text={"Command palette"} />
+        </DialogTitle>
         <div className="flex h-14 items-center gap-3 border-b border-border px-4">
           <Search className="size-4 shrink-0 text-muted-foreground" />
           {scope === "keys" && (
             <span className="flex shrink-0 items-center gap-1.5 rounded-md bg-muted px-2 py-1 text-xs font-medium">
               <KeyRound className="size-3.5" />
-              Virtual Keys
+              <LocalizedText text={"Virtual Keys"} />
             </span>
           )}
           <input
             autoFocus
             type="text"
             role="combobox"
-            aria-label="Search"
+            aria-label={translateMessage("Search")}
             aria-expanded="true"
             aria-controls="command-palette-results"
             aria-activedescendant={activeOptionId}
             aria-autocomplete="list"
             className="h-full min-w-0 flex-1 border-0 bg-transparent text-[15px] outline-none placeholder:text-muted-foreground focus:ring-0"
-            placeholder={scope === "keys" ? "Search keys by alias or ID…" : "Search pages and actions…"}
+            placeholder={
+              scope === "keys"
+                ? translateMessage("Search keys by alias or ID…")
+                : translateMessage("Search pages and actions…")
+            }
             value={query}
             onChange={(event) => {
               setQuery(event.currentTarget.value);
@@ -272,11 +295,14 @@ function CommandPaletteDialog({ setOpen }: { setOpen: (open: boolean) => void })
         <div id="command-palette-results" role="listbox" className="max-h-[400px] overflow-y-auto p-2">
           {hasKeyError && (
             <div className="flex h-20 items-center justify-center text-sm text-muted-foreground">
-              Unable to search keys
+              <LocalizedText text={"Unable to search keys"} />
             </div>
           )}
           {!hasKeyError && scope === "global" && trimmedQuery && groups.length === 0 && (
-            <div className="px-2 py-3 text-sm text-muted-foreground">No results for “{trimmedQuery}”</div>
+            <div className="px-2 py-3 text-sm text-muted-foreground">
+              <LocalizedText text={"No results for “"} />
+              {trimmedQuery}”
+            </div>
           )}
           {!hasKeyError &&
             groups.map((group, groupIndex) => {
@@ -284,12 +310,12 @@ function CommandPaletteDialog({ setOpen }: { setOpen: (open: boolean) => void })
                 .slice(0, groupIndex)
                 .reduce((count, previousGroup) => count + previousGroup.entries.length, 0);
               return (
-                <div key={group.label} role="group" aria-label={group.label}>
+                <div key={group.label} role="group" aria-label={localizedProperty(group, "label", group.label)}>
                   <div
                     role="presentation"
                     className="px-2 py-1.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground"
                   >
-                    {group.label}
+                    {localizedProperty(group, "label", group.label)}
                   </div>
                   {renderGroupContents(group, firstOptionIndex)}
                 </div>
@@ -298,18 +324,25 @@ function CommandPaletteDialog({ setOpen }: { setOpen: (open: boolean) => void })
         </div>
         <div className="flex h-10 items-center justify-between border-t border-border bg-muted/30 px-3 text-xs text-muted-foreground">
           <div className="flex items-center gap-2">
-            <span className="font-medium text-foreground">LiteLLM</span>
-            <span>{scope === "keys" ? "Virtual Keys" : "All pages"}</span>
+            <span className="font-medium text-foreground">
+              <LocalizedText text={"LiteLLM"} />
+            </span>
+            <span>{scope === "keys" ? translateMessage("Virtual Keys") : translateMessage("All pages")}</span>
           </div>
           <div className="flex items-center gap-3">
             <span className="flex items-center gap-1">
-              <kbd className={shortcutChipClass}>↵</kbd> Open
+              <kbd className={shortcutChipClass}>↵</kbd>
+              <LocalizedText text={" Open"} />
             </span>
             <span className="flex items-center gap-1">
-              <kbd className={shortcutChipClass}>↑↓</kbd> Navigate
+              <kbd className={shortcutChipClass}>↑↓</kbd>
+              <LocalizedText text={" Navigate"} />
             </span>
             <span className="flex items-center gap-1">
-              <kbd className={shortcutChipClass}>esc</kbd> Close
+              <kbd className={shortcutChipClass}>
+                <LocalizedText text={"esc"} />
+              </kbd>
+              <LocalizedText text={" Close"} />
             </span>
           </div>
         </div>

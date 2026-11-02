@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 /**
  * McpCrudPermissionPanel
  *
@@ -76,6 +78,7 @@ const McpCrudPermissionPanel: React.FC<McpCrudPermissionPanelProps> = ({
   readOnly = false,
   searchFilter = "",
 }) => {
+  useUiLocale();
   const [collapsed, setCollapsed] = useState<Record<CrudOp, boolean>>({
     read: false,
     create: false,
@@ -179,29 +182,36 @@ const McpCrudPermissionPanel: React.FC<McpCrudPermissionPanelProps> = ({
                 ) : (
                   <ChevronDownIcon className="w-4 h-4 text-muted-foreground shrink-0" />
                 )}
-                <span className="font-semibold text-foreground text-sm">{meta.label}</span>
+                <span className="font-semibold text-foreground text-sm">
+                  {localizedProperty(meta, "label", meta.label)}
+                </span>
                 <span className={`text-xs px-2 py-0.5 rounded-full ${RISK_BADGE[meta.risk]}`}>
                   {meta.risk === "high"
-                    ? "High Risk"
+                    ? translateMessage("High Risk")
                     : meta.risk === "medium"
-                      ? "Medium Risk"
+                      ? translateMessage("Medium Risk")
                       : meta.risk === "low"
-                        ? "Safe"
-                        : "Unclassified"}
+                        ? translateMessage("Safe")
+                        : translateMessage("Unclassified")}
                 </span>
                 <span className="text-xs text-muted-foreground ml-1">
-                  {group.filter((t) => effectiveAllowed.has(t.name)).length}/{group.length} allowed
+                  {group.filter((t) => effectiveAllowed.has(t.name)).length}/{group.length}
+                  <LocalizedText text={" allowed"} />
                 </span>
               </button>
 
               {!readOnly && (
                 <div className="flex items-center gap-2 ml-4">
                   <p className="text-xs text-muted-foreground">
-                    {fullyAllowed ? "All on" : partial ? "Partial" : "All off"}
+                    {fullyAllowed
+                      ? translateMessage("All on")
+                      : partial
+                        ? translateMessage("Partial")
+                        : translateMessage("All off")}
                   </p>
                   {/* Checkbox supports `indeterminate`; Switch does not. */}
                   <Checkbox
-                    aria-label={`Allow all ${meta.label} tools`}
+                    aria-label={translateMessage("Allow all %{0} tools", [meta.label])}
                     checked={fullyAllowed}
                     indeterminate={partial}
                     onCheckedChange={(checked) => toggleGroup(op, checked)}
@@ -214,7 +224,7 @@ const McpCrudPermissionPanel: React.FC<McpCrudPermissionPanelProps> = ({
             {/* Description row */}
             {!isCollapsed && (
               <div className="px-4 pt-2 pb-1 text-xs text-muted-foreground bg-card border-b border-border">
-                {meta.description}
+                {localizedProperty(meta, "description", meta.description)}
               </div>
             )}
 
@@ -248,7 +258,9 @@ const McpCrudPermissionPanel: React.FC<McpCrudPermissionPanelProps> = ({
                         <div className="flex-1 min-w-0">
                           <p className="font-medium text-foreground text-sm">{tool.name}</p>
                           {tool.description && (
-                            <p className="text-xs text-muted-foreground mt-0.5 leading-snug">{tool.description}</p>
+                            <p className="text-xs text-muted-foreground mt-0.5 leading-snug">
+                              {localizedProperty(tool, "description", tool.description)}
+                            </p>
                           )}
                         </div>
                         <span
@@ -256,7 +268,7 @@ const McpCrudPermissionPanel: React.FC<McpCrudPermissionPanelProps> = ({
                             allowed ? "bg-success/15 text-success" : "bg-muted text-muted-foreground"
                           }`}
                         >
-                          {allowed ? "on" : "off"}
+                          {allowed ? translateMessage("on") : translateMessage("off")}
                         </span>
                       </div>
                     );

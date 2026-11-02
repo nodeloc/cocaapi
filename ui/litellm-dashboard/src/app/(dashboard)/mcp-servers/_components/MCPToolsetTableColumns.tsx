@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { ColumnDef } from "@tanstack/react-table";
 import { Copy, Link2, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
@@ -41,10 +42,11 @@ interface ToolsetRowActionsProps {
 }
 
 function ToolsetRowActions({ toolset, isAdmin, onEditClick, onDeleteClick }: ToolsetRowActionsProps) {
+  useUiLocale();
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        aria-label="Open toolset actions"
+        aria-label={translateMessage("Open toolset actions")}
         data-testid={`toolset-actions-${toolset.toolset_id}`}
         className={cn(buttonVariants({ variant: "ghost", size: "icon-sm" }), "text-muted-foreground")}
       >
@@ -56,21 +58,21 @@ function ToolsetRowActions({ toolset, isAdmin, onEditClick, onDeleteClick }: Too
           onClick={() => void copyToClipboard(toolsetEndpointUrl(toolset.toolset_name), "Endpoint URL copied")}
         >
           <Link2 />
-          Copy endpoint URL
+          <LocalizedText text={"Copy endpoint URL"} />
         </DropdownMenuItem>
         <DropdownMenuItem
           data-testid="toolset-action-copy-id"
           onClick={() => void copyToClipboard(toolset.toolset_id, "Toolset ID copied")}
         >
           <Copy />
-          Copy toolset ID
+          <LocalizedText text={"Copy toolset ID"} />
         </DropdownMenuItem>
         {isAdmin && (
           <>
             <DropdownMenuSeparator />
             <DropdownMenuItem data-testid="toolset-action-edit" onClick={() => onEditClick(toolset)}>
               <Pencil />
-              Edit
+              <LocalizedText text={"Edit"} />
             </DropdownMenuItem>
             <DropdownMenuItem
               variant="destructive"
@@ -78,7 +80,7 @@ function ToolsetRowActions({ toolset, isAdmin, onEditClick, onDeleteClick }: Too
               onClick={() => onDeleteClick(toolset.toolset_id)}
             >
               <Trash2 />
-              Delete
+              <LocalizedText text={"Delete"} />
             </DropdownMenuItem>
           </>
         )}
@@ -100,20 +102,23 @@ export const getMCPToolsetTableColumns = ({
   onEditClick,
   onDeleteClick,
 }: MCPToolsetTableColumnsDeps): ColumnDef<MCPToolset>[] => [
-  {
-    id: "toolset_id",
-    accessorKey: "toolset_id",
-    meta: { title: "Toolset ID" },
-    header: "Toolset ID",
-    size: 140,
-    enableSorting: false,
-    cell: ({ row }) => <IdCell value={row.original.toolset_id} />,
-  },
+  markUiCopy(
+    {
+      id: "toolset_id",
+      accessorKey: "toolset_id",
+      meta: markUiCopy({ title: "Toolset ID" }, { title: "Toolset ID" }),
+      header: "Toolset ID",
+      size: 140,
+      enableSorting: false,
+      cell: ({ row }) => <IdCell value={row.original.toolset_id} />,
+    },
+    { header: "Toolset ID" },
+  ),
   {
     id: "toolset_name",
     accessorKey: "toolset_name",
-    meta: { title: "Name" },
-    header: ({ column }) => <DataTableSortHeader column={column} title="Name" />,
+    meta: markUiCopy({ title: "Name" }, { title: "Name" }),
+    header: ({ column }) => <DataTableSortHeader column={column} title={translateMessage("Name")} />,
     size: 260,
     enableSorting: true,
     sortingFn: "alphanumeric",
@@ -126,49 +131,61 @@ export const getMCPToolsetTableColumns = ({
       />
     ),
   },
-  {
-    id: "description",
-    accessorKey: "description",
-    meta: { title: "Description" },
-    header: "Description",
-    size: 200,
-    enableSorting: false,
-    cell: ({ row }) => (
-      <span className="block max-w-72 truncate text-sm text-muted-foreground" title={row.original.description}>
-        {row.original.description || "—"}
-      </span>
-    ),
-  },
-  {
-    id: "tools",
-    meta: { title: "Tools", skeleton: "chips" },
-    header: "Tools",
-    size: 260,
-    enableSorting: false,
-    cell: ({ row }) => {
-      const tools = row.original.tools;
-      return (
-        <div className="flex max-w-xs flex-wrap gap-1">
-          {tools.slice(0, 4).map((tool) => (
-            <span
-              key={`${tool.server_id}-${tool.tool_name}`}
-              className="inline-flex items-center rounded-md bg-muted px-1.5 py-0.5 text-xs"
-            >
-              {displayToolName(serverPrefixById.get(tool.server_id), tool.tool_name)}
-            </span>
-          ))}
-          {tools.length > 4 && (
-            <span className="self-center text-xs text-muted-foreground">+{tools.length - 4} more</span>
-          )}
-        </div>
-      );
+  markUiCopy(
+    {
+      id: "description",
+      accessorKey: "description",
+      meta: markUiCopy({ title: "Description" }, { title: "Description" }),
+      header: "Description",
+      size: 200,
+      enableSorting: false,
+      cell: ({ row }) => (
+        <span
+          className="block max-w-72 truncate text-sm text-muted-foreground"
+          title={localizedProperty(row.original, "description")}
+        >
+          {localizedProperty(row.original, "description") || "—"}
+        </span>
+      ),
     },
-  },
+    { header: "Description" },
+  ),
+  markUiCopy(
+    {
+      id: "tools",
+      meta: markUiCopy({ title: "Tools", skeleton: "chips" as const }, { title: "Tools" }),
+      header: "Tools",
+      size: 260,
+      enableSorting: false,
+      cell: ({ row }) => {
+        const tools = row.original.tools;
+        return (
+          <div className="flex max-w-xs flex-wrap gap-1">
+            {tools.slice(0, 4).map((tool) => (
+              <span
+                key={`${tool.server_id}-${tool.tool_name}`}
+                className="inline-flex items-center rounded-md bg-muted px-1.5 py-0.5 text-xs"
+              >
+                {displayToolName(serverPrefixById.get(tool.server_id), tool.tool_name)}
+              </span>
+            ))}
+            {tools.length > 4 && (
+              <span className="self-center text-xs text-muted-foreground">
+                +{tools.length - 4}
+                <LocalizedText text={" more"} />
+              </span>
+            )}
+          </div>
+        );
+      },
+    },
+    { header: "Tools" },
+  ),
   {
     id: "created_at",
     accessorKey: "created_at",
-    meta: { title: "Created" },
-    header: ({ column }) => <DataTableSortHeader column={column} title="Created" />,
+    meta: markUiCopy({ title: "Created" }, { title: "Created" }),
+    header: ({ column }) => <DataTableSortHeader column={column} title={translateMessage("Created")} />,
     size: 120,
     enableSorting: true,
     cell: ({ row }) => <DateCell value={row.original.created_at} precision="date" />,
@@ -176,7 +193,11 @@ export const getMCPToolsetTableColumns = ({
   {
     id: "actions",
     meta: { className: "text-right", headerClassName: "text-right" },
-    header: () => <span className="sr-only">Actions</span>,
+    header: () => (
+      <span className="sr-only">
+        <LocalizedText text={"Actions"} />
+      </span>
+    ),
     size: 64,
     enableSorting: false,
     enableHiding: false,

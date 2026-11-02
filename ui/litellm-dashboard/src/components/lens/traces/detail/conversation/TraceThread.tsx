@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, getIntlLocale, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { ChevronRight, MessageSquareText, TriangleAlert, Wrench } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -43,6 +44,7 @@ interface TraceThreadProps {
 }
 
 export function TraceThread({ trace, accessToken, onOpenStep, paging }: TraceThreadProps) {
+  useUiLocale();
   const { details, entries, complete, loading, failed, hasMore, loadMore } = useConversationDetails(trace, accessToken);
   const pending = pendingConversationBranches(trace.spans, details, Boolean(trace.next_cursor));
   const groups = groupConversation(buildConversation(trace.spans, details, complete, pending), trace.spans);
@@ -76,7 +78,7 @@ export function TraceThread({ trace, accessToken, onOpenStep, paging }: TraceThr
     else loadTracePage?.();
   };
   return (
-    <section aria-label="Trace thread" className="min-h-0 flex-1 overflow-y-auto">
+    <section aria-label={translateMessage("Trace thread")} className="min-h-0 flex-1 overflow-y-auto">
       <div className="mx-auto min-w-0 max-w-3xl space-y-8 px-3 py-4 sm:px-6 sm:py-6">
         {rootErrors.map((span) => (
           <ErrorBlock key={span.span_id} span={span} />
@@ -114,32 +116,41 @@ interface ThreadFooterProps {
 }
 
 function ThreadFooter({ turnCount, busy, stepsFailed, traceFailed, complete, onRetry, onLoadMore }: ThreadFooterProps) {
+  useUiLocale();
   return (
     <>
       {busy && (
         <p role="status" className="text-sm text-muted-foreground">
-          Loading thread…
+          <LocalizedText text={"Loading thread…"} />
         </p>
       )}
       {stepsFailed && (
         <div role="alert" className="flex items-center justify-between gap-3 text-sm text-destructive">
-          Could not load some steps of this thread.
+          <LocalizedText text={"Could not load some steps of this thread."} />
           <Button variant="outline" size="sm" onClick={onRetry}>
-            Retry
+            <LocalizedText text={"Retry"} />
           </Button>
         </div>
       )}
       {traceFailed && (
         <p role="alert" className="text-sm text-destructive">
-          Could not load more of this trace. Use Retry or Refresh trace above.
+          <LocalizedText text={"Could not load more of this trace. Use Retry or Refresh trace above."} />
         </p>
       )}
-      {complete && !turnCount && <p className="text-sm text-muted-foreground">No conversation content recorded.</p>}
+      {complete && !turnCount && (
+        <p className="text-sm text-muted-foreground">
+          <LocalizedText text={"No conversation content recorded."} />
+        </p>
+      )}
       <div className="flex items-center justify-between gap-3 border-t pt-4 text-xs text-muted-foreground">
-        <span>{complete ? "End of thread" : `${turnCount} ${turnCount === 1 ? "turn" : "turns"} loaded`}</span>
+        <span>
+          {complete
+            ? translateMessage("End of thread")
+            : translateMessage("%{0} %{1} loaded", [turnCount, turnCount === 1 ? "turn" : "turns"])}
+        </span>
         {onLoadMore && (
           <Button variant="outline" size="sm" onClick={onLoadMore}>
-            Load more
+            <LocalizedText text={"Load more"} />
           </Button>
         )}
       </div>
@@ -148,8 +159,9 @@ function ThreadFooter({ turnCount, busy, stepsFailed, traceFailed, complete, onR
 }
 
 function ThreadTurnView({ turn, onOpenStep }: { turn: ThreadTurn; onOpenStep: (id: string) => void }) {
+  useUiLocale();
   return (
-    <article aria-label="Thread turn" className="min-w-0 space-y-3">
+    <article aria-label={translateMessage("Thread turn")} className="min-w-0 space-y-3">
       {turn.context.length > 0 && <PromptContext count={turn.context.length} turn={turn} />}
       {turn.prompt.map((message, index) => (
         <ConversationMessage key={index} message={message} />
@@ -169,10 +181,11 @@ function ThreadTurnView({ turn, onOpenStep }: { turn: ThreadTurn; onOpenStep: (i
 }
 
 function PromptContext({ count, turn }: { count: number; turn: ThreadTurn }) {
+  useUiLocale();
   return (
     <details className="group flex justify-end text-xs text-muted-foreground">
       <summary className="ml-auto flex cursor-pointer list-none items-center gap-1.5 hover:text-foreground">
-        Prompt context
+        <LocalizedText text={"Prompt context"} />
         <MessageSquareText className="size-3.5" />
         <span className="tabular-nums">{count}</span>
         <ChevronRight className="size-3.5 transition-transform group-open:rotate-90" />
@@ -187,6 +200,7 @@ function PromptContext({ count, turn }: { count: number; turn: ThreadTurn }) {
 }
 
 function WorkedBar({ turn, onOpenStep }: { turn: ThreadTurn; onOpenStep: (id: string) => void }) {
+  useUiLocale();
   const [open, setOpen] = useState(false);
   const duration = threadDurationMs(turn);
   return (
@@ -197,10 +211,14 @@ function WorkedBar({ turn, onOpenStep }: { turn: ThreadTurn; onOpenStep: (id: st
         onClick={() => setOpen((value) => !value)}
         className="flex items-center gap-2.5 rounded-md py-1 text-sm text-muted-foreground hover:text-foreground"
       >
-        <span>{duration === null ? "Worked" : `Worked ${fmtMs(duration)}`}</span>
-        <Count icon={MessageSquareText} value={turn.llmCalls} label="model calls" />
-        <Count icon={Wrench} value={turn.toolCalls} label="tool calls" />
-        {turn.failed && <TriangleAlert aria-label="A step failed" className="size-3.5 text-destructive" />}
+        <span>
+          {duration === null ? translateMessage("Worked") : translateMessage("Worked %{0}", [fmtMs(duration)])}
+        </span>
+        <Count icon={MessageSquareText} value={turn.llmCalls} label={translateMessage("model calls")} />
+        <Count icon={Wrench} value={turn.toolCalls} label={translateMessage("tool calls")} />
+        {turn.failed && (
+          <TriangleAlert aria-label={translateMessage("A step failed")} className="size-3.5 text-destructive" />
+        )}
         <ChevronRight className={cn("size-3.5 transition-transform", open && "rotate-90")} />
       </button>
       {open && (
@@ -214,9 +232,14 @@ function WorkedBar({ turn, onOpenStep }: { turn: ThreadTurn; onOpenStep: (id: st
   );
 }
 
-function Count({ icon: Icon, value, label }: { icon: typeof Wrench; value: number; label: string }) {
+function Count(cocaCopyProps0: { icon: typeof Wrench; value: number; label: string }) {
+  const { icon: Icon, value, label } = cocaCopyProps0;
+  useUiLocale();
   return (
-    <span className="inline-flex items-center gap-1 tabular-nums" aria-label={`${value} ${label}`}>
+    <span
+      className="inline-flex items-center gap-1 tabular-nums"
+      aria-label={`${value} ${localizedProperty(cocaCopyProps0, "label", label)}`}
+    >
       <Icon className="size-3.5" />
       {value}
     </span>
@@ -224,10 +247,14 @@ function Count({ icon: Icon, value, label }: { icon: typeof Wrench; value: numbe
 }
 
 function WorkItem({ work, onOpenStep }: { work: ThreadWork; onOpenStep: (id: string) => void }) {
+  useUiLocale();
   if (work.kind === "step") return <ConversationStep item={work.item} onOpenStep={onOpenStep} />;
   return (
     <details className="min-w-0 rounded-md border p-3">
-      <summary className="cursor-pointer text-sm font-medium">Subagent: {work.name}</summary>
+      <summary className="cursor-pointer text-sm font-medium">
+        <LocalizedText text={"Subagent: "} />
+        {work.name}
+      </summary>
       <div className="mt-4 min-w-0 space-y-5 border-l pl-3">
         <ConversationSteps groups={work.groups} onOpenStep={onOpenStep} />
       </div>
@@ -236,6 +263,7 @@ function WorkItem({ work, onOpenStep }: { work: ThreadWork; onOpenStep: (id: str
 }
 
 function ReplyMeta({ turn, onOpenStep }: { turn: ThreadTurn; onOpenStep: (id: string) => void }) {
+  useUiLocale();
   const item = turn.replyItem;
   if (!item) return null;
   const tokens = item.span.input_tokens + item.span.output_tokens;
@@ -243,15 +271,20 @@ function ReplyMeta({ turn, onOpenStep }: { turn: ThreadTurn; onOpenStep: (id: st
     <div className="flex items-center gap-3 px-1 text-xs text-muted-foreground tabular-nums">
       {item.model && <span className="truncate">{item.model}</span>}
       <span>{fmtMs(item.span.duration_ms)}</span>
-      {tokens > 0 && <span>{tokens.toLocaleString()} tok</span>}
+      {tokens > 0 && (
+        <span>
+          {tokens.toLocaleString(getIntlLocale())}
+          <LocalizedText text={" tok"} />
+        </span>
+      )}
       <Button
         variant="ghost"
         size="xs"
         className="ml-auto text-muted-foreground"
-        aria-label={`Inspect step ${item.span.name}`}
+        aria-label={translateMessage("Inspect step %{0}", [item.span.name])}
         onClick={() => onOpenStep(item.span.span_id)}
       >
-        Inspect
+        <LocalizedText text={"Inspect"} />
       </Button>
     </div>
   );

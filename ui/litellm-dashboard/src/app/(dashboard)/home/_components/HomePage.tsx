@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { ArrowRight, Plus, Rocket, Sparkles } from "lucide-react";
 import useAuthorized from "@/app/(dashboard)/hooks/useAuthorized";
@@ -20,6 +21,7 @@ import { HOME_USAGE_DAYS, useHomeUsage } from "./useHomeUsage";
 const LEADERBOARD = { metric: "tokens", dimension: "model_groups" } as const;
 
 export default function HomePage() {
+  useUiLocale();
   const { isViewOnly } = useAuthorized();
   const usage = useHomeUsage();
   const blog = useBlogPosts();
@@ -29,23 +31,27 @@ export default function HomePage() {
   return (
     <Page>
       <PageHeader>
-        <PageHeaderTitle>Home</PageHeaderTitle>
+        <PageHeaderTitle>
+          <LocalizedText text={"Home"} />
+        </PageHeaderTitle>
         {!isViewOnly && (
           <PageHeaderControls>
             <Button render={<a href={uiHref("api-keys?create=true")} />}>
               <Plus />
-              Create New Virtual Key
+              <LocalizedText text={"Create New Virtual Key"} />
             </Button>
           </PageHeaderControls>
         )}
       </PageHeader>
 
-      <section aria-label={`Usage, last ${HOME_USAGE_DAYS} days`}>
+      <section aria-label={translateMessage("Usage, last %{0} days", [HOME_USAGE_DAYS])}>
         {usage.failed ? (
           <div className="flex items-center justify-between gap-2 rounded-xl border bg-card px-4 py-3 text-sm">
-            <span className="text-destructive">Failed to load usage</span>
+            <span className="text-destructive">
+              <LocalizedText text={"Failed to load usage"} />
+            </span>
             <Button variant="outline" size="sm" onClick={usage.retry}>
-              Retry
+              <LocalizedText text={"Retry"} />
             </Button>
           </div>
         ) : (
@@ -66,7 +72,7 @@ export default function HomePage() {
               <div>
                 <h2 id="home-whats-new" className="flex items-center gap-2 text-lg font-semibold">
                   <Sparkles className="size-4 text-muted-foreground" />
-                  What&apos;s new in LiteLLM?
+                  <LocalizedText text={"What's new in LiteLLM?"} />
                 </h2>
               </div>
               <div className="grid gap-4 sm:grid-cols-3">
@@ -97,7 +103,7 @@ export default function HomePage() {
           )}
 
           <Panel
-            title="Leaderboard"
+            title={translateMessage("Leaderboard")}
             subtitle={`Share of tokens over the last ${HOME_USAGE_DAYS} days, with the change between the first and second half of the period`}
             testId="home-leaderboard"
           >

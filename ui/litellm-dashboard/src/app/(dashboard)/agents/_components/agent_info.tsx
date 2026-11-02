@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, getIntlLocale, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 import { AgentIdentityFields } from "./AgentIdentityFields";
 import { AgentIdentityDetails } from "./AgentIdentityDetails";
 import { withAgentIdentity } from "./agent_identity";
@@ -58,27 +60,37 @@ interface AgentInfoViewProps {
   isAdmin: boolean;
 }
 
-const DetailList: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className }) => (
-  <dl
-    className={cx(
-      "grid grid-cols-[minmax(0,14rem)_minmax(0,1fr)] overflow-hidden rounded-lg border border-border text-sm",
-      className,
-    )}
-  >
-    {children}
-  </dl>
-);
+const DetailList: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className }) => {
+  useUiLocale();
+  return (
+    <dl
+      className={cx(
+        "grid grid-cols-[minmax(0,14rem)_minmax(0,1fr)] overflow-hidden rounded-lg border border-border text-sm",
+        className,
+      )}
+    >
+      {children}
+    </dl>
+  );
+};
 
-const DetailItem: React.FC<{ label: React.ReactNode; children: React.ReactNode }> = ({ label, children }) => (
-  <>
-    <dt className="border-b border-border bg-muted px-4 py-3 font-medium text-foreground last-of-type:border-b-0">
-      {label}
-    </dt>
-    <dd className="border-b border-border px-4 py-3 break-words text-foreground last-of-type:border-b-0">{children}</dd>
-  </>
-);
+const DetailItem: React.FC<{ label: React.ReactNode; children: React.ReactNode }> = (cocaCopyProps0) => {
+  const { label, children } = cocaCopyProps0;
+  useUiLocale();
+  return (
+    <>
+      <dt className="border-b border-border bg-muted px-4 py-3 font-medium text-foreground last-of-type:border-b-0">
+        {localizedProperty(cocaCopyProps0, "label", label)}
+      </dt>
+      <dd className="border-b border-border px-4 py-3 break-words text-foreground last-of-type:border-b-0">
+        {children}
+      </dd>
+    </>
+  );
+};
 
 const AgentInfoView: React.FC<AgentInfoViewProps> = ({ agentId, onClose, accessToken, isAdmin }) => {
+  useUiLocale();
   const [agent, setAgent] = useState<Agent | null>(null);
   const [selectedKey, setSelectedKey] = useState<KeyResponse | null>(null);
   const { data: keysData, isLoading: keysLoading, refetch: refetchAgentKeys } = useKeys(1, 100, { agentID: agentId });
@@ -140,7 +152,7 @@ const AgentInfoView: React.FC<AgentInfoViewProps> = ({ agentId, onClose, accessT
       }
     } catch (error) {
       console.error("Error fetching agent info:", error);
-      toast.error("Failed to load agent information");
+      toast.error(translateMessage("Failed to load agent information"));
     } finally {
       setIsLoading(false);
     }
@@ -249,12 +261,12 @@ const AgentInfoView: React.FC<AgentInfoViewProps> = ({ agentId, onClose, accessT
         object_permission: buildMcpObjectPermission(values),
         access_group_ids: values.access_group_ids ?? [],
       });
-      toast.success("Agent updated successfully");
+      toast.success(translateMessage("Agent updated successfully"));
       setIsEditing(false);
       fetchAgentInfo();
     } catch (error) {
       console.error("Error updating agent:", error);
-      toast.error("Failed to update agent");
+      toast.error(translateMessage("Failed to update agent"));
     } finally {
       setIsSaving(false);
     }
@@ -273,9 +285,11 @@ const AgentInfoView: React.FC<AgentInfoViewProps> = ({ agentId, onClose, accessT
   if (!agent) {
     return (
       <div className="p-4">
-        <div className="text-center">Agent not found</div>
+        <div className="text-center">
+          <LocalizedText text={"Agent not found"} />
+        </div>
         <Button onClick={onClose} className="mt-4">
-          Back to Agents List
+          <LocalizedText text={"Back to Agents List"} />
         </Button>
       </div>
     );
@@ -285,7 +299,7 @@ const AgentInfoView: React.FC<AgentInfoViewProps> = ({ agentId, onClose, accessT
   const formatDate = (dateString?: string | null) => {
     if (!dateString) return "-";
     const date = new Date(dateString);
-    return date.toLocaleString();
+    return date.toLocaleString(getIntlLocale());
   };
 
   const rateLimitField = (name: keyof AgentFormValues & string, label: string) => (
@@ -297,7 +311,7 @@ const AgentInfoView: React.FC<AgentInfoViewProps> = ({ agentId, onClose, accessT
           onChange={onChange}
           inputRef={ref}
           min={0}
-          placeholder="Unlimited"
+          placeholder={translateMessage("Unlimited")}
         />
       )}
     </AgentFormField>
@@ -324,20 +338,20 @@ const AgentInfoView: React.FC<AgentInfoViewProps> = ({ agentId, onClose, accessT
       <div>
         <Button variant="ghost" onClick={onClose} className="mb-4">
           <ArrowLeft className="size-4" />
-          Back to Agents
+          <LocalizedText text={"Back to Agents"} />
         </Button>
-        <h1 className="text-2xl font-semibold">{agent.agent_name || "Unnamed Agent"}</h1>
+        <h1 className="text-2xl font-semibold">{agent.agent_name || translateMessage("Unnamed Agent")}</h1>
         <p className="text-sm text-muted-foreground font-mono">{agent.agent_id}</p>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList variant="line" className="mb-4 h-auto w-full justify-start rounded-none border-b p-0">
           <TabsTrigger value="overview" className="flex-none rounded-none px-4 py-2">
-            Overview
+            <LocalizedText text={"Overview"} />
           </TabsTrigger>
           {isAdmin && (
             <TabsTrigger value="settings" className="flex-none rounded-none px-4 py-2">
-              Settings
+              <LocalizedText text={"Settings"} />
             </TabsTrigger>
           )}
         </TabsList>
@@ -352,38 +366,63 @@ const AgentInfoView: React.FC<AgentInfoViewProps> = ({ agentId, onClose, accessT
               isAdmin={isAdmin}
             />
             <DetailList>
-              <DetailItem label="Agent ID">{agent.agent_id}</DetailItem>
-              <DetailItem label="Agent Name">{agent.agent_name}</DetailItem>
-              <DetailItem label="Display Name">{agent.agent_card_params?.name || "-"}</DetailItem>
-              <DetailItem label="Description">{agent.agent_card_params?.description || "-"}</DetailItem>
-              <DetailItem label="URL">{agent.agent_card_params?.url || "-"}</DetailItem>
-              <DetailItem label="Version">{agent.agent_card_params?.version || "-"}</DetailItem>
-              <DetailItem label="Protocol Version">{agent.agent_card_params?.protocolVersion || "-"}</DetailItem>
-              <DetailItem label="Streaming">
-                {agent.agent_card_params?.capabilities?.streaming ? "Yes" : "No"}
+              <DetailItem label={translateMessage("Agent ID")}>{agent.agent_id}</DetailItem>
+              <DetailItem label={translateMessage("Agent Name")}>{agent.agent_name}</DetailItem>
+              <DetailItem label={translateMessage("Display Name")}>{agent.agent_card_params?.name || "-"}</DetailItem>
+              <DetailItem label={translateMessage("Description")}>
+                {localizedProperty(agent.agent_card_params, "description") || "-"}
+              </DetailItem>
+              <DetailItem label={translateMessage("URL")}>{agent.agent_card_params?.url || "-"}</DetailItem>
+              <DetailItem label={translateMessage("Version")}>{agent.agent_card_params?.version || "-"}</DetailItem>
+              <DetailItem label={translateMessage("Protocol Version")}>
+                {agent.agent_card_params?.protocolVersion || "-"}
+              </DetailItem>
+              <DetailItem label={translateMessage("Streaming")}>
+                {agent.agent_card_params?.capabilities?.streaming ? translateMessage("Yes") : translateMessage("No")}
               </DetailItem>
               {agent.agent_card_params?.capabilities?.pushNotifications && (
-                <DetailItem label="Push Notifications">Yes</DetailItem>
+                <DetailItem label={translateMessage("Push Notifications")}>
+                  <LocalizedText text={"Yes"} />
+                </DetailItem>
               )}
               {agent.agent_card_params?.capabilities?.stateTransitionHistory && (
-                <DetailItem label="State Transition History">Yes</DetailItem>
+                <DetailItem label={translateMessage("State Transition History")}>
+                  <LocalizedText text={"Yes"} />
+                </DetailItem>
               )}
-              <DetailItem label="Skills">{agent.agent_card_params?.skills?.length || 0} configured</DetailItem>
-              {agent.litellm_params?.model && <DetailItem label="Model">{agent.litellm_params.model}</DetailItem>}
+              <DetailItem label={translateMessage("Skills")}>
+                {agent.agent_card_params?.skills?.length || 0}
+                <LocalizedText text={" configured"} />
+              </DetailItem>
+              {agent.litellm_params?.model && (
+                <DetailItem label={translateMessage("Model")}>{agent.litellm_params.model}</DetailItem>
+              )}
               {agent.litellm_params?.make_public !== undefined && (
-                <DetailItem label="Make Public">{agent.litellm_params.make_public ? "Yes" : "No"}</DetailItem>
+                <DetailItem label={translateMessage("Make Public")}>
+                  {agent.litellm_params.make_public ? translateMessage("Yes") : translateMessage("No")}
+                </DetailItem>
               )}
               {agent.agent_card_params?.iconUrl && (
-                <DetailItem label="Icon URL">{agent.agent_card_params.iconUrl}</DetailItem>
+                <DetailItem label={translateMessage("Icon URL")}>{agent.agent_card_params.iconUrl}</DetailItem>
               )}
               {agent.agent_card_params?.documentationUrl && (
-                <DetailItem label="Documentation URL">{agent.agent_card_params.documentationUrl}</DetailItem>
+                <DetailItem label={translateMessage("Documentation URL")}>
+                  {agent.agent_card_params.documentationUrl}
+                </DetailItem>
               )}
-              <DetailItem label="TPM Limit">{agent.tpm_limit ?? "Unlimited"}</DetailItem>
-              <DetailItem label="RPM Limit">{agent.rpm_limit ?? "Unlimited"}</DetailItem>
-              <DetailItem label="Session TPM Limit">{agent.session_tpm_limit ?? "Unlimited"}</DetailItem>
-              <DetailItem label="Session RPM Limit">{agent.session_rpm_limit ?? "Unlimited"}</DetailItem>
-              <DetailItem label="Access Groups">
+              <DetailItem label={translateMessage("TPM Limit")}>
+                {agent.tpm_limit ?? translateMessage("Unlimited")}
+              </DetailItem>
+              <DetailItem label={translateMessage("RPM Limit")}>
+                {agent.rpm_limit ?? translateMessage("Unlimited")}
+              </DetailItem>
+              <DetailItem label={translateMessage("Session TPM Limit")}>
+                {agent.session_tpm_limit ?? translateMessage("Unlimited")}
+              </DetailItem>
+              <DetailItem label={translateMessage("Session RPM Limit")}>
+                {agent.session_rpm_limit ?? translateMessage("Unlimited")}
+              </DetailItem>
+              <DetailItem label={translateMessage("Access Groups")}>
                 {agent.access_group_ids?.length ? (
                   <div className="space-y-1">
                     {agent.access_group_ids.map((accessGroupId) => (
@@ -391,11 +430,11 @@ const AgentInfoView: React.FC<AgentInfoViewProps> = ({ agentId, onClose, accessT
                     ))}
                   </div>
                 ) : (
-                  "None"
+                  translateMessage("None")
                 )}
               </DetailItem>
-              <DetailItem label="Created At">{formatDate(agent.created_at)}</DetailItem>
-              <DetailItem label="Updated At">{formatDate(agent.updated_at)}</DetailItem>
+              <DetailItem label={translateMessage("Created At")}>{formatDate(agent.created_at)}</DetailItem>
+              <DetailItem label={translateMessage("Updated At")}>{formatDate(agent.updated_at)}</DetailItem>
             </DetailList>
 
             <AgentVirtualKeys keys={agentKeys} isLoading={keysLoading} onKeyClick={setSelectedKey} />
@@ -407,10 +446,12 @@ const AgentInfoView: React.FC<AgentInfoViewProps> = ({ agentId, onClose, accessT
                 (agent.object_permission.mcp_tool_permissions &&
                   Object.keys(agent.object_permission.mcp_tool_permissions).length > 0)) && (
                 <div style={{ marginTop: 24 }}>
-                  <h3 className="text-lg font-medium">MCP Tool Permissions</h3>
+                  <h3 className="text-lg font-medium">
+                    <LocalizedText text={"MCP Tool Permissions"} />
+                  </h3>
                   <DetailList className="mt-4">
                     {agent.object_permission.mcp_servers && agent.object_permission.mcp_servers.length > 0 && (
-                      <DetailItem label="MCP Servers">
+                      <DetailItem label={translateMessage("MCP Servers")}>
                         <div className="space-y-1">
                           {agent.object_permission.mcp_servers.map((serverId) => (
                             <div key={serverId}>{mcpServerLabel(serverId)}</div>
@@ -420,16 +461,18 @@ const AgentInfoView: React.FC<AgentInfoViewProps> = ({ agentId, onClose, accessT
                     )}
                     {agent.object_permission.mcp_access_groups &&
                       agent.object_permission.mcp_access_groups.length > 0 && (
-                        <DetailItem label="MCP Access Groups">
+                        <DetailItem label={translateMessage("MCP Access Groups")}>
                           {agent.object_permission.mcp_access_groups.join(", ")}
                         </DetailItem>
                       )}
                     {agent.object_permission.mcp_toolsets && agent.object_permission.mcp_toolsets.length > 0 && (
-                      <DetailItem label="MCP Toolsets">{agent.object_permission.mcp_toolsets.join(", ")}</DetailItem>
+                      <DetailItem label={translateMessage("MCP Toolsets")}>
+                        {agent.object_permission.mcp_toolsets.join(", ")}
+                      </DetailItem>
                     )}
                     {agent.object_permission.mcp_tool_permissions &&
                       Object.keys(agent.object_permission.mcp_tool_permissions).length > 0 && (
-                        <DetailItem label="Tool permissions per server">
+                        <DetailItem label={translateMessage("Tool permissions per server")}>
                           <div className="space-y-1">
                             {Object.entries(agent.object_permission.mcp_tool_permissions).map(([serverId, tools]) => (
                               <div key={serverId}>
@@ -448,23 +491,36 @@ const AgentInfoView: React.FC<AgentInfoViewProps> = ({ agentId, onClose, accessT
 
             {agent.agent_card_params?.skills && agent.agent_card_params.skills.length > 0 && (
               <div style={{ marginTop: 24 }}>
-                <h3 className="text-lg font-medium">Skills</h3>
+                <h3 className="text-lg font-medium">
+                  <LocalizedText text={"Skills"} />
+                </h3>
                 <DetailList className="mt-4">
                   {agent.agent_card_params.skills.map((skill, index) => (
-                    <DetailItem label={skill.name || `Skill ${index + 1}`} key={index}>
+                    <DetailItem label={skill.name || translateMessage("Skill %{0}", [index + 1])} key={index}>
                       <div>
                         <div>
-                          <strong>ID:</strong> {skill.id}
+                          <strong>
+                            <LocalizedText text={"ID:"} />
+                          </strong>{" "}
+                          {skill.id}
                         </div>
                         <div>
-                          <strong>Description:</strong> {skill.description}
+                          <strong>
+                            <LocalizedText text={"Description:"} />
+                          </strong>{" "}
+                          {localizedProperty(skill, "description", skill.description)}
                         </div>
                         <div>
-                          <strong>Tags:</strong> {Array.isArray(skill.tags) ? skill.tags.join(", ") : skill.tags}
+                          <strong>
+                            <LocalizedText text={"Tags:"} />
+                          </strong>{" "}
+                          {Array.isArray(skill.tags) ? skill.tags.join(", ") : skill.tags}
                         </div>
                         {skill.examples && skill.examples.length > 0 && (
                           <div>
-                            <strong>Examples:</strong>{" "}
+                            <strong>
+                              <LocalizedText text={"Examples:"} />
+                            </strong>{" "}
                             {Array.isArray(skill.examples) ? skill.examples.join(", ") : skill.examples}
                           </div>
                         )}
@@ -489,7 +545,9 @@ const AgentInfoView: React.FC<AgentInfoViewProps> = ({ agentId, onClose, accessT
             <TabsContent value="settings" keepMounted>
               <Card className="block p-6">
                 <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-medium">Agent Settings</h3>
+                  <h3 className="text-lg font-medium">
+                    <LocalizedText text={"Agent Settings"} />
+                  </h3>
                   {!isEditing && (
                     <Button
                       onClick={() => {
@@ -497,7 +555,7 @@ const AgentInfoView: React.FC<AgentInfoViewProps> = ({ agentId, onClose, accessT
                         setIsEditing(true);
                       }}
                     >
-                      Edit Settings
+                      <LocalizedText text={"Edit Settings"} />
                     </Button>
                   )}
                 </div>
@@ -508,7 +566,9 @@ const AgentInfoView: React.FC<AgentInfoViewProps> = ({ agentId, onClose, accessT
                       <form onSubmit={form.handleSubmit(handleUpdate)}>
                         <FieldGroup className="mb-4">
                           <Field>
-                            <FieldLabel htmlFor="agent-id">Agent ID</FieldLabel>
+                            <FieldLabel htmlFor="agent-id">
+                              <LocalizedText text={"Agent ID"} />
+                            </FieldLabel>
                             <Input id="agent-id" value={agent.agent_id} disabled readOnly />
                           </Field>
                         </FieldGroup>
@@ -533,7 +593,9 @@ const AgentInfoView: React.FC<AgentInfoViewProps> = ({ agentId, onClose, accessT
                         )}
 
                         <Separator className="my-6" />
-                        <h3 className="text-lg font-medium mb-4">Rate Limits</h3>
+                        <h3 className="text-lg font-medium mb-4">
+                          <LocalizedText text={"Rate Limits"} />
+                        </h3>
                         <div className="grid grid-cols-2 gap-4">
                           {rateLimitField("tpm_limit", "TPM Limit")}
                           {rateLimitField("rpm_limit", "RPM Limit")}
@@ -544,7 +606,9 @@ const AgentInfoView: React.FC<AgentInfoViewProps> = ({ agentId, onClose, accessT
                         </div>
 
                         <Separator className="my-6" />
-                        <h3 className="text-lg font-medium mb-4">Access Groups</h3>
+                        <h3 className="text-lg font-medium mb-4">
+                          <LocalizedText text={"Access Groups"} />
+                        </h3>
                         <FieldGroup>
                           <AgentFormField
                             name="access_group_ids"
@@ -557,14 +621,16 @@ const AgentInfoView: React.FC<AgentInfoViewProps> = ({ agentId, onClose, accessT
                               <AccessGroupSelector
                                 value={Array.isArray(value) ? (value as string[]) : []}
                                 onChange={onChange}
-                                placeholder="Select access groups (optional)"
+                                placeholder={translateMessage("Select access groups (optional)")}
                               />
                             )}
                           </AgentFormField>
                         </FieldGroup>
 
                         <Separator className="my-6" />
-                        <h3 className="text-lg font-medium mb-4">MCP Servers</h3>
+                        <h3 className="text-lg font-medium mb-4">
+                          <LocalizedText text={"MCP Servers"} />
+                        </h3>
                         <FieldGroup>
                           <AgentFormField
                             name="allowed_mcp_servers_and_groups"
@@ -582,7 +648,7 @@ const AgentInfoView: React.FC<AgentInfoViewProps> = ({ agentId, onClose, accessT
                                   toolsets: (value as McpServerSelection | undefined)?.toolsets ?? [],
                                 }}
                                 accessToken={accessToken ?? ""}
-                                placeholder="Select MCP servers or access groups (optional)"
+                                placeholder={translateMessage("Select MCP servers or access groups (optional)")}
                               />
                             )}
                           </AgentFormField>
@@ -608,18 +674,20 @@ const AgentInfoView: React.FC<AgentInfoViewProps> = ({ agentId, onClose, accessT
                               fetchAgentInfo();
                             }}
                           >
-                            Cancel
+                            <LocalizedText text={"Cancel"} />
                           </Button>
                           <Button type="submit" disabled={isSaving} aria-busy={isSaving}>
                             {isSaving && <UiLoadingSpinner className="size-4" />}
-                            Save Changes
+                            <LocalizedText text={"Save Changes"} />
                           </Button>
                         </div>
                       </form>
                     </FormProvider>
                   </TooltipProvider>
                 ) : (
-                  <p>Click &quot;Edit Settings&quot; to modify agent configuration.</p>
+                  <p>
+                    <LocalizedText text={'Click "Edit Settings" to modify agent configuration.'} />
+                  </p>
                 )}
               </Card>
             </TabsContent>

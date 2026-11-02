@@ -1,3 +1,4 @@
+import { markUiCopy } from "@/lib/i18n";
 import type { StatusTone } from "@/components/shared/table_cells/status_badge";
 import {
   COORDINATION_FIELDS,
@@ -119,28 +120,52 @@ export interface SourceBadgeDescriptor {
 }
 
 const SOURCE_BADGES: Readonly<Record<CoordinationRedisSource, SourceBadgeDescriptor>> = {
-  coordination_redis: {
-    tone: "success",
-    label: "Configured here",
-    tooltip: "general_settings.coordination_redis is set, so coordination uses its own Redis connection.",
-  },
-  cache_backend: {
-    tone: "info",
-    label: "Borrowed from response cache",
-    tooltip: "No coordination Redis is configured; the proxy reuses the response cache's Redis connection.",
-  },
-  environment: {
-    tone: "info",
-    label: "From REDIS_* environment",
-    tooltip: "No coordination Redis is configured; the proxy falls back to the REDIS_* environment variables.",
-  },
+  coordination_redis: markUiCopy(
+    {
+      tone: "success",
+      label: "Configured here",
+      tooltip: "general_settings.coordination_redis is set, so coordination uses its own Redis connection.",
+    },
+    {
+      label: "Configured here",
+      tooltip: "general_settings.coordination_redis is set, so coordination uses its own Redis connection.",
+    },
+  ),
+  cache_backend: markUiCopy(
+    {
+      tone: "info",
+      label: "Borrowed from response cache",
+      tooltip: "No coordination Redis is configured; the proxy reuses the response cache's Redis connection.",
+    },
+    {
+      label: "Borrowed from response cache",
+      tooltip: "No coordination Redis is configured; the proxy reuses the response cache's Redis connection.",
+    },
+  ),
+  environment: markUiCopy(
+    {
+      tone: "info",
+      label: "From REDIS_* environment",
+      tooltip: "No coordination Redis is configured; the proxy falls back to the REDIS_* environment variables.",
+    },
+    {
+      label: "From REDIS_* environment",
+      tooltip: "No coordination Redis is configured; the proxy falls back to the REDIS_* environment variables.",
+    },
+  ),
 };
 
-const NOT_CONFIGURED_BADGE: SourceBadgeDescriptor = {
-  tone: "neutral",
-  label: "Not configured",
-  tooltip: "Cross-pod rate limits, spend tracking, and the pod lock manager have no Redis to coordinate through.",
-};
+const NOT_CONFIGURED_BADGE: SourceBadgeDescriptor = markUiCopy(
+  {
+    tone: "neutral",
+    label: "Not configured",
+    tooltip: "Cross-pod rate limits, spend tracking, and the pod lock manager have no Redis to coordinate through.",
+  },
+  {
+    label: "Not configured",
+    tooltip: "Cross-pod rate limits, spend tracking, and the pod lock manager have no Redis to coordinate through.",
+  },
+);
 
 export const sourceBadge = (source: string | null | undefined): SourceBadgeDescriptor => {
   const known: Readonly<Record<string, SourceBadgeDescriptor>> = SOURCE_BADGES;

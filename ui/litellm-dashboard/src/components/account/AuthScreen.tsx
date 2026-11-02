@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { useEffect, useState, type FormEvent, type Dispatch, type SetStateAction } from "react";
 import { useRouter } from "next/navigation";
@@ -20,6 +21,7 @@ const copy: Record<Mode, readonly [string, string, string]> = {
 };
 
 function useAuthSetup(setError: Dispatch<SetStateAction<string>>) {
+  useUiLocale();
   const [methods, setMethods] = useState<Methods | null>(null);
   const [token, setToken] = useState("");
   useEffect(() => {
@@ -38,7 +40,12 @@ function useAuthSetup(setError: Dispatch<SetStateAction<string>>) {
         }
       })
       .catch((reason) => {
-        if (active) setError(reason instanceof Error ? reason.message : "无法连接账号服务。");
+        if (active)
+          setError(
+            reason instanceof Error
+              ? localizedProperty(reason, "message", reason.message)
+              : translateMessage("无法连接账号服务。"),
+          );
       });
     return () => {
       active = false;
@@ -58,20 +65,24 @@ function SecretField({
   onChange: (value: string) => void;
   disabled: boolean;
 }) {
-  const labels = {
-    confirmation: "确认密码",
-    reset: "新密码",
-    login: "密码",
-    register: "密码",
-    forgot: "密码",
-    verify: "密码",
-  };
+  useUiLocale();
+  const labels = markUiCopy(
+    {
+      confirmation: "确认密码",
+      reset: "新密码",
+      login: "密码",
+      register: "密码",
+      forgot: "密码",
+      verify: "密码",
+    },
+    { confirmation: "确认密码", reset: "新密码", login: "密码", register: "密码", forgot: "密码", verify: "密码" },
+  );
   const label = labels[mode];
   const id = mode === "confirmation" ? "account-confirmation" : "account-password";
   const isLogin = mode === "login";
   return (
     <div className="space-y-2">
-      <Label htmlFor={id}>{label}</Label>
+      <Label htmlFor={id}>{localizedProperty(labels, mode, label)}</Label>
       <PasswordInput
         id={id}
         autoComplete={isLogin ? "current-password" : "new-password"}
@@ -82,7 +93,11 @@ function SecretField({
         onChange={(event) => onChange(event.target.value)}
         disabled={disabled}
       />
-      {!isLogin && <p className="text-xs text-muted-foreground">至少 12 个字符</p>}
+      {!isLogin && (
+        <p className="text-xs text-muted-foreground">
+          <LocalizedText text={"至少 12 个字符"} />
+        </p>
+      )}
     </div>
   );
 }
@@ -107,21 +122,22 @@ function formState(mode: Mode, methods: Methods | null, state: { done: boolean; 
 }
 
 function AuthFooter({ mode, methods }: { mode: Mode; methods: Methods | null }) {
+  useUiLocale();
   return (
     <div className="flex flex-wrap justify-center gap-x-5 gap-y-2 text-sm">
       {mode !== "login" && (
         <a className="underline underline-offset-4" href="/account/login/">
-          返回登录
+          <LocalizedText text={"返回登录"} />
         </a>
       )}
       {mode === "login" && methods?.registration_enabled && (
         <a className="underline underline-offset-4" href="/account/register/">
-          创建账号
+          <LocalizedText text={"创建账号"} />
         </a>
       )}
       {mode === "login" && methods?.email_enabled && (
         <a className="text-muted-foreground hover:text-foreground" href="/account/forgot-password/">
-          忘记密码
+          <LocalizedText text={"忘记密码"} />
         </a>
       )}
     </div>
@@ -129,6 +145,7 @@ function AuthFooter({ mode, methods }: { mode: Mode; methods: Methods | null }) 
 }
 
 export default function AuthScreen({ mode }: { mode: Mode }) {
+  useUiLocale();
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -145,7 +162,7 @@ export default function AuthScreen({ mode }: { mode: Mode }) {
     setError("");
     setMessage("");
     if ((mode === "register" || mode === "reset") && password !== confirmation) {
-      setError("两次输入的密码不一致。");
+      setError(translateMessage("两次输入的密码不一致。"));
       return;
     }
     setBusy(true);
@@ -158,27 +175,31 @@ export default function AuthScreen({ mode }: { mode: Mode }) {
           break;
         case "register":
           await accountApi.register(email, password, csrf);
-          setMessage("注册成功，请查收验证邮件。你也可以先登录查看账号。");
+          setMessage(translateMessage("注册成功，请查收验证邮件。你也可以先登录查看账号。"));
           setDone(true);
           break;
         case "forgot":
           await accountApi.forgot(email, csrf);
-          setMessage("如果账号存在，我们已安排发送重置邮件，请检查收件箱和垃圾邮件。");
+          setMessage(translateMessage("如果账号存在，我们已安排发送重置邮件，请检查收件箱和垃圾邮件。"));
           setDone(true);
           break;
         case "verify":
           await accountApi.verify(token, csrf);
-          setMessage("邮箱验证成功，请登录你的账号。");
+          setMessage(translateMessage("邮箱验证成功，请登录你的账号。"));
           setDone(true);
           break;
         case "reset":
           await accountApi.reset(token, password, csrf);
-          setMessage("密码已更新，请使用新密码登录。");
+          setMessage(translateMessage("密码已更新，请使用新密码登录。"));
           setDone(true);
           break;
       }
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "操作失败，请稍后重试。");
+      setError(
+        reason instanceof Error
+          ? localizedProperty(reason, "message", reason.message)
+          : translateMessage("操作失败，请稍后重试。"),
+      );
     } finally {
       setBusy(false);
     }
@@ -192,7 +213,11 @@ export default function AuthScreen({ mode }: { mode: Mode }) {
       const result = await accountApi.oauth(provider.id, methods.csrf_token);
       window.location.assign(result.authorization_url);
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "暂时无法授权。");
+      setError(
+        reason instanceof Error
+          ? localizedProperty(reason, "message", reason.message)
+          : translateMessage("暂时无法授权。"),
+      );
       setBusy(false);
     }
   };
@@ -210,22 +235,30 @@ export default function AuthScreen({ mode }: { mode: Mode }) {
   } = formState(mode, methods, { done, busy, token });
 
   return (
-    <AccountShell title={copy[mode][0]} description={copy[mode][1]}>
+    <AccountShell title={translateMessage(copy[mode][0])} description={translateMessage(copy[mode][1])}>
       <AccountNotice error={error} message={message} />
       {!methods && !error && (
         <p role="status" className="text-center text-sm text-muted-foreground">
-          正在加载登录方式…
+          <LocalizedText text={"正在加载登录方式…"} />
         </p>
       )}
-      {closed && <p className="text-sm text-muted-foreground">暂未开放新用户注册。</p>}
+      {closed && (
+        <p className="text-sm text-muted-foreground">
+          <LocalizedText text={"暂未开放新用户注册。"} />
+        </p>
+      )}
       {emailUnavailable && !closed && (
-        <p className="text-sm text-muted-foreground">邮箱注册和找回密码将在邮件服务配置后开放。</p>
+        <p className="text-sm text-muted-foreground">
+          <LocalizedText text={"邮箱注册和找回密码将在邮件服务配置后开放。"} />
+        </p>
       )}
       {showForm && (
         <form onSubmit={submit} className="space-y-4">
           {isEmail && (
             <div className="space-y-2">
-              <Label htmlFor="account-email">邮箱</Label>
+              <Label htmlFor="account-email">
+                <LocalizedText text={"邮箱"} />
+              </Label>
               <Input
                 id="account-email"
                 type="email"
@@ -242,10 +275,14 @@ export default function AuthScreen({ mode }: { mode: Mode }) {
           {isNewPassword && (
             <SecretField mode="confirmation" value={confirmation} onChange={setConfirmation} disabled={busy} />
           )}
-          {missingToken && <p className="text-sm text-muted-foreground">请从邮件中的完整链接打开此页面。</p>}
+          {missingToken && (
+            <p className="text-sm text-muted-foreground">
+              <LocalizedText text={"请从邮件中的完整链接打开此页面。"} />
+            </p>
+          )}
           <Button type="submit" size="lg" className="w-full" disabled={submitDisabled}>
             {busy && <Loader2 className="animate-spin" />}
-            {copy[mode][2]}
+            {translateMessage(copy[mode][2])}
           </Button>
         </form>
       )}
@@ -253,13 +290,14 @@ export default function AuthScreen({ mode }: { mode: Mode }) {
         <div className="space-y-3">
           <div className="flex items-center gap-3 text-xs text-muted-foreground">
             <span className="h-px flex-1 bg-border" />
-            或使用第三方账号
+            <LocalizedText text={"或使用第三方账号"} />
             <span className="h-px flex-1 bg-border" />
           </div>
           <div className="grid gap-2">
             {methods?.providers.map((provider) => (
               <Button key={provider.id} variant="outline" size="lg" disabled={busy} onClick={() => oauth(provider)}>
-                {provider.label} 登录
+                {localizedProperty(provider, "label", provider.label)}
+                <LocalizedText text={" 登录"} />
               </Button>
             ))}
           </div>

@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import { useQuery } from "@tanstack/react-query";
 import useAuthorized from "@/app/(dashboard)/hooks/useAuthorized";
 import { autoRouterListKey, fetchAllModelDeployments } from "@/app/(dashboard)/hooks/models/useModels";
@@ -254,6 +256,7 @@ const EditClassifierTabs = ({
   userRole: string;
   isVisible: boolean;
 }) => {
+  useUiLocale();
   const { userId } = useAuthorized();
   const hasDeployment = Boolean(value.jev_classifier_config?.deployment_name);
   const { data: deployments } = useQuery({
@@ -285,6 +288,7 @@ const EditAutoRouterModal: React.FC<EditAutoRouterModalProps> = ({
   userRole,
   isMemberManaged = false,
 }) => {
+  useUiLocale();
   const [loading, setLoading] = useState(false);
   const [modelAccessGroups, setModelAccessGroups] = useState<string[]>([]);
   const [modelInfo, setModelInfo] = useState<ModelGroup[]>([]);
@@ -583,7 +587,7 @@ const EditAutoRouterModal: React.FC<EditAutoRouterModalProps> = ({
         modelData.model_info.id,
       );
 
-      toast.success("Auto router configuration updated successfully");
+      toast.success(translateMessage("Auto router configuration updated successfully"));
       const updatedModelData = {
         ...modelData,
         model_name: values.auto_router_name,
@@ -624,7 +628,7 @@ const EditAutoRouterModal: React.FC<EditAutoRouterModalProps> = ({
       model_info: updatedModelInfo,
     };
 
-    toast.success("Auto router configuration updated successfully");
+    toast.success(translateMessage("Auto router configuration updated successfully"));
     onSuccess(updatedModelData);
     onCancel();
   };
@@ -645,13 +649,18 @@ const EditAutoRouterModal: React.FC<EditAutoRouterModalProps> = ({
 
   const modelChoices: ModelChoice[] = [
     ...modelInfo.map((model) => ({ value: model.model_group, label: model.model_group })),
-    { value: "custom", label: "Enter custom model name" },
+    markUiCopy({ value: "custom", label: "Enter custom model name" }, { label: "Enter custom model name" }),
   ];
 
   const routerNameField = (
-    <FormField control={form.control} name="auto_router_name" label="Auto Router Name">
+    <FormField control={form.control} name="auto_router_name" label={translateMessage("Auto Router Name")}>
       {({ ref, ...field }) => (
-        <Input {...field} ref={ref} readOnly={isMemberManaged} placeholder="e.g., auto_router_1, smart_routing" />
+        <Input
+          {...field}
+          ref={ref}
+          readOnly={isMemberManaged}
+          placeholder={translateMessage("e.g., auto_router_1, smart_routing")}
+        />
       )}
     </FormField>
   );
@@ -662,9 +671,15 @@ const EditAutoRouterModal: React.FC<EditAutoRouterModalProps> = ({
         <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-4xl">
           <TooltipProvider>
             <DialogHeader>
-              <DialogTitle>Edit Auto Router Configuration</DialogTitle>
+              <DialogTitle>
+                <LocalizedText text={"Edit Auto Router Configuration"} />
+              </DialogTitle>
               <DialogDescription>
-                Edit the auto router configuration including routing logic, default models, and access settings.
+                <LocalizedText
+                  text={
+                    "Edit the auto router configuration including routing logic, default models, and access settings."
+                  }
+                />
               </DialogDescription>
             </DialogHeader>
 
@@ -726,28 +741,36 @@ const EditAutoRouterModal: React.FC<EditAutoRouterModalProps> = ({
                       />
                     </div>
 
-                    <FormField control={form.control} name="auto_router_default_model" label="Default Model">
+                    <FormField
+                      control={form.control}
+                      name="auto_router_default_model"
+                      label={translateMessage("Default Model")}
+                    >
                       {({ id, value, onChange, "aria-invalid": ariaInvalid, "aria-describedby": ariaDescribedBy }) => (
                         <ModelChoiceCombobox
                           id={id}
                           value={value}
                           onChange={onChange}
                           choices={modelChoices}
-                          placeholder="Select a default model"
+                          placeholder={translateMessage("Select a default model")}
                           ariaInvalid={ariaInvalid}
                           ariaDescribedBy={ariaDescribedBy}
                         />
                       )}
                     </FormField>
 
-                    <FormField control={form.control} name="auto_router_embedding_model" label="Embedding Model">
+                    <FormField
+                      control={form.control}
+                      name="auto_router_embedding_model"
+                      label={translateMessage("Embedding Model")}
+                    >
                       {({ id, value, onChange, "aria-invalid": ariaInvalid, "aria-describedby": ariaDescribedBy }) => (
                         <ModelChoiceCombobox
                           id={id}
                           value={value}
                           onChange={onChange}
                           choices={modelChoices}
-                          placeholder="Select an embedding model"
+                          placeholder={translateMessage("Select an embedding model")}
                           ariaInvalid={ariaInvalid}
                           ariaDescribedBy={ariaDescribedBy}
                         />
@@ -779,19 +802,19 @@ const EditAutoRouterModal: React.FC<EditAutoRouterModalProps> = ({
 
             <DialogFooter>
               <Button variant="outline" onClick={onCancel}>
-                Cancel
+                <LocalizedText text={"Cancel"} />
               </Button>
               {submitBlockedReason === null ? (
                 <Button disabled={loading} onClick={handleSubmit}>
                   {loading && <UiLoadingSpinner className="size-4" />}
-                  Save Changes
+                  <LocalizedText text={"Save Changes"} />
                 </Button>
               ) : (
                 <Tooltip>
                   <TooltipTrigger
                     render={
                       <Button disabled onClick={handleSubmit}>
-                        Save Changes
+                        <LocalizedText text={"Save Changes"} />
                       </Button>
                     }
                   />

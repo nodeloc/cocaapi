@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import React, { forwardRef, useImperativeHandle, useMemo } from "react";
 import { CircleHelp } from "lucide-react";
 import { useForm, type Resolver, type ResolverResult } from "react-hook-form";
@@ -14,11 +16,14 @@ type ToolFormValues = { args: unknown[] };
 const argumentValues = (schema: InputSchema, values: ToolFormValues): Record<string, unknown> =>
   Object.fromEntries(Object.keys(schema.properties ?? {}).map((key, index) => [key, values.args[index]]));
 
-const STRING_SCHEMA_MESSAGES: Readonly<Record<string, string>> = { input: "Please enter input for this tool" };
+const STRING_SCHEMA_MESSAGES: Readonly<Record<string, string>> = markUiCopy(
+  { input: "Please enter input for this tool" },
+  { input: "Please enter input for this tool" },
+);
 
 const BOOLEAN_ITEMS = [
-  { value: true, label: "True" },
-  { value: false, label: "False" },
+  markUiCopy({ value: true, label: "True" }, { label: "True" }),
+  markUiCopy({ value: false, label: "False" }, { label: "False" }),
 ];
 
 const isBlank = (value: unknown): boolean => value === undefined || value === null || value === "";
@@ -88,7 +93,7 @@ const labelFor = (key: string, prop: InputSchemaProperty, required: boolean): Re
     {prop.description && (
       <Tooltip>
         <TooltipTrigger render={<CircleHelp className="ml-2 size-3.5 shrink-0 cursor-help text-muted-foreground" />} />
-        <TooltipContent>{prop.description}</TooltipContent>
+        <TooltipContent>{localizedProperty(prop, "description", prop.description)}</TooltipContent>
       </Tooltip>
     )}
   </span>
@@ -232,6 +237,7 @@ interface MCPToolArgumentsFormProps {
 
 const MCPToolArgumentsForm = forwardRef<MCPToolArgumentsFormRef, MCPToolArgumentsFormProps>(
   ({ tool, className }, ref) => {
+    useUiLocale();
     const schema: InputSchema = useMemo(() => {
       if (typeof tool.inputSchema === "string") {
         return {
@@ -308,12 +314,17 @@ const MCPToolArgumentsForm = forwardRef<MCPToolArgumentsFormRef, MCPToolArgument
               name="args.0"
               label={
                 <span>
-                  Input <span className="text-destructive">*</span>
+                  <LocalizedText text={"Input "} />
+                  <span className="text-destructive">*</span>
                 </span>
               }
             >
               {(field) => (
-                <Input {...field} value={(field.value as string) ?? ""} placeholder="Enter input for this tool" />
+                <Input
+                  {...field}
+                  value={(field.value as string) ?? ""}
+                  placeholder={translateMessage("Enter input for this tool")}
+                />
               )}
             </FormField>
           </FieldGroup>
@@ -324,7 +335,9 @@ const MCPToolArgumentsForm = forwardRef<MCPToolArgumentsFormRef, MCPToolArgument
     if (!actualSchema.properties) {
       return (
         <form onSubmit={(event) => event.preventDefault()} className={className}>
-          <div className="py-4 text-center text-sm text-muted-foreground">No parameters required for this tool.</div>
+          <div className="py-4 text-center text-sm text-muted-foreground">
+            <LocalizedText text={"No parameters required for this tool."} />
+          </div>
         </form>
       );
     }
@@ -358,15 +371,20 @@ const MCPToolArgumentsForm = forwardRef<MCPToolArgumentsFormRef, MCPToolArgument
                             aria-invalid={field["aria-invalid"]}
                             className="w-full"
                           >
-                            <SelectValue placeholder={`Select ${key}`}>
-                              {field.value === "" ? "Empty string" : undefined}
+                            <SelectValue placeholder={translateMessage("Select %{0}", [key])}>
+                              {field.value === "" ? translateMessage("Empty string") : undefined}
                             </SelectValue>
                           </SelectTrigger>
                           <SelectContent>
-                            {!required && <SelectItem value={null}>Select {key}</SelectItem>}
+                            {!required && (
+                              <SelectItem value={null}>
+                                <LocalizedText text={"Select "} />
+                                {key}
+                              </SelectItem>
+                            )}
                             {prop.enum.map((v) => (
                               <SelectItem key={v} value={v}>
-                                {v === "" ? "Empty string" : v}
+                                {v === "" ? translateMessage("Empty string") : v}
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -386,12 +404,21 @@ const MCPToolArgumentsForm = forwardRef<MCPToolArgumentsFormRef, MCPToolArgument
                             aria-invalid={field["aria-invalid"]}
                             className="w-full"
                           >
-                            <SelectValue placeholder={`Select ${key}`} />
+                            <SelectValue placeholder={translateMessage("Select %{0}", [key])} />
                           </SelectTrigger>
                           <SelectContent>
-                            {!required && <SelectItem value={null}>Select {key}</SelectItem>}
-                            <SelectItem value={true}>True</SelectItem>
-                            <SelectItem value={false}>False</SelectItem>
+                            {!required && (
+                              <SelectItem value={null}>
+                                <LocalizedText text={"Select "} />
+                                {key}
+                              </SelectItem>
+                            )}
+                            <SelectItem value={true}>
+                              <LocalizedText text={"True"} />
+                            </SelectItem>
+                            <SelectItem value={false}>
+                              <LocalizedText text={"False"} />
+                            </SelectItem>
                           </SelectContent>
                         </Select>
                       );
@@ -403,7 +430,10 @@ const MCPToolArgumentsForm = forwardRef<MCPToolArgumentsFormRef, MCPToolArgument
                           type="number"
                           step={prop.type === "integer" ? 1 : undefined}
                           value={(field.value as number | string) ?? ""}
-                          placeholder={prop.description || `Enter ${key}`}
+                          placeholder={
+                            localizedProperty(prop, "description", prop.description) ||
+                            translateMessage("Enter %{0}", [key])
+                          }
                         />
                       );
                     }
@@ -416,8 +446,10 @@ const MCPToolArgumentsForm = forwardRef<MCPToolArgumentsFormRef, MCPToolArgument
                           spellCheck={false}
                           className="font-mono"
                           placeholder={
-                            prop.description ||
-                            (prop.type === "object" ? `Enter JSON object for ${key}` : `Enter JSON array for ${key}`)
+                            localizedProperty(prop, "description", prop.description) ||
+                            (prop.type === "object"
+                              ? translateMessage("Enter JSON object for %{0}", [key])
+                              : translateMessage("Enter JSON array for %{0}", [key]))
                           }
                         />
                       );
@@ -426,7 +458,10 @@ const MCPToolArgumentsForm = forwardRef<MCPToolArgumentsFormRef, MCPToolArgument
                       <Input
                         {...field}
                         value={(field.value as string) ?? ""}
-                        placeholder={prop.description || `Enter ${key}`}
+                        placeholder={
+                          localizedProperty(prop, "description", prop.description) ||
+                          translateMessage("Enter %{0}", [key])
+                        }
                       />
                     );
                   }}

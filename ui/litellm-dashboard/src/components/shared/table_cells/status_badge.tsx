@@ -1,4 +1,5 @@
 "use client";
+import { localizedProperty, useUiLocale } from "@/lib/i18n";
 
 import * as React from "react";
 
@@ -27,15 +28,17 @@ interface StatusBadgeProps {
   href?: string;
 }
 
-export function StatusBadge({ tone, label, tooltip, dataTestId, className, href }: StatusBadgeProps) {
+export function StatusBadge(cocaCopyProps0: StatusBadgeProps) {
+  const { tone, label, tooltip, dataTestId, className, href } = cocaCopyProps0;
+  useUiLocale();
   const badgeClassName = cn("whitespace-nowrap font-normal", TONE_CLASS[tone], className);
   const badge = href ? (
     <LinkedStatusBadge href={href} dataTestId={dataTestId} className={badgeClassName}>
-      {label}
+      {localizedProperty(cocaCopyProps0, "label", label)}
     </LinkedStatusBadge>
   ) : (
     <Badge variant="outline" data-testid={dataTestId} className={badgeClassName}>
-      {label}
+      {localizedProperty(cocaCopyProps0, "label", label)}
     </Badge>
   );
 
@@ -53,6 +56,7 @@ interface LinkedStatusBadgeProps {
 }
 
 function LinkedStatusBadge({ href, dataTestId, className, children }: LinkedStatusBadgeProps) {
+  useUiLocale();
   const handleClick = useEntityLinkClick(href);
 
   return (

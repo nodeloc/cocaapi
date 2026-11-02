@@ -1,4 +1,5 @@
 "use client";
+import { localizedProperty, useUiLocale } from "@/lib/i18n";
 
 import { useNow } from "@/hooks/useNow";
 import { durationLabel, money, scopeLabel, sourceLabels } from "../../model/format";
@@ -6,6 +7,7 @@ import { nextCheckStatus } from "../../model/status";
 import { type Lens } from "../../model/types";
 
 export function InvestigationSummary({ lens }: { lens: Lens }) {
+  useUiLocale();
   const now = useNow(15000);
   const { settings } = lens;
   const month = new Date(now).toISOString().slice(0, 7);
@@ -24,7 +26,7 @@ export function InvestigationSummary({ lens }: { lens: Lens }) {
   ].filter(Boolean);
   return (
     <p className="mt-1 text-xs text-muted-foreground">
-      {sourceLabels[settings.source ?? "traces"]}
+      {localizedProperty(sourceLabels, settings.source ?? "traces", sourceLabels[settings.source ?? "traces"])}
       {parts.map((part) => ` · ${part}`)}
     </p>
   );

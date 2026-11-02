@@ -1,3 +1,4 @@
+import { markUiCopy } from "@/lib/i18n";
 import { useCallback, useEffect, useState } from "react";
 import { AssistantMessageUpdate, ChatMessage, Conversation } from "./types";
 
@@ -108,15 +109,18 @@ export function useChatHistory(
   const createConversation = useCallback((model: string): string => {
     const id = crypto.randomUUID();
     const now = Date.now();
-    const newConversation: Conversation = {
-      id,
-      title: "New conversation",
-      model,
-      messages: [],
-      mcpServerNames: [],
-      createdAt: now,
-      updatedAt: now,
-    };
+    const newConversation: Conversation = markUiCopy(
+      {
+        id,
+        title: "New conversation",
+        model,
+        messages: [],
+        mcpServerNames: [],
+        createdAt: now,
+        updatedAt: now,
+      },
+      { title: "New conversation" },
+    );
     setConversations((prev) => trimConversations([newConversation, ...prev]));
     setCurrentActiveId(id);
     return id;

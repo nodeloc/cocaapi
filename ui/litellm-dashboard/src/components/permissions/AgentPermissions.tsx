@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, useUiLocale } from "@/lib/i18n";
 import React, { useState, useEffect } from "react";
 import { UserGroupIcon } from "@heroicons/react/outline";
 import { Badge } from "@/components/ui/badge";
@@ -25,6 +27,7 @@ export function AgentPermissions({
   inheritedAgents = [],
   accessToken,
 }: AgentPermissionsProps) {
+  useUiLocale();
   const [agentDetails, setAgentDetails] = useState<Agent[]>([]);
   const inheritedOnlyAgents = inheritedAgents.filter((grant) => !agents.includes(grant.id));
   const agentIdCount = agents.length + inheritedOnlyAgents.length;
@@ -67,7 +70,9 @@ export function AgentPermissions({
     <div className="space-y-3">
       <div className="flex items-center gap-2">
         <UserGroupIcon className="h-4 w-4 text-purple-600" />
-        <p className="text-sm font-semibold text-foreground">Allowed agents to call</p>
+        <p className="text-sm font-semibold text-foreground">
+          <LocalizedText text={"Allowed agents to call"} />
+        </p>
         <Badge variant="secondary">{totalCount}</Badge>
       </div>
 
@@ -86,7 +91,7 @@ export function AgentPermissions({
                             {getAgentDisplayName(item.value)}
                           </span>
                         </TooltipTrigger>
-                        <TooltipContent>{item.tooltip}</TooltipContent>
+                        <TooltipContent>{localizedProperty(item, "tooltip", item.tooltip)}</TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
                   ) : (
@@ -94,7 +99,7 @@ export function AgentPermissions({
                       <span className="inline-block w-1.5 h-1.5 bg-success rounded-full shrink-0"></span>
                       <span className="text-sm font-medium text-foreground truncate">{item.value}</span>
                       <span className="ml-1 px-1.5 py-0.5 text-[9px] font-semibold text-success bg-success/10 border border-success/20 rounded-sm uppercase tracking-wide shrink-0">
-                        Group
+                        <LocalizedText text={"Group"} />
                       </span>
                     </div>
                   )}
@@ -106,7 +111,9 @@ export function AgentPermissions({
       ) : (
         <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted border border-border">
           <UserGroupIcon className="h-4 w-4 text-muted-foreground" />
-          <p className="text-muted-foreground text-sm">No agents or access groups configured</p>
+          <p className="text-muted-foreground text-sm">
+            <LocalizedText text={"No agents or access groups configured"} />
+          </p>
         </div>
       )}
     </div>

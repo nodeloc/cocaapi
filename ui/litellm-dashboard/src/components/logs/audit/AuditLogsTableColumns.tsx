@@ -1,4 +1,5 @@
 "use client";
+import { markUiCopy } from "@/lib/i18n";
 
 import { ColumnDef } from "@tanstack/react-table";
 
@@ -45,63 +46,84 @@ interface AuditLogsTableColumnsDeps {
 }
 
 export const getAuditLogsTableColumns = ({ onViewLog }: AuditLogsTableColumnsDeps): ColumnDef<AuditLogEntry>[] => [
-  {
-    id: "updated_at",
-    accessorKey: "updated_at",
-    header: "Timestamp",
-    size: 200,
-    enableSorting: false,
-    cell: ({ row }) => <DateCell value={row.original.updated_at} />,
-  },
-  {
-    id: "action",
-    accessorKey: "action",
-    header: "Action",
-    size: 110,
-    enableSorting: false,
-    cell: ({ row }) => (
-      <StatusBadge tone={ACTION_TONE[row.original.action] ?? "neutral"} label={auditActionLabel(row.original.action)} />
-    ),
-  },
-  {
-    id: "table_name",
-    accessorKey: "table_name",
-    header: "Table",
-    size: 130,
-    enableSorting: false,
-    cell: ({ row }) => (
-      <span className="text-sm">{AUDIT_TABLE_NAME_DISPLAY[row.original.table_name] ?? row.original.table_name}</span>
-    ),
-  },
-  {
-    id: "object_id",
-    accessorKey: "object_id",
-    header: "Object ID",
-    minSize: 220,
-    enableSorting: false,
-    cell: ({ row }) => (
-      <IdentityCell
-        title={row.original.object_id}
-        titleClassName="font-mono text-xs font-normal text-primary"
-        className="max-w-72"
-        onClick={() => onViewLog(row.original)}
-      />
-    ),
-  },
-  {
-    id: "changed_by",
-    accessorKey: "changed_by",
-    header: "Changed By",
-    size: 200,
-    enableSorting: false,
-    cell: ({ row }) => <DefaultProxyAdminTag userId={row.original.changed_by} />,
-  },
-  {
-    id: "changed_by_api_key",
-    accessorKey: "changed_by_api_key",
-    header: "API Key (Hash)",
-    size: 160,
-    enableSorting: false,
-    cell: ({ row }) => <IdCell value={row.original.changed_by_api_key} variant="plain" />,
-  },
+  markUiCopy(
+    {
+      id: "updated_at",
+      accessorKey: "updated_at",
+      header: "Timestamp",
+      size: 200,
+      enableSorting: false,
+      cell: ({ row }) => <DateCell value={row.original.updated_at} />,
+    },
+    { header: "Timestamp" },
+  ),
+  markUiCopy(
+    {
+      id: "action",
+      accessorKey: "action",
+      header: "Action",
+      size: 110,
+      enableSorting: false,
+      cell: ({ row }) => (
+        <StatusBadge
+          tone={ACTION_TONE[row.original.action] ?? "neutral"}
+          label={auditActionLabel(row.original.action)}
+        />
+      ),
+    },
+    { header: "Action" },
+  ),
+  markUiCopy(
+    {
+      id: "table_name",
+      accessorKey: "table_name",
+      header: "Table",
+      size: 130,
+      enableSorting: false,
+      cell: ({ row }) => (
+        <span className="text-sm">{AUDIT_TABLE_NAME_DISPLAY[row.original.table_name] ?? row.original.table_name}</span>
+      ),
+    },
+    { header: "Table" },
+  ),
+  markUiCopy(
+    {
+      id: "object_id",
+      accessorKey: "object_id",
+      header: "Object ID",
+      minSize: 220,
+      enableSorting: false,
+      cell: ({ row }) => (
+        <IdentityCell
+          title={row.original.object_id}
+          titleClassName="font-mono text-xs font-normal text-primary"
+          className="max-w-72"
+          onClick={() => onViewLog(row.original)}
+        />
+      ),
+    },
+    { header: "Object ID" },
+  ),
+  markUiCopy(
+    {
+      id: "changed_by",
+      accessorKey: "changed_by",
+      header: "Changed By",
+      size: 200,
+      enableSorting: false,
+      cell: ({ row }) => <DefaultProxyAdminTag userId={row.original.changed_by} />,
+    },
+    { header: "Changed By" },
+  ),
+  markUiCopy(
+    {
+      id: "changed_by_api_key",
+      accessorKey: "changed_by_api_key",
+      header: "API Key (Hash)",
+      size: 160,
+      enableSorting: false,
+      cell: ({ row }) => <IdCell value={row.original.changed_by_api_key} variant="plain" />,
+    },
+    { header: "API Key (Hash)" },
+  ),
 ];

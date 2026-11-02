@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -56,6 +58,7 @@ interface TagRateLimitEditorProps {
 }
 
 export function TagRateLimitEditor({ value, onChange }: TagRateLimitEditorProps) {
+  useUiLocale();
   const addRow = () => {
     onChange([...value, { id: newRowId(), tag: "", rpm_limit: null }]);
   };
@@ -73,22 +76,27 @@ export function TagRateLimitEditor({ value, onChange }: TagRateLimitEditorProps)
       {value.map((row, idx) => (
         <div key={row.id} style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 12 }}>
           <Input
-            aria-label="Tag"
+            aria-label={translateMessage("Tag")}
             value={row.tag}
             onChange={(e) => updateRow(idx, "tag", e.target.value)}
-            placeholder="Tag (e.g. cell-1)"
+            placeholder={translateMessage("Tag (e.g. cell-1)")}
             style={{ width: 180 }}
           />
           <Input
-            aria-label="RPM limit"
+            aria-label={translateMessage("RPM limit")}
             type="number"
             min={0}
             value={row.rpm_limit ?? ""}
             onChange={(e) => updateRow(idx, "rpm_limit", e.target.value === "" ? null : Number(e.target.value))}
-            placeholder="RPM"
+            placeholder={translateMessage("RPM")}
             style={{ width: 120 }}
           />
-          <Button variant="destructive" size="sm" aria-label="Remove tag limit" onClick={() => removeRow(idx)}>
+          <Button
+            variant="destructive"
+            size="sm"
+            aria-label={translateMessage("Remove tag limit")}
+            onClick={() => removeRow(idx)}
+          >
             ✕
           </Button>
         </div>
@@ -101,7 +109,7 @@ export function TagRateLimitEditor({ value, onChange }: TagRateLimitEditorProps)
           addRow();
         }}
       >
-        + Add Tag Limit
+        <LocalizedText text={"+ Add Tag Limit"} />
       </Button>
     </div>
   );

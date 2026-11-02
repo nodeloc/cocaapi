@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, getIntlLocale, translateMessage, useUiLocale } from "@/lib/i18n";
 import { useCustomerNative } from "@/components/account/native/CustomerNativeContext";
 /**
  * New Usage Page
@@ -73,6 +75,7 @@ interface UsagePageProps {
 }
 
 const UsagePage: React.FC<UsagePageProps> = ({ teams, organizations }) => {
+  useUiLocale();
   const { accessToken, userRole, userId: userID, premiumUser } = useAuthorized();
   const customer = useCustomerNative();
   const [gatewayActivityData, setGatewayActivityData] = useState<FetchedGatewayActivity | null>(null);
@@ -338,8 +341,11 @@ const UsagePage: React.FC<UsagePageProps> = ({ teams, organizations }) => {
       {aggregatedFailed && (
         <Alert variant="error" className="mb-3">
           <AlertDescription className="text-inherit">
-            Fetching spend data failed, so the totals below may be empty rather than final. Reload the page to try
-            again.
+            <LocalizedText
+              text={
+                "Fetching spend data failed, so the totals below may be empty rather than final. Reload the page to try again."
+              }
+            />
           </AlertDescription>
         </Alert>
       )}
@@ -352,21 +358,21 @@ const UsagePage: React.FC<UsagePageProps> = ({ teams, organizations }) => {
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <TabsList variant="line">
                     <TabsTrigger value="cost" className="flex-none px-3">
-                      Overview
+                      <LocalizedText text={"Overview"} />
                     </TabsTrigger>
                     <TabsTrigger value="models" className="flex-none px-3">
-                      Model Activity
+                      <LocalizedText text={"Model Activity"} />
                     </TabsTrigger>
                     {!customer && (
                       <>
                         <TabsTrigger value="keys" className="flex-none px-3">
-                          Key Activity
+                          <LocalizedText text={"Key Activity"} />
                         </TabsTrigger>
                         <TabsTrigger value="mcp" className="flex-none px-3">
-                          MCP Server Activity
+                          <LocalizedText text={"MCP Server Activity"} />
                         </TabsTrigger>
                         <TabsTrigger value="endpoints" className="flex-none px-3">
-                          Endpoint Activity
+                          <LocalizedText text={"Endpoint Activity"} />
                         </TabsTrigger>
                       </>
                     )}
@@ -375,11 +381,11 @@ const UsagePage: React.FC<UsagePageProps> = ({ teams, organizations }) => {
                     <div className="flex items-center gap-2">
                       <Button variant="outline" size="sm" onClick={() => setIsAiChatOpen(true)}>
                         <Sparkles />
-                        Ask AI
+                        <LocalizedText text={"Ask AI"} />
                       </Button>
                       <Button variant="outline" size="sm" onClick={() => setIsGlobalExportModalOpen(true)}>
                         <Download />
-                        Export Data
+                        <LocalizedText text={"Export Data"} />
                       </Button>
                     </div>
                   )}
@@ -405,7 +411,7 @@ const UsagePage: React.FC<UsagePageProps> = ({ teams, organizations }) => {
                       gatewayActivity && gatewayActivity.by_route.length > 0 ? (
                         <Panel
                           testId="gateway-requests-by-endpoint"
-                          title="Gateway Requests by Endpoint"
+                          title={translateMessage("Gateway Requests by Endpoint")}
                           subtitle="Successful and failed requests per route"
                           bodyClassName="px-2 pt-4"
                         >
@@ -418,7 +424,7 @@ const UsagePage: React.FC<UsagePageProps> = ({ teams, organizations }) => {
                             series={["Successful", "Failed"]}
                             colors={["#2b3fd6", "#ef4444"]}
                             xKey="route"
-                            format={(value) => value.toLocaleString()}
+                            format={(value) => value.toLocaleString(getIntlLocale())}
                             className="h-64"
                           />
                         </Panel>
@@ -451,8 +457,8 @@ const UsagePage: React.FC<UsagePageProps> = ({ teams, organizations }) => {
                         <Search className="size-4 text-muted-foreground" />
                       </InputGroupAddon>
                       <InputGroupInput
-                        aria-label="Search models"
-                        placeholder="Search by model name"
+                        aria-label={translateMessage("Search models")}
+                        placeholder={translateMessage("Search by model name")}
                         value={modelQuery}
                         onChange={(event) => setModelQuery(event.target.value)}
                       />
@@ -460,7 +466,7 @@ const UsagePage: React.FC<UsagePageProps> = ({ teams, organizations }) => {
                         <InputGroupAddon align="inline-end">
                           <InputGroupButton
                             size="icon-xs"
-                            aria-label="Clear model search"
+                            aria-label={translateMessage("Clear model search")}
                             onClick={() => setModelQuery("")}
                           >
                             <X />
@@ -474,7 +480,9 @@ const UsagePage: React.FC<UsagePageProps> = ({ teams, organizations }) => {
                   Object.keys(modelMetrics).length > 0 &&
                   Object.keys(filteredModelMetrics).length === 0 ? (
                     <p className="rounded-lg border p-6 text-center text-sm text-muted-foreground">
-                      No models match &quot;{trimmedModelQuery}&quot; in this date range
+                      <LocalizedText text={'No models match "'} />
+                      {trimmedModelQuery}
+                      <LocalizedText text={'" in this date range'} />
                     </p>
                   ) : (
                     <ActivityMetrics
@@ -567,17 +575,19 @@ const UsagePage: React.FC<UsagePageProps> = ({ teams, organizations }) => {
             <>
               {showCredentialBanner && (
                 <Alert variant="info" className="mb-5">
-                  <AlertTitle>Reusable credentials are automatically tracked as tags</AlertTitle>
+                  <AlertTitle>
+                    <LocalizedText text={"Reusable credentials are automatically tracked as tags"} />
+                  </AlertTitle>
                   <AlertDescription className="text-inherit">
-                    When a reusable credential is used, it will appear as a tag prefixed with{" "}
+                    <LocalizedText text={"When a reusable credential is used, it will appear as a tag prefixed with"} />{" "}
                     <code className="rounded bg-black/5 px-1 py-0.5 font-mono text-xs">Credential: </code>
-                    in this view.
+                    <LocalizedText text={"in this view."} />
                   </AlertDescription>
                   <AlertAction>
                     <Button
                       variant="ghost"
                       size="icon-xs"
-                      aria-label="Close"
+                      aria-label={translateMessage("Close")}
                       onClick={() => setShowCredentialBanner(false)}
                     >
                       <X />

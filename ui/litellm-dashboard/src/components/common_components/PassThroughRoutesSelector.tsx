@@ -1,3 +1,5 @@
+"use client";
+import { translateMessage, useUiLocale } from "@/lib/i18n";
 import React, { useEffect, useState } from "react";
 import { MultiSelect, type MultiSelectOption } from "@/components/shared/MultiSelect";
 import { getPassThroughEndpointsCall } from "../networking";
@@ -31,6 +33,7 @@ const PassThroughRoutesSelector: React.FC<PassThroughRoutesSelectorProps> = ({
   disabled = false,
   teamId,
 }) => {
+  useUiLocale();
   const [passThroughRoutes, setPassThroughRoutes] = useState<MultiSelectOption[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -60,7 +63,7 @@ const PassThroughRoutesSelector: React.FC<PassThroughRoutesSelectorProps> = ({
       value={value}
       onValueChange={(routes) => onChange?.(routes)}
       placeholder={placeholder}
-      emptyText="No pass through routes found"
+      emptyText={translateMessage("No pass through routes found")}
       loading={loading}
       allowCustomValues
       disabled={disabled}

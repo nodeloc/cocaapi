@@ -1,3 +1,4 @@
+import { markUiCopy } from "@/lib/i18n";
 import { z } from "zod";
 
 const contentPart = z.discriminatedUnion("type", [
@@ -22,10 +23,13 @@ const choiceQuestion = z
   })
   .refine(
     (question) => new Set(question.choices.map((choice) => String(choice.value))).size === question.choices.length,
-    {
-      message: "Choice values must be unique, including their string representations.",
-      path: ["choices"],
-    },
+    markUiCopy(
+      {
+        message: "Choice values must be unique, including their string representations.",
+        path: ["choices"],
+      },
+      { message: "Choice values must be unique, including their string representations." },
+    ),
   );
 
 const requestFields = {

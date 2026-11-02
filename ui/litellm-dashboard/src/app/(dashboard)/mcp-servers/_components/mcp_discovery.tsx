@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 import React, { useState, useMemo, useEffect } from "react";
 import { Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -42,6 +44,7 @@ const MCPDiscovery: React.FC<MCPDiscoveryProps> = ({
   onCustomServer,
   accessToken,
 }) => {
+  useUiLocale();
   const [servers, setServers] = useState<DiscoverableMCPServer[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
@@ -59,7 +62,7 @@ const MCPDiscovery: React.FC<MCPDiscoveryProps> = ({
           setCategories(data.categories || []);
         })
         .catch((err: Error) => {
-          setError(err.message || "Failed to load MCP servers");
+          setError(localizedProperty(err, "message", err.message) || translateMessage("Failed to load MCP servers"));
         })
         .finally(() => {
           setLoading(false);
@@ -107,11 +110,17 @@ const MCPDiscovery: React.FC<MCPDiscoveryProps> = ({
         <DialogHeader>
           <div className="flex items-center justify-between border-b border-border pb-4">
             <div className="flex items-center space-x-3">
-              <img src={resolveLogoSrc(mcpLogoImg)} alt="MCP Logo" className="mr-2 size-5 object-contain" />
-              <DialogTitle className="text-xl font-semibold">Add MCP Server</DialogTitle>
+              <img
+                src={resolveLogoSrc(mcpLogoImg)}
+                alt={translateMessage("MCP Logo")}
+                className="mr-2 size-5 object-contain"
+              />
+              <DialogTitle className="text-xl font-semibold">
+                <LocalizedText text={"Add MCP Server"} />
+              </DialogTitle>
             </div>
             <Button variant="link" size="sm" className="mr-8" onClick={onCustomServer}>
-              + Custom Server
+              <LocalizedText text={"+ Custom Server"} />
             </Button>
           </div>
         </DialogHeader>
@@ -140,7 +149,7 @@ const MCPDiscovery: React.FC<MCPDiscoveryProps> = ({
               <Search className="size-4 text-muted-foreground" />
             </InputGroupAddon>
             <InputGroupInput
-              placeholder="Search servers..."
+              placeholder={translateMessage("Search servers...")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -157,16 +166,19 @@ const MCPDiscovery: React.FC<MCPDiscoveryProps> = ({
 
           {error && (
             <div className="py-8 text-center text-muted-foreground">
-              <p className="text-sm">Failed to load servers: {error}</p>
+              <p className="text-sm">
+                <LocalizedText text={"Failed to load servers: "} />
+                {error}
+              </p>
             </div>
           )}
 
           {!loading && !error && filteredServers.length === 0 && (
             <div className="py-8 text-center text-muted-foreground">
               <p className="text-sm">
-                No servers found.{" "}
+                <LocalizedText text={"No servers found."} />{" "}
                 <Button variant="link" size="sm" onClick={onCustomServer}>
-                  Add a custom server
+                  <LocalizedText text={"Add a custom server"} />
                 </Button>
               </p>
             </div>
@@ -192,7 +204,7 @@ const MCPDiscovery: React.FC<MCPDiscoveryProps> = ({
                         {server.icon_url ? (
                           <img
                             src={resolveLogoSrc(server.icon_url)}
-                            alt={server.title}
+                            alt={localizedProperty(server, "title", server.title)}
                             className="mr-3 size-5 shrink-0 object-contain"
                             onError={(e) => {
                               const target = e.currentTarget;
@@ -211,7 +223,9 @@ const MCPDiscovery: React.FC<MCPDiscoveryProps> = ({
                         >
                           {avatar.initial}
                         </div>
-                        <span className="flex-1 truncate text-sm">{server.title || server.name}</span>
+                        <span className="flex-1 truncate text-sm">
+                          {localizedProperty(server, "title", server.title) || server.name}
+                        </span>
                         <span className="ml-2 shrink-0 text-sm text-muted-foreground">&#8250;</span>
                       </div>
                     );

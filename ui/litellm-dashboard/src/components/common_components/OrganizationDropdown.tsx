@@ -1,3 +1,5 @@
+"use client";
+import { translateMessage, useUiLocale } from "@/lib/i18n";
 import React from "react";
 import { SearchSelect } from "@/components/shared/SearchSelect";
 import { Organization } from "../networking";
@@ -23,6 +25,7 @@ const OrganizationDropdown: React.FC<OrganizationDropdownProps> = ({
   placeholder = "All Organizations",
   id,
 }) => {
+  useUiLocale();
   return (
     <div style={{ minWidth: 280, ...style }}>
       <SearchSelect
@@ -34,7 +37,7 @@ const OrganizationDropdown: React.FC<OrganizationDropdownProps> = ({
         value={value}
         onValueChange={(organizationId) => onChange?.(organizationId)}
         placeholder={placeholder}
-        emptyText={loading ? "Loading organizations…" : "No organizations found"}
+        emptyText={loading ? translateMessage("Loading organizations…") : translateMessage("No organizations found")}
         disabled={disabled}
         inputId={id}
       />

@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 import { useDisableBlogPosts } from "@/app/(dashboard)/hooks/useDisableBlogPosts";
 import { useBlogPosts, type BlogPost } from "@/app/(dashboard)/hooks/blogPosts/useBlogPosts";
 import { NAV_PRODUCT_LINK_CLASS } from "@/components/Navbar/navProductLinkClass";
@@ -22,6 +24,7 @@ function formatDate(dateStr: string): string {
 }
 
 export const BlogDropdown: React.FC = () => {
+  useUiLocale();
   const disableBlogPosts = useDisableBlogPosts();
 
   const { data, isLoading, isError, refetch } = useBlogPosts();
@@ -34,7 +37,7 @@ export const BlogDropdown: React.FC = () => {
     if (isLoading) {
       return (
         <div className="flex items-center px-2 py-1.5 text-sm">
-          <LoaderCircle role="img" aria-label="loading" className="size-4 animate-spin" />
+          <LoaderCircle role="img" aria-label={translateMessage("loading")} className="size-4 animate-spin" />
         </div>
       );
     }
@@ -42,16 +45,22 @@ export const BlogDropdown: React.FC = () => {
     if (isError) {
       return (
         <div className="flex items-center gap-2 px-2 py-1.5 text-sm">
-          <span className="text-destructive">Failed to load posts</span>
+          <span className="text-destructive">
+            <LocalizedText text={"Failed to load posts"} />
+          </span>
           <Button variant="outline" size="sm" onClick={() => refetch()}>
-            Retry
+            <LocalizedText text={"Retry"} />
           </Button>
         </div>
       );
     }
 
     if (!data || data.posts.length === 0) {
-      return <div className="px-2 py-1.5 text-sm text-muted-foreground">No posts available</div>;
+      return (
+        <div className="px-2 py-1.5 text-sm text-muted-foreground">
+          <LocalizedText text={"No posts available"} />
+        </div>
+      );
     }
 
     return (
@@ -60,19 +69,19 @@ export const BlogDropdown: React.FC = () => {
           <DropdownMenuItem key={post.url}>
             <a href={post.url} target="_blank" rel="noopener noreferrer" style={{ display: "block", width: 380 }}>
               <h5 className="text-sm font-semibold" style={{ marginBottom: 2 }}>
-                {post.title}
+                {localizedProperty(post, "title", post.title)}
               </h5>
               <span className="text-muted-foreground" style={{ fontSize: 11 }}>
                 {formatDate(post.date)}
               </span>
-              <p className="line-clamp-2">{post.description}</p>
+              <p className="line-clamp-2">{localizedProperty(post, "description", post.description)}</p>
             </a>
           </DropdownMenuItem>
         ))}
         <DropdownMenuSeparator />
         <DropdownMenuItem>
           <a href="https://docs.litellm.ai/blog" target="_blank" rel="noopener noreferrer">
-            View all posts
+            <LocalizedText text={"View all posts"} />
           </a>
         </DropdownMenuItem>
       </>
@@ -87,7 +96,7 @@ export const BlogDropdown: React.FC = () => {
         closeDelay={100}
         render={<Button variant="ghost" className={`${NAV_PRODUCT_LINK_CLASS} border-0!`} />}
       >
-        Blog
+        <LocalizedText text={"Blog"} />
         <ChevronDown className="size-2.5 text-muted-foreground" aria-hidden />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" side="bottom" className="w-auto">

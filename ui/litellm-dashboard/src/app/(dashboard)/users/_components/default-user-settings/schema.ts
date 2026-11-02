@@ -1,3 +1,4 @@
+import { markUiCopy } from "@/lib/i18n";
 import { z } from "zod";
 
 const isBlank = (value: string): boolean => value.trim() === "";
@@ -36,11 +37,16 @@ export const defaultUserSettingsSchema = z.object(defaultUserSettingsShape).supe
   );
 
   repeatedRows.forEach((index) =>
-    ctx.addIssue({
-      code: "custom",
-      message: "This team is already listed",
-      path: ["teams", index, "team_id"],
-    }),
+    ctx.addIssue(
+      markUiCopy(
+        {
+          code: "custom" as const,
+          message: "This team is already listed",
+          path: ["teams", index, "team_id"],
+        },
+        { message: "This team is already listed" },
+      ),
+    ),
   );
 });
 

@@ -1,3 +1,4 @@
+import { markUiCopy } from "@/lib/i18n";
 import type { McpDcrCredentials } from "@/hooks/useMcpOAuthFlow";
 import {
   ADMIN_CONFIG_CREDENTIAL_KEYS,
@@ -362,14 +363,17 @@ export const buildEditServerPayload = (values: EditServerFormValues, ui: EditSer
       ? { token_exchange_endpoint: null, audience: null, subject_token_type: null, token_exchange_profile: null }
       : {}),
     server_id: mcpServer.server_id,
-    mcp_info: {
-      ...(mcpServer.mcp_info ?? {}),
-      server_name: mcpInfoServerName,
-      description: restValues.description,
-      logo_url: logoUrl || undefined,
-      mcp_server_cost_info: Object.keys(costConfig).length > 0 ? costConfig : null,
-      tool_allowlist_enforced: toolAllowlistEnforced,
-    },
+    mcp_info: markUiCopy(
+      {
+        ...(mcpServer.mcp_info ?? {}),
+        server_name: mcpInfoServerName,
+        description: restValues.description,
+        logo_url: logoUrl || undefined,
+        mcp_server_cost_info: Object.keys(costConfig).length > 0 ? costConfig : null,
+        tool_allowlist_enforced: toolAllowlistEnforced,
+      },
+      { description: { owner: restValues, field: "description" } },
+    ),
     mcp_access_groups: accessGroups,
     alias: restValues.alias,
     // Include permission management fields

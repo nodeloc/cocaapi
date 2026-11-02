@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, getIntlLocale, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import { OnChangeFn, PaginationState, RowSelectionState } from "@tanstack/react-table";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 
@@ -51,12 +53,21 @@ const ERROR_TO_STATUS: Record<string, string> = {
 };
 
 const KEYWORD_ERRORS: ReadonlyArray<{ pattern: RegExp; label: string }> = [
-  { pattern: /missing.*api.*key|invalid.*key|unauthorized/i, label: "AuthenticationError: 401" },
-  { pattern: /rate.*limit|too.*many.*requests/i, label: "RateLimitError: 429" },
-  { pattern: /timeout|timed.*out/i, label: "TimeoutError: 408" },
-  { pattern: /not.*found/i, label: "NotFoundError: 404" },
-  { pattern: /forbidden|access.*denied/i, label: "ForbiddenError: 403" },
-  { pattern: /internal.*server.*error/i, label: "InternalServerError: 500" },
+  markUiCopy(
+    { pattern: /missing.*api.*key|invalid.*key|unauthorized/i, label: "AuthenticationError: 401" },
+    { label: "AuthenticationError: 401" },
+  ),
+  markUiCopy(
+    { pattern: /rate.*limit|too.*many.*requests/i, label: "RateLimitError: 429" },
+    { label: "RateLimitError: 429" },
+  ),
+  markUiCopy({ pattern: /timeout|timed.*out/i, label: "TimeoutError: 408" }, { label: "TimeoutError: 408" }),
+  markUiCopy({ pattern: /not.*found/i, label: "NotFoundError: 404" }, { label: "NotFoundError: 404" }),
+  markUiCopy({ pattern: /forbidden|access.*denied/i, label: "ForbiddenError: 403" }, { label: "ForbiddenError: 403" }),
+  markUiCopy(
+    { pattern: /internal.*server.*error/i, label: "InternalServerError: 500" },
+    { label: "InternalServerError: 500" },
+  ),
 ];
 
 const truncate = (value: string): string => (value.length > 100 ? `${value.substring(0, 97)}...` : value);
@@ -132,7 +143,7 @@ const toCheckedAtLabel = (checkedAt: string | null | undefined, fallback: string
   if (!checkedAt) {
     return fallback;
   }
-  return new Date(checkedAt).toLocaleString();
+  return new Date(checkedAt).toLocaleString(getIntlLocale());
 };
 
 const toLastSuccessLabel = (checkData: LatestHealthCheck, fallback: string): string => {
@@ -167,6 +178,7 @@ const HealthCheckComponent: React.FC<HealthCheckComponentProps> = ({
   onPaginationChange,
   rowCount,
 }) => {
+  useUiLocale();
   const [modelHealthStatuses, setModelHealthStatuses] = useState<{ [key: string]: HealthStatus }>({});
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const [errorModalVisible, setErrorModalVisible] = useState(false);
@@ -259,7 +271,7 @@ const HealthCheckComponent: React.FC<HealthCheckComponentProps> = ({
 
       try {
         const response = await individualModelHealthCheckCall(accessToken, modelId);
-        const currentTime = new Date().toLocaleString();
+        const currentTime = new Date().toLocaleString(getIntlLocale());
 
         if (response.unhealthy_count > 0 && response.unhealthy_endpoints && response.unhealthy_endpoints.length > 0) {
           const rawError = response.unhealthy_endpoints[0]?.error || "Health check failed";
@@ -309,7 +321,7 @@ const HealthCheckComponent: React.FC<HealthCheckComponentProps> = ({
           }
         } catch (dbError) {}
       } catch (error) {
-        const currentTime = new Date().toLocaleString();
+        const currentTime = new Date().toLocaleString(getIntlLocale());
         const rawError = error instanceof Error ? error.message : String(error);
         const errorMessage = extractMeaningfulError(rawError);
         setModelHealthStatuses((prev) => ({
@@ -356,7 +368,7 @@ const HealthCheckComponent: React.FC<HealthCheckComponentProps> = ({
       try {
         const response = await individualModelHealthCheckCall(accessToken, modelId);
 
-        const currentTime = new Date().toLocaleString();
+        const currentTime = new Date().toLocaleString(getIntlLocale());
         if (response.unhealthy_count > 0 && response.unhealthy_endpoints && response.unhealthy_endpoints.length > 0) {
           const rawError = response.unhealthy_endpoints[0]?.error || "Health check failed";
           const errorMessage = extractMeaningfulError(rawError);
@@ -385,7 +397,7 @@ const HealthCheckComponent: React.FC<HealthCheckComponentProps> = ({
         }
       } catch (error) {
         console.error(`Health check failed for model id ${modelId}:`, error);
-        const currentTime = new Date().toLocaleString();
+        const currentTime = new Date().toLocaleString(getIntlLocale());
         const rawError = error instanceof Error ? error.message : String(error);
         const errorMessage = extractMeaningfulError(rawError);
         setModelHealthStatuses((prev) => ({
@@ -501,9 +513,11 @@ const HealthCheckComponent: React.FC<HealthCheckComponentProps> = ({
       <div className="mb-6">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-semibold text-foreground">Model Health Status</h2>
+            <h2 className="text-lg font-semibold text-foreground">
+              <LocalizedText text={"Model Health Status"} />
+            </h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              Run health checks on individual models to verify they are working correctly
+              <LocalizedText text={"Run health checks on individual models to verify they are working correctly"} />
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -514,7 +528,7 @@ const HealthCheckComponent: React.FC<HealthCheckComponentProps> = ({
                 onClick={() => setRowSelection({})}
                 data-testid="clear-health-selection"
               >
-                Clear Selection
+                <LocalizedText text={"Clear Selection"} />
               </Button>
             )}
             <Button
@@ -524,7 +538,7 @@ const HealthCheckComponent: React.FC<HealthCheckComponentProps> = ({
               disabled={anyCheckRunning}
               data-testid="run-health-checks"
             >
-              {isPartialSelection ? "Run Selected Checks" : "Run All Checks"}
+              {isPartialSelection ? translateMessage("Run Selected Checks") : translateMessage("Run All Checks")}
             </Button>
           </div>
         </div>
@@ -556,21 +570,29 @@ const HealthCheckComponent: React.FC<HealthCheckComponentProps> = ({
         <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-3xl">
           <DialogHeader>
             <DialogTitle>
-              {selectedErrorDetails ? `Health Check Error - ${selectedErrorDetails.modelName}` : "Error Details"}
+              {selectedErrorDetails
+                ? translateMessage("Health Check Error - %{0}", [selectedErrorDetails.modelName])
+                : translateMessage("Error Details")}
             </DialogTitle>
-            <DialogDescription>Details returned by the model health check.</DialogDescription>
+            <DialogDescription>
+              <LocalizedText text={"Details returned by the model health check."} />
+            </DialogDescription>
           </DialogHeader>
           {selectedErrorDetails && (
             <div className="space-y-4">
               <div>
-                <span className="font-medium">Error:</span>
+                <span className="font-medium">
+                  <LocalizedText text={"Error:"} />
+                </span>
                 <div className="mt-2 rounded-md border border-destructive/30 bg-destructive/10 p-3">
                   <span className="text-destructive">{selectedErrorDetails.cleanedError}</span>
                 </div>
               </div>
 
               <div>
-                <span className="font-medium">Full Error Details:</span>
+                <span className="font-medium">
+                  <LocalizedText text={"Full Error Details:"} />
+                </span>
                 <div className="mt-2 max-h-96 overflow-y-auto rounded-md border bg-muted/50 p-3">
                   <pre className="whitespace-pre-wrap text-sm text-foreground">{selectedErrorDetails.fullError}</pre>
                 </div>
@@ -579,7 +601,7 @@ const HealthCheckComponent: React.FC<HealthCheckComponentProps> = ({
           )}
           <DialogFooter>
             <Button type="button" variant="outline" onClick={closeErrorModal}>
-              Close
+              <LocalizedText text={"Close"} />
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -595,22 +617,30 @@ const HealthCheckComponent: React.FC<HealthCheckComponentProps> = ({
           <DialogHeader>
             <DialogTitle>
               {selectedSuccessDetails
-                ? `Health Check Response - ${selectedSuccessDetails.modelName}`
-                : "Response Details"}
+                ? translateMessage("Health Check Response - %{0}", [selectedSuccessDetails.modelName])
+                : translateMessage("Response Details")}
             </DialogTitle>
-            <DialogDescription>Response returned by the successful model health check.</DialogDescription>
+            <DialogDescription>
+              <LocalizedText text={"Response returned by the successful model health check."} />
+            </DialogDescription>
           </DialogHeader>
           {selectedSuccessDetails && (
             <div className="space-y-4">
               <div>
-                <span className="font-medium">Status:</span>
+                <span className="font-medium">
+                  <LocalizedText text={"Status:"} />
+                </span>
                 <div className="mt-2 rounded-md border border-primary/30 bg-primary/5 p-3">
-                  <span className="text-foreground">Health check passed successfully</span>
+                  <span className="text-foreground">
+                    <LocalizedText text={"Health check passed successfully"} />
+                  </span>
                 </div>
               </div>
 
               <div>
-                <span className="font-medium">Response Details:</span>
+                <span className="font-medium">
+                  <LocalizedText text={"Response Details:"} />
+                </span>
                 <div className="mt-2 max-h-96 overflow-y-auto rounded-md border bg-muted/50 p-3">
                   <pre className="whitespace-pre-wrap text-sm text-foreground">
                     {JSON.stringify(selectedSuccessDetails.response, null, 2)}
@@ -621,7 +651,7 @@ const HealthCheckComponent: React.FC<HealthCheckComponentProps> = ({
           )}
           <DialogFooter>
             <Button type="button" variant="outline" onClick={closeSuccessModal}>
-              Close
+              <LocalizedText text={"Close"} />
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -1,3 +1,6 @@
+
+"use client";
+import { LocalizedText, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import { useModelCostMap } from "@/app/(dashboard)/hooks/models/useModelCostMap";
 import { useCustomerNative } from "@/components/account/native/CustomerNativeContext";
 import { useModelHub, useModelsInfo } from "@/app/(dashboard)/hooks/models/useModels";
@@ -73,6 +76,7 @@ export default function ModelInfoView({
   onModelUpdate,
   modelAccessGroups,
 }: ModelInfoViewProps) {
+  useUiLocale();
   const customer = useCustomerNative();
   const queryClient = useQueryClient();
   const [localModelData, setLocalModelData] = useState<any>(null);
@@ -255,9 +259,9 @@ export default function ModelInfoView({
         custom_llm_provider: localModelData.litellm_params?.custom_llm_provider,
       },
     };
-    toast.info("Storing credential..");
+    toast.info(translateMessage("Storing credential.."));
     let credentialResponse = await credentialCreateCall(accessToken, credentialItem);
-    toast.success("Credential stored successfully");
+    toast.success(translateMessage("Credential stored successfully"));
   };
 
   const handleModelUpdate = async (
@@ -427,7 +431,7 @@ export default function ModelInfoView({
         onModelUpdate(updatedModelData);
       }
 
-      toast.success("Model settings updated successfully");
+      toast.success(translateMessage("Model settings updated successfully"));
       setIsEditing(false);
     } catch (error) {
       console.error("Error updating model:", error);
@@ -442,10 +446,8 @@ export default function ModelInfoView({
     return (
       <div className="p-4">
         <Button variant="ghost" onClick={onClose} className="mb-4">
-          <ArrowLeft className="size-4" />
-          Back to Models
-        </Button>
-        <p className="text-sm">Loading...</p>
+          <ArrowLeft className="size-4" /><LocalizedText text={"Back to Models"} /></Button>
+        <p className="text-sm"><LocalizedText text={"Loading..."} /></p>
       </div>
     );
   }
@@ -455,10 +457,8 @@ export default function ModelInfoView({
     return (
       <div className="p-4">
         <Button variant="ghost" onClick={onClose} className="mb-4">
-          <ArrowLeft className="size-4" />
-          Back to Models
-        </Button>
-        <p className="text-sm">Model not found</p>
+          <ArrowLeft className="size-4" /><LocalizedText text={"Back to Models"} /></Button>
+        <p className="text-sm"><LocalizedText text={"Model not found"} /></p>
       </div>
     );
   }
@@ -468,7 +468,7 @@ export default function ModelInfoView({
     if (isComplexityRouterModel) {
       const targets = buildComplexityRouterTestTargets(localModelData ?? modelData);
       if (targets.length === 0) {
-        toast.warning("No complexity tiers are configured yet, so there is nothing to test.");
+        toast.warning(translateMessage("No complexity tiers are configured yet, so there is nothing to test."));
         return;
       }
       setAutoRouterTestTargets(targets);
@@ -477,7 +477,7 @@ export default function ModelInfoView({
       return;
     }
     try {
-      toast.info("Testing connection...");
+      toast.info(translateMessage("Testing connection..."));
       const response = await testConnectionRequest(
         accessToken,
         {
@@ -496,15 +496,15 @@ export default function ModelInfoView({
       );
 
       if (response.status === "success") {
-        toast.success("Connection test successful!");
+        toast.success(translateMessage("Connection test successful!"));
       } else {
         throw new Error(response?.result?.error || response?.message || "Unknown error");
       }
     } catch (error) {
       if (error instanceof Error) {
-        toast.error("Error testing connection: " + truncateString(error.message, 100));
+        toast.error(translateMessage("Error testing connection: ") + truncateString(error.message, 100));
       } else {
-        toast.error("Error testing connection: " + String(error));
+        toast.error(translateMessage("Error testing connection: ") + String(error));
       }
     }
   };
@@ -514,7 +514,7 @@ export default function ModelInfoView({
       setDeleteLoading(true);
       if (!accessToken) return;
       await modelDeleteCall(accessToken, modelId);
-      toast.success("Model deleted successfully");
+      toast.success(translateMessage("Model deleted successfully"));
 
       if (onModelUpdate) {
         onModelUpdate({
@@ -564,16 +564,14 @@ export default function ModelInfoView({
       <div className="flex justify-between items-center mb-6">
         <div>
           <Button variant="ghost" onClick={onClose} className="mb-4">
-            <ArrowLeft className="size-4" />
-            Back to Models
-          </Button>
-          <h2 className="text-xl font-semibold">Public Model Name: {getDisplayModelName(modelData)}</h2>
+            <ArrowLeft className="size-4" /><LocalizedText text={"Back to Models"} /></Button>
+          <h2 className="text-xl font-semibold"><LocalizedText text={"Public Model Name: "} />{getDisplayModelName(modelData)}</h2>
           <div className="flex items-center cursor-pointer">
             <span className="text-sm text-muted-foreground font-mono">{modelData.model_info.id}</span>
             <Button
               variant="ghost"
               size="icon-xs"
-              aria-label="Copy model ID"
+              aria-label={translateMessage("Copy model ID")}
               onClick={() => copyToClipboard(modelData.model_info.id, "model-id")}
               className={`left-2 z-raised transition-all duration-200 ${
                 copiedStates["model-id"]
@@ -594,9 +592,7 @@ export default function ModelInfoView({
                 className="flex items-center gap-2"
                 data-testid="test-connection-button"
               >
-                <RefreshIcon className="h-4 w-4" />
-                Test Connection
-              </Button>
+                <RefreshIcon className="h-4 w-4" /><LocalizedText text={"Test Connection"} /></Button>
             )}
 
             {!isAnyAutoRouter && (
@@ -608,9 +604,7 @@ export default function ModelInfoView({
                   disabled={!canEditModel}
                   data-testid="update-api-key-button"
                 >
-                  <KeyIcon className="h-4 w-4" />
-                  Update API Key
-                </Button>
+                  <KeyIcon className="h-4 w-4" /><LocalizedText text={"Update API Key"} /></Button>
 
                 <Button
                   variant="outline"
@@ -619,9 +613,7 @@ export default function ModelInfoView({
                   disabled={!isAdmin}
                   data-testid="reuse-credentials-button"
                 >
-                  <KeyIcon className="h-4 w-4" />
-                  Re-use Credentials
-                </Button>
+                  <KeyIcon className="h-4 w-4" /><LocalizedText text={"Re-use Credentials"} /></Button>
               </>
             )}
             <Button
@@ -640,12 +632,8 @@ export default function ModelInfoView({
 
       <Tabs defaultValue="overview">
         <TabsList variant="line" className="mb-6 h-auto w-full justify-start rounded-none border-b p-0">
-          <TabsTrigger value="overview" className="flex-none rounded-none px-4 py-2">
-            Overview
-          </TabsTrigger>
-          <TabsTrigger value="raw" className="flex-none rounded-none px-4 py-2">
-            Raw JSON
-          </TabsTrigger>
+          <TabsTrigger value="overview" className="flex-none rounded-none px-4 py-2"><LocalizedText text={"Overview"} /></TabsTrigger>
+          <TabsTrigger value="raw" className="flex-none rounded-none px-4 py-2"><LocalizedText text={"Raw JSON"} /></TabsTrigger>
         </TabsList>
 
         <div>
@@ -653,29 +641,29 @@ export default function ModelInfoView({
             {/* Overview Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
               <Card className="block p-6">
-                <p className="text-sm">Provider</p>
+                <p className="text-sm"><LocalizedText text={"Provider"} /></p>
                 <div className="mt-2 flex items-center space-x-2">
                   {!customer && modelData.provider && <Logo provider={modelData.provider} className="w-4 h-4" />}
                   <h3 className="text-lg font-medium">
-                    {customer ? "Not disclosed" : modelData.provider || "Not Set"}
+                    {customer ? translateMessage("Not disclosed") : modelData.provider || translateMessage("Not Set")}
                   </h3>
                 </div>
               </Card>
               <Card className="block p-6">
-                <p className="text-sm">{customer ? "API Model" : "LiteLLM Model"}</p>
+                <p className="text-sm">{customer ? translateMessage("API Model") : translateMessage("LiteLLM Model")}</p>
                 <div className="mt-2 overflow-hidden">
                   <SimpleTooltip
                     content={customer ? modelData.model_name : modelData.litellm_model_name || "Not Set"}
                     className="w-full min-w-0"
                   >
                     <div className="break-all text-sm font-medium leading-relaxed cursor-pointer">
-                      {customer ? modelData.model_name : modelData.litellm_model_name || "Not Set"}
+                      {customer ? modelData.model_name : modelData.litellm_model_name || translateMessage("Not Set")}
                     </div>
                   </SimpleTooltip>
                 </div>
               </Card>
               <Card className="block p-6">
-                <p className="text-sm">Pricing</p>
+                <p className="text-sm"><LocalizedText text={"Pricing"} /></p>
                 <ModelPricingSummary model={modelData} />
               </Card>
             </div>
@@ -691,15 +679,14 @@ export default function ModelInfoView({
                       strokeWidth="2"
                       d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                     />
-                  </svg>
-                  Created At{" "}
+                  </svg><LocalizedText text={"Created At"} />{" "}
                   {modelData.model_info.created_at
                     ? new Date(modelData.model_info.created_at).toLocaleDateString("en-US", {
                         month: "short",
                         day: "numeric",
                         year: "numeric",
                       })
-                    : "Not Set"}
+                    : translateMessage("Not Set")}
                 </div>
                 <div className="flex items-center gap-x-2">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -709,8 +696,7 @@ export default function ModelInfoView({
                       strokeWidth="2"
                       d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
                     />
-                  </svg>
-                  Created By {modelData.model_info.created_by || "Not Set"}
+                  </svg><LocalizedText text={"Created By "} />{modelData.model_info.created_by || translateMessage("Not Set")}
                 </div>
               </div>
             )}
@@ -719,18 +705,14 @@ export default function ModelInfoView({
             {!customer && (
               <Card className="block p-6">
                 <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-medium">Model Settings</h3>
+                  <h3 className="text-lg font-medium"><LocalizedText text={"Model Settings"} /></h3>
                   <div className="flex gap-2">
                     {isAutoRouterModel && canEditRouter && !isEditing && (
-                      <Button onClick={() => setIsAutoRouterModalOpen(true)} className="flex items-center">
-                        Edit Auto Router
-                      </Button>
+                      <Button onClick={() => setIsAutoRouterModalOpen(true)} className="flex items-center"><LocalizedText text={"Edit Auto Router"} /></Button>
                     )}
                     {canEditModel ? (
                       !isEditing && (
-                        <Button onClick={() => setIsEditing(true)} className="flex items-center">
-                          Edit Settings
-                        </Button>
+                        <Button onClick={() => setIsEditing(true)} className="flex items-center"><LocalizedText text={"Edit Settings"} /></Button>
                       )
                     ) : (
                       <SimpleTooltip content="Only DB models can be edited. You must be an admin or the creator of the model to edit it.">
@@ -761,7 +743,7 @@ export default function ModelInfoView({
                     teams={assignableTeams}
                   />
                 ) : (
-                  <p className="text-sm">Loading...</p>
+                  <p className="text-sm"><LocalizedText text={"Loading..."} /></p>
                 )}
               </Card>
             )}
@@ -781,25 +763,25 @@ export default function ModelInfoView({
         isOpen={isDeleteModalOpen}
         title={deleteLabel}
         alertMessage="This action cannot be undone."
-        message={`Are you sure you want to delete this ${isAnyAutoRouter ? "auto-router" : "model"}?`}
+        message={translateMessage("Are you sure you want to delete this %{0}?", [isAnyAutoRouter ? "auto-router" : "model"])}
         resourceInformationTitle="Model Information"
         resourceInformation={[
-          {
+          markUiCopy({
             label: "Model Name",
             value: modelData?.model_name || "Not Set",
-          },
-          {
+          }, {"label": "Model Name"}),
+          markUiCopy({
             label: "LiteLLM Model Name",
             value: modelData?.litellm_model_name || "Not Set",
-          },
-          {
+          }, {"label": "LiteLLM Model Name"}),
+          markUiCopy({
             label: "Provider",
             value: modelData?.provider || "Not Set",
-          },
-          {
+          }, {"label": "Provider"}),
+          markUiCopy({
             label: "Created By",
             value: modelData?.model_info?.created_by || "Not Set",
-          },
+          }, {"label": "Created By"}),
         ]}
         onCancel={() => setIsDeleteModalOpen(false)}
         onOk={handleDelete}
@@ -818,7 +800,7 @@ export default function ModelInfoView({
         <Dialog open={isCredentialModalOpen} onOpenChange={(open) => !open && setIsCredentialModalOpen(false)}>
           <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Using Existing Credential</DialogTitle>
+              <DialogTitle><LocalizedText text={"Using Existing Credential"} /></DialogTitle>
             </DialogHeader>
             <CredentialIdentity
               className="text-sm"
@@ -828,9 +810,7 @@ export default function ModelInfoView({
               )}
             />
             <DialogFooter>
-              <Button variant="outline" onClick={() => setIsCredentialModalOpen(false)}>
-                Cancel
-              </Button>
+              <Button variant="outline" onClick={() => setIsCredentialModalOpen(false)}><LocalizedText text={"Cancel"} /></Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -864,7 +844,7 @@ export default function ModelInfoView({
       <Dialog open={isAutoRouterTestModalOpen} onOpenChange={(open) => !open && setIsAutoRouterTestModalOpen(false)}>
         <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-[700px]">
           <DialogHeader>
-            <DialogTitle>Connection Test Results</DialogTitle>
+            <DialogTitle><LocalizedText text={"Connection Test Results"} /></DialogTitle>
           </DialogHeader>
           {isAutoRouterTestModalOpen && accessToken && (
             <AutoRouterConnectionTest
@@ -879,9 +859,7 @@ export default function ModelInfoView({
             />
           )}
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsAutoRouterTestModalOpen(false)}>
-              Close
-            </Button>
+            <Button variant="outline" onClick={() => setIsAutoRouterTestModalOpen(false)}><LocalizedText text={"Close"} /></Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -1,3 +1,5 @@
+"use client";
+import { translateMessage, useUiLocale } from "@/lib/i18n";
 import React, { useState } from "react";
 import { getProviderLogoAndName } from "@/components/provider_info_helpers";
 import { resolveLogoSrc } from "@/lib/assetPaths";
@@ -15,6 +17,7 @@ const DARK_TREATMENT_CLASS: Readonly<Record<LogoTreatment, string>> = {
 };
 
 export const Logo: React.FC<LogoProps> = ({ provider, src, label, className = "w-4 h-4" }) => {
+  useUiLocale();
   const [erroredSrc, setErroredSrc] = useState<string | null>(null);
   const resolvedSrc = provider !== undefined ? getProviderLogoAndName(provider).logo : resolveLogoSrc(src) ?? "";
   const name = label ?? provider ?? "";
@@ -32,7 +35,7 @@ export const Logo: React.FC<LogoProps> = ({ provider, src, label, className = "w
   return (
     <img
       src={resolvedSrc}
-      alt={`${name || "-"} logo`}
+      alt={translateMessage("%{0} logo", [name || "-"])}
       className={treatment === undefined ? className : cn(className, DARK_TREATMENT_CLASS[treatment])}
       onError={() => {
         console.warn(`Logo failed to load: ${resolvedSrc}`);

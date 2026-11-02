@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { ColumnDef } from "@tanstack/react-table";
 import { Copy, ExternalLink, Info, MoreHorizontal } from "lucide-react";
@@ -38,10 +39,11 @@ interface SkillHubRowActionsProps {
 }
 
 function SkillHubRowActions({ skill, onSkillClick }: SkillHubRowActionsProps) {
+  useUiLocale();
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        aria-label="Open skill actions"
+        aria-label={translateMessage("Open skill actions")}
         data-testid={`skill-hub-actions-${skill.id}`}
         className={cn(buttonVariants({ variant: "ghost", size: "icon-sm" }), "text-muted-foreground")}
       >
@@ -50,14 +52,14 @@ function SkillHubRowActions({ skill, onSkillClick }: SkillHubRowActionsProps) {
       <DropdownMenuContent align="end" className="w-52">
         <DropdownMenuItem data-testid="skill-hub-action-details" onClick={() => onSkillClick(skill)}>
           <Info />
-          View details
+          <LocalizedText text={"View details"} />
         </DropdownMenuItem>
         <DropdownMenuItem
           data-testid="skill-hub-action-copy"
           onClick={() => void copyToClipboard(skill.name, "Skill name copied")}
         >
           <Copy />
-          Copy skill name
+          <LocalizedText text={"Copy skill name"} />
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -72,8 +74,8 @@ export const getSkillHubTableColumns = ({ onSkillClick }: SkillHubTableColumnsDe
   {
     id: "name",
     accessorKey: "name",
-    meta: { title: "Skill Name" },
-    header: ({ column }) => <DataTableSortHeader column={column} title="Skill Name" />,
+    meta: markUiCopy({ title: "Skill Name" }, { title: "Skill Name" }),
+    header: ({ column }) => <DataTableSortHeader column={column} title={translateMessage("Skill Name")} />,
     size: 200,
     enableSorting: true,
     sortingFn: "alphanumeric",
@@ -81,24 +83,30 @@ export const getSkillHubTableColumns = ({ onSkillClick }: SkillHubTableColumnsDe
       <IdentityCell title={row.original.name} className="max-w-72" onClick={() => onSkillClick(row.original)} />
     ),
   },
-  {
-    id: "description",
-    accessorKey: "description",
-    meta: { title: "Description" },
-    header: "Description",
-    size: 260,
-    enableSorting: false,
-    cell: ({ row }) => (
-      <span className="block max-w-72 truncate text-xs" title={row.original.description || undefined}>
-        {row.original.description || "-"}
-      </span>
-    ),
-  },
+  markUiCopy(
+    {
+      id: "description",
+      accessorKey: "description",
+      meta: markUiCopy({ title: "Description" }, { title: "Description" }),
+      header: "Description",
+      size: 260,
+      enableSorting: false,
+      cell: ({ row }) => (
+        <span
+          className="block max-w-72 truncate text-xs"
+          title={localizedProperty(row.original, "description") || undefined}
+        >
+          {localizedProperty(row.original, "description") || "-"}
+        </span>
+      ),
+    },
+    { header: "Description" },
+  ),
   {
     id: "category",
     accessorKey: "category",
-    meta: { title: "Category", skeleton: "badge" },
-    header: ({ column }) => <DataTableSortHeader column={column} title="Category" />,
+    meta: markUiCopy({ title: "Category", skeleton: "badge" as const }, { title: "Category" }),
+    header: ({ column }) => <DataTableSortHeader column={column} title={translateMessage("Category")} />,
     size: 130,
     enableSorting: true,
     sortingFn: "alphanumeric",
@@ -112,54 +120,61 @@ export const getSkillHubTableColumns = ({ onSkillClick }: SkillHubTableColumnsDe
   {
     id: "domain",
     accessorKey: "domain",
-    meta: { title: "Domain" },
-    header: ({ column }) => <DataTableSortHeader column={column} title="Domain" />,
+    meta: markUiCopy({ title: "Domain" }, { title: "Domain" }),
+    header: ({ column }) => <DataTableSortHeader column={column} title={translateMessage("Domain")} />,
     size: 130,
     enableSorting: true,
     sortingFn: "alphanumeric",
     cell: ({ row }) => <span className="text-xs">{row.original.domain || "-"}</span>,
   },
-  {
-    id: "source",
-    meta: { title: "Source" },
-    header: "Source",
-    size: 200,
-    enableSorting: false,
-    cell: ({ row }) => {
-      const link = getSkillSourceLink(row.original);
-      if (!link) return <span className="text-xs text-muted-foreground">-</span>;
-      return (
-        <a
-          href={link.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex max-w-60 items-center gap-1 text-xs text-primary hover:underline"
-          title={link.label}
-        >
-          <span className="truncate">{link.label}</span>
-          <ExternalLink className="size-3 shrink-0" />
-        </a>
-      );
+  markUiCopy(
+    {
+      id: "source",
+      meta: markUiCopy({ title: "Source" }, { title: "Source" }),
+      header: "Source",
+      size: 200,
+      enableSorting: false,
+      cell: ({ row }) => {
+        const link = getSkillSourceLink(row.original);
+        if (!link) return <span className="text-xs text-muted-foreground">-</span>;
+        return (
+          <a
+            href={link.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex max-w-60 items-center gap-1 text-xs text-primary hover:underline"
+            title={localizedProperty(link, "label", link.label)}
+          >
+            <span className="truncate">{localizedProperty(link, "label", link.label)}</span>
+            <ExternalLink className="size-3 shrink-0" />
+          </a>
+        );
+      },
     },
-  },
+    { header: "Source" },
+  ),
   {
     id: "enabled",
     accessorKey: "enabled",
-    meta: { title: "Status", skeleton: "badge" },
-    header: ({ column }) => <DataTableSortHeader column={column} title="Status" />,
+    meta: markUiCopy({ title: "Status", skeleton: "badge" as const }, { title: "Status" }),
+    header: ({ column }) => <DataTableSortHeader column={column} title={translateMessage("Status")} />,
     size: 100,
     enableSorting: true,
     cell: ({ row }) => (
       <StatusBadge
         tone={row.original.enabled ? "success" : "neutral"}
-        label={row.original.enabled ? "Public" : "Draft"}
+        label={row.original.enabled ? translateMessage("Public") : translateMessage("Draft")}
       />
     ),
   },
   {
     id: "actions",
     meta: { className: "text-right", headerClassName: "text-right" },
-    header: () => <span className="sr-only">Actions</span>,
+    header: () => (
+      <span className="sr-only">
+        <LocalizedText text={"Actions"} />
+      </span>
+    ),
     size: 64,
     enableSorting: false,
     enableHiding: false,

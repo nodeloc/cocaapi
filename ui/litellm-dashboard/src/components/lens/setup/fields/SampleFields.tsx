@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { Controller, useFormContext } from "react-hook-form";
 import { Input } from "@/components/ui/input";
@@ -7,6 +8,7 @@ import { DurationInput } from "@/components/shared/DurationInput";
 import type { InvestigationInput } from "../investigationSchema";
 
 export function SampleFields() {
+  useUiLocale();
   const {
     control,
     register,
@@ -18,16 +20,21 @@ export function SampleFields() {
         control={control}
         name="selection.lookback_hours"
         render={({ field }) => (
-          <DurationInput label="Review the last" value={field.value ?? 24} base="hours" onChange={field.onChange} />
+          <DurationInput
+            label={translateMessage("Review the last")}
+            value={field.value ?? 24}
+            base="hours"
+            onChange={field.onChange}
+          />
         )}
       />
       {errors.selection?.lookback_hours?.message && (
         <p role="alert" className="text-sm text-destructive">
-          {errors.selection.lookback_hours.message}
+          {localizedProperty(errors.selection.lookback_hours, "message")}
         </p>
       )}
       <label className="grid gap-2 text-sm">
-        Sample (%)
+        <LocalizedText text={"Sample (%)"} />
         <Input
           {...register("selection.sample_percent", { valueAsNumber: true })}
           type="number"
@@ -37,7 +44,7 @@ export function SampleFields() {
         />
         {errors.selection?.sample_percent?.message && (
           <p role="alert" className="text-sm text-destructive">
-            {errors.selection.sample_percent.message}
+            {localizedProperty(errors.selection.sample_percent, "message")}
           </p>
         )}
       </label>

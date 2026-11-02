@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import type { ColumnDef } from "@tanstack/react-table";
 import { Copy } from "lucide-react";
@@ -32,14 +33,18 @@ const readMcpLogoUrl = (metadata: Record<string, unknown> | undefined): string |
 };
 
 function RequestIdWithCallIdTooltip({ requestId, callId }: { requestId: string; callId: string }) {
+  useUiLocale();
   return (
     <span className="flex flex-col gap-0.5">
       <span>{requestId}</span>
       <span className="inline-flex items-center gap-1">
-        <span>x-litellm-call-id: {callId}</span>
+        <span>
+          <LocalizedText text={"x-litellm-call-id: "} />
+          {callId}
+        </span>
         <button
           type="button"
-          aria-label="Copy x-litellm-call-id"
+          aria-label={translateMessage("Copy x-litellm-call-id")}
           className="shrink-0 cursor-pointer opacity-70 hover:opacity-100"
           onClick={(event) => {
             event.stopPropagation();
@@ -56,7 +61,9 @@ function RequestIdWithCallIdTooltip({ requestId, callId }: { requestId: string; 
 const getLogoUrl = (row: LogEntry, provider: string): string =>
   readMcpLogoUrl(row.metadata) ?? (provider ? getProviderLogoAndName(provider).logo : "");
 
-function TruncatedText({ value, tooltip }: { value: string | undefined; tooltip?: string }) {
+function TruncatedText(cocaCopyProps0: { value: string | undefined; tooltip?: string }) {
+  const { value, tooltip } = cocaCopyProps0;
+  useUiLocale();
   const display = value ?? "-";
   return (
     <CellTooltip
@@ -67,6 +74,7 @@ function TruncatedText({ value, tooltip }: { value: string | undefined; tooltip?
 }
 
 function UserCell({ userId, email }: { userId: string | undefined; email: string | undefined }) {
+  useUiLocale();
   if (!userId || !email || email === userId) return <TruncatedText value={userId} />;
   return <TruncatedText value={email} tooltip={`${email} (${userId})`} />;
 }
@@ -79,124 +87,152 @@ export const getRequestLogsTableColumns = ({
   {
     id: "startTime",
     accessorKey: "startTime",
-    header: ({ column }) => <DataTableSortHeader column={column} title="Time" variant="dropdown-tristate" />,
+    header: ({ column }) => (
+      <DataTableSortHeader column={column} title={translateMessage("Time")} variant="dropdown-tristate" />
+    ),
     size: 200,
     enableSorting: true,
     cell: ({ row }) => <DateCell value={row.original.startTime} />,
   },
-  {
-    id: "type",
-    header: "Type",
-    size: 90,
-    enableSorting: false,
-    meta: { skeleton: "badge" },
-    cell: ({ row }) => {
-      const log = row.original;
-      const sessionCount = log.session_total_count || 1;
-      const isMcp = MCP_CALL_TYPES.includes(log.call_type);
-      const isAgent = AGENT_CALL_TYPES.includes(log.call_type);
-      const sessionLlmCount = log.session_llm_count ?? (isMcp || isAgent ? 0 : sessionCount);
-      const sessionAgentCount = log.session_agent_count ?? (isAgent ? sessionCount : 0);
-      const sessionMcpCount = log.mcp_tool_call_count ?? (isMcp ? sessionCount : 0);
+  markUiCopy(
+    {
+      id: "type",
+      header: "Type",
+      size: 90,
+      enableSorting: false,
+      meta: { skeleton: "badge" },
+      cell: ({ row }) => {
+        const log = row.original;
+        const sessionCount = log.session_total_count || 1;
+        const isMcp = MCP_CALL_TYPES.includes(log.call_type);
+        const isAgent = AGENT_CALL_TYPES.includes(log.call_type);
+        const sessionLlmCount = log.session_llm_count ?? (isMcp || isAgent ? 0 : sessionCount);
+        const sessionAgentCount = log.session_agent_count ?? (isAgent ? sessionCount : 0);
+        const sessionMcpCount = log.mcp_tool_call_count ?? (isMcp ? sessionCount : 0);
 
-      if (isBatchCallType(log.call_type)) {
-        return <BatchBadge />;
-      }
-      if (sessionCount <= 1) {
-        if (isMcp) return <McpBadge />;
-        if (isAgent) return <AgentBadge />;
-        return <LlmBadge />;
-      }
+        if (isBatchCallType(log.call_type)) {
+          return <BatchBadge />;
+        }
+        if (sessionCount <= 1) {
+          if (isMcp) return <McpBadge />;
+          if (isAgent) return <AgentBadge />;
+          return <LlmBadge />;
+        }
 
-      const sessionTypeBadge = (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-info/10 text-info border border-info/20 rounded-full text-[11px] font-medium whitespace-nowrap">
-          <SparkleIcon />
-          <span>{sessionCount}</span>
-          {sessionAgentCount > 0 && (
-            <>
-              <span className="text-info">·</span>
-              <AgentIcon size={10} />
-            </>
-          )}
-          {sessionMcpCount > 0 && (
-            <>
-              <span className="text-info">·</span>
-              <WrenchIcon />
-            </>
-          )}
-        </span>
-      );
+        const sessionTypeBadge = (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-info/10 text-info border border-info/20 rounded-full text-[11px] font-medium whitespace-nowrap">
+            <SparkleIcon />
+            <span>{sessionCount}</span>
+            {sessionAgentCount > 0 && (
+              <>
+                <span className="text-info">·</span>
+                <AgentIcon size={10} />
+              </>
+            )}
+            {sessionMcpCount > 0 && (
+              <>
+                <span className="text-info">·</span>
+                <WrenchIcon />
+              </>
+            )}
+          </span>
+        );
 
-      const tooltipParts = [
-        sessionLlmCount > 0 && `${sessionLlmCount} LLM`,
-        sessionAgentCount > 0 && `${sessionAgentCount} Agent`,
-        sessionMcpCount > 0 && `${sessionMcpCount} MCP`,
-        log.session_cache_hit_count != null && `${log.session_cache_hit_count} cache hit`,
-      ].filter(Boolean);
-      return <CellTooltip content={tooltipParts.join(" • ")} trigger={sessionTypeBadge} />;
+        const tooltipParts = [
+          sessionLlmCount > 0 && `${sessionLlmCount} LLM`,
+          sessionAgentCount > 0 && `${sessionAgentCount} Agent`,
+          sessionMcpCount > 0 && `${sessionMcpCount} MCP`,
+          log.session_cache_hit_count != null && `${log.session_cache_hit_count} cache hit`,
+        ].filter(Boolean);
+        return <CellTooltip content={tooltipParts.join(" • ")} trigger={sessionTypeBadge} />;
+      },
     },
-  },
-  {
-    id: "status",
-    header: "Status",
-    size: 100,
-    enableSorting: false,
-    meta: { skeleton: "badge" },
-    cell: ({ row }) => {
-      const status = row.original.status || readMetaString(row.original.metadata, "status") || "Success";
-      const isSuccess = status.toLowerCase() !== "failure";
-      const batchCounts = isSuccess ? getBatchRequestCounts(row.original.metadata) : undefined;
-      if (batchCounts && batchCounts.failed > 0) {
-        const total = batchCounts.successful + batchCounts.failed;
+    { header: "Type" },
+  ),
+  markUiCopy(
+    {
+      id: "status",
+      header: "Status",
+      size: 100,
+      enableSorting: false,
+      meta: { skeleton: "badge" },
+      cell: ({ row }) => {
+        const status = row.original.status || readMetaString(row.original.metadata, "status") || "Success";
+        const isSuccess = status.toLowerCase() !== "failure";
+        const batchCounts = isSuccess ? getBatchRequestCounts(row.original.metadata) : undefined;
+        if (batchCounts && batchCounts.failed > 0) {
+          const total = batchCounts.successful + batchCounts.failed;
+          return (
+            <StatusBadge
+              tone="warning"
+              label={translateMessage("%{0}/%{1} succeeded", [batchCounts.successful, total])}
+              tooltip={translateMessage("%{0} of %{1} batch requests failed", [batchCounts.failed, total])}
+            />
+          );
+        }
         return (
           <StatusBadge
-            tone="warning"
-            label={`${batchCounts.successful}/${total} succeeded`}
-            tooltip={`${batchCounts.failed} of ${total} batch requests failed`}
+            tone={isSuccess ? "success" : "error"}
+            label={isSuccess ? translateMessage("Success") : translateMessage("Failure")}
           />
         );
-      }
-      return <StatusBadge tone={isSuccess ? "success" : "error"} label={isSuccess ? "Success" : "Failure"} />;
+      },
     },
-  },
-  {
-    id: "session_id",
-    accessorKey: "session_id",
-    header: "Session ID",
-    size: 120,
-    enableSorting: false,
-    cell: ({ row }) => <IdCell value={row.original.session_id} onClick={() => onSessionClick(row.original)} />,
-  },
-  {
-    id: "request_id",
-    accessorKey: "request_id",
-    header: "Request ID",
-    enableSorting: false,
-    cell: ({ row }) => {
-      const log = row.original;
-      const batchId = isBatchCallType(log.call_type) ? getBatchIdFromRequestId(log.request_id) : undefined;
-      if (batchId) {
+    { header: "Status" },
+  ),
+  markUiCopy(
+    {
+      id: "session_id",
+      accessorKey: "session_id",
+      header: "Session ID",
+      size: 120,
+      enableSorting: false,
+      cell: ({ row }) => <IdCell value={row.original.session_id} onClick={() => onSessionClick(row.original)} />,
+    },
+    { header: "Session ID" },
+  ),
+  markUiCopy(
+    {
+      id: "request_id",
+      accessorKey: "request_id",
+      header: "Request ID",
+      enableSorting: false,
+      cell: ({ row }) => {
+        const log = row.original;
+        const batchId = isBatchCallType(log.call_type) ? getBatchIdFromRequestId(log.request_id) : undefined;
+        if (batchId) {
+          return (
+            <div className="flex flex-col">
+              <IdCell
+                value={batchId}
+                variant="plain"
+                copyable
+                tooltip={translateMessage("Batch %{0} (row: %{1})", [batchId, log.request_id])}
+              />
+              <span className="text-[10px] text-muted-foreground">
+                <LocalizedText text={"batch cost"} />
+              </span>
+            </div>
+          );
+        }
+        const callId = log.litellm_call_id && log.litellm_call_id !== log.request_id ? log.litellm_call_id : null;
         return (
-          <div className="flex flex-col">
-            <IdCell value={batchId} variant="plain" copyable tooltip={`Batch ${batchId} (row: ${log.request_id})`} />
-            <span className="text-[10px] text-muted-foreground">batch cost</span>
-          </div>
+          <IdCell
+            value={log.request_id}
+            variant="plain"
+            tooltip={callId ? <RequestIdWithCallIdTooltip requestId={log.request_id} callId={callId} /> : undefined}
+          />
         );
-      }
-      const callId = log.litellm_call_id && log.litellm_call_id !== log.request_id ? log.litellm_call_id : null;
-      return (
-        <IdCell
-          value={log.request_id}
-          variant="plain"
-          tooltip={callId ? <RequestIdWithCallIdTooltip requestId={log.request_id} callId={callId} /> : undefined}
-        />
-      );
+      },
     },
-  },
+    { header: "Request ID" },
+  ),
   {
     id: "spend",
     accessorKey: "spend",
-    header: ({ column }) => <DataTableSortHeader column={column} title="Cost" variant="dropdown-tristate" />,
+    header: ({ column }) => (
+      <DataTableSortHeader column={column} title={translateMessage("Cost")} variant="dropdown-tristate" />
+    ),
     size: 110,
     enableSorting: true,
     meta: { numeric: true, skeleton: "twoLine" },
@@ -216,10 +252,18 @@ export const getRequestLogsTableColumns = ({
       return (
         <div className="flex flex-col items-end">
           {spend ? <CellTooltip content={`$${String(spend)}`} trigger={money} /> : money}
-          {sessionTotalSpend != null && <span className="text-[10px] text-muted-foreground">session total</span>}
+          {sessionTotalSpend != null && (
+            <span className="text-[10px] text-muted-foreground">
+              <LocalizedText text={"session total"} />
+            </span>
+          )}
           {mcpCount > 0 && mcpSpend > 0 && (
             <span className="text-[10px] text-warning">
-              incl. {getSpendString(mcpSpend)} from {mcpCount} MCP
+              <LocalizedText text={"incl. "} />
+              {getSpendString(mcpSpend)}
+              <LocalizedText text={" from "} />
+              {mcpCount}
+              <LocalizedText text={" MCP"} />
             </span>
           )}
         </div>
@@ -229,7 +273,9 @@ export const getRequestLogsTableColumns = ({
   {
     id: "request_duration_ms",
     accessorKey: "request_duration_ms",
-    header: ({ column }) => <DataTableSortHeader column={column} title="Duration (s)" variant="dropdown-tristate" />,
+    header: ({ column }) => (
+      <DataTableSortHeader column={column} title={translateMessage("Duration (s)")} variant="dropdown-tristate" />
+    ),
     enableSorting: true,
     meta: { numeric: true },
     cell: ({ row }) => {
@@ -244,7 +290,11 @@ export const getRequestLogsTableColumns = ({
             content={`${ms}ms`}
             trigger={<span className="max-w-[15ch] truncate inline-block">{(ms / 1000).toFixed(2)}</span>}
           />
-          {sessionTotalMs != null && <span className="text-[10px] text-muted-foreground">session total</span>}
+          {sessionTotalMs != null && (
+            <span className="text-[10px] text-muted-foreground">
+              <LocalizedText text={"session total"} />
+            </span>
+          )}
         </div>
       );
     },
@@ -252,7 +302,9 @@ export const getRequestLogsTableColumns = ({
   {
     id: "ttft_ms",
     accessorKey: "completionStartTime",
-    header: ({ column }) => <DataTableSortHeader column={column} title="TTFT (s)" variant="dropdown-tristate" />,
+    header: ({ column }) => (
+      <DataTableSortHeader column={column} title={translateMessage("TTFT (s)")} variant="dropdown-tristate" />
+    ),
     enableSorting: true,
     meta: { numeric: true },
     cell: ({ row }) => {
@@ -270,33 +322,48 @@ export const getRequestLogsTableColumns = ({
       );
     },
   },
-  {
-    id: "team_alias",
-    header: "Team Name",
-    size: 150,
-    enableSorting: false,
-    cell: ({ row }) => <TruncatedText value={readMetaString(row.original.metadata, "user_api_key_team_alias")} />,
-  },
-  {
-    id: "key_hash",
-    header: "Key Hash",
-    size: 110,
-    enableSorting: false,
-    cell: ({ row }) => (
-      <IdCell value={readMetaString(row.original.metadata, "user_api_key")} variant="plain" onClick={onKeyHashClick} />
-    ),
-  },
-  {
-    id: "key_alias",
-    header: "Key Alias",
-    size: 150,
-    enableSorting: false,
-    cell: ({ row }) => <TruncatedText value={readMetaString(row.original.metadata, "user_api_key_alias")} />,
-  },
+  markUiCopy(
+    {
+      id: "team_alias",
+      header: "Team Name",
+      size: 150,
+      enableSorting: false,
+      cell: ({ row }) => <TruncatedText value={readMetaString(row.original.metadata, "user_api_key_team_alias")} />,
+    },
+    { header: "Team Name" },
+  ),
+  markUiCopy(
+    {
+      id: "key_hash",
+      header: "Key Hash",
+      size: 110,
+      enableSorting: false,
+      cell: ({ row }) => (
+        <IdCell
+          value={readMetaString(row.original.metadata, "user_api_key")}
+          variant="plain"
+          onClick={onKeyHashClick}
+        />
+      ),
+    },
+    { header: "Key Hash" },
+  ),
+  markUiCopy(
+    {
+      id: "key_alias",
+      header: "Key Alias",
+      size: 150,
+      enableSorting: false,
+      cell: ({ row }) => <TruncatedText value={readMetaString(row.original.metadata, "user_api_key_alias")} />,
+    },
+    { header: "Key Alias" },
+  ),
   {
     id: "model",
     accessorKey: "model",
-    header: ({ column }) => <DataTableSortHeader column={column} title="Model" variant="dropdown-tristate" />,
+    header: ({ column }) => (
+      <DataTableSortHeader column={column} title={translateMessage("Model")} variant="dropdown-tristate" />
+    ),
     size: 200,
     enableSorting: true,
     cell: ({ row }) => {
@@ -333,7 +400,9 @@ export const getRequestLogsTableColumns = ({
   {
     id: "total_tokens",
     accessorKey: "total_tokens",
-    header: ({ column }) => <DataTableSortHeader column={column} title="Tokens" variant="dropdown-tristate" />,
+    header: ({ column }) => (
+      <DataTableSortHeader column={column} title={translateMessage("Tokens")} variant="dropdown-tristate" />
+    ),
     size: 140,
     enableSorting: true,
     meta: { numeric: true },
@@ -351,68 +420,81 @@ export const getRequestLogsTableColumns = ({
               ({String(prompt || "0")}+{String(completion || "0")})
             </span>
           </span>
-          {showSessionTotal && <span className="text-[10px] text-muted-foreground">session total</span>}
+          {showSessionTotal && (
+            <span className="text-[10px] text-muted-foreground">
+              <LocalizedText text={"session total"} />
+            </span>
+          )}
         </div>
       );
     },
   },
-  {
-    id: "user",
-    accessorKey: "user",
-    header: "Internal User",
-    size: 150,
-    enableSorting: false,
-    cell: ({ row }) => (
-      <UserCell
-        userId={row.original.user}
-        email={row.original.user ? resolveUserEmail(row.original.user) : undefined}
-      />
-    ),
-  },
-  {
-    id: "end_user",
-    accessorKey: "end_user",
-    header: "End User",
-    size: 140,
-    enableSorting: false,
-    cell: ({ row }) => <TruncatedText value={row.original.end_user} />,
-  },
-  {
-    id: "request_tags",
-    accessorKey: "request_tags",
-    header: "Tags",
-    size: 150,
-    enableSorting: false,
-    meta: { skeleton: "chips" },
-    cell: ({ row }) => {
-      const tags = row.original.request_tags;
-      if (!tags || Object.keys(tags).length === 0) return "-";
-
-      const tagEntries = Object.entries(tags);
-      const [firstTagKey, firstTagValue] = tagEntries[0];
-      const remainingCount = tagEntries.length - 1;
-
-      return (
-        <div className="flex flex-wrap gap-1">
-          <CellTooltip
-            content={
-              <div className="flex flex-col gap-1">
-                {tagEntries.map(([key, value]) => (
-                  <span key={key}>
-                    {key}: {String(value)}
-                  </span>
-                ))}
-              </div>
-            }
-            trigger={
-              <span className="px-2 py-1 bg-muted rounded-full text-xs">
-                {firstTagKey}: {String(firstTagValue)}
-                {remainingCount > 0 && ` +${remainingCount}`}
-              </span>
-            }
-          />
-        </div>
-      );
+  markUiCopy(
+    {
+      id: "user",
+      accessorKey: "user",
+      header: "Internal User",
+      size: 150,
+      enableSorting: false,
+      cell: ({ row }) => (
+        <UserCell
+          userId={row.original.user}
+          email={row.original.user ? resolveUserEmail(row.original.user) : undefined}
+        />
+      ),
     },
-  },
+    { header: "Internal User" },
+  ),
+  markUiCopy(
+    {
+      id: "end_user",
+      accessorKey: "end_user",
+      header: "End User",
+      size: 140,
+      enableSorting: false,
+      cell: ({ row }) => <TruncatedText value={row.original.end_user} />,
+    },
+    { header: "End User" },
+  ),
+  markUiCopy(
+    {
+      id: "request_tags",
+      accessorKey: "request_tags",
+      header: "Tags",
+      size: 150,
+      enableSorting: false,
+      meta: { skeleton: "chips" },
+      cell: ({ row }) => {
+        const tags = row.original.request_tags;
+        if (!tags || Object.keys(tags).length === 0) return "-";
+
+        const tagEntries = Object.entries(tags);
+        const [firstTagKey, firstTagValue] = tagEntries[0];
+        const remainingCount = tagEntries.length - 1;
+
+        return (
+          <div className="flex flex-wrap gap-1">
+            <CellTooltip
+              content={
+                <div className="flex flex-col gap-1">
+                  {tagEntries.map(([key, value]) => (
+                    <span key={key}>
+                      {key}: {String(value)}
+                    </span>
+                  ))}
+                </div>
+              }
+              trigger={
+                <span className="px-2 py-1 bg-muted rounded-full text-xs">
+                  {firstTagKey}: {String(firstTagValue)}
+                  {remainingCount > 0 && ` +${remainingCount}`}
+                </span>
+              }
+            />
+          </div>
+        );
+      },
+    },
+    { header: "Tags" },
+  ),
 ];

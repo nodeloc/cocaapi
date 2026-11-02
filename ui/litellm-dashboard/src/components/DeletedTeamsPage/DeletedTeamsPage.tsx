@@ -1,4 +1,6 @@
 "use client";
+import { LocalizedText, useUiLocale } from "@/lib/i18n";
+
 import { PaginationState } from "@tanstack/react-table";
 import { Info } from "lucide-react";
 import { PageContent } from "@/components/shared/Page";
@@ -10,6 +12,7 @@ import useAuthorized from "@/app/(dashboard)/hooks/useAuthorized";
 import { DeletedTeamsTable } from "./DeletedTeamsTable/DeletedTeamsTable";
 
 export default function DeletedTeamsPage() {
+  useUiLocale();
   const { premiumUser } = useAuthorized();
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
@@ -22,9 +25,13 @@ export default function DeletedTeamsPage() {
       {!premiumUser && (
         <Alert className="shrink-0">
           <Info />
-          <AlertTitle>Coming soon to Enterprise</AlertTitle>
+          <AlertTitle>
+            <LocalizedText text={"Coming soon to Enterprise"} />
+          </AlertTitle>
           <AlertDescription>
-            Deleted team auditing is graduating from beta into our Enterprise audit &amp; compliance suite.
+            <LocalizedText
+              text={"Deleted team auditing is graduating from beta into our Enterprise audit & compliance suite."}
+            />
           </AlertDescription>
         </Alert>
       )}

@@ -1,3 +1,4 @@
+import { getIntlLocale, markUiCopy } from "@/lib/i18n";
 import { formatNumberWithCommas } from "@/utils/dataUtils";
 
 export interface SummaryTile {
@@ -32,35 +33,63 @@ export const buildSummaryTiles = (metadata: SpendSummaryMetadata, showFlatCost: 
   const flatCost = metadata.total_flat_cost ?? 0;
   return [
     showFlatCost
-      ? {
-          title: "Total Cost",
-          value: `$${formatNumberWithCommas(metadata.total_spend + flatCost, 2)}`,
-          tooltip: TOTAL_COST_TOOLTIP,
-          expandable: true,
-        }
-      : { title: "Total Spend", value: `$${formatNumberWithCommas(metadata.total_spend, 2)}` },
-    { title: "Total Requests", value: metadata.total_api_requests.toLocaleString() },
-    {
-      title: "Successful Requests",
-      value: metadata.total_successful_requests.toLocaleString(),
-      className: "text-success",
-    },
-    { title: "Failed Requests", value: metadata.total_failed_requests.toLocaleString(), className: "text-destructive" },
-    { title: "Total Tokens", value: metadata.total_tokens.toLocaleString() },
+      ? markUiCopy(
+          {
+            title: "Total Cost",
+            value: `$${formatNumberWithCommas(metadata.total_spend + flatCost, 2)}`,
+            tooltip: TOTAL_COST_TOOLTIP,
+            expandable: true,
+          },
+          { title: "Total Cost" },
+        )
+      : markUiCopy(
+          { title: "Total Spend", value: `$${formatNumberWithCommas(metadata.total_spend, 2)}` },
+          { title: "Total Spend" },
+        ),
+    markUiCopy(
+      { title: "Total Requests", value: metadata.total_api_requests.toLocaleString(getIntlLocale()) },
+      { title: "Total Requests" },
+    ),
+    markUiCopy(
+      {
+        title: "Successful Requests",
+        value: metadata.total_successful_requests.toLocaleString(getIntlLocale()),
+        className: "text-success",
+      },
+      { title: "Successful Requests" },
+    ),
+    markUiCopy(
+      {
+        title: "Failed Requests",
+        value: metadata.total_failed_requests.toLocaleString(getIntlLocale()),
+        className: "text-destructive",
+      },
+      { title: "Failed Requests" },
+    ),
+    markUiCopy(
+      { title: "Total Tokens", value: metadata.total_tokens.toLocaleString(getIntlLocale()) },
+      { title: "Total Tokens" },
+    ),
   ];
 };
 
 export const buildCostBreakdownTiles = (metadata: SpendSummaryMetadata): SummaryTile[] => [
-  {
-    title: "Request Cost",
-    value: `$${formatNumberWithCommas(metadata.total_spend, 2)}`,
-    className: "text-info",
-    tooltip: REQUEST_COST_TOOLTIP,
-  },
-  {
-    title: "Flat Cost",
-    value: `$${formatNumberWithCommas(metadata.total_flat_cost ?? 0, 2)}`,
-    className: "text-violet-600",
-    tooltip: FLAT_COST_TOOLTIP,
-  },
+  markUiCopy(
+    {
+      title: "Request Cost",
+      value: `$${formatNumberWithCommas(metadata.total_spend, 2)}`,
+      className: "text-info",
+      tooltip: REQUEST_COST_TOOLTIP,
+    },
+    { title: "Request Cost" },
+  ),
+  markUiCopy(
+    {
+      title: "Flat Cost",
+      value: `$${formatNumberWithCommas(metadata.total_flat_cost ?? 0, 2)}`,
+      className: "text-violet-600",
+      tooltip: FLAT_COST_TOOLTIP,
+    },
+    { title: "Flat Cost" },
+  ),
 ];

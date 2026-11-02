@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, getIntlLocale, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 import React, { useState, useEffect, useCallback } from "react";
 import { ArrowLeft, Info, Pencil } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/shared/Alert";
@@ -24,23 +26,31 @@ interface DetailRowProps {
   children: React.ReactNode;
 }
 
-const DetailRow = ({ label, children }: DetailRowProps) => (
-  <div className="grid grid-cols-1 border-b border-border last:border-b-0 sm:grid-cols-[200px_minmax(0,1fr)]">
-    <dt className="bg-muted/50 px-4 py-3 text-sm font-medium">{label}</dt>
-    <dd className="px-4 py-3 text-sm">{children}</dd>
-  </div>
-);
+const DetailRow = (cocaCopyProps0: DetailRowProps) => {
+  const { label, children } = cocaCopyProps0;
+  useUiLocale();
+  return (
+    <div className="grid grid-cols-1 border-b border-border last:border-b-0 sm:grid-cols-[200px_minmax(0,1fr)]">
+      <dt className="bg-muted/50 px-4 py-3 text-sm font-medium">{localizedProperty(cocaCopyProps0, "label", label)}</dt>
+      <dd className="px-4 py-3 text-sm">{children}</dd>
+    </div>
+  );
+};
 
-const SectionHeading = ({ children }: { children: React.ReactNode }) => (
-  <div className="flex items-center gap-3">
-    <span className="text-sm font-semibold">{children}</span>
-    <Separator className="flex-1" />
-  </div>
-);
+const SectionHeading = ({ children }: { children: React.ReactNode }) => {
+  useUiLocale();
+  return (
+    <div className="flex items-center gap-3">
+      <span className="text-sm font-semibold">{children}</span>
+      <Separator className="flex-1" />
+    </div>
+  );
+};
 
-const Muted = ({ children }: { children: React.ReactNode }) => (
-  <span className="text-muted-foreground">{children}</span>
-);
+const Muted = ({ children }: { children: React.ReactNode }) => {
+  useUiLocale();
+  return <span className="text-muted-foreground">{children}</span>;
+};
 
 const PolicyInfoView: React.FC<PolicyInfoViewProps> = ({
   policyId,
@@ -50,6 +60,7 @@ const PolicyInfoView: React.FC<PolicyInfoViewProps> = ({
   isAdmin,
   getPolicy,
 }) => {
+  useUiLocale();
   const [policy, setPolicy] = useState<Policy | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [resolvedGuardrails, setResolvedGuardrails] = useState<string[]>([]);
@@ -93,9 +104,11 @@ const PolicyInfoView: React.FC<PolicyInfoViewProps> = ({
     return (
       <Card>
         <CardContent>
-          <p className="text-destructive">Policy not found</p>
+          <p className="text-destructive">
+            <LocalizedText text={"Policy not found"} />
+          </p>
           <Button variant="secondary" onClick={onClose} className="mt-4">
-            Go Back
+            <LocalizedText text={"Go Back"} />
           </Button>
         </CardContent>
       </Card>
@@ -109,12 +122,12 @@ const PolicyInfoView: React.FC<PolicyInfoViewProps> = ({
           <div className="flex items-center justify-between">
             <Button variant="secondary" onClick={onClose}>
               <ArrowLeft />
-              Back to Policies
+              <LocalizedText text={"Back to Policies"} />
             </Button>
             {isAdmin && (
               <Button onClick={() => onEdit(policy)}>
                 <Pencil />
-                Edit Policy
+                <LocalizedText text={"Edit Policy"} />
               </Button>
             )}
           </div>
@@ -122,43 +135,67 @@ const PolicyInfoView: React.FC<PolicyInfoViewProps> = ({
           <h4 className="text-lg font-semibold">{policy.policy_name}</h4>
 
           <dl className="rounded-md border border-border">
-            <DetailRow label="Policy ID">
+            <DetailRow label={translateMessage("Policy ID")}>
               <code className="rounded-sm bg-muted px-2 py-1 text-xs">{policy.policy_id}</code>
             </DetailRow>
-            <DetailRow label="Description">{policy.description || <Muted>No description</Muted>}</DetailRow>
-            <DetailRow label="Inherits From">
-              {policy.inherit ? <Badge variant="secondary">{policy.inherit}</Badge> : <Muted>None</Muted>}
+            <DetailRow label={translateMessage("Description")}>
+              {localizedProperty(policy, "description", policy.description) || (
+                <Muted>
+                  <LocalizedText text={"No description"} />
+                </Muted>
+              )}
             </DetailRow>
-            <DetailRow label="Created At">
-              {policy.created_at ? new Date(policy.created_at).toLocaleString() : "-"}
+            <DetailRow label={translateMessage("Inherits From")}>
+              {policy.inherit ? (
+                <Badge variant="secondary">{policy.inherit}</Badge>
+              ) : (
+                <Muted>
+                  <LocalizedText text={"None"} />
+                </Muted>
+              )}
             </DetailRow>
-            <DetailRow label="Updated At">
-              {policy.updated_at ? new Date(policy.updated_at).toLocaleString() : "-"}
+            <DetailRow label={translateMessage("Created At")}>
+              {policy.created_at ? new Date(policy.created_at).toLocaleString(getIntlLocale()) : "-"}
+            </DetailRow>
+            <DetailRow label={translateMessage("Updated At")}>
+              {policy.updated_at ? new Date(policy.updated_at).toLocaleString(getIntlLocale()) : "-"}
             </DetailRow>
           </dl>
 
           {policy.pipeline && (
             <>
-              <SectionHeading>Pipeline Flow</SectionHeading>
+              <SectionHeading>
+                <LocalizedText text={"Pipeline Flow"} />
+              </SectionHeading>
               <Alert className="mb-4">
                 <Info />
                 <AlertTitle>
-                  Pipeline ({policy.pipeline.mode} mode, {policy.pipeline.steps.length} step
-                  {policy.pipeline.steps.length !== 1 ? "s" : ""})
+                  <LocalizedText text={"Pipeline ("} />
+                  {policy.pipeline.mode}
+                  <LocalizedText text={" mode, "} />
+                  {policy.pipeline.steps.length}
+                  <LocalizedText text={" step"} />
+                  {policy.pipeline.steps.length !== 1 ? translateMessage("s") : ""})
                 </AlertTitle>
               </Alert>
               <PipelineInfoDisplay pipeline={policy.pipeline} />
             </>
           )}
 
-          <SectionHeading>Guardrails Configuration</SectionHeading>
+          <SectionHeading>
+            <LocalizedText text={"Guardrails Configuration"} />
+          </SectionHeading>
 
           {resolvedGuardrails.length > 0 && (
             <Alert className="mb-4">
               <Info />
-              <AlertTitle>Resolved Guardrails</AlertTitle>
+              <AlertTitle>
+                <LocalizedText text={"Resolved Guardrails"} />
+              </AlertTitle>
               <AlertDescription>
-                <span className="mb-2 block">Final guardrails that will be applied (including inheritance):</span>
+                <span className="mb-2 block">
+                  <LocalizedText text={"Final guardrails that will be applied (including inheritance):"} />
+                </span>
                 <div className="flex flex-wrap gap-1">
                   {resolvedGuardrails.map((g) => (
                     <Badge key={g} variant="secondary">
@@ -171,7 +208,7 @@ const PolicyInfoView: React.FC<PolicyInfoViewProps> = ({
           )}
 
           <dl className="rounded-md border border-border">
-            <DetailRow label="Guardrails to Add">
+            <DetailRow label={translateMessage("Guardrails to Add")}>
               <div className="flex flex-wrap gap-1">
                 {policy.guardrails_add && policy.guardrails_add.length > 0 ? (
                   policy.guardrails_add.map((g) => (
@@ -180,11 +217,13 @@ const PolicyInfoView: React.FC<PolicyInfoViewProps> = ({
                     </Badge>
                   ))
                 ) : (
-                  <Muted>None</Muted>
+                  <Muted>
+                    <LocalizedText text={"None"} />
+                  </Muted>
                 )}
               </div>
             </DetailRow>
-            <DetailRow label="Guardrails to Remove">
+            <DetailRow label={translateMessage("Guardrails to Remove")}>
               <div className="flex flex-wrap gap-1">
                 {policy.guardrails_remove && policy.guardrails_remove.length > 0 ? (
                   policy.guardrails_remove.map((g) => (
@@ -193,16 +232,20 @@ const PolicyInfoView: React.FC<PolicyInfoViewProps> = ({
                     </Badge>
                   ))
                 ) : (
-                  <Muted>None</Muted>
+                  <Muted>
+                    <LocalizedText text={"None"} />
+                  </Muted>
                 )}
               </div>
             </DetailRow>
           </dl>
 
-          <SectionHeading>Conditions</SectionHeading>
+          <SectionHeading>
+            <LocalizedText text={"Conditions"} />
+          </SectionHeading>
 
           <dl className="rounded-md border border-border">
-            <DetailRow label="Model Condition">
+            <DetailRow label={translateMessage("Model Condition")}>
               {policy.condition?.model ? (
                 <Badge variant="secondary">
                   {typeof policy.condition.model === "string"
@@ -210,7 +253,9 @@ const PolicyInfoView: React.FC<PolicyInfoViewProps> = ({
                     : JSON.stringify(policy.condition.model)}
                 </Badge>
               ) : (
-                <Muted>No model condition (applies to all models)</Muted>
+                <Muted>
+                  <LocalizedText text={"No model condition (applies to all models)"} />
+                </Muted>
               )}
             </DetailRow>
           </dl>

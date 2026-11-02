@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { useHashicorpVaultConfig } from "@/app/(dashboard)/hooks/configOverrides/useHashicorpVaultConfig";
 import { useUpdateHashicorpVaultConfig } from "@/app/(dashboard)/hooks/configOverrides/useUpdateHashicorpVaultConfig";
@@ -24,32 +25,44 @@ interface VaultFieldGroup {
 }
 
 const FIELD_GROUPS: VaultFieldGroup[] = [
-  {
-    title: "Connection",
-    fields: [
-      "vault_addr",
-      "vault_namespace",
-      "vault_login_namespace",
-      "vault_secret_namespace",
-      "vault_mount_name",
-      "vault_path_prefix",
-    ],
-  },
-  {
-    title: "Token Authentication",
-    subtitle: "Use a Vault token to authenticate. Only one auth method is required.",
-    fields: ["vault_token"],
-  },
-  {
-    title: "AppRole Authentication",
-    subtitle: "Use AppRole credentials to authenticate. Only one auth method is required.",
-    fields: ["approle_role_id", "approle_secret_id", "approle_mount_path"],
-  },
-  {
-    title: "TLS",
-    subtitle: "Optional client certificate for mTLS.",
-    fields: ["client_cert", "client_key", "vault_cert_role"],
-  },
+  markUiCopy(
+    {
+      title: "Connection",
+      fields: [
+        "vault_addr",
+        "vault_namespace",
+        "vault_login_namespace",
+        "vault_secret_namespace",
+        "vault_mount_name",
+        "vault_path_prefix",
+      ],
+    },
+    { title: "Connection" },
+  ),
+  markUiCopy(
+    {
+      title: "Token Authentication",
+      subtitle: "Use a Vault token to authenticate. Only one auth method is required.",
+      fields: ["vault_token"],
+    },
+    { title: "Token Authentication" },
+  ),
+  markUiCopy(
+    {
+      title: "AppRole Authentication",
+      subtitle: "Use AppRole credentials to authenticate. Only one auth method is required.",
+      fields: ["approle_role_id", "approle_secret_id", "approle_mount_path"],
+    },
+    { title: "AppRole Authentication" },
+  ),
+  markUiCopy(
+    {
+      title: "TLS",
+      subtitle: "Optional client certificate for mTLS.",
+      fields: ["client_cert", "client_key", "vault_cert_role"],
+    },
+    { title: "TLS" },
+  ),
 ];
 
 type VaultFormValues = Record<string, string>;
@@ -60,9 +73,15 @@ const buildSchema = (fields: readonly string[]): z.ZodType<VaultFormValues, Vaul
       fields.map((name) => [
         name,
         name === "vault_addr"
-          ? z.string().refine((value) => value.length === 0 || /^https?:\/\/.+/.test(value), {
-              message: "Must start with http:// or https://",
-            })
+          ? z.string().refine(
+              (value) => value.length === 0 || /^https?:\/\/.+/.test(value),
+              markUiCopy(
+                {
+                  message: "Must start with http:// or https://",
+                },
+                { message: "Must start with http:// or https://" },
+              ),
+            )
           : z.string(),
       ]),
     ),
@@ -75,6 +94,7 @@ interface EditHashicorpVaultModalProps {
 }
 
 const EditHashicorpVaultModal: React.FC<EditHashicorpVaultModalProps> = ({ isVisible, onCancel, onSuccess }) => {
+  useUiLocale();
   const { accessToken } = useAuthorized();
   const { data } = useHashicorpVaultConfig();
   const { mutate, isPending } = useUpdateHashicorpVaultConfig(accessToken);
@@ -112,7 +132,7 @@ const EditHashicorpVaultModal: React.FC<EditHashicorpVaultModalProps> = ({ isVis
 
     mutate(config, {
       onSuccess: () => {
-        toast.success("Hashicorp Vault configuration updated successfully");
+        toast.success(translateMessage("Hashicorp Vault configuration updated successfully"));
         onSuccess();
       },
       onError: (err) => {
@@ -136,12 +156,21 @@ const EditHashicorpVaultModal: React.FC<EditHashicorpVaultModalProps> = ({ isVis
     const placeholder = hasExistingValue ? `Leave blank to keep existing (${existingValue})` : fieldSchema?.description;
 
     return (
-      <FormField key={fieldName} control={form.control} name={fieldName} label={FIELD_LABELS[fieldName] ?? fieldName}>
+      <FormField
+        key={fieldName}
+        control={form.control}
+        name={fieldName}
+        label={localizedProperty(FIELD_LABELS, fieldName, FIELD_LABELS[fieldName]) ?? fieldName}
+      >
         {({ ref, ...field }) =>
           isSensitive ? (
             <PasswordInput ref={ref} placeholder={placeholder} {...field} />
           ) : (
-            <Input ref={ref} placeholder={fieldSchema?.description} {...field} />
+            <Input
+              ref={ref}
+              placeholder={localizedProperty(fieldSchema, "description", fieldSchema?.description)}
+              {...field}
+            />
           )
         }
       </FormField>
@@ -152,13 +181,17 @@ const EditHashicorpVaultModal: React.FC<EditHashicorpVaultModalProps> = ({ isVis
     <Dialog open={isVisible} onOpenChange={(open) => !open && handleCancel()}>
       <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-[700px]">
         <DialogHeader>
-          <DialogTitle>Edit Hashicorp Vault Configuration</DialogTitle>
+          <DialogTitle>
+            <LocalizedText text={"Edit Hashicorp Vault Configuration"} />
+          </DialogTitle>
         </DialogHeader>
         <form onSubmit={form.handleSubmit(handleSubmit)}>
           {FIELD_GROUPS.map((group, index) => (
             <div key={group.title}>
               {index > 0 && <Separator className="my-6" />}
-              <h5 className="mb-1 text-base font-semibold text-foreground">{group.title}</h5>
+              <h5 className="mb-1 text-base font-semibold text-foreground">
+                {localizedProperty(group, "title", group.title)}
+              </h5>
               {group.subtitle && <p className="mb-4 text-sm text-muted-foreground">{group.subtitle}</p>}
               <FieldGroup>{group.fields.map(renderField)}</FieldGroup>
             </div>
@@ -167,11 +200,11 @@ const EditHashicorpVaultModal: React.FC<EditHashicorpVaultModalProps> = ({ isVis
         <DialogFooter>
           <div className="flex items-center justify-end gap-2">
             <Button type="button" variant="outline" onClick={handleCancel} disabled={isPending}>
-              Cancel
+              <LocalizedText text={"Cancel"} />
             </Button>
             <Button type="button" disabled={isPending} onClick={() => void form.handleSubmit(handleSubmit)()}>
               {isPending && <UiLoadingSpinner className="size-4 mr-1" />}
-              {isPending ? "Saving..." : "Save"}
+              {isPending ? translateMessage("Saving...") : translateMessage("Save")}
             </Button>
           </div>
         </DialogFooter>

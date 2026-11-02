@@ -1,4 +1,5 @@
 "use client";
+import { localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import type { ComponentProps } from "react";
 import { useId, useState } from "react";
@@ -14,18 +15,20 @@ export type DurationInputProps = Omit<ComponentProps<"div">, "onChange"> & {
   max?: number;
 };
 
-export function DurationInput({ label, value, onChange, base, max, className, ...props }: DurationInputProps) {
+export function DurationInput(cocaCopyProps0: DurationInputProps) {
+  const { label, value, onChange, base, max, className, ...props } = cocaCopyProps0;
+  useUiLocale();
   const id = useId();
   const units =
     base === "minutes"
       ? [
-          { label: "minutes", scale: 1 },
-          { label: "hours", scale: 60 },
-          { label: "days", scale: 1440 },
+          markUiCopy({ label: "minutes", scale: 1 }, { label: "minutes" }),
+          markUiCopy({ label: "hours", scale: 60 }, { label: "hours" }),
+          markUiCopy({ label: "days", scale: 1440 }, { label: "days" }),
         ]
       : [
-          { label: "hours", scale: 1 },
-          { label: "days", scale: 24 },
+          markUiCopy({ label: "hours", scale: 1 }, { label: "hours" }),
+          markUiCopy({ label: "days", scale: 24 }, { label: "days" }),
         ];
   const [scale, setScale] = useState(() => [...units].reverse().find((unit) => value % unit.scale === 0)?.scale ?? 1);
   function changeUnit(next: number) {
@@ -34,7 +37,7 @@ export function DurationInput({ label, value, onChange, base, max, className, ..
   return (
     <div {...props} data-slot="duration-input" className={cn("space-y-2", className)}>
       <label htmlFor={id} className="text-sm">
-        {label}
+        {localizedProperty(cocaCopyProps0, "label", label)}
       </label>
       <div className="flex gap-2">
         <Input
@@ -48,14 +51,14 @@ export function DurationInput({ label, value, onChange, base, max, className, ..
         />
         <div className="relative w-28 shrink-0">
           <select
-            aria-label={`${label} unit`}
+            aria-label={translateMessage("%{0} unit", [label])}
             value={scale}
             className="h-9 w-full appearance-none rounded-md border border-input bg-background pl-3 pr-9 text-sm"
             onChange={(event) => changeUnit(Number(event.target.value))}
           >
             {units.map((unit) => (
               <option key={unit.scale} value={unit.scale}>
-                {unit.label}
+                {localizedProperty(unit, "label", unit.label)}
               </option>
             ))}
           </select>

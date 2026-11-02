@@ -1,3 +1,5 @@
+"use client";
+import { translateMessage, useUiLocale } from "@/lib/i18n";
 import React, { useEffect, useState } from "react";
 import {
   Combobox,
@@ -32,6 +34,7 @@ const SearchToolSelector: React.FC<SearchToolSelectorProps> = ({
   placeholder = "Select search tools (optional)",
   disabled = false,
 }) => {
+  useUiLocale();
   const anchor = useComboboxAnchor();
   const [options, setOptions] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
@@ -80,10 +83,14 @@ const SearchToolSelector: React.FC<SearchToolSelectorProps> = ({
           }
         </ComboboxValue>
         <ComboboxChipsInput placeholder={placeholder} aria-label={placeholder} disabled={disabled} />
-        {value && value.length > 0 && <ComboboxClear aria-label="Clear all search tools" disabled={disabled} />}
+        {value && value.length > 0 && (
+          <ComboboxClear aria-label={translateMessage("Clear all search tools")} disabled={disabled} />
+        )}
       </ComboboxChips>
       <ComboboxContent anchor={anchor}>
-        <ComboboxEmpty>{loading ? "Loading search tools…" : "No search tools found"}</ComboboxEmpty>
+        <ComboboxEmpty>
+          {loading ? translateMessage("Loading search tools…") : translateMessage("No search tools found")}
+        </ComboboxEmpty>
         <ComboboxList>
           {(tool: string) => (
             <ComboboxItem key={tool} value={tool}>

@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, markUiCopy, useUiLocale } from "@/lib/i18n";
 import { Calendar, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/cva.config";
@@ -21,46 +23,61 @@ interface RelativeTimeOption {
 }
 
 const relativeTimeOptions: RelativeTimeOption[] = [
-  {
-    label: "Today",
-    shortLabel: "today",
-    getValue: () => ({
-      from: moment().startOf("day").toDate(),
-      to: moment().endOf("day").toDate(),
-    }),
-  },
-  {
-    label: "Last 7 days",
-    shortLabel: "7d",
-    getValue: () => ({
-      from: moment().subtract(7, "days").startOf("day").toDate(),
-      to: moment().endOf("day").toDate(),
-    }),
-  },
-  {
-    label: "Last 30 days",
-    shortLabel: "30d",
-    getValue: () => ({
-      from: moment().subtract(30, "days").startOf("day").toDate(),
-      to: moment().endOf("day").toDate(),
-    }),
-  },
-  {
-    label: "Month to date",
-    shortLabel: "MTD",
-    getValue: () => ({
-      from: moment().startOf("month").toDate(),
-      to: moment().endOf("day").toDate(),
-    }),
-  },
-  {
-    label: "Year to date",
-    shortLabel: "YTD",
-    getValue: () => ({
-      from: moment().startOf("year").toDate(),
-      to: moment().endOf("day").toDate(),
-    }),
-  },
+  markUiCopy(
+    {
+      label: "Today",
+      shortLabel: "today",
+      getValue: () => ({
+        from: moment().startOf("day").toDate(),
+        to: moment().endOf("day").toDate(),
+      }),
+    },
+    { label: "Today" },
+  ),
+  markUiCopy(
+    {
+      label: "Last 7 days",
+      shortLabel: "7d",
+      getValue: () => ({
+        from: moment().subtract(7, "days").startOf("day").toDate(),
+        to: moment().endOf("day").toDate(),
+      }),
+    },
+    { label: "Last 7 days" },
+  ),
+  markUiCopy(
+    {
+      label: "Last 30 days",
+      shortLabel: "30d",
+      getValue: () => ({
+        from: moment().subtract(30, "days").startOf("day").toDate(),
+        to: moment().endOf("day").toDate(),
+      }),
+    },
+    { label: "Last 30 days" },
+  ),
+  markUiCopy(
+    {
+      label: "Month to date",
+      shortLabel: "MTD",
+      getValue: () => ({
+        from: moment().startOf("month").toDate(),
+        to: moment().endOf("day").toDate(),
+      }),
+    },
+    { label: "Month to date" },
+  ),
+  markUiCopy(
+    {
+      label: "Year to date",
+      shortLabel: "YTD",
+      getValue: () => ({
+        from: moment().startOf("year").toDate(),
+        to: moment().endOf("day").toDate(),
+      }),
+    },
+    { label: "Year to date" },
+  ),
 ];
 
 /**
@@ -74,6 +91,7 @@ const AdvancedDatePicker: React.FC<AdvancedDatePickerProps> = ({
   showTimeRange = true,
   align = "right",
 }) => {
+  useUiLocale();
   const [isOpen, setIsOpen] = useState(false);
   const [tempValue, setTempValue] = useState<DateRangePickerValue>(value);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
@@ -319,7 +337,9 @@ const AdvancedDatePicker: React.FC<AdvancedDatePickerProps> = ({
               {/* Left side - Relative time options */}
               <div className="w-1/2 border-r border-border">
                 <div className="p-3 border-b border-border">
-                  <span className="text-sm font-semibold text-foreground">Relative time</span>
+                  <span className="text-sm font-semibold text-foreground">
+                    <LocalizedText text={"Relative time"} />
+                  </span>
                 </div>
                 <div className="h-[350px] overflow-y-auto">
                   {relativeTimeOptions.map((option) => {
@@ -336,7 +356,7 @@ const AdvancedDatePicker: React.FC<AdvancedDatePickerProps> = ({
                         onClick={() => handleRelativeTimeSelect(option)}
                       >
                         <span className={`text-sm ${isSelected ? "text-info font-medium" : "text-foreground"}`}>
-                          {option.label}
+                          {localizedProperty(option, "label", option.label)}
                         </span>
                         <span
                           className={`text-xs px-2 py-1 rounded capitalize ${
@@ -356,14 +376,18 @@ const AdvancedDatePicker: React.FC<AdvancedDatePickerProps> = ({
                 <div className="p-3.5 border-b border-border">
                   <div className="flex items-center gap-2">
                     <Calendar className="size-4 text-muted-foreground" />
-                    <span className="text-sm font-semibold text-foreground">Start and end dates</span>
+                    <span className="text-sm font-semibold text-foreground">
+                      <LocalizedText text={"Start and end dates"} />
+                    </span>
                   </div>
                 </div>
 
                 <div className="p-6 space-y-6 pb-20">
                   {/* Start date */}
                   <div>
-                    <label className="text-sm text-foreground mb-1 block">Start date</label>
+                    <label className="text-sm text-foreground mb-1 block">
+                      <LocalizedText text={"Start date"} />
+                    </label>
                     <input
                       type="date"
                       value={startDate}
@@ -378,7 +402,9 @@ const AdvancedDatePicker: React.FC<AdvancedDatePickerProps> = ({
 
                   {/* End date */}
                   <div>
-                    <label className="text-sm text-foreground mb-1 block">End date</label>
+                    <label className="text-sm text-foreground mb-1 block">
+                      <LocalizedText text={"End date"} />
+                    </label>
                     <input
                       type="date"
                       value={endDate}
@@ -412,11 +438,15 @@ const AdvancedDatePicker: React.FC<AdvancedDatePickerProps> = ({
                   {tempValue.from && tempValue.to && validation.isValid && (
                     <div className="bg-info/10 p-3 rounded-md space-y-1">
                       <div className="text-xs text-info">
-                        <span className="font-medium">From:</span>{" "}
+                        <span className="font-medium">
+                          <LocalizedText text={"From:"} />
+                        </span>{" "}
                         {moment(tempValue.from).format("MMM D, YYYY [at] HH:mm:ss")}
                       </div>
                       <div className="text-xs text-info">
-                        <span className="font-medium">To:</span>{" "}
+                        <span className="font-medium">
+                          <LocalizedText text={"To:"} />
+                        </span>{" "}
                         {moment(tempValue.to).format("MMM D, YYYY [at] HH:mm:ss")}
                       </div>
                     </div>
@@ -426,10 +456,10 @@ const AdvancedDatePicker: React.FC<AdvancedDatePickerProps> = ({
                 <div className="absolute bottom-4 right-4">
                   <div className="flex gap-2">
                     <Button variant="secondary" onClick={handleCancel}>
-                      Cancel
+                      <LocalizedText text={"Cancel"} />
                     </Button>
                     <Button onClick={handleApply} disabled={!tempValue.from || !tempValue.to || !validation.isValid}>
-                      Apply
+                      <LocalizedText text={"Apply"} />
                     </Button>
                   </div>
                 </div>

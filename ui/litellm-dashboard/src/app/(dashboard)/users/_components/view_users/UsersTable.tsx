@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import {
   ColumnFiltersState,
@@ -49,21 +50,29 @@ interface UsersTableProps {
   onResetPassword: (userId: string) => void;
 }
 
-const FILTER_LABELS: Record<string, string> = {
-  user_id: "User ID",
-  sso_user_id: "SSO ID",
-  user_role: "Role",
-  team: "Team",
-};
+const FILTER_LABELS: Record<string, string> = markUiCopy(
+  {
+    user_id: "User ID",
+    sso_user_id: "SSO ID",
+    user_role: "Role",
+    team: "Team",
+  },
+  { user_id: "User ID", sso_user_id: "SSO ID", user_role: "Role", team: "Team" },
+);
 
 function EmptyState() {
+  useUiLocale();
   return (
     <div className="flex flex-col items-center gap-1 py-6">
       <div className="mb-1 flex size-10 items-center justify-center rounded-lg bg-muted">
         <Users className="size-5 text-muted-foreground" />
       </div>
-      <div className="text-sm font-medium text-foreground">No users found</div>
-      <div className="text-sm text-muted-foreground">Try adjusting your search or filters.</div>
+      <div className="text-sm font-medium text-foreground">
+        <LocalizedText text={"No users found"} />
+      </div>
+      <div className="text-sm text-muted-foreground">
+        <LocalizedText text={"Try adjusting your search or filters."} />
+      </div>
     </div>
   );
 }
@@ -89,6 +98,7 @@ export function UsersTable({
   onDeleteUser,
   onResetPassword,
 }: UsersTableProps) {
+  useUiLocale();
   const [filtersOpen, setFiltersOpen] = useState(false);
 
   const columns = useMemo(() => {
@@ -149,7 +159,7 @@ export function UsersTable({
       rowSelection={rowSelection}
       onRowSelectionChange={onRowSelectionChange}
       isLoading={isLoading}
-      loadingMessage="Loading users…"
+      loadingMessage={translateMessage("Loading users…")}
       noDataMessage={<EmptyState />}
       size="compact"
       toolbar={(table) => (
@@ -158,7 +168,7 @@ export function UsersTable({
             table={table}
             searchValue={searchValue}
             onSearchChange={onSearchChange}
-            searchPlaceholder="Search by email or ID…"
+            searchPlaceholder={translateMessage("Search by email or ID…")}
             onOpenFilters={() => setFiltersOpen(true)}
             filterLabels={FILTER_LABELS}
             formatFilterValue={formatFilterValue}
@@ -167,43 +177,43 @@ export function UsersTable({
             table={table}
             open={filtersOpen}
             onOpenChange={setFiltersOpen}
-            title="Filters"
-            description="Narrow down your users"
+            title={translateMessage("Filters")}
+            description={translateMessage("Narrow down your users")}
           >
             {({ get, set }) => (
               <>
-                <DataTableFilterField label="User ID">
+                <DataTableFilterField label={translateMessage("User ID")}>
                   <Input
                     value={(get("user_id") as string) ?? ""}
                     onChange={(event) => set("user_id", event.target.value)}
-                    placeholder="Enter user ID…"
+                    placeholder={translateMessage("Enter user ID…")}
                     data-testid="users-filter-user-id"
                   />
                 </DataTableFilterField>
-                <DataTableFilterField label="SSO ID">
+                <DataTableFilterField label={translateMessage("SSO ID")}>
                   <Input
                     value={(get("sso_user_id") as string) ?? ""}
                     onChange={(event) => set("sso_user_id", event.target.value)}
-                    placeholder="Enter SSO ID…"
+                    placeholder={translateMessage("Enter SSO ID…")}
                     data-testid="users-filter-sso-id"
                   />
                 </DataTableFilterField>
-                <DataTableFilterField label="Role">
+                <DataTableFilterField label={translateMessage("Role")}>
                   <SearchSelect
                     options={roleOptions}
                     value={(get("user_role") as string) || undefined}
                     onValueChange={(value) => set("user_role", value ?? undefined)}
-                    placeholder="Select a role…"
-                    emptyText="No roles found"
+                    placeholder={translateMessage("Select a role…")}
+                    emptyText={translateMessage("No roles found")}
                   />
                 </DataTableFilterField>
-                <DataTableFilterField label="Team">
+                <DataTableFilterField label={translateMessage("Team")}>
                   <SearchSelect
                     options={teamOptions}
                     value={(get("team") as string) || undefined}
                     onValueChange={(value) => set("team", value ?? undefined)}
-                    placeholder="Select a team…"
-                    emptyText="No teams found"
+                    placeholder={translateMessage("Select a team…")}
+                    emptyText={translateMessage("No teams found")}
                   />
                 </DataTableFilterField>
               </>

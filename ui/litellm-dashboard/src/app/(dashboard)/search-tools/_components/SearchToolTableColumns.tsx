@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { ColumnDef } from "@tanstack/react-table";
 import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
@@ -29,13 +30,14 @@ interface SearchToolRowActionsProps {
 }
 
 function SearchToolRowActions({ tool, onEdit, onDelete }: SearchToolRowActionsProps) {
+  useUiLocale();
   const isFromConfig = tool.is_from_config ?? false;
   const toolId = tool.search_tool_id;
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        aria-label="Open search tool actions"
+        aria-label={translateMessage("Open search tool actions")}
         data-testid={`search-tool-actions-${searchToolKey(tool)}`}
         className={cn(buttonVariants({ variant: "ghost", size: "icon-sm" }), "text-muted-foreground")}
       >
@@ -49,7 +51,7 @@ function SearchToolRowActions({ tool, onEdit, onDelete }: SearchToolRowActionsPr
           onClick={() => toolId && onEdit(toolId)}
         >
           <Pencil />
-          Edit search tool
+          <LocalizedText text={"Edit search tool"} />
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
@@ -60,7 +62,7 @@ function SearchToolRowActions({ tool, onEdit, onDelete }: SearchToolRowActionsPr
           onClick={() => toolId && onDelete(toolId)}
         >
           <Trash2 />
-          Delete search tool
+          <LocalizedText text={"Delete search tool"} />
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -83,8 +85,8 @@ export const getSearchToolTableColumns = ({
   {
     id: "search_tool_id",
     accessorKey: "search_tool_id",
-    meta: { title: "Search Tool ID" },
-    header: ({ column }) => <DataTableSortHeader column={column} title="Search Tool ID" />,
+    meta: markUiCopy({ title: "Search Tool ID" }, { title: "Search Tool ID" }),
+    header: ({ column }) => <DataTableSortHeader column={column} title={translateMessage("Search Tool ID")} />,
     size: 200,
     enableSorting: true,
     cell: ({ row }) => {
@@ -101,8 +103,8 @@ export const getSearchToolTableColumns = ({
   {
     id: "search_tool_name",
     accessorKey: "search_tool_name",
-    meta: { title: "Name" },
-    header: ({ column }) => <DataTableSortHeader column={column} title="Name" />,
+    meta: markUiCopy({ title: "Name" }, { title: "Name" }),
+    header: ({ column }) => <DataTableSortHeader column={column} title={translateMessage("Name")} />,
     size: 200,
     enableSorting: true,
     cell: ({ row }) => (
@@ -111,23 +113,26 @@ export const getSearchToolTableColumns = ({
       </span>
     ),
   },
-  {
-    id: "provider",
-    meta: { title: "Provider" },
-    header: "Provider",
-    size: 160,
-    enableSorting: false,
-    cell: ({ row }) => {
-      const provider = row.original.litellm_params.search_provider;
-      const providerInfo = availableProviders.find((candidate) => candidate.provider_name === provider);
-      return <span className="text-sm">{providerInfo?.ui_friendly_name || provider}</span>;
+  markUiCopy(
+    {
+      id: "provider",
+      meta: markUiCopy({ title: "Provider" }, { title: "Provider" }),
+      header: "Provider",
+      size: 160,
+      enableSorting: false,
+      cell: ({ row }) => {
+        const provider = row.original.litellm_params.search_provider;
+        const providerInfo = availableProviders.find((candidate) => candidate.provider_name === provider);
+        return <span className="text-sm">{providerInfo?.ui_friendly_name || provider}</span>;
+      },
     },
-  },
+    { header: "Provider" },
+  ),
   {
     id: "created_at",
     accessorKey: "created_at",
-    meta: { title: "Created At" },
-    header: ({ column }) => <DataTableSortHeader column={column} title="Created At" />,
+    meta: markUiCopy({ title: "Created At" }, { title: "Created At" }),
+    header: ({ column }) => <DataTableSortHeader column={column} title={translateMessage("Created At")} />,
     size: 130,
     enableSorting: true,
     cell: ({ row }) => <DateCell value={row.original.created_at} precision="date" />,
@@ -135,27 +140,39 @@ export const getSearchToolTableColumns = ({
   {
     id: "updated_at",
     accessorKey: "updated_at",
-    meta: { title: "Updated At" },
-    header: ({ column }) => <DataTableSortHeader column={column} title="Updated At" />,
+    meta: markUiCopy({ title: "Updated At" }, { title: "Updated At" }),
+    header: ({ column }) => <DataTableSortHeader column={column} title={translateMessage("Updated At")} />,
     size: 130,
     enableSorting: true,
     cell: ({ row }) => <DateCell value={row.original.updated_at} precision="date" />,
   },
-  {
-    id: "source",
-    meta: { title: "Source", skeleton: "badge" },
-    header: "Source",
-    size: 100,
-    enableSorting: false,
-    cell: ({ row }) => {
-      const isFromConfig = row.original.is_from_config ?? false;
-      return <StatusBadge tone={isFromConfig ? "neutral" : "info"} label={isFromConfig ? "Config" : "DB"} />;
+  markUiCopy(
+    {
+      id: "source",
+      meta: markUiCopy({ title: "Source", skeleton: "badge" as const }, { title: "Source" }),
+      header: "Source",
+      size: 100,
+      enableSorting: false,
+      cell: ({ row }) => {
+        const isFromConfig = row.original.is_from_config ?? false;
+        return (
+          <StatusBadge
+            tone={isFromConfig ? "neutral" : "info"}
+            label={isFromConfig ? translateMessage("Config") : translateMessage("DB")}
+          />
+        );
+      },
     },
-  },
+    { header: "Source" },
+  ),
   {
     id: "actions",
     meta: { className: "text-right", headerClassName: "text-right" },
-    header: () => <span className="sr-only">Actions</span>,
+    header: () => (
+      <span className="sr-only">
+        <LocalizedText text={"Actions"} />
+      </span>
+    ),
     size: 64,
     enableSorting: false,
     enableHiding: false,

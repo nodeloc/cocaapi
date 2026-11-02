@@ -1,3 +1,4 @@
+import { markUiCopy } from "@/lib/i18n";
 import type { components } from "@/lib/http/schema";
 
 export type AutoRouterBenchmarksResponse = components["schemas"]["AutoRouterBenchmarksResponse"];
@@ -25,7 +26,7 @@ export const groupLabel = (group: AutoRouterBenchmarkGroup, groups: readonly Aut
 export const viewFor = (data: AutoRouterBenchmarksResponse, selectedKey: string): BenchmarkView => {
   const group = data.groups.find((g) => groupKey(g) === selectedKey);
   if (selectedKey === ALL_ROUTERS || !group) {
-    return { label: "All auto-routers", stats: data.totals };
+    return markUiCopy({ label: "All auto-routers", stats: data.totals }, { label: "All auto-routers" });
   }
   return { label: groupLabel(group, data.groups), stats: group };
 };
@@ -48,33 +49,42 @@ const sharePctOf = (turns: number, total: number): number => (total > 0 ? Math.r
 export const bucketRows = (cache: AutoRouterCacheStats): BucketRow[] => {
   const total = bucketTurnsTotal(cache);
   return [
-    {
-      key: "same_model",
-      label: "Same model",
-      sublabel: "previous turn → same tier",
-      turns: cache.same_model.turns,
-      sharePct: sharePctOf(cache.same_model.turns, total),
-      hitRatePct: cache.same_model.hit_rate_pct,
-      fill: "bg-foreground",
-    },
-    {
-      key: "first_visit",
-      label: "First visit",
-      sublabel: "previous turn → a tier not used yet",
-      turns: cache.first_visit.turns,
-      sharePct: sharePctOf(cache.first_visit.turns, total),
-      hitRatePct: cache.first_visit.hit_rate_pct,
-      fill: "bg-foreground/30",
-    },
-    {
-      key: "return_to_tier",
-      label: "Return to tier",
-      sublabel: "previous turn → a tier used earlier",
-      turns: cache.return_to_tier.turns,
-      sharePct: sharePctOf(cache.return_to_tier.turns, total),
-      hitRatePct: cache.return_to_tier.hit_rate_pct,
-      fill: "bg-foreground/60",
-    },
+    markUiCopy(
+      {
+        key: "same_model",
+        label: "Same model",
+        sublabel: "previous turn → same tier",
+        turns: cache.same_model.turns,
+        sharePct: sharePctOf(cache.same_model.turns, total),
+        hitRatePct: cache.same_model.hit_rate_pct,
+        fill: "bg-foreground",
+      },
+      { label: "Same model" },
+    ),
+    markUiCopy(
+      {
+        key: "first_visit",
+        label: "First visit",
+        sublabel: "previous turn → a tier not used yet",
+        turns: cache.first_visit.turns,
+        sharePct: sharePctOf(cache.first_visit.turns, total),
+        hitRatePct: cache.first_visit.hit_rate_pct,
+        fill: "bg-foreground/30",
+      },
+      { label: "First visit" },
+    ),
+    markUiCopy(
+      {
+        key: "return_to_tier",
+        label: "Return to tier",
+        sublabel: "previous turn → a tier used earlier",
+        turns: cache.return_to_tier.turns,
+        sharePct: sharePctOf(cache.return_to_tier.turns, total),
+        hitRatePct: cache.return_to_tier.hit_rate_pct,
+        fill: "bg-foreground/60",
+      },
+      { label: "Return to tier" },
+    ),
   ];
 };
 

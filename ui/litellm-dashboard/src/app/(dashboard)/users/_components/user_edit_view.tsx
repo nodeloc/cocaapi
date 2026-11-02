@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import React, { useMemo, useState } from "react";
 import { z } from "zod";
 import { all_admin_roles } from "@/utils/roles";
@@ -160,6 +162,7 @@ export function UserEditView({
   objectPermission,
   premiumUser = false,
 }: UserEditViewProps) {
+  useUiLocale();
   const canEditMcpPermissions = !isBulkEdit && all_admin_roles.includes(userRole || "");
   const [unlimitedBudget, setUnlimitedBudget] = useState(false);
   const [modelMaxBudget, setModelMaxBudget] = useSeededState<ModelMaxBudget>(
@@ -207,8 +210,8 @@ export function UserEditView({
   };
 
   const modelOptions = [
-    { label: "All Proxy Models", value: "all-proxy-models" },
-    { label: "No Default Models", value: "no-default-models" },
+    markUiCopy({ label: "All Proxy Models", value: "all-proxy-models" }, { label: "All Proxy Models" }),
+    markUiCopy({ label: "No Default Models", value: "no-default-models" }, { label: "No Default Models" }),
     ...userModels.map((model) => ({ label: getModelDisplayName(model), value: model })),
   ];
 
@@ -223,18 +226,18 @@ export function UserEditView({
       <form onSubmit={form.handleSubmit(handleSubmit)}>
         <FieldGroup>
           {!isBulkEdit && (
-            <FormField control={form.control} name="user_id" label="User ID">
+            <FormField control={form.control} name="user_id" label={translateMessage("User ID")}>
               {({ ref, value, ...control }) => <Input {...control} ref={ref} value={value ?? ""} disabled />}
             </FormField>
           )}
 
           {!isBulkEdit && (
-            <FormField control={form.control} name="user_email" label="Email">
+            <FormField control={form.control} name="user_email" label={translateMessage("Email")}>
               {({ ref, value, ...control }) => <Input {...control} ref={ref} value={value ?? ""} />}
             </FormField>
           )}
 
-          <FormField control={form.control} name="user_alias" label="User Alias">
+          <FormField control={form.control} name="user_alias" label={translateMessage("User Alias")}>
             {({ ref, value, ...control }) => <Input {...control} ref={ref} value={value ?? ""} />}
           </FormField>
 
@@ -258,8 +261,10 @@ export function UserEditView({
                 <SelectContent>
                   {roleOptions.map((option) => (
                     <SelectItem key={option.value} value={option.value}>
-                      <span>{option.label}</span>
-                      <span className="ml-2 text-xs text-muted-foreground">{option.description}</span>
+                      <span>{localizedProperty(option, "label", option.label)}</span>
+                      <span className="ml-2 text-xs text-muted-foreground">
+                        {localizedProperty(option, "description", option.description)}
+                      </span>
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -280,7 +285,7 @@ export function UserEditView({
                 options={modelOptions}
                 value={value}
                 onValueChange={onChange}
-                placeholder="Select models"
+                placeholder={translateMessage("Select models")}
                 disabled={!all_admin_roles.includes(userRole || "")}
               />
             )}
@@ -291,10 +296,10 @@ export function UserEditView({
             name="max_budget"
             label={
               <>
-                Max Budget (USD)
+                <LocalizedText text={"Max Budget (USD)"} />
                 <label className="ml-3 inline-flex items-center gap-2 font-normal">
                   <Checkbox checked={unlimitedBudget} onCheckedChange={handleUnlimitedBudgetChange} />
-                  Unlimited Budget
+                  <LocalizedText text={"Unlimited Budget"} />
                 </label>
               </>
             }
@@ -308,13 +313,13 @@ export function UserEditView({
                 value={value ?? ""}
                 onChange={(event) => onChange(event.target.value)}
                 onWheel={(event) => event.currentTarget.blur()}
-                placeholder="Enter a numerical value"
+                placeholder={translateMessage("Enter a numerical value")}
                 disabled={unlimitedBudget}
               />
             )}
           </FormField>
 
-          <FormField control={form.control} name="budget_duration" label="Reset Budget">
+          <FormField control={form.control} name="budget_duration" label={translateMessage("Reset Budget")}>
             {({ id, value, onChange }) => <BudgetDurationDropdown id={id} value={value} onChange={onChange} />}
           </FormField>
 
@@ -338,7 +343,7 @@ export function UserEditView({
                     value={value ?? ""}
                     onChange={(event) => onChange(event.target.value)}
                     onWheel={(event) => event.currentTarget.blur()}
-                    placeholder="Unlimited"
+                    placeholder={translateMessage("Unlimited")}
                   />
                 )}
               </FormField>
@@ -361,7 +366,7 @@ export function UserEditView({
                     value={value ?? ""}
                     onChange={(event) => onChange(event.target.value)}
                     onWheel={(event) => event.currentTarget.blur()}
-                    placeholder="Unlimited"
+                    placeholder={translateMessage("Unlimited")}
                   />
                 )}
               </FormField>
@@ -382,9 +387,15 @@ export function UserEditView({
             />
           )}
 
-          <FormField control={form.control} name="metadata" label="Metadata">
+          <FormField control={form.control} name="metadata" label={translateMessage("Metadata")}>
             {({ ref, value, ...control }) => (
-              <Textarea {...control} ref={ref} value={value ?? ""} rows={4} placeholder="Enter metadata as JSON" />
+              <Textarea
+                {...control}
+                ref={ref}
+                value={value ?? ""}
+                rows={4}
+                placeholder={translateMessage("Enter metadata as JSON")}
+              />
             )}
           </FormField>
 
@@ -403,7 +414,7 @@ export function UserEditView({
                     onChange={onChange}
                     value={value}
                     accessToken={accessToken || ""}
-                    placeholder="Select MCP servers or access groups (optional)"
+                    placeholder={translateMessage("Select MCP servers or access groups (optional)")}
                   />
                 )}
               </FormField>
@@ -422,9 +433,11 @@ export function UserEditView({
 
         <div className="mt-6 flex justify-end gap-2">
           <Button variant="secondary" type="button" onClick={onCancel}>
-            Cancel
+            <LocalizedText text={"Cancel"} />
           </Button>
-          <Button type="submit">Save Changes</Button>
+          <Button type="submit">
+            <LocalizedText text={"Save Changes"} />
+          </Button>
         </div>
       </form>
     </TooltipProvider>

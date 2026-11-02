@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 import { createContext, useContext, useEffect, useState } from "react";
 import { useQuery, type UseQueryOptions } from "@tanstack/react-query";
 import { apiClient } from "@/components/networking";
@@ -19,6 +21,7 @@ type AvailabilityState = {
 export const AutoRouterAvailabilityContext = createContext<AvailabilityState>({ isPending: true, isError: false });
 
 export const useAutoRouterAvailability = (accessToken: string, body: Request, enabled = true) => {
+  useUiLocale();
   const serialized = JSON.stringify(body.complexity_router_config ?? null);
   const [debounced, setDebounced] = useState(serialized);
   useEffect(() => {
@@ -73,7 +76,10 @@ const availabilityLabel = (state: AvailabilityState, key: string) => {
   return allowanceLabel(state.data?.allowances.find((entry) => entry.key === key));
 };
 
-export const useAllowanceLabel = (key: string) => availabilityLabel(useContext(AutoRouterAvailabilityContext), key);
+export const useAllowanceLabel = (key: string) => {
+  useUiLocale();
+  return availabilityLabel(useContext(AutoRouterAvailabilityContext), key);
+};
 
 export const isAllowanceExhausted = (allowance?: Allowance) =>
   Boolean(allowance?.available && allowance.limit != null && allowance.remaining === 0) &&
@@ -81,7 +87,9 @@ export const isAllowanceExhausted = (allowance?: Allowance) =>
 
 export const AUTO_ROUTER_CONTACT_URL = "https://calendly.com/tin-berri/litellm-auto-router-pricing-discussion";
 
-export const AutoRouterContactLink = ({ features, message }: { features?: string[]; message?: string }) => {
+export const AutoRouterContactLink = (cocaCopyProps0: { features?: string[]; message?: string }) => {
+  const { features, message } = cocaCopyProps0;
+  useUiLocale();
   const state = useContext(AutoRouterAvailabilityContext);
   if (state.isPending || state.isError || state.isChecking) return null;
   const exhausted = state.data?.allowances.some(
@@ -90,36 +98,40 @@ export const AutoRouterContactLink = ({ features, message }: { features?: string
   if (!exhausted) return null;
   return (
     <span className="inline-flex flex-wrap items-baseline gap-x-1 text-xs leading-5 text-muted-foreground">
-      {message}
+      {localizedProperty(cocaCopyProps0, "message", message)}
       <a
         href={AUTO_ROUTER_CONTACT_URL}
         target="_blank"
         rel="noopener noreferrer"
         className="font-medium text-blue-600 hover:underline dark:text-blue-400"
       >
-        Talk to our team
+        <LocalizedText text={"Talk to our team"} />
       </a>
     </span>
   );
 };
 
 export const AutoRouterAllowanceLabel = ({ feature }: { feature: string }) => {
+  useUiLocale();
   const label = useAllowanceLabel(feature);
   return label ? (
     <span className="shrink-0 whitespace-nowrap text-xs leading-5 tabular-nums text-muted-foreground">{label}</span>
   ) : null;
 };
 
-export const AutoRouterAllowanceNote = ({ feature, label }: { feature: string; label: string }) => {
+export const AutoRouterAllowanceNote = (cocaCopyProps1: { feature: string; label: string }) => {
+  const { feature, label } = cocaCopyProps1;
+  useUiLocale();
   const availability = useAllowanceLabel(feature);
   return availability ? (
     <p className="text-xs leading-5 text-muted-foreground">
-      {label}: {availability} <AutoRouterContactLink features={[feature]} />
+      {localizedProperty(cocaCopyProps1, "label", label)}: {availability} <AutoRouterContactLink features={[feature]} />
     </p>
   ) : null;
 };
 
 export const AutoRouterLimits = () => {
+  useUiLocale();
   const state = useContext(AutoRouterAvailabilityContext);
   const limits = [
     ["heuristic_v2", "Heuristic v2 routers"],
@@ -131,34 +143,44 @@ export const AutoRouterLimits = () => {
   return (
     <Popover>
       <PopoverTrigger className="shrink-0 whitespace-nowrap text-xs font-normal text-muted-foreground underline underline-offset-4 hover:text-foreground">
-        View limits
+        <LocalizedText text={"View limits"} />
       </PopoverTrigger>
       <PopoverContent align="end" className="w-96 max-w-[calc(100vw-2rem)] gap-3">
-        <PopoverTitle>Routing and customization limits</PopoverTitle>
+        <PopoverTitle>
+          <LocalizedText text={"Routing and customization limits"} />
+        </PopoverTitle>
         <p className="text-xs leading-5 text-muted-foreground">
-          Rule-based, Complexity, and OSS are unlimited with built-in settings. Choose or change tier models freely.
-          Customization allowances are shared across this proxy.
+          <LocalizedText
+            text={
+              "Rule-based, Complexity, and OSS are unlimited with built-in settings. Choose or change tier models freely. Customization allowances are shared across this proxy."
+            }
+          />
         </p>
         <dl className="space-y-2 text-xs">
           {limits.map(([key, label]) => (
             <div key={key} className="flex items-center justify-between gap-3">
               <dt>{label}</dt>
               <dd className="shrink-0 tabular-nums text-muted-foreground">
-                {availabilityLabel(state, key) ?? "Unlimited"}
+                {availabilityLabel(state, key) ?? translateMessage("Unlimited")}
               </dd>
             </div>
           ))}
         </dl>
         <p className="text-xs leading-5 text-muted-foreground">
-          Custom tier definitions and written classifier instructions share one allowance. Built-in prompts and
-          display-name changes do not use it.
+          <LocalizedText
+            text={
+              "Custom tier definitions and written classifier instructions share one allowance. Built-in prompts and display-name changes do not use it."
+            }
+          />
         </p>
         <p className="text-xs leading-5 text-muted-foreground">
-          Changing scoring rules, such as weights, thresholds, keywords, or custom dimensions, uses the Rule-based
-          tuning allowance. It also applies to Heuristic first and Hybrid. Recorded settings on existing routers are
-          preserved; new routers start from built-in rules.
+          <LocalizedText
+            text={
+              "Changing scoring rules, such as weights, thresholds, keywords, or custom dimensions, uses the Rule-based tuning allowance. It also applies to Heuristic first and Hybrid. Recorded settings on existing routers are preserved; new routers start from built-in rules."
+            }
+          />
         </p>
-        <AutoRouterContactLink message="Need a higher limit?" />
+        <AutoRouterContactLink message={translateMessage("Need a higher limit?")} />
       </PopoverContent>
     </Popover>
   );

@@ -1,4 +1,5 @@
 "use client";
+import { localizedProperty, useUiLocale } from "@/lib/i18n";
 
 import { createContext, useContext, type ComponentProps } from "react";
 import { cn } from "@/lib/cva.config";
@@ -13,6 +14,7 @@ interface StepsContext {
 const Steps = createContext<StepsContext | null>(null);
 
 function useSteps(): StepsContext {
+  useUiLocale();
   const context = useContext(Steps);
   if (!context) throw new Error("SetupStep must be rendered inside SetupSteps");
   return context;
@@ -34,6 +36,7 @@ export type SetupStepsProps = ComponentProps<"ol"> & {
 
 /** Vertical stepper: finished steps collapse to a summary and reopen on click, the current one shows its fields. */
 export function SetupSteps({ current, onOpen, className, ...props }: SetupStepsProps) {
+  useUiLocale();
   return (
     <Steps.Provider value={{ current, onOpen }}>
       <ol data-slot="setup-steps" className={cn("min-w-0", className)} {...props} />
@@ -48,7 +51,9 @@ export type SetupStepProps = ComponentProps<"li"> & {
   summary: string;
 };
 
-export function SetupStep({ id, heading, description, summary, className, children, ...props }: SetupStepProps) {
+export function SetupStep(cocaCopyProps0: SetupStepProps) {
+  const { id, heading, description, summary, className, children, ...props } = cocaCopyProps0;
+  useUiLocale();
   const { current, onOpen } = useSteps();
   const position = SETUP_STEPS.indexOf(id);
   const state = stepState(position - SETUP_STEPS.indexOf(current));
@@ -70,7 +75,9 @@ export function SetupStep({ id, heading, description, summary, className, childr
           className="flex w-full flex-col items-start gap-0.5 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:cursor-default"
         >
           <span className="text-sm font-semibold group-data-[state=upcoming]:text-muted-foreground">{heading}</span>
-          <span className="text-xs text-muted-foreground">{state === "complete" ? summary : description}</span>
+          <span className="text-xs text-muted-foreground">
+            {state === "complete" ? summary : localizedProperty(cocaCopyProps0, "description", description)}
+          </span>
         </button>
         {state === "current" && <div className="mt-4 space-y-5">{children}</div>}
       </div>

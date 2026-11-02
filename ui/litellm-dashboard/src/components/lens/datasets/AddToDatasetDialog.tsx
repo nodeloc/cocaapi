@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { useQueryClient } from "@tanstack/react-query";
 import { Check, DatabaseZap, Loader2, RotateCw, TriangleAlert } from "lucide-react";
@@ -52,6 +53,7 @@ const cases = (count: number): string => `${count} ${count === 1 ? "case" : "cas
 
 /** Admins can save cases; the sample session keeps its datasets in memory so anyone can try it. */
 export function useCanAddToDataset(): boolean {
+  useUiLocale();
   const api = useOptionalLensApi();
   const onboarding = useOptionalOnboarding();
   const live = useTracesLive();
@@ -66,6 +68,7 @@ export interface AddToDatasetDialogProps {
 }
 
 function useOpenSavedDataset() {
+  useUiLocale();
   const { setTab } = useLensRoute();
   const { openDataset } = useDatasetRoute();
   return (id: string) => {
@@ -76,6 +79,7 @@ function useOpenSavedDataset() {
 
 /** Defaults to the agent's dataset when one exists, otherwise to a new one once the list has loaded. */
 function useDatasetTarget(agentName: string) {
+  useUiLocale();
   const datasets = useDatasets();
   const [picked, setPicked] = useState<string | null>(null);
   const forAgent = datasets.data?.find((item) => agentName && item.agent_name === agentName)?.id;
@@ -85,6 +89,7 @@ function useDatasetTarget(agentName: string) {
 }
 
 export function AddToDatasetDialog({ sources, agentName = "", onClose }: AddToDatasetDialogProps) {
+  useUiLocale();
   const { datasets, target, existingId, setPicked } = useDatasetTarget(agentName);
   const dataset = useDataset(existingId);
   const build = useBuildCases({ sources: [...sources], dataset_id: existingId ?? "" }, target !== null);
@@ -130,10 +135,10 @@ export function AddToDatasetDialog({ sources, agentName = "", onClose }: AddToDa
         datasetId: base.id,
         body: { base_revision: base.revision, cases: revisionCases(base.cases, built, draft) },
       });
-      toast.success(`Added ${cases(chosen)} to ${saved.name}`, {
+      toast.success(translateMessage("Added %{0} to %{1}", [cases(chosen), saved.name]), {
         description: (
           <button type="button" className="underline underline-offset-2" onClick={() => openSaved(saved.id)}>
-            Open dataset
+            <LocalizedText text={"Open dataset"} />
           </button>
         ),
       });
@@ -148,8 +153,12 @@ export function AddToDatasetDialog({ sources, agentName = "", onClose }: AddToDa
     <Dialog open onOpenChange={(open) => !open && !busy && onClose()}>
       <DialogContent className="max-h-[90vh] grid-rows-[auto_auto_minmax(0,1fr)_auto] gap-4 sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Add to dataset</DialogTitle>
-          <DialogDescription>Saves a copy of each conversation, so it stays after the trace expires.</DialogDescription>
+          <DialogTitle>
+            <LocalizedText text={"Add to dataset"} />
+          </DialogTitle>
+          <DialogDescription>
+            <LocalizedText text={"Saves a copy of each conversation, so it stays after the trace expires."} />
+          </DialogDescription>
         </DialogHeader>
         <TargetFields datasets={datasets} target={target} name={name} onTarget={pickTarget} onName={setName} />
         <CasePreview
@@ -163,11 +172,11 @@ export function AddToDatasetDialog({ sources, agentName = "", onClose }: AddToDa
           {conflict ? <ConflictNotice onReload={() => void reload()} /> : <span />}
           <div className="flex gap-2">
             <Button variant="outline" disabled={busy} onClick={onClose}>
-              Cancel
+              <LocalizedText text={"Cancel"} />
             </Button>
             <Button disabled={!canSave} onClick={() => void submit()}>
               {busy && <Loader2 aria-hidden="true" className="animate-spin motion-reduce:animate-none" />}
-              {chosen > 0 ? `Save ${cases(chosen)}` : "Save"}
+              {chosen > 0 ? translateMessage("Save %{0}", [cases(chosen)]) : translateMessage("Save")}
             </Button>
           </div>
         </DialogFooter>
@@ -185,21 +194,24 @@ interface TargetFieldsProps {
 }
 
 function TargetFields({ datasets, target, name, onTarget, onName }: TargetFieldsProps) {
+  useUiLocale();
   const nameId = useId();
   const items = [
-    { value: NEW_DATASET, label: "New dataset" },
+    markUiCopy({ value: NEW_DATASET, label: "New dataset" }, { label: "New dataset" }),
     ...datasets.map((item) => ({ value: item.id, label: item.name })),
   ];
   return (
     <div className="grid gap-2 sm:grid-cols-2">
       <label className="grid gap-1.5 text-xs text-muted-foreground">
-        Dataset
+        <LocalizedText text={"Dataset"} />
         <Select value={target} items={items} onValueChange={(next: string | null) => next !== null && onTarget(next)}>
-          <SelectTrigger aria-label="Dataset" size="sm" className="w-full text-sm">
-            <SelectValue placeholder="Loading datasets…" />
+          <SelectTrigger aria-label={translateMessage("Dataset")} size="sm" className="w-full text-sm">
+            <SelectValue placeholder={translateMessage("Loading datasets…")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={NEW_DATASET}>New dataset</SelectItem>
+            <SelectItem value={NEW_DATASET}>
+              <LocalizedText text={"New dataset"} />
+            </SelectItem>
             {datasets.map((item) => (
               <SelectItem key={item.id} value={item.id}>
                 {item.name}
@@ -211,12 +223,12 @@ function TargetFields({ datasets, target, name, onTarget, onName }: TargetFields
       </label>
       {target === NEW_DATASET && (
         <label htmlFor={nameId} className="grid gap-1.5 text-xs text-muted-foreground">
-          Name
+          <LocalizedText text={"Name"} />
           <Input
             id={nameId}
             value={name}
             maxLength={120}
-            placeholder="checkout regressions"
+            placeholder={translateMessage("checkout regressions")}
             onChange={(event) => onName(event.target.value)}
             className="h-8"
           />
@@ -227,13 +239,14 @@ function TargetFields({ datasets, target, name, onTarget, onName }: TargetFields
 }
 
 function ConflictNotice({ onReload }: { onReload: () => void }) {
+  useUiLocale();
   return (
     <p role="alert" className="flex items-center gap-2 text-xs text-destructive">
       <TriangleAlert aria-hidden="true" className="size-3.5" />
-      Someone saved this dataset since you opened it. Reload to add to the latest version.
+      <LocalizedText text={"Someone saved this dataset since you opened it. Reload to add to the latest version."} />
       <Button variant="outline" size="xs" onClick={onReload}>
         <RotateCw aria-hidden="true" />
-        Reload
+        <LocalizedText text={"Reload"} />
       </Button>
     </p>
   );
@@ -248,11 +261,12 @@ interface CasePreviewProps {
 }
 
 function CasePreview({ build, draft, chosen, onToggle, onExpected }: CasePreviewProps) {
+  useUiLocale();
   if (build.isPending)
     return (
       <p role="status" className="flex items-center gap-2 py-6 text-sm text-muted-foreground">
         <Loader2 aria-hidden="true" className="size-4 animate-spin motion-reduce:animate-none" />
-        Reading the conversation…
+        <LocalizedText text={"Reading the conversation…"} />
       </p>
     );
   if (build.isError)
@@ -266,15 +280,22 @@ function CasePreview({ build, draft, chosen, onToggle, onExpected }: CasePreview
   return (
     <div className="flex min-h-0 flex-col gap-3 overflow-y-auto">
       <div className="flex items-baseline justify-between">
-        <p className="text-sm font-medium">Cases</p>
+        <p className="text-sm font-medium">
+          <LocalizedText text={"Cases"} />
+        </p>
         <p className="text-xs text-muted-foreground tabular-nums">
-          {chosen} of {cases.length} selected
+          {chosen}
+          <LocalizedText text={" of "} />
+          {cases.length}
+          <LocalizedText text={" selected"} />
         </p>
       </div>
       {cases.length === 0 ? (
-        <p className="rounded-xl bg-muted/60 px-3 py-4 text-sm text-muted-foreground">Nothing new to add.</p>
+        <p className="rounded-xl bg-muted/60 px-3 py-4 text-sm text-muted-foreground">
+          <LocalizedText text={"Nothing new to add."} />
+        </p>
       ) : (
-        <ul aria-label="Cases to add" className="grid gap-2.5">
+        <ul aria-label={translateMessage("Cases to add")} className="grid gap-2.5">
           {cases.map((item, index) => (
             <CaseTile
               key={item.id}
@@ -308,6 +329,7 @@ function CaseTile({
   onToggle: () => void;
   onExpected: (text: string) => void;
 }) {
+  useUiLocale();
   const label = `Case ${index + 1}`;
   return (
     <li
@@ -325,7 +347,12 @@ function CaseTile({
         />
       )}
       <div className="flex min-w-0 items-start gap-2.5 pr-6">
-        <Checkbox checked={selected} onCheckedChange={onToggle} aria-label={`Include ${label}`} className="mt-0.5" />
+        <Checkbox
+          checked={selected}
+          onCheckedChange={onToggle}
+          aria-label={translateMessage("Include %{0}", [label])}
+          className="mt-0.5"
+        />
         <span className="grid min-w-0 gap-0.5">
           <span className="line-clamp-2 text-sm font-medium text-foreground">{casePrompt(item) || label}</span>
           <span className="line-clamp-2 text-xs text-muted-foreground">{caseReplySummary(item)}</span>
@@ -334,20 +361,22 @@ function CaseTile({
       {item.messages.length > 0 && (
         <details className="pl-6.5 text-xs">
           <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
-            Conversation · {item.messages.length} {item.messages.length === 1 ? "message" : "messages"}
+            <LocalizedText text={"Conversation · "} />
+            {item.messages.length}{" "}
+            {item.messages.length === 1 ? translateMessage("message") : translateMessage("messages")}
           </summary>
           <CaseConversation messages={item.messages} />
         </details>
       )}
       {selected && (
         <label className="grid gap-1 pl-6.5 text-xs text-muted-foreground">
-          Expected
+          <LocalizedText text={"Expected"} />
           <Textarea
             value={expected}
             rows={1}
-            placeholder="What a good reply does (optional)"
+            placeholder={translateMessage("What a good reply does (optional)")}
             onChange={(event) => onExpected(event.target.value)}
-            aria-label={`Expected for ${label}`}
+            aria-label={translateMessage("Expected for %{0}", [label])}
             className="min-h-8 text-sm"
           />
         </label>
@@ -357,6 +386,7 @@ function CaseTile({
 }
 
 export function CaseConversation({ messages }: { messages: readonly DatasetMessage[] }) {
+  useUiLocale();
   return (
     <ol className="mt-2 grid gap-1.5">
       {messages.map((message, index) => (
@@ -375,14 +405,22 @@ export function CaseConversation({ messages }: { messages: readonly DatasetMessa
 }
 
 function SkippedList({ skipped }: { skipped: readonly SkippedCase[] }) {
+  useUiLocale();
   return (
     <div className="grid gap-1.5">
-      <p className="text-sm font-medium">Skipped</p>
-      <ul aria-label="Skipped" className="grid gap-1 text-xs text-muted-foreground">
+      <p className="text-sm font-medium">
+        <LocalizedText text={"Skipped"} />
+      </p>
+      <ul aria-label={translateMessage("Skipped")} className="grid gap-1 text-xs text-muted-foreground">
         {skipped.map((item, index) => (
           <li key={`${item.source.trace_id}-${item.source.span_id}-${index}`} className="flex gap-2">
             <span className="text-foreground">{SKIP_REASON_TEXT[item.reason]}</span>
-            {item.source.trace_id && <span className="truncate">trace {item.source.trace_id.slice(0, 12)}</span>}
+            {item.source.trace_id && (
+              <span className="truncate">
+                <LocalizedText text={"trace "} />
+                {item.source.trace_id.slice(0, 12)}
+              </span>
+            )}
           </li>
         ))}
       </ul>
@@ -404,6 +442,7 @@ export function AddToDatasetButton({
   label = "Add to dataset",
   className,
 }: AddToDatasetButtonProps) {
+  useUiLocale();
   const allowed = useCanAddToDataset();
   const [open, setOpen] = useState(false);
   if (!allowed) return null;

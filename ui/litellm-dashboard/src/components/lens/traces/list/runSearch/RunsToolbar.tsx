@@ -1,4 +1,5 @@
 "use client";
+import { localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import type { TraceSummary } from "../../types";
 import type { TimeWindow } from "@/components/shared/timeRange/timeRange";
@@ -20,11 +21,12 @@ interface RunsToolbarProps {
 }
 
 export function RunsToolbar({ query, onQueryChange, runs, range, busy, children }: RunsToolbarProps) {
+  useUiLocale();
   const { status, setStatus } = useRunFilterRouting();
   const statuses = [
-    { value: "all", label: "All status" },
-    { value: "ok", label: "No errors" },
-    { value: "error", label: "With errors" },
+    markUiCopy({ value: "all", label: "All status" }, { label: "All status" }),
+    markUiCopy({ value: "ok", label: "No errors" }, { label: "No errors" }),
+    markUiCopy({ value: "error", label: "With errors" }, { label: "With errors" }),
   ];
   return (
     <div className="flex shrink-0 flex-col bg-card">
@@ -38,13 +40,17 @@ export function RunsToolbar({ query, onQueryChange, runs, range, busy, children 
           value={status}
           onValueChange={(value: "all" | "ok" | "error" | null) => value !== null && setStatus(value)}
         >
-          <SelectTrigger size="sm" className="h-8 min-w-28 text-xs" aria-label="Filter traces by status">
+          <SelectTrigger
+            size="sm"
+            className="h-8 min-w-28 text-xs"
+            aria-label={translateMessage("Filter traces by status")}
+          >
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
             {statuses.map((item) => (
               <SelectItem key={item.value} value={item.value}>
-                {item.label}
+                {localizedProperty(item, "label", item.label)}
               </SelectItem>
             ))}
           </SelectContent>

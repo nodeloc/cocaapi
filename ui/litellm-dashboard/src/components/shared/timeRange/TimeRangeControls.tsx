@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { ChevronDown, Pause, Play } from "lucide-react";
 import moment from "moment";
@@ -43,13 +44,14 @@ export function TimeRangeControls({
   showLive = true,
   onLiveChange,
 }: TimeRangeControlsProps) {
+  useUiLocale();
   const live = isLive(range);
   const label = rangeLabel(range, zoom);
   return (
     <div className="flex min-w-0 max-w-full items-stretch border-l border-border">
       <DropdownMenu>
         <DropdownMenuTrigger
-          aria-label="Time range"
+          aria-label={translateMessage("Time range")}
           className={cn(SEGMENT, "min-w-0 justify-between text-foreground hover:bg-muted/60 sm:min-w-40")}
           title={label}
           data-testid="time-range-trigger"
@@ -64,7 +66,7 @@ export function TimeRangeControls({
           >
             {RANGE_PRESETS.map((preset) => (
               <DropdownMenuRadioItem key={preset.hours} value={String(preset.hours)} className="text-sm">
-                {preset.label}
+                {localizedProperty(preset, "label", preset.label)}
               </DropdownMenuRadioItem>
             ))}
           </DropdownMenuRadioGroup>
@@ -82,7 +84,7 @@ export function TimeRangeControls({
           )}
         >
           {live ? <Pause className="size-3.5" /> : <Play className="size-3.5" />}
-          Live
+          <LocalizedText text={"Live"} />
         </button>
       )}
     </div>

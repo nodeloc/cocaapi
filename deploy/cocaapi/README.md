@@ -47,6 +47,8 @@ docker compose exec -T postgres pg_dump -U cocaapi -d cocaapi -Fc > "backups/coc
 
 登录、用户后台与管理后台的新 Logo、纯前端镜像构建和验收见 [BRANDING.md](BRANDING.md)
 
+管理后台、用户后台和登录注册页的中英文切换、词库维护与前端增量发布见 [I18N.md](I18N.md)
+
 用户账号扩展见 [AUTH.md](AUTH.md)，余额、兑换码和 USDT 接口的构建与发布见 [WALLET.md](WALLET.md)。扩展镜像使用 `compose.yaml` 与 `compose.auth.yaml`，升级时需要同时指定两个文件，保留 `.env` 的精确 `COCAAPI_IMAGE` 和独立 `auth.env`
 
 升级前保存 `.env`、配置文件和数据库备份，记录当前镜像摘要。验证新镜像后更新 Compose 的精确版本及摘要，执行 `docker compose up -d` 并验证后台、数据库和模型调用。数据库迁移可能影响回滚，恢复旧镜像前应先判断旧版本是否兼容迁移后的结构

@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { useId, type ReactNode } from "react";
 import { SquareArrowOutUpRight } from "lucide-react";
@@ -23,16 +24,18 @@ export interface CasePanelProps {
 }
 
 export function CasePanel({ item, datasetName, editable, onEdit }: CasePanelProps) {
+  useUiLocale();
   return (
     <Tabs defaultValue="case" className="min-h-0 flex-1 gap-0">
       <header className="flex shrink-0 flex-col gap-1.5 px-4 pt-3 pb-2">
         <div className="flex min-w-0 items-center gap-2">
           <h2 className="min-w-0 truncate text-base font-semibold text-foreground">
-            Case #{shortCaseId(item.id)} <span className="font-normal text-muted-foreground">@ {datasetName}</span>
+            <LocalizedText text={"Case #"} />
+            {shortCaseId(item.id)} <span className="font-normal text-muted-foreground">@ {datasetName}</span>
           </h2>
-          <IdChip value={item.id} label="Copy case ID" />
+          <IdChip value={item.id} label={translateMessage("Copy case ID")} />
           <label className="ml-auto flex shrink-0 items-center gap-2 text-xs text-muted-foreground">
-            Included
+            <LocalizedText text={"Included"} />
             <Switch
               size="sm"
               checked={item.included}
@@ -43,12 +46,12 @@ export function CasePanel({ item, datasetName, editable, onEdit }: CasePanelProp
         </div>
       </header>
       <div className="shrink-0 border-b px-4">
-        <TabsList variant="line" aria-label="Case sections" className="h-9 gap-4 px-0">
+        <TabsList variant="line" aria-label={translateMessage("Case sections")} className="h-9 gap-4 px-0">
           <TabsTrigger value="case" className="flex-none px-0 text-sm">
-            Case
+            <LocalizedText text={"Case"} />
           </TabsTrigger>
           <TabsTrigger value="source" className="flex-none px-0 text-sm">
-            Source
+            <LocalizedText text={"Source"} />
           </TabsTrigger>
         </TabsList>
       </div>
@@ -63,32 +66,49 @@ export function CasePanel({ item, datasetName, editable, onEdit }: CasePanelProp
 }
 
 function CaseBody({ item, editable, onEdit }: Omit<CasePanelProps, "datasetName">) {
+  useUiLocale();
   const expectedId = useId();
   const conversation = caseConversation(item);
   const output = caseOutput(item);
   return (
     <>
-      <Section title="Input" count={conversation.length}>
-        {conversation.length ? <MessageList messages={conversation} /> : <Empty>No conversation recorded</Empty>}
+      <Section title={translateMessage("Input")} count={conversation.length}>
+        {conversation.length ? (
+          <MessageList messages={conversation} />
+        ) : (
+          <Empty>
+            <LocalizedText text={"No conversation recorded"} />
+          </Empty>
+        )}
       </Section>
-      <Section title="Output">
-        {output.length ? <MessageList messages={output} /> : <Empty>No reply recorded</Empty>}
+      <Section title={translateMessage("Output")}>
+        {output.length ? (
+          <MessageList messages={output} />
+        ) : (
+          <Empty>
+            <LocalizedText text={"No reply recorded"} />
+          </Empty>
+        )}
       </Section>
-      <section aria-label="Expected" className="flex flex-col gap-2 px-4 pt-2 pb-5">
+      <section aria-label={translateMessage("Expected")} className="flex flex-col gap-2 px-4 pt-2 pb-5">
         <label htmlFor={expectedId} className="text-sm font-semibold text-foreground">
-          Expected
+          <LocalizedText text={"Expected"} />
         </label>
         {editable ? (
           <Textarea
             id={expectedId}
             value={item.expected}
-            placeholder="What a good reply looks like"
+            placeholder={translateMessage("What a good reply looks like")}
             className="min-h-24 bg-background text-sm"
             onChange={(event) => onEdit({ expected: event.target.value })}
           />
         ) : (
           <p id={expectedId} className="text-sm whitespace-pre-wrap text-foreground">
-            {item.expected || <span className="text-muted-foreground italic">Not set</span>}
+            {item.expected || (
+              <span className="text-muted-foreground italic">
+                <LocalizedText text={"Not set"} />
+              </span>
+            )}
           </p>
         )}
       </section>
@@ -97,6 +117,7 @@ function CaseBody({ item, editable, onEdit }: Omit<CasePanelProps, "datasetName"
 }
 
 function Empty({ children }: { children: ReactNode }) {
+  useUiLocale();
   return <p className="py-2 text-sm text-muted-foreground italic">{children}</p>;
 }
 
@@ -108,6 +129,7 @@ const SOURCE_FIELDS = [
 ] as const;
 
 function SourceBody({ item }: { item: DatasetCase }) {
+  useUiLocale();
   const openSourceTrace = useOpenSourceTrace();
   const { source } = item;
   return (
@@ -118,9 +140,11 @@ function SourceBody({ item }: { item: DatasetCase }) {
             <dt className="text-muted-foreground">{label}</dt>
             <dd className="flex min-w-0 items-center gap-1">
               {source[key] ? (
-                <IdChip value={source[key]} label={`Copy ${label.toLowerCase()} ID`} showValue />
+                <IdChip value={source[key]} label={translateMessage("Copy %{0} ID", [label.toLowerCase()])} showValue />
               ) : (
-                <span className="text-muted-foreground italic">None</span>
+                <span className="text-muted-foreground italic">
+                  <LocalizedText text={"None"} />
+                </span>
               )}
             </dd>
           </div>
@@ -135,7 +159,7 @@ function SourceBody({ item }: { item: DatasetCase }) {
             openSourceTrace({ traceId: source.trace_id, traceRef: source.trace_ref, spanId: source.span_id })
           }
         >
-          Open source trace
+          <LocalizedText text={"Open source trace"} />
           <SquareArrowOutUpRight className="size-3.5" />
         </Button>
       )}

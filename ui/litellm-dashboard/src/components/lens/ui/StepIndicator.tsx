@@ -1,3 +1,5 @@
+"use client";
+import { translateMessage, useUiLocale } from "@/lib/i18n";
 import type { ComponentProps } from "react";
 import { Check } from "lucide-react";
 import { cva, cn } from "@/lib/cva.config";
@@ -23,11 +25,16 @@ export type StepIndicatorProps = Omit<ComponentProps<"span">, "children"> & {
 };
 
 export function StepIndicator({ state, index, className, ...props }: StepIndicatorProps) {
+  useUiLocale();
   return (
     <span
       data-slot="step-indicator"
       data-state={state}
-      aria-label={state === "complete" ? `Step ${index + 1} complete` : `Step ${index + 1}`}
+      aria-label={
+        state === "complete"
+          ? translateMessage("Step %{0} complete", [index + 1])
+          : translateMessage("Step %{0}", [index + 1])
+      }
       className={cn(stepIndicator({ state }), className)}
       {...props}
     >

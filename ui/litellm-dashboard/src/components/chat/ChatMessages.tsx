@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { Wrench, Copy, Check, Pencil } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -54,6 +55,7 @@ function MarkdownCodeRenderer({
   children,
   ...props
 }: React.ComponentPropsWithoutRef<"code"> & { node?: unknown }) {
+  useUiLocale();
   const syntaxTheme = useSyntaxTheme(coy);
   const match = /language-(\w+)/.exec(className || "");
   return match ? (
@@ -83,7 +85,7 @@ const markdownComponents: Components = {
 
 const markdownWithoutImages: Components = {
   ...markdownComponents,
-  img: ({ alt }) => <span>{alt || "Image omitted"}</span>,
+  img: ({ alt }) => <span>{alt || translateMessage("Image omitted")}</span>,
 };
 
 interface UserBubbleProps {
@@ -92,7 +94,9 @@ interface UserBubbleProps {
   isStreaming?: boolean;
 }
 
-function UserBubble({ message, onEdit, isStreaming }: UserBubbleProps) {
+function UserBubble(cocaCopyProps0: UserBubbleProps) {
+  const { message, onEdit, isStreaming } = cocaCopyProps0;
+  useUiLocale();
   const [hovered, setHovered] = useState(false);
   const [editing, setEditing] = useState(false);
   const [editValue, setEditValue] = useState(message.content);
@@ -138,7 +142,7 @@ function UserBubble({ message, onEdit, isStreaming }: UserBubbleProps) {
         <div className="w-[72%] bg-background border-2 border-primary rounded-xl overflow-hidden shadow-[0_0_0_3px_rgba(var(--primary)/0.1)]">
           <Textarea
             ref={textareaRef}
-            aria-label="Edit message"
+            aria-label={translateMessage("Edit message")}
             value={editValue}
             onChange={(e) => setEditValue(e.target.value)}
             onKeyDown={handleKeyDown}
@@ -153,10 +157,10 @@ function UserBubble({ message, onEdit, isStreaming }: UserBubbleProps) {
                 setEditing(false);
               }}
             >
-              Cancel
+              <LocalizedText text={"Cancel"} />
             </Button>
             <Button size="sm" onClick={handleSave} disabled={!editValue.trim()}>
-              Save & Send
+              <LocalizedText text={"Save & Send"} />
             </Button>
           </div>
         </div>
@@ -179,7 +183,7 @@ function UserBubble({ message, onEdit, isStreaming }: UserBubbleProps) {
                   <Button
                     variant="ghost"
                     size="icon-xs"
-                    aria-label="Edit message"
+                    aria-label={translateMessage("Edit message")}
                     onClick={() => {
                       setEditValue(message.content);
                       setEditing(true);
@@ -191,13 +195,17 @@ function UserBubble({ message, onEdit, isStreaming }: UserBubbleProps) {
                 }
               />
               <TooltipContent>
-                <p>Edit message</p>
+                <p>
+                  <LocalizedText text={"Edit message"} />
+                </p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
         )}
         <Bubble variant="muted" align="end" className="max-w-full">
-          <BubbleContent className="whitespace-pre-wrap">{message.content}</BubbleContent>
+          <BubbleContent className="whitespace-pre-wrap">
+            {localizedProperty(cocaCopyProps0, "message", message).content}
+          </BubbleContent>
         </Bubble>
       </div>
       <span className="text-[11px] text-muted-foreground mt-1">{formatTimestamp(message.timestamp)}</span>
@@ -214,14 +222,9 @@ interface AssistantBubbleProps {
   mcpEvents?: ChatMessage["mcpEvents"];
 }
 
-function AssistantBubble({
-  message,
-  allowImages,
-  isLastMessage,
-  isStreaming,
-  isTypingIndicator,
-  mcpEvents,
-}: AssistantBubbleProps) {
+function AssistantBubble(cocaCopyProps1: AssistantBubbleProps) {
+  const { message, allowImages, isLastMessage, isStreaming, isTypingIndicator, mcpEvents } = cocaCopyProps1;
+  useUiLocale();
   const [reasoningKey, setReasoningKey] = useState(0);
   const prevStreamingRef = useRef<boolean>(isStreaming);
 
@@ -288,6 +291,7 @@ function AssistantBubble({
 }
 
 function CopyButton({ text }: { text: string }) {
+  useUiLocale();
   const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {
@@ -309,7 +313,7 @@ function CopyButton({ text }: { text: string }) {
               <Button
                 variant="ghost"
                 size="icon-xs"
-                aria-label={copied ? "Copied message" : "Copy message"}
+                aria-label={copied ? translateMessage("Copied message") : translateMessage("Copy message")}
                 onClick={handleCopy}
                 className={copied ? "text-success" : "text-muted-foreground hover:text-foreground"}
               >
@@ -318,7 +322,7 @@ function CopyButton({ text }: { text: string }) {
             }
           />
           <TooltipContent>
-            <p>{copied ? "Copied!" : "Copy"}</p>
+            <p>{copied ? translateMessage("Copied!") : translateMessage("Copy")}</p>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
@@ -327,6 +331,7 @@ function CopyButton({ text }: { text: string }) {
 }
 
 function ThinkingPlaceholder() {
+  useUiLocale();
   return (
     <>
       <style>{`
@@ -339,13 +344,16 @@ function ThinkingPlaceholder() {
         }
       `}</style>
       <div className="inline-flex items-center gap-1.5 px-2.5 mb-2 bg-muted/50 border rounded-lg text-xs text-muted-foreground">
-        <span className="chat-thinking-text py-1">Thinking...</span>
+        <span className="chat-thinking-text py-1">
+          <LocalizedText text={"Thinking..."} />
+        </span>
       </div>
     </>
   );
 }
 
 function TypingDots() {
+  useUiLocale();
   return (
     <>
       <style>{`
@@ -374,7 +382,9 @@ interface ToolCardProps {
   message: ChatMessage;
 }
 
-function ToolCard({ message }: ToolCardProps) {
+function ToolCard(cocaCopyProps2: ToolCardProps) {
+  const { message } = cocaCopyProps2;
+  useUiLocale();
   const redactedArgs = message.toolArgs ? redactSensitiveValues(message.toolArgs) : undefined;
   const [open, setOpen] = useState(false);
 
@@ -383,13 +393,15 @@ function ToolCard({ message }: ToolCardProps) {
       <Collapsible open={open} onOpenChange={setOpen}>
         <CollapsibleTrigger className="flex items-center gap-1.5 text-[13px] px-3 py-2 border rounded-lg bg-muted/50 hover:bg-muted transition-colors w-full text-left">
           <Wrench className="h-3.5 w-3.5 text-muted-foreground" />
-          <span className="font-medium text-foreground">{message.toolName ?? "Tool call"}</span>
+          <span className="font-medium text-foreground">
+            {localizedProperty(cocaCopyProps2, "message", message).toolName ?? translateMessage("Tool call")}
+          </span>
         </CollapsibleTrigger>
         <CollapsibleContent className="border border-t-0 rounded-b-lg px-3 py-2 bg-muted/30">
           {redactedArgs !== undefined && (
             <div className={message.toolResult ? "mb-3" : ""}>
               <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">
-                Arguments
+                <LocalizedText text={"Arguments"} />
               </div>
               <pre className="m-0 p-2 bg-muted rounded-md text-xs font-mono whitespace-pre-wrap break-words text-foreground">
                 {JSON.stringify(redactedArgs, null, 2)}
@@ -399,7 +411,7 @@ function ToolCard({ message }: ToolCardProps) {
           {message.toolResult && (
             <div>
               <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">
-                Result
+                <LocalizedText text={"Result"} />
               </div>
               <div className="text-[13px] text-foreground whitespace-pre-wrap break-words font-mono">
                 {message.toolResult}
@@ -434,6 +446,7 @@ export function ChatMessageContent({
   isLastMessage = true,
   onEditMessage,
 }: ChatMessageContentProps) {
+  useUiLocale();
   if (message.role === "user") {
     return <UserBubble message={message} onEdit={onEditMessage} isStreaming={isStreaming} />;
   }
@@ -455,6 +468,7 @@ export function ChatMessageContent({
 }
 
 const ChatMessages: React.FC<Props> = ({ messages, isStreaming, onEditMessage }) => {
+  useUiLocale();
   return (
     <div className="flex flex-col gap-4">
       {messages.map((message, index) => (

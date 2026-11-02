@@ -1,4 +1,5 @@
 "use client";
+import { translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { createContext, useContext, type ReactNode } from "react";
 import { Waypoints } from "lucide-react";
@@ -12,6 +13,7 @@ const NO_AUTO_ROUTERS: ReadonlySet<string> = new Set<string>();
 const AutoRouterModelGroupsContext = createContext<ReadonlySet<string>>(NO_AUTO_ROUTERS);
 
 export function AutoRouterModelGroupsProvider({ children }: { children: ReactNode }) {
+  useUiLocale();
   const autoRouterModelGroups = useAutoRouterModelGroups();
 
   return (
@@ -22,12 +24,14 @@ export function AutoRouterModelGroupsProvider({ children }: { children: ReactNod
 }
 
 export function useIsAutoRoutedModelGroup(modelGroup?: string | null): boolean {
+  useUiLocale();
   const autoRouterModelGroups = useContext(AutoRouterModelGroupsContext);
 
   return Boolean(modelGroup) && autoRouterModelGroups.has(modelGroup as string);
 }
 
 export function AutoRouterIcon({ size = 12, className }: { size?: number; className?: string }) {
+  useUiLocale();
   return <Waypoints size={size} className={className} aria-hidden />;
 }
 
@@ -37,6 +41,7 @@ export interface AutoRouterTagProps {
 }
 
 export function AutoRouterTag({ modelGroup, className }: AutoRouterTagProps) {
+  useUiLocale();
   const isAutoRouted = useIsAutoRoutedModelGroup(modelGroup);
 
   if (!isAutoRouted) return null;
@@ -44,7 +49,7 @@ export function AutoRouterTag({ modelGroup, className }: AutoRouterTagProps) {
   return (
     <Badge
       variant="secondary"
-      title={`Routed by auto-router "${modelGroup}"`}
+      title={translateMessage('Routed by auto-router "%{0}"', [modelGroup])}
       className={cn("gap-1.5 px-2.5 py-1 text-sm font-normal text-foreground", className)}
     >
       <Waypoints aria-hidden />

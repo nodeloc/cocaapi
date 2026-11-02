@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { ColumnDef } from "@tanstack/react-table";
 import { Copy, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
@@ -25,6 +26,7 @@ import { copyToClipboard } from "@/utils/dataUtils";
 import { inferAuthMethod } from "./credential_federation";
 
 function CredentialProviderCell({ provider, federated }: { provider: string | undefined; federated: boolean }) {
+  useUiLocale();
   if (!provider) {
     return <span className="text-sm text-muted-foreground">-</span>;
   }
@@ -42,7 +44,11 @@ function CredentialProviderCell({ provider, federated }: { provider: string | un
         />
       ) : null}
       <span className="truncate text-sm">{displayName || provider}</span>
-      {federated && <Badge variant="secondary">Workload identity federation</Badge>}
+      {federated && (
+        <Badge variant="secondary">
+          <LocalizedText text={"Workload identity federation"} />
+        </Badge>
+      )}
     </div>
   );
 }
@@ -54,11 +60,12 @@ interface CredentialRowActionsProps {
 }
 
 function CredentialRowActions({ credential, onEdit, onDelete }: CredentialRowActionsProps) {
+  useUiLocale();
   const configOwned = credential.source === "config";
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        aria-label="Open credential actions"
+        aria-label={translateMessage("Open credential actions")}
         data-testid={`credential-actions-${credential.credential_name}`}
         className={cn(buttonVariants({ variant: "ghost", size: "icon-sm" }), "text-muted-foreground")}
       >
@@ -69,7 +76,7 @@ function CredentialRowActions({ credential, onEdit, onDelete }: CredentialRowAct
           <>
             <DropdownMenuGroup>
               <DropdownMenuLabel data-testid="credential-config-owned-hint">
-                Defined in config.yaml. Edit the file to change or delete it.
+                <LocalizedText text={"Defined in config.yaml. Edit the file to change or delete it."} />
               </DropdownMenuLabel>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
@@ -81,14 +88,14 @@ function CredentialRowActions({ credential, onEdit, onDelete }: CredentialRowAct
           onClick={() => onEdit(credential)}
         >
           <Pencil />
-          Edit
+          <LocalizedText text={"Edit"} />
         </DropdownMenuItem>
         <DropdownMenuItem
           data-testid="credential-action-copy"
           onClick={() => void copyToClipboard(credential.credential_name, "Credential name copied")}
         >
           <Copy />
-          Copy credential name
+          <LocalizedText text={"Copy credential name"} />
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
@@ -98,7 +105,7 @@ function CredentialRowActions({ credential, onEdit, onDelete }: CredentialRowAct
           onClick={() => onDelete(credential)}
         >
           <Trash2 />
-          Delete
+          <LocalizedText text={"Delete"} />
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -120,8 +127,8 @@ export const getCredentialsTableColumns = ({
     {
       id: "credential_name",
       accessorFn: credentialLabel,
-      meta: { title: "Credential Name" },
-      header: ({ column }) => <DataTableSortHeader column={column} title="Credential Name" />,
+      meta: markUiCopy({ title: "Credential Name" }, { title: "Credential Name" }),
+      header: ({ column }) => <DataTableSortHeader column={column} title={translateMessage("Credential Name")} />,
       size: 260,
       enableSorting: true,
       cell: ({ row }) => (
@@ -133,34 +140,40 @@ export const getCredentialsTableColumns = ({
         />
       ),
     },
-    {
-      id: "provider",
-      accessorKey: "credential_info.custom_llm_provider",
-      meta: { title: "Provider" },
-      header: "Provider",
-      size: 320,
-      enableSorting: false,
-      cell: ({ row }) => (
-        <CredentialProviderCell
-          provider={row.original.credential_info?.custom_llm_provider}
-          federated={inferAuthMethod(row.original.credential_values) === "federation"}
-        />
-      ),
-    },
-    {
-      id: "source",
-      accessorFn: (row) => row.source ?? "db",
-      meta: { title: "Source" },
-      header: "Source",
-      size: 140,
-      enableSorting: false,
-      cell: ({ row }) =>
-        row.original.source === "config" ? (
-          <StatusBadge tone="neutral" label="Config" />
-        ) : (
-          <StatusBadge tone="info" label="DB" />
+    markUiCopy(
+      {
+        id: "provider",
+        accessorKey: "credential_info.custom_llm_provider",
+        meta: markUiCopy({ title: "Provider" }, { title: "Provider" }),
+        header: "Provider",
+        size: 320,
+        enableSorting: false,
+        cell: ({ row }) => (
+          <CredentialProviderCell
+            provider={row.original.credential_info?.custom_llm_provider}
+            federated={inferAuthMethod(row.original.credential_values) === "federation"}
+          />
         ),
-    },
+      },
+      { header: "Provider" },
+    ),
+    markUiCopy(
+      {
+        id: "source",
+        accessorFn: (row) => row.source ?? "db",
+        meta: markUiCopy({ title: "Source" }, { title: "Source" }),
+        header: "Source",
+        size: 140,
+        enableSorting: false,
+        cell: ({ row }) =>
+          row.original.source === "config" ? (
+            <StatusBadge tone="neutral" label={translateMessage("Config")} />
+          ) : (
+            <StatusBadge tone="info" label={translateMessage("DB")} />
+          ),
+      },
+      { header: "Source" },
+    ),
   ];
 
   if (!canModifyCredentials) {
@@ -172,7 +185,11 @@ export const getCredentialsTableColumns = ({
     {
       id: "actions",
       meta: { className: "text-right", headerClassName: "text-right" },
-      header: () => <span className="sr-only">Actions</span>,
+      header: () => (
+        <span className="sr-only">
+          <LocalizedText text={"Actions"} />
+        </span>
+      ),
       size: 64,
       enableSorting: false,
       enableHiding: false,

@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, getIntlLocale, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode, type RefObject } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -28,6 +29,7 @@ type LiteAdminState = { open: boolean; toggle: () => void };
 const LiteAdminContext = createContext<LiteAdminState | null>(null);
 
 function useLiteAdminSession() {
+  useUiLocale();
   const auth = useAuthorized();
   const [disabled] = useDisableLiteAdmin(auth.userId);
   const sessionReady = !auth.isLoading && auth.isAuthorized && auth.premiumUser === true;
@@ -40,6 +42,7 @@ function useLiteAdminSession() {
 
 /** Wraps the dashboard content column and docks the LiteAdmin panel beside it, so opening it narrows the page instead of covering it. */
 export function LiteAdminFrame({ children }: { children: ReactNode }) {
+  useUiLocale();
   const configured = useLiteAdminSession();
   const sessionKey = configured?.key ?? null;
   const [open, setOpen] = useState(false);
@@ -72,25 +75,31 @@ export function LiteAdminFrame({ children }: { children: ReactNode }) {
 }
 
 export default function LiteAdminTrigger() {
+  useUiLocale();
   const state = useContext(LiteAdminContext);
   if (!state) return null;
   return (
     <Button
       variant="ghost"
-      aria-label="LiteAdmin"
+      aria-label={translateMessage("LiteAdmin")}
       aria-keyshortcuts="Meta+J Control+J"
       aria-expanded={state.open}
       onClick={state.toggle}
       className="rounded-full bg-info/10 text-info hover:bg-info/15 hover:text-info/80 aria-expanded:bg-info/15 aria-expanded:text-info"
     >
       <Sparkles className="size-4" />
-      <span className="hidden lg:inline">LiteAdmin</span>
-      <kbd className="hidden rounded-full border border-info/30 px-1.5 font-sans text-xs lg:inline">⌘J</kbd>
+      <span className="hidden lg:inline">
+        <LocalizedText text={"LiteAdmin"} />
+      </span>
+      <kbd className="hidden rounded-full border border-info/30 px-1.5 font-sans text-xs lg:inline">
+        <LocalizedText text={"⌘J"} />
+      </kbd>
     </Button>
   );
 }
 
 function DockedPanel({ session, open, close }: { session: ManagementSession; open: boolean; close: () => void }) {
+  useUiLocale();
   const settings = useProxySettingsQuery(session.accessToken);
   const candidate =
     settings.data?.LITELLM_UI_API_DOC_BASE_URL?.trim() ||
@@ -127,6 +136,7 @@ function Destination({
   open: boolean;
   close: () => void;
 }) {
+  useUiLocale();
   const [approved, setApproved] = useState(false);
   if (target?.baseUrl && (!target.requiresConsent || approved)) {
     return <LiteAdminChat session={{ ...session, inferenceBaseUrl: target.baseUrl }} open={open} close={close} />;
@@ -135,29 +145,36 @@ function Destination({
     <Panel open={open}>
       <PanelHeader close={close} />
       <div className="p-4">
-        {loading && <Skeleton className="h-24" aria-label="Loading gateway settings" />}
+        {loading && <Skeleton className="h-24" aria-label={translateMessage("Loading gateway settings")} />}
         {!loading && !target?.baseUrl && (
           <Alert variant="destructive">
-            <AlertDescription>{target?.error || "Could not load gateway settings."}</AlertDescription>
+            <AlertDescription>{target?.error || translateMessage("Could not load gateway settings.")}</AlertDescription>
             <Button variant="link" onClick={retry}>
-              Retry
+              <LocalizedText text={"Retry"} />
             </Button>
           </Alert>
         )}
         {!loading && target?.baseUrl && (
           <Card size="sm">
             <CardHeader>
-              <CardTitle>Connect to the configured gateway</CardTitle>
+              <CardTitle>
+                <LocalizedText text={"Connect to the configured gateway"} />
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <p className="break-all font-mono text-xs">{target.baseUrl}</p>
               <p className="text-muted-foreground">
-                This gateway uses a different address. LiteAdmin will send your existing session credential to the
-                address shown above.
+                <LocalizedText
+                  text={
+                    "This gateway uses a different address. LiteAdmin will send your existing session credential to the address shown above."
+                  }
+                />
               </p>
             </CardContent>
             <CardFooter>
-              <Button onClick={() => setApproved(true)}>Use configured gateway</Button>
+              <Button onClick={() => setApproved(true)}>
+                <LocalizedText text={"Use configured gateway"} />
+              </Button>
             </CardFooter>
           </Card>
         )}
@@ -176,6 +193,7 @@ function Panel({
   initialFocus?: RefObject<HTMLElement | null>;
   children: ReactNode;
 }) {
+  useUiLocale();
   const ref = useRef<HTMLElement>(null);
   useEffect(() => {
     const panel = ref.current;
@@ -187,7 +205,7 @@ function Panel({
   return (
     <aside
       ref={ref}
-      aria-label="LiteAdmin"
+      aria-label={translateMessage("LiteAdmin")}
       tabIndex={-1}
       hidden={!open}
       className={cn(
@@ -201,6 +219,7 @@ function Panel({
 }
 
 function LiteAdminChat({ session, open, close }: { session: LiteAdminSession; open: boolean; close: () => void }) {
+  useUiLocale();
   const chat = useLiteAdmin(session);
   const [input, setInput] = useState("");
   const [model, setModel] = useState<string | null>(null);
@@ -229,8 +248,8 @@ function LiteAdminChat({ session, open, close }: { session: LiteAdminSession; op
         <Button
           variant="ghost"
           size="icon-sm"
-          aria-label="New chat"
-          title="New chat"
+          aria-label={translateMessage("New chat")}
+          title={translateMessage("New chat")}
           disabled={chat.phase === "applying"}
           onClick={() => {
             chat.reset();
@@ -249,14 +268,14 @@ function LiteAdminChat({ session, open, close }: { session: LiteAdminSession; op
       />
       <div className="space-y-3 border-t p-3">
         {models.isPending ? (
-          <Skeleton className="h-8" aria-label="Loading models" />
+          <Skeleton className="h-8" aria-label={translateMessage("Loading models")} />
         ) : (
           <SearchSelect
-            aria-label="LiteAdmin model"
+            aria-label={translateMessage("LiteAdmin model")}
             options={(models.data ?? []).map((item) => ({ value: item.model_group, label: item.model_group }))}
             value={selectedModel}
             onValueChange={setModel}
-            placeholder="Choose a chat model"
+            placeholder={translateMessage("Choose a chat model")}
             disabled={busy}
             allowClear={false}
           />
@@ -264,48 +283,61 @@ function LiteAdminChat({ session, open, close }: { session: LiteAdminSession; op
         {models.isError && (
           <Alert variant="destructive">
             <AlertDescription>
-              Could not load models.{" "}
+              <LocalizedText text={"Could not load models."} />{" "}
               <Button variant="link" onClick={() => void models.refetch()}>
-                Retry
+                <LocalizedText text={"Retry"} />
               </Button>
             </AlertDescription>
           </Alert>
         )}
         {models.isSuccess && models.data.length === 0 && (
           <Alert role="status">
-            <AlertDescription>Add a chat model to your gateway to use LiteAdmin.</AlertDescription>
+            <AlertDescription>
+              <LocalizedText text={"Add a chat model to your gateway to use LiteAdmin."} />
+            </AlertDescription>
           </Alert>
         )}
-        {tooLong && <FieldError>Keep your message within {MAX_INPUT_LENGTH.toLocaleString()} characters.</FieldError>}
+        {tooLong && (
+          <FieldError>
+            <LocalizedText text={"Keep your message within "} />
+            {MAX_INPUT_LENGTH.toLocaleString(getIntlLocale())}
+            <LocalizedText text={" characters."} />
+          </FieldError>
+        )}
         <ChatComposer
           value={input}
           onChange={setInput}
           onSubmit={send}
           onCancel={chat.phase === "applying" ? undefined : chat.stop}
-          placeholder="Ask LiteAdmin…"
+          placeholder={translateMessage("Ask LiteAdmin…")}
           disabled={busy || !selectedModel}
           isLoading={busy}
           submitDisabled={submitDisabled}
         />
-        <p className="text-xs text-muted-foreground">Use a model you trust with your gateway data.</p>
+        <p className="text-xs text-muted-foreground">
+          <LocalizedText text={"Use a model you trust with your gateway data."} />
+        </p>
       </div>
     </Panel>
   );
 }
 
 function PanelHeader({ close, children }: { close: () => void; children?: ReactNode }) {
+  useUiLocale();
   return (
     <div className="flex items-start justify-between gap-3 border-b p-4">
       <div className="flex flex-col gap-1 text-sm">
         <h2 className="flex items-center gap-1.5 font-medium">
           <Sparkles className="size-4 text-info" />
-          LiteAdmin
+          <LocalizedText text={"LiteAdmin"} />
         </h2>
-        <p className="text-muted-foreground">Ask about your gateway. Review changes in chat.</p>
+        <p className="text-muted-foreground">
+          <LocalizedText text={"Ask about your gateway. Review changes in chat."} />
+        </p>
       </div>
       <div className="flex shrink-0">
         {children}
-        <Button variant="ghost" size="icon-sm" aria-label="Close LiteAdmin" onClick={close}>
+        <Button variant="ghost" size="icon-sm" aria-label={translateMessage("Close LiteAdmin")} onClick={close}>
           <X className="size-4" />
         </Button>
       </div>

@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import React, { useId, useState } from "react";
 import { toast } from "@/lib/toast";
@@ -26,6 +27,7 @@ interface ByokCredentialModalProps {
 }
 
 export const ByokCredentialModal: React.FC<ByokCredentialModalProps> = ({ server, open, onClose, onSuccess }) => {
+  useUiLocale();
   const [step, setStep] = useState<1 | 2>(1);
   const [apiKey, setApiKey] = useState("");
   const [saveKey, setSaveKey] = useState(true);
@@ -45,7 +47,7 @@ export const ByokCredentialModal: React.FC<ByokCredentialModalProps> = ({ server
 
   const handleAuthorize = async () => {
     if (!apiKey.trim()) {
-      toast.error("Please enter your API key");
+      toast.error(translateMessage("Please enter your API key"));
       return;
     }
     setLoading(true);
@@ -54,7 +56,7 @@ export const ByokCredentialModal: React.FC<ByokCredentialModalProps> = ({ server
         params: { path: { server_id: server.server_id } },
         body: { credential: apiKey.trim(), save: saveKey },
       });
-      toast.success(`Connected to ${serverDisplayName}`);
+      toast.success(translateMessage("Connected to %{0}", [serverDisplayName]));
       onSuccess(server.server_id);
       handleClose();
     } catch (e) {
@@ -78,7 +80,8 @@ export const ByokCredentialModal: React.FC<ByokCredentialModalProps> = ({ server
                 onClick={() => setStep(1)}
                 className="flex items-center gap-1 text-muted-foreground hover:text-foreground text-sm"
               >
-                <ArrowLeft className="size-3.5" /> Back
+                <ArrowLeft className="size-3.5" />
+                <LocalizedText text={" Back"} />
               </button>
             ) : (
               <div />
@@ -97,7 +100,7 @@ export const ByokCredentialModal: React.FC<ByokCredentialModalProps> = ({ server
               {/* Logos */}
               <div className="flex items-center justify-center gap-3 mb-6">
                 <div className="w-14 h-14 rounded-xl bg-linear-to-br from-teal-400 to-cyan-600 flex items-center justify-center text-white font-bold text-xl shadow-sm">
-                  L
+                  <LocalizedText text={"L"} />
                 </div>
                 <ArrowRight className="size-4.5 text-muted-foreground" />
                 <div className="w-14 h-14 rounded-xl bg-linear-to-br from-blue-600 to-indigo-800 flex items-center justify-center text-white font-bold text-xl shadow-sm">
@@ -105,9 +108,14 @@ export const ByokCredentialModal: React.FC<ByokCredentialModalProps> = ({ server
                 </div>
               </div>
 
-              <h2 className="text-2xl font-bold text-foreground mb-2">Connect {serverDisplayName}</h2>
+              <h2 className="text-2xl font-bold text-foreground mb-2">
+                <LocalizedText text={"Connect "} />
+                {serverDisplayName}
+              </h2>
               <p className="text-muted-foreground mb-6">
-                LiteLLM needs access to {serverDisplayName} to complete your request.
+                <LocalizedText text={"LiteLLM needs access to "} />
+                {serverDisplayName}
+                <LocalizedText text={" to complete your request."} />
               </p>
 
               {/* How it works */}
@@ -120,10 +128,17 @@ export const ByokCredentialModal: React.FC<ByokCredentialModalProps> = ({ server
                     </svg>
                   </div>
                   <div>
-                    <p className="font-semibold text-foreground mb-1">How it works</p>
+                    <p className="font-semibold text-foreground mb-1">
+                      <LocalizedText text={"How it works"} />
+                    </p>
                     <p className="text-muted-foreground text-sm">
-                      LiteLLM acts as a secure bridge. Your requests are routed through our MCP client directly to{" "}
-                      {serverDisplayName}&apos;s API.
+                      <LocalizedText
+                        text={
+                          "LiteLLM acts as a secure bridge. Your requests are routed through our MCP client directly to"
+                        }
+                      />{" "}
+                      {serverDisplayName}
+                      <LocalizedText text={"'s API."} />
                     </p>
                   </div>
                 </div>
@@ -137,7 +152,7 @@ export const ByokCredentialModal: React.FC<ByokCredentialModalProps> = ({ server
                       <path d="M12 2L12 22M2 12L22 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                       <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" />
                     </svg>
-                    Requested Access
+                    <LocalizedText text={"Requested Access"} />
                   </p>
                   <ul className="space-y-2">
                     {server.byok_description.map((item, i) => (
@@ -154,13 +169,14 @@ export const ByokCredentialModal: React.FC<ByokCredentialModalProps> = ({ server
                 onClick={() => setStep(2)}
                 className="w-full bg-gray-900 hover:bg-gray-700 text-white font-medium py-3 px-6 rounded-xl flex items-center justify-center gap-2 transition-colors"
               >
-                Continue to Authentication <ArrowRight className="size-4" />
+                <LocalizedText text={"Continue to Authentication "} />
+                <ArrowRight className="size-4" />
               </button>
               <button
                 onClick={handleClose}
                 className="mt-3 w-full text-muted-foreground hover:text-foreground text-sm py-2"
               >
-                Cancel
+                <LocalizedText text={"Cancel"} />
               </button>
             </div>
           ) : (
@@ -170,18 +186,23 @@ export const ByokCredentialModal: React.FC<ByokCredentialModalProps> = ({ server
                 <Key className="size-5 text-info" />
               </div>
 
-              <h2 className="text-2xl font-bold text-foreground mb-2">Provide API Key</h2>
+              <h2 className="text-2xl font-bold text-foreground mb-2">
+                <LocalizedText text={"Provide API Key"} />
+              </h2>
               <p className="text-muted-foreground mb-6">
-                Enter your {serverDisplayName} API key to authorize this connection.
+                <LocalizedText text={"Enter your "} />
+                {serverDisplayName}
+                <LocalizedText text={" API key to authorize this connection."} />
               </p>
 
               <div className="mb-4">
                 <label htmlFor={apiKeyInputId} className="block text-sm font-semibold text-foreground mb-2">
-                  {serverDisplayName} API Key
+                  {serverDisplayName}
+                  <LocalizedText text={" API Key"} />
                 </label>
                 <PasswordInput
                   id={apiKeyInputId}
-                  placeholder="Enter your API key"
+                  placeholder={translateMessage("Enter your API key")}
                   value={apiKey}
                   onChange={(e) => setApiKey(e.target.value)}
                   groupClassName="rounded-lg"
@@ -193,7 +214,8 @@ export const ByokCredentialModal: React.FC<ByokCredentialModalProps> = ({ server
                     rel="noopener noreferrer"
                     className="text-info hover:text-info/80 text-sm mt-2 flex items-center gap-1"
                   >
-                    Where do I find my API key? <Link2 className="size-3.5" />
+                    <LocalizedText text={"Where do I find my API key? "} />
+                    <Link2 className="size-3.5" />
                   </a>
                 )}
               </div>
@@ -207,16 +229,26 @@ export const ByokCredentialModal: React.FC<ByokCredentialModalProps> = ({ server
                       fill="currentColor"
                     />
                   </svg>
-                  <span className="text-sm font-medium text-foreground">Save key for future use</span>
+                  <span className="text-sm font-medium text-foreground">
+                    <LocalizedText text={"Save key for future use"} />
+                  </span>
                 </div>
-                <Switch checked={saveKey} onCheckedChange={setSaveKey} aria-label="Save key for future use" />
+                <Switch
+                  checked={saveKey}
+                  onCheckedChange={setSaveKey}
+                  aria-label={translateMessage("Save key for future use")}
+                />
               </div>
 
               {/* Security note */}
               <div className="bg-info/10 rounded-xl p-4 flex items-start gap-3 mb-6">
                 <Lock className="mt-0.5 size-4 shrink-0 text-info" />
                 <p className="text-sm text-info">
-                  Your key is stored securely and transmitted over HTTPS. It is never shared with third parties.
+                  <LocalizedText
+                    text={
+                      "Your key is stored securely and transmitted over HTTPS. It is never shared with third parties."
+                    }
+                  />
                 </p>
               </div>
 
@@ -225,7 +257,8 @@ export const ByokCredentialModal: React.FC<ByokCredentialModalProps> = ({ server
                 disabled={loading}
                 className="w-full bg-info hover:bg-info/80 disabled:opacity-60 text-info-foreground font-medium py-3 px-6 rounded-xl flex items-center justify-center gap-2 transition-colors"
               >
-                <Lock className="size-4" /> Connect &amp; Authorize
+                <Lock className="size-4" />
+                <LocalizedText text={" Connect & Authorize"} />
               </button>
             </div>
           )}

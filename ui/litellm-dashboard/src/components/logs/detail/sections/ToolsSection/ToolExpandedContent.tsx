@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, useUiLocale } from "@/lib/i18n";
 /**
  * Expanded content for a tool with view mode toggle
  */
@@ -15,6 +17,7 @@ interface ToolExpandedContentProps {
 }
 
 export function ToolExpandedContent({ tool }: ToolExpandedContentProps) {
+  useUiLocale();
   const [viewMode, setViewMode] = useState<ViewMode>("formatted");
 
   return (
@@ -27,11 +30,17 @@ export function ToolExpandedContent({ tool }: ToolExpandedContentProps) {
           marginBottom: 12,
         }}
       >
-        <span className="text-xs text-muted-foreground">Description</span>
+        <span className="text-xs text-muted-foreground">
+          <LocalizedText text={"Description"} />
+        </span>
         <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as ViewMode)}>
           <TabsList>
-            <TabsTrigger value="formatted">Formatted</TabsTrigger>
-            <TabsTrigger value="json">JSON</TabsTrigger>
+            <TabsTrigger value="formatted">
+              <LocalizedText text={"Formatted"} />
+            </TabsTrigger>
+            <TabsTrigger value="json">
+              <LocalizedText text={"JSON"} />
+            </TabsTrigger>
           </TabsList>
         </Tabs>
       </div>

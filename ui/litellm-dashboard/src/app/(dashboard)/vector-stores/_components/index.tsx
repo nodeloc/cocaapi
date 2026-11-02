@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, getIntlLocale, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import React, { useState, useEffect } from "react";
 import { RefreshCw } from "lucide-react";
 import {
@@ -28,6 +30,7 @@ interface VectorStoreProps {
 }
 
 const VectorStoreManagement: React.FC<VectorStoreProps> = ({ accessToken, userID, userRole, isViewOnly }) => {
+  useUiLocale();
   const [vectorStores, setVectorStores] = useState<VectorStore[]>([]);
   const [isLoadingVectorStores, setIsLoadingVectorStores] = useState(true);
   const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
@@ -73,7 +76,7 @@ const VectorStoreManagement: React.FC<VectorStoreProps> = ({ accessToken, userID
     fetchVectorStores();
     fetchCredentials();
     const currentDate = new Date();
-    setLastRefreshed(currentDate.toLocaleString());
+    setLastRefreshed(currentDate.toLocaleString(getIntlLocale()));
   };
 
   const handleDelete = async (vectorStoreId: string) => {
@@ -102,7 +105,7 @@ const VectorStoreManagement: React.FC<VectorStoreProps> = ({ accessToken, userID
     setIsDeleting(true);
     try {
       await vectorStoreDeleteCall(accessToken, vectorStoreToDelete);
-      toast.success("Vector store deleted successfully");
+      toast.success(translateMessage("Vector store deleted successfully"));
       fetchVectorStores();
     } catch (error) {
       console.error("Error deleting vector store:", error);
@@ -143,35 +146,47 @@ const VectorStoreManagement: React.FC<VectorStoreProps> = ({ accessToken, userID
     <div className="mx-4">
       <div className="gap-2 p-8 w-full mt-2">
         <div className="flex justify-between mt-2 w-full items-center mb-4">
-          <h1 className="text-xl font-semibold tracking-tight text-foreground">Vector Store Management</h1>
+          <h1 className="text-xl font-semibold tracking-tight text-foreground">
+            <LocalizedText text={"Vector Store Management"} />
+          </h1>
           <div className="flex items-center space-x-2">
-            {lastRefreshed && <p className="text-sm text-muted-foreground">Last Refreshed: {lastRefreshed}</p>}
-            <Button variant="outline" size="icon-sm" aria-label="Refresh" onClick={handleRefreshClick}>
+            {lastRefreshed && (
+              <p className="text-sm text-muted-foreground">
+                <LocalizedText text={"Last Refreshed: "} />
+                {lastRefreshed}
+              </p>
+            )}
+            <Button
+              variant="outline"
+              size="icon-sm"
+              aria-label={translateMessage("Refresh")}
+              onClick={handleRefreshClick}
+            >
               <RefreshCw className="size-4" />
             </Button>
           </div>
         </div>
 
         <p className="mb-4 text-sm text-muted-foreground">
-          You can use vector stores to store and retrieve LLM embeddings.
+          <LocalizedText text={"You can use vector stores to store and retrieve LLM embeddings."} />
         </p>
 
         <Tabs defaultValue={defaultTab} onValueChange={onTabChange}>
           <TabsList variant="line" className="mb-6 h-auto w-full justify-start rounded-none p-0">
             {canCreateVectorStores && (
               <TabsTrigger value="create" className="flex-none rounded-none px-4 py-2">
-                Create Vector Store
+                <LocalizedText text={"Create Vector Store"} />
               </TabsTrigger>
             )}
             <TabsTrigger value="manage" className="flex-none rounded-none px-4 py-2">
-              Manage Vector Stores
+              <LocalizedText text={"Manage Vector Stores"} />
             </TabsTrigger>
             <TabsTrigger value="test" className="flex-none rounded-none px-4 py-2">
-              Test Vector Store
+              <LocalizedText text={"Test Vector Store"} />
             </TabsTrigger>
             {isProxyAdminRole(userRole || "") && (
               <TabsTrigger value="indexes" className="flex-none rounded-none px-4 py-2">
-                Indexes
+                <LocalizedText text={"Indexes"} />
               </TabsTrigger>
             )}
           </TabsList>
@@ -185,7 +200,7 @@ const VectorStoreManagement: React.FC<VectorStoreProps> = ({ accessToken, userID
           <TabsContent keepMounted={hasVisited("manage")} value="manage">
             {canCreateVectorStores && (
               <Button className="mb-4" onClick={() => setIsCreateModalVisible(true)}>
-                + Add Vector Store
+                <LocalizedText text={"+ Add Vector Store"} />
               </Button>
             )}
 
@@ -223,10 +238,15 @@ const VectorStoreManagement: React.FC<VectorStoreProps> = ({ accessToken, userID
         {/* Delete Confirmation Modal */}
         <DeleteResourceModal
           isOpen={isDeleteModalOpen}
-          title="Delete Vector Store"
-          message="Are you sure you want to delete this vector store? This action cannot be undone."
+          title={translateMessage("Delete Vector Store")}
+          message={translateMessage("Are you sure you want to delete this vector store? This action cannot be undone.")}
           resourceInformationTitle="Vector Store Information"
-          resourceInformation={[{ label: "Vector Store ID", value: vectorStoreToDelete, code: true }]}
+          resourceInformation={[
+            markUiCopy(
+              { label: "Vector Store ID", value: vectorStoreToDelete, code: true },
+              { label: "Vector Store ID" },
+            ),
+          ]}
           onCancel={() => setIsDeleteModalOpen(false)}
           onOk={confirmDelete}
           confirmLoading={isDeleting}

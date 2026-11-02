@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 import React from "react";
 import { CircleCheck, CircleX, LoaderCircle } from "lucide-react";
 
@@ -31,6 +33,7 @@ const AutoRouterConnectionTest: React.FC<AutoRouterConnectionTestProps> = ({
   jevRequest,
   onTestComplete,
 }) => {
+  useUiLocale();
   const [results, setResults] = React.useState<TargetResult[]>(() => targets.map(() => ({ status: "pending" })));
   const [jevResult, setJevResult] = React.useState<TargetResult>({ status: "pending" });
 
@@ -79,7 +82,7 @@ const AutoRouterConnectionTest: React.FC<AutoRouterConnectionTestProps> = ({
   if (targets.length === 0 && !jevRequest) {
     return (
       <p className="text-sm text-muted-foreground">
-        No complexity tiers are configured yet, so there is nothing to test.
+        <LocalizedText text={"No complexity tiers are configured yet, so there is nothing to test."} />
       </p>
     );
   }
@@ -87,15 +90,24 @@ const AutoRouterConnectionTest: React.FC<AutoRouterConnectionTestProps> = ({
   return (
     <div className="space-y-3">
       <p className="mb-2 text-sm text-muted-foreground">
-        Test Connection sends a minimal request to every configured tier, classifier, default, and embedding model. The
-        classifier probe includes its reasoning effort override.
+        <LocalizedText
+          text={
+            "Test Connection sends a minimal request to every configured tier, classifier, default, and embedding model. The classifier probe includes its reasoning effort override."
+          }
+        />
       </p>
       {jevRequest && (
-        <div role="status" aria-label="OSS classifier connection" className="rounded-lg border p-3 text-sm">
-          <strong>OSS Classifier</strong>
+        <div
+          role="status"
+          aria-label={translateMessage("OSS classifier connection")}
+          className="rounded-lg border p-3 text-sm"
+        >
+          <strong>
+            <LocalizedText text={"OSS Classifier"} />
+          </strong>
           <p>
-            {jevResult.status === "pending" && "Testing OSS classification"}
-            {jevResult.status === "success" && "OSS classification succeeded"}
+            {jevResult.status === "pending" && translateMessage("Testing OSS classification")}
+            {jevResult.status === "success" && translateMessage("OSS classification succeeded")}
             {jevResult.status === "error" && jevResult.error}
           </p>
         </div>
@@ -123,7 +135,7 @@ const AutoRouterConnectionTest: React.FC<AutoRouterConnectionTestProps> = ({
               <span className="font-medium">{target.labels.join(", ")}</span>{" "}
               <span className="text-muted-foreground">
                 {"->"} {target.modelGroup}
-                {target.mode === "embedding" ? " (embedding)" : ""}
+                {target.mode === "embedding" ? translateMessage(" (embedding)") : ""}
               </span>
               {result.status === "error" && (
                 <p className="mt-1 text-xs text-destructive" data-testid="test-error-message">
@@ -146,16 +158,19 @@ export function AutoRouterConnectionTestDialog({
   testId,
   ...props
 }: AutoRouterConnectionTestProps & { open: boolean; onClose: () => void; testId: number }) {
+  useUiLocale();
   return (
     <Dialog open={open} onOpenChange={(next) => !next && onClose()}>
       <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-[700px]">
         <DialogHeader>
-          <DialogTitle>Connection Test Results</DialogTitle>
+          <DialogTitle>
+            <LocalizedText text={"Connection Test Results"} />
+          </DialogTitle>
         </DialogHeader>
         {open && <AutoRouterConnectionTest key={testId} {...props} />}
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>
-            Close
+            <LocalizedText text={"Close"} />
           </Button>
         </DialogFooter>
       </DialogContent>

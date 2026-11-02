@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { ColumnDef } from "@tanstack/react-table";
 import { MoreHorizontal, Trash2 } from "lucide-react";
@@ -22,10 +23,11 @@ interface AgentRowActionsProps {
 }
 
 function AgentRowActions({ agent, onDeleteClick }: AgentRowActionsProps) {
+  useUiLocale();
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        aria-label="Open agent actions"
+        aria-label={translateMessage("Open agent actions")}
         data-testid={`agent-actions-${agent.agent_id}`}
         className={cn(buttonVariants({ variant: "ghost", size: "icon-sm" }), "text-muted-foreground")}
       >
@@ -38,7 +40,7 @@ function AgentRowActions({ agent, onDeleteClick }: AgentRowActionsProps) {
           onClick={() => onDeleteClick(agent.agent_id, agent.agent_name)}
         >
           <Trash2 />
-          Delete
+          <LocalizedText text={"Delete"} />
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -59,8 +61,8 @@ export const getAgentsTableColumns = ({
   {
     id: "agent_name",
     accessorKey: "agent_name",
-    meta: { title: "Agent Name" },
-    header: ({ column }) => <DataTableSortHeader column={column} title="Agent Name" />,
+    meta: markUiCopy({ title: "Agent Name" }, { title: "Agent Name" }),
+    header: ({ column }) => <DataTableSortHeader column={column} title={translateMessage("Agent Name")} />,
     size: 200,
     enableSorting: true,
     cell: ({ row }) => {
@@ -75,8 +77,8 @@ export const getAgentsTableColumns = ({
   {
     id: "agent_id",
     accessorKey: "agent_id",
-    meta: { title: "Agent ID" },
-    header: ({ column }) => <DataTableSortHeader column={column} title="Agent ID" />,
+    meta: markUiCopy({ title: "Agent ID" }, { title: "Agent ID" }),
+    header: ({ column }) => <DataTableSortHeader column={column} title={translateMessage("Agent ID")} />,
     size: 200,
     enableSorting: true,
     cell: ({ row }) => (
@@ -90,66 +92,77 @@ export const getAgentsTableColumns = ({
   {
     id: "spend",
     accessorKey: "spend",
-    meta: { title: "Spend (USD)", numeric: true },
-    header: ({ column }) => <DataTableSortHeader column={column} title="Spend (USD)" />,
+    meta: markUiCopy({ title: "Spend (USD)", numeric: true }, { title: "Spend (USD)" }),
+    header: ({ column }) => <DataTableSortHeader column={column} title={translateMessage("Spend (USD)")} />,
     size: 130,
     enableSorting: true,
     cell: ({ row }) => <MoneyCell value={row.original.spend} decimals={4} />,
   },
-  {
-    id: "model",
-    meta: { title: "Model" },
-    header: "Model",
-    size: 170,
-    enableSorting: false,
-    cell: ({ row }) => {
-      const model = row.original.litellm_params?.model;
-      if (!model) {
-        return <span className="text-muted-foreground">N/A</span>;
-      }
-      return (
-        <Badge variant="outline" className="max-w-40 font-normal">
-          <span className="min-w-0 truncate" title={model}>
-            {model}
-          </span>
-        </Badge>
-      );
+  markUiCopy(
+    {
+      id: "model",
+      meta: markUiCopy({ title: "Model" }, { title: "Model" }),
+      header: "Model",
+      size: 170,
+      enableSorting: false,
+      cell: ({ row }) => {
+        const model = row.original.litellm_params?.model;
+        if (!model) {
+          return <span className="text-muted-foreground">N/A</span>;
+        }
+        return (
+          <Badge variant="outline" className="max-w-40 font-normal">
+            <span className="min-w-0 truncate" title={model}>
+              {model}
+            </span>
+          </Badge>
+        );
+      },
     },
-  },
+    { header: "Model" },
+  ),
   {
     id: "created_at",
     accessorFn: (agent) => {
       const timestamp = agent.created_at ? new Date(agent.created_at).getTime() : 0;
       return Number.isNaN(timestamp) ? 0 : timestamp;
     },
-    meta: { title: "Created" },
-    header: ({ column }) => <DataTableSortHeader column={column} title="Created" />,
+    meta: markUiCopy({ title: "Created" }, { title: "Created" }),
+    header: ({ column }) => <DataTableSortHeader column={column} title={translateMessage("Created")} />,
     size: 150,
     enableSorting: true,
     cell: ({ row }) => <DateCell value={row.original.created_at} precision="date" />,
   },
-  {
-    id: "status",
-    meta: { title: "Status" },
-    header: "Status",
-    size: 130,
-    enableSorting: false,
-    cell: ({ row }) => {
-      const hasKeys = (row.original.keys?.length ?? 0) > 0;
-      if (row.original.jwt_auth_configured) return <StatusBadge tone="success" label="JWT configured" />;
-      return hasKeys ? (
-        <StatusBadge tone="success" label="Active" />
-      ) : (
-        <StatusBadge tone="warning" label="Needs Setup" />
-      );
+  markUiCopy(
+    {
+      id: "status",
+      meta: markUiCopy({ title: "Status" }, { title: "Status" }),
+      header: "Status",
+      size: 130,
+      enableSorting: false,
+      cell: ({ row }) => {
+        const hasKeys = (row.original.keys?.length ?? 0) > 0;
+        if (row.original.jwt_auth_configured)
+          return <StatusBadge tone="success" label={translateMessage("JWT configured")} />;
+        return hasKeys ? (
+          <StatusBadge tone="success" label={translateMessage("Active")} />
+        ) : (
+          <StatusBadge tone="warning" label={translateMessage("Needs Setup")} />
+        );
+      },
     },
-  },
+    { header: "Status" },
+  ),
   ...(isAdmin
     ? [
         {
           id: "actions",
           meta: { className: "text-right", headerClassName: "text-right" },
-          header: () => <span className="sr-only">Actions</span>,
+          header: () => (
+            <span className="sr-only">
+              <LocalizedText text={"Actions"} />
+            </span>
+          ),
           size: 64,
           enableSorting: false,
           enableHiding: false,

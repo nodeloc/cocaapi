@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 import { isAdminRole } from "@/utils/roles";
 import { useQuery } from "@tanstack/react-query";
 import { CircleHelp } from "lucide-react";
@@ -53,12 +55,15 @@ interface SearchProviderLabelProps {
   displayName: string;
 }
 
-export const SearchProviderLabel: React.FC<SearchProviderLabelProps> = ({ providerName, displayName }) => (
-  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-    <Logo src={searchProviderLogoMap[providerName]} label={displayName} className="w-5 h-5 object-contain" />
-    <span>{displayName}</span>
-  </div>
-);
+export const SearchProviderLabel: React.FC<SearchProviderLabelProps> = ({ providerName, displayName }) => {
+  useUiLocale();
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+      <Logo src={searchProviderLogoMap[providerName]} label={displayName} className="w-5 h-5 object-contain" />
+      <span>{displayName}</span>
+    </div>
+  );
+};
 
 const createSearchToolShape = {
   search_tool_name: z
@@ -104,6 +109,7 @@ const CreateSearchTool: React.FC<CreateSearchToolProps> = ({
   isModalVisible,
   setModalVisible,
 }) => {
+  useUiLocale();
   const form = useZodForm(createSearchToolSchema, { defaultValues: EMPTY_VALUES });
   const [isLoading, setIsLoading] = useState(false);
   const [isTestModalVisible, setIsTestModalVisible] = useState(false);
@@ -143,13 +149,13 @@ const CreateSearchTool: React.FC<CreateSearchToolProps> = ({
       if (accessToken != null) {
         const response = await createSearchTool(accessToken, payload);
 
-        toast.success("Search tool created successfully");
+        toast.success(translateMessage("Search tool created successfully"));
         form.reset(EMPTY_VALUES);
         setModalVisible(false);
         onCreateSuccess(response);
       }
     } catch (error) {
-      toast.error("Error creating search tool: " + error);
+      toast.error(translateMessage("Error creating search tool: ") + error);
     } finally {
       setIsLoading(false);
     }
@@ -163,7 +169,7 @@ const CreateSearchTool: React.FC<CreateSearchToolProps> = ({
   const handleTestConnection = async () => {
     const isValid = await form.trigger(["search_provider", "api_key"]);
     if (!isValid) {
-      toast.error("Please fill in Search Provider and API Key before testing");
+      toast.error(translateMessage("Please fill in Search Provider and API Key before testing"));
       return;
     }
 
@@ -182,7 +188,9 @@ const CreateSearchTool: React.FC<CreateSearchToolProps> = ({
         <DialogHeader>
           <div className="flex items-center space-x-3 pb-4 border-b border-border">
             <span className="text-2xl">🔍</span>
-            <DialogTitle className="text-xl font-semibold text-foreground">Add New Search Tool</DialogTitle>
+            <DialogTitle className="text-xl font-semibold text-foreground">
+              <LocalizedText text={"Add New Search Tool"} />
+            </DialogTitle>
           </div>
         </DialogHeader>
         <div className="mt-6">
@@ -201,7 +209,7 @@ const CreateSearchTool: React.FC<CreateSearchToolProps> = ({
                     <Input
                       {...field}
                       ref={ref}
-                      placeholder="e.g., perplexity-search, my-tavily-tool"
+                      placeholder={translateMessage("e.g., perplexity-search, my-tavily-tool")}
                       className="rounded-lg"
                     />
                   )}
@@ -226,13 +234,15 @@ const CreateSearchTool: React.FC<CreateSearchToolProps> = ({
                         id={id}
                         aria-invalid={ariaInvalid}
                         aria-describedby={ariaDescribedBy}
-                        placeholder="Select a search provider"
+                        placeholder={translateMessage("Select a search provider")}
                         className="h-10 w-full rounded-lg"
                         disabled={isLoadingProviders}
                         showClear={value != null && value !== ""}
                       />
                       <ComboboxContent>
-                        <ComboboxEmpty>No matching search providers</ComboboxEmpty>
+                        <ComboboxEmpty>
+                          <LocalizedText text={"No matching search providers"} />
+                        </ComboboxEmpty>
                         <ComboboxList>
                           {(providerName: string) => (
                             <ComboboxItem key={providerName} value={providerName}>
@@ -261,20 +271,20 @@ const CreateSearchTool: React.FC<CreateSearchToolProps> = ({
                       {...field}
                       ref={ref}
                       value={value ?? ""}
-                      placeholder="Enter your API key"
+                      placeholder={translateMessage("Enter your API key")}
                       groupClassName="h-10 rounded-lg"
                     />
                   )}
                 </FormField>
 
-                <FormField control={form.control} name="description" label="Description (Optional)">
+                <FormField control={form.control} name="description" label={translateMessage("Description (Optional)")}>
                   {({ ref, value, ...field }) => (
                     <Textarea
                       {...field}
                       ref={ref}
                       value={value ?? ""}
                       rows={3}
-                      placeholder="Brief description of this search tool's purpose"
+                      placeholder={translateMessage("Brief description of this search tool's purpose")}
                       className="rounded-lg"
                     />
                   )}
@@ -291,20 +301,22 @@ const CreateSearchTool: React.FC<CreateSearchToolProps> = ({
                         target="_blank"
                         rel="noopener noreferrer"
                       >
-                        Need Help?
+                        <LocalizedText text={"Need Help?"} />
                       </a>
                     }
                   />
-                  <TooltipContent>Get help on our github</TooltipContent>
+                  <TooltipContent>
+                    <LocalizedText text={"Get help on our github"} />
+                  </TooltipContent>
                 </Tooltip>
                 <div className="flex gap-2">
                   <Button type="submit" variant="outline" onClick={handleTestConnection} disabled={isTestingConnection}>
                     {isTestingConnection && <UiLoadingSpinner className="size-4" />}
-                    Test Connection
+                    <LocalizedText text={"Test Connection"} />
                   </Button>
                   <Button type="submit" variant="outline" disabled={isLoading}>
                     {isLoading && <UiLoadingSpinner className="size-4" />}
-                    Add Search Tool
+                    <LocalizedText text={"Add Search Tool"} />
                   </Button>
                 </div>
               </div>
@@ -323,7 +335,9 @@ const CreateSearchTool: React.FC<CreateSearchToolProps> = ({
         >
           <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-[700px]">
             <DialogHeader>
-              <DialogTitle>Connection Test Results</DialogTitle>
+              <DialogTitle>
+                <LocalizedText text={"Connection Test Results"} />
+              </DialogTitle>
             </DialogHeader>
             {isTestModalVisible && accessToken && (
               <SearchConnectionTest
@@ -346,7 +360,7 @@ const CreateSearchTool: React.FC<CreateSearchToolProps> = ({
                   setIsTestingConnection(false);
                 }}
               >
-                Close
+                <LocalizedText text={"Close"} />
               </Button>
             </DialogFooter>
           </DialogContent>

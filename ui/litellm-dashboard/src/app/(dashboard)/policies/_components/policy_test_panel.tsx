@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { CircleAlert, Inbox } from "lucide-react";
@@ -70,28 +72,40 @@ interface ContextComboboxProps {
   options: string[];
 }
 
-const ContextCombobox: React.FC<ContextComboboxProps> = ({ id, value, onChange, placeholder, options }) => (
-  <Combobox
-    items={options}
-    value={value ?? null}
-    onValueChange={(next: string | null) => onChange(next ?? undefined)}
-    filter={includesQuery}
-  >
-    <ComboboxInput id={id} placeholder={placeholder} className="w-full" showClear={Boolean(value)} />
-    <ComboboxContent>
-      <ComboboxEmpty>No options found</ComboboxEmpty>
-      <ComboboxList>
-        {(item: string) => (
-          <ComboboxItem key={item} value={item} title={item}>
-            {item}
-          </ComboboxItem>
-        )}
-      </ComboboxList>
-    </ComboboxContent>
-  </Combobox>
-);
+const ContextCombobox: React.FC<ContextComboboxProps> = (cocaCopyProps0) => {
+  const { id, value, onChange, placeholder, options } = cocaCopyProps0;
+  useUiLocale();
+  return (
+    <Combobox
+      items={options}
+      value={value ?? null}
+      onValueChange={(next: string | null) => onChange(next ?? undefined)}
+      filter={includesQuery}
+    >
+      <ComboboxInput
+        id={id}
+        placeholder={localizedProperty(cocaCopyProps0, "placeholder", placeholder)}
+        className="w-full"
+        showClear={Boolean(value)}
+      />
+      <ComboboxContent>
+        <ComboboxEmpty>
+          <LocalizedText text={"No options found"} />
+        </ComboboxEmpty>
+        <ComboboxList>
+          {(item: string) => (
+            <ComboboxItem key={item} value={item} title={item}>
+              {item}
+            </ComboboxItem>
+          )}
+        </ComboboxList>
+      </ComboboxContent>
+    </Combobox>
+  );
+};
 
 const PolicyTestPanel: React.FC<PolicyTestPanelProps> = ({ accessToken }) => {
+  useUiLocale();
   const form = useForm<PolicyTestFormValues>({ defaultValues: EMPTY_VALUES });
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<ResolveResult | null>(null);
@@ -162,56 +176,61 @@ const PolicyTestPanel: React.FC<PolicyTestPanelProps> = ({ accessToken }) => {
     <div>
       <div className="bg-card border border-border rounded-lg p-6 mb-6">
         <div className="mb-5">
-          <h3 className="text-base font-semibold mb-1">Policy Simulator</h3>
+          <h3 className="text-base font-semibold mb-1">
+            <LocalizedText text={"Policy Simulator"} />
+          </h3>
           <span className="text-muted-foreground">
-            Simulate a request to see which policies and guardrails would apply. Select a team, key, model, or tags
-            below and click &quot;Simulate&quot; to see the results.
+            <LocalizedText
+              text={
+                'Simulate a request to see which policies and guardrails would apply. Select a team, key, model, or tags below and click "Simulate" to see the results.'
+              }
+            />
           </span>
         </div>
 
         <form onSubmit={(event) => event.preventDefault()} noValidate>
           <FieldGroup className="grid grid-cols-2 gap-4">
-            <FormField control={form.control} name="team_alias" label="Team Alias">
+            <FormField control={form.control} name="team_alias" label={translateMessage("Team Alias")}>
               {({ id, value, onChange }) => (
                 <ContextCombobox
                   id={id}
                   value={value}
                   onChange={onChange}
-                  placeholder="Select or type a team alias"
+                  placeholder={translateMessage("Select or type a team alias")}
                   options={availableTeams}
                 />
               )}
             </FormField>
-            <FormField control={form.control} name="key_alias" label="Key Alias">
+            <FormField control={form.control} name="key_alias" label={translateMessage("Key Alias")}>
               {({ id, value, onChange }) => (
                 <ContextCombobox
                   id={id}
                   value={value}
                   onChange={onChange}
-                  placeholder="Select or type a key alias"
+                  placeholder={translateMessage("Select or type a key alias")}
                   options={availableKeys}
                 />
               )}
             </FormField>
-            <FormField control={form.control} name="model" label="Model">
+            <FormField control={form.control} name="model" label={translateMessage("Model")}>
               {({ id, value, onChange }) => (
                 <ContextCombobox
                   id={id}
                   value={value}
                   onChange={onChange}
-                  placeholder="Select or type a model"
+                  placeholder={translateMessage("Select or type a model")}
                   options={availableModels}
                 />
               )}
             </FormField>
-            <FormField control={form.control} name="tags" label="Tags">
+            <FormField control={form.control} name="tags" label={translateMessage("Tags")}>
               {({ id, value, onChange, onBlur }) => (
                 <TokenSelect
                   id={id}
                   value={value}
                   onValueChange={onChange}
                   onBlur={onBlur}
-                  placeholder="Type a tag and press Enter"
+                  placeholder={translateMessage("Type a tag and press Enter")}
                   allowCustomValues
                   tokenSeparators={[",", " "]}
                 />
@@ -221,10 +240,10 @@ const PolicyTestPanel: React.FC<PolicyTestPanelProps> = ({ accessToken }) => {
           <div className="flex space-x-2 mt-4">
             <Button type="button" onClick={handleTest} disabled={isLoading || !accessToken} aria-busy={isLoading}>
               {isLoading && <UiLoadingSpinner className="size-4" />}
-              Simulate
+              <LocalizedText text={"Simulate"} />
             </Button>
             <Button type="button" variant="secondary" onClick={handleReset}>
-              Reset
+              <LocalizedText text={"Reset"} />
             </Button>
           </div>
         </form>
@@ -248,10 +267,15 @@ const PolicyTestPanel: React.FC<PolicyTestPanelProps> = ({ accessToken }) => {
               />
             </svg>
           </div>
-          <p className="text-sm font-medium text-foreground mb-1">No simulation run yet</p>
+          <p className="text-sm font-medium text-foreground mb-1">
+            <LocalizedText text={"No simulation run yet"} />
+          </p>
           <p className="text-xs text-muted-foreground">
-            Fill in one or more fields above and click &quot;Simulate&quot; to see which policies and guardrails would
-            apply to that request.
+            <LocalizedText
+              text={
+                'Fill in one or more fields above and click "Simulate" to see which policies and guardrails would apply to that request.'
+              }
+            />
           </p>
         </div>
       )}
@@ -261,12 +285,16 @@ const PolicyTestPanel: React.FC<PolicyTestPanelProps> = ({ accessToken }) => {
           {result.matched_policies.length === 0 ? (
             <div className="py-6 text-center">
               <Inbox className="mx-auto mb-2 size-8 text-muted-foreground" aria-hidden="true" />
-              <p className="text-sm text-muted-foreground">No policies matched this context</p>
+              <p className="text-sm text-muted-foreground">
+                <LocalizedText text={"No policies matched this context"} />
+              </p>
             </div>
           ) : (
             <>
               <div className="mb-4">
-                <p className="text-sm font-semibold mb-2">Effective Guardrails</p>
+                <p className="text-sm font-semibold mb-2">
+                  <LocalizedText text={"Effective Guardrails"} />
+                </p>
                 <div className="flex flex-wrap gap-1">
                   {result.effective_guardrails.length > 0 ? (
                     result.effective_guardrails.map((g) => (
@@ -275,19 +303,29 @@ const PolicyTestPanel: React.FC<PolicyTestPanelProps> = ({ accessToken }) => {
                       </Badge>
                     ))
                   ) : (
-                    <span className="text-muted-foreground text-sm">None</span>
+                    <span className="text-muted-foreground text-sm">
+                      <LocalizedText text={"None"} />
+                    </span>
                   )}
                 </div>
               </div>
 
               <div>
-                <p className="text-sm font-semibold mb-2">Matched Policies</p>
+                <p className="text-sm font-semibold mb-2">
+                  <LocalizedText text={"Matched Policies"} />
+                </p>
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-border">
-                      <th className="text-left py-2 pr-4">Policy</th>
-                      <th className="text-left py-2 pr-4">Matched Via</th>
-                      <th className="text-left py-2">Guardrails Added</th>
+                      <th className="text-left py-2 pr-4">
+                        <LocalizedText text={"Policy"} />
+                      </th>
+                      <th className="text-left py-2 pr-4">
+                        <LocalizedText text={"Matched Via"} />
+                      </th>
+                      <th className="text-left py-2">
+                        <LocalizedText text={"Guardrails Added"} />
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -307,7 +345,9 @@ const PolicyTestPanel: React.FC<PolicyTestPanelProps> = ({ accessToken }) => {
                               ))}
                             </div>
                           ) : (
-                            <span className="text-muted-foreground">None</span>
+                            <span className="text-muted-foreground">
+                              <LocalizedText text={"None"} />
+                            </span>
                           )}
                         </td>
                       </tr>
@@ -323,8 +363,12 @@ const PolicyTestPanel: React.FC<PolicyTestPanelProps> = ({ accessToken }) => {
       {hasSearched && !result && !isLoading && (
         <Alert variant="error">
           <CircleAlert />
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>Failed to resolve policies. Check the proxy logs.</AlertDescription>
+          <AlertTitle>
+            <LocalizedText text={"Error"} />
+          </AlertTitle>
+          <AlertDescription>
+            <LocalizedText text={"Failed to resolve policies. Check the proxy logs."} />
+          </AlertDescription>
         </Alert>
       )}
     </div>

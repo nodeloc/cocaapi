@@ -4,9 +4,28 @@ import * as React from "react";
 import { Select as SelectPrimitive } from "@base-ui/react/select";
 
 import { cn } from "@/lib/cva.config";
+import { useUiLocale } from "@/lib/i18n/useUiLocale";
+import { localizedOption } from "@/lib/i18n/options";
+import { translateMessage } from "@/lib/i18n/messages";
+import { uiCopySource } from "@/lib/i18n/copy";
 import { ChevronDownIcon, CheckIcon, ChevronUpIcon } from "lucide-react";
 
-const Select = SelectPrimitive.Root;
+function Select<Value, Multiple extends boolean | undefined = false>(
+  props: SelectPrimitive.Root.Props<Value, Multiple>,
+) {
+  const locale = useUiLocale();
+  const items = React.useMemo(() => {
+    if (Array.isArray(props.items)) return props.items.map(localizedOption);
+    if (props.items === undefined) return undefined;
+    return Object.fromEntries(
+      Object.entries(props.items).map(([value, label]: [string, React.ReactNode]) => {
+        const source = uiCopySource(props.items, value);
+        return [value, source === undefined ? label : translateMessage(source)];
+      }),
+    );
+  }, [props.items, locale]);
+  return <SelectPrimitive.Root {...props} items={items} />;
+}
 
 function SelectGroup({ className, ...props }: SelectPrimitive.Group.Props) {
   return <SelectPrimitive.Group data-slot="select-group" className={cn("scroll-my-1 p-1", className)} {...props} />;

@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import useAuthorized from "@/app/(dashboard)/hooks/useAuthorized";
 import { BarChart } from "@/components/shared/charts";
 import { DataTable } from "@/components/shared/DataTable";
@@ -17,8 +19,8 @@ const LIMIT_OPTIONS = TOP_KEYS_LIMITS.map((limit) => ({ value: String(limit), la
 
 type ViewMode = "table" | "chart";
 const VIEW_OPTIONS = [
-  { value: "table", label: "Table View" },
-  { value: "chart", label: "Chart View" },
+  markUiCopy({ value: "table", label: "Table View" }, { label: "Table View" }),
+  markUiCopy({ value: "chart", label: "Chart View" }, { label: "Chart View" }),
 ] as const satisfies readonly { value: ViewMode; label: string }[];
 
 const BAR_COLOR = "#2b3fd6";
@@ -47,6 +49,7 @@ interface TopKeyViewProps {
 }
 
 const TopKeyView: React.FC<TopKeyViewProps> = ({ topKeys, teams, showTags = false, topKeysLimit, setTopKeysLimit }) => {
+  useUiLocale();
   const { accessToken } = useAuthorized();
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
@@ -108,100 +111,120 @@ const TopKeyView: React.FC<TopKeyViewProps> = ({ topKeys, teams, showTags = fals
 
   // Define columns for the table view
   const baseColumns = [
-    {
-      header: "Key ID",
-      accessorKey: "api_key",
-      meta: QUIET_HEADER,
-      cell: (info: any) =>
-        canOpenKeyInfo(info.row.original) ? (
-          <IdCell value={info.getValue()} onClick={() => handleKeyClick(info.row.original)} />
-        ) : (
-          <IdCell value={info.getValue()} variant="plain" tooltip={KEY_NOT_IN_DATABASE_TOOLTIP} />
-        ),
-    },
-    {
-      header: "Key Alias",
-      accessorKey: "key_alias",
-      meta: QUIET_HEADER,
-      cell: (info: any) => info.getValue() || "-",
-    },
+    markUiCopy(
+      {
+        header: "Key ID",
+        accessorKey: "api_key",
+        meta: QUIET_HEADER,
+        cell: (info: any) =>
+          canOpenKeyInfo(info.row.original) ? (
+            <IdCell value={info.getValue()} onClick={() => handleKeyClick(info.row.original)} />
+          ) : (
+            <IdCell value={info.getValue()} variant="plain" tooltip={KEY_NOT_IN_DATABASE_TOOLTIP} />
+          ),
+      },
+      { header: "Key ID" },
+    ),
+    markUiCopy(
+      {
+        header: "Key Alias",
+        accessorKey: "key_alias",
+        meta: QUIET_HEADER,
+        cell: (info: any) => info.getValue() || "-",
+      },
+      { header: "Key Alias" },
+    ),
     ...(topKeys.some((k) => k.user)
       ? [
-          {
-            header: "User",
-            accessorKey: "user",
-            meta: QUIET_HEADER,
-            cell: (info: any) => info.getValue() || "-",
-          },
+          markUiCopy(
+            {
+              header: "User",
+              accessorKey: "user",
+              meta: QUIET_HEADER,
+              cell: (info: any) => info.getValue() || "-",
+            },
+            { header: "User" },
+          ),
         ]
       : []),
   ];
 
-  const tagsColumn = {
-    header: "Tags",
-    accessorKey: "tags",
-    meta: QUIET_HEADER,
-    cell: (info: any) => {
-      const tags = info.getValue() as TagUsage[] | undefined;
-      const apiKey = info.row.original.api_key;
-      const isExpanded = expandedTags.has(apiKey);
+  const tagsColumn = markUiCopy(
+    {
+      header: "Tags",
+      accessorKey: "tags",
+      meta: QUIET_HEADER,
+      cell: (info: any) => {
+        const tags = info.getValue() as TagUsage[] | undefined;
+        const apiKey = info.row.original.api_key;
+        const isExpanded = expandedTags.has(apiKey);
 
-      if (!tags || tags.length === 0) {
-        return "-";
-      }
+        if (!tags || tags.length === 0) {
+          return "-";
+        }
 
-      const sortedTags = tags.sort((a, b) => b.usage - a.usage);
-      const displayTags = isExpanded ? sortedTags : sortedTags.slice(0, 2);
-      const hasMoreTags = tags.length > 2;
+        const sortedTags = tags.sort((a, b) => b.usage - a.usage);
+        const displayTags = isExpanded ? sortedTags : sortedTags.slice(0, 2);
+        const hasMoreTags = tags.length > 2;
 
-      return (
-        <div className="overflow-hidden">
-          <div className="flex flex-wrap items-center gap-1">
-            {displayTags.map((tag, index) => (
-              <SimpleTooltip
-                key={index}
-                content={
-                  <div>
+        return (
+          <div className="overflow-hidden">
+            <div className="flex flex-wrap items-center gap-1">
+              {displayTags.map((tag, index) => (
+                <SimpleTooltip
+                  key={index}
+                  content={
                     <div>
-                      <span className="text-muted-foreground">Tag Name:</span> {tag.tag}
+                      <div>
+                        <span className="text-muted-foreground">
+                          <LocalizedText text={"Tag Name:"} />
+                        </span>{" "}
+                        {tag.tag}
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">
+                          <LocalizedText text={"Spend:"} />
+                        </span>{" "}
+                        {tag.usage > 0 && tag.usage < 0.01 ? "<$0.01" : `$${formatNumberWithCommas(tag.usage, 2)}`}
+                      </div>
                     </div>
-                    <div>
-                      <span className="text-muted-foreground">Spend:</span>{" "}
-                      {tag.usage > 0 && tag.usage < 0.01 ? "<$0.01" : `$${formatNumberWithCommas(tag.usage, 2)}`}
-                    </div>
-                  </div>
-                }
-              >
-                <span className="rounded-md bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
-                  {tag.tag.slice(0, 7)}...
-                </span>
-              </SimpleTooltip>
-            ))}
-            {hasMoreTags && (
-              <button
-                onClick={() => toggleTagsExpansion(apiKey)}
-                className="ml-0.5 rounded-md p-1 transition-colors hover:bg-accent"
-                title={isExpanded ? "Show fewer tags" : "Show all tags"}
-              >
-                {isExpanded ? (
-                  <ChevronUpIcon className="h-3 w-3 text-muted-foreground" />
-                ) : (
-                  <ChevronDownIcon className="h-3 w-3 text-muted-foreground" />
-                )}
-              </button>
-            )}
+                  }
+                >
+                  <span className="rounded-md bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
+                    {tag.tag.slice(0, 7)}...
+                  </span>
+                </SimpleTooltip>
+              ))}
+              {hasMoreTags && (
+                <button
+                  onClick={() => toggleTagsExpansion(apiKey)}
+                  className="ml-0.5 rounded-md p-1 transition-colors hover:bg-accent"
+                  title={isExpanded ? translateMessage("Show fewer tags") : translateMessage("Show all tags")}
+                >
+                  {isExpanded ? (
+                    <ChevronUpIcon className="h-3 w-3 text-muted-foreground" />
+                  ) : (
+                    <ChevronDownIcon className="h-3 w-3 text-muted-foreground" />
+                  )}
+                </button>
+              )}
+            </div>
           </div>
-        </div>
-      );
+        );
+      },
     },
-  };
+    { header: "Tags" },
+  );
 
-  const spendColumn = {
-    header: "Spend (USD)",
-    accessorKey: "spend",
-    meta: { ...QUIET_HEADER, numeric: true },
-    cell: (info: any) => <MoneyCell value={info.getValue()} decimals={2} />,
-  };
+  const spendColumn = markUiCopy(
+    {
+      header: "Spend (USD)",
+      accessorKey: "spend",
+      meta: { ...QUIET_HEADER, numeric: true },
+      cell: (info: any) => <MoneyCell value={info.getValue()} decimals={2} />,
+    },
+    { header: "Spend (USD)" },
+  );
 
   const columns = showTags ? [...baseColumns, tagsColumn, spendColumn] : [...baseColumns, spendColumn];
 
@@ -214,12 +237,12 @@ const TopKeyView: React.FC<TopKeyViewProps> = ({ topKeys, teams, showTags = fals
     <>
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <Segmented
-          label="Number of top keys to show"
+          label={translateMessage("Number of top keys to show")}
           value={String(topKeysLimit)}
           options={LIMIT_OPTIONS}
           onChange={(limit) => setTopKeysLimit(Number(limit))}
         />
-        <Segmented label="View" value={viewMode} options={VIEW_OPTIONS} onChange={setViewMode} />
+        <Segmented label={translateMessage("View")} value={viewMode} options={VIEW_OPTIONS} onChange={setViewMode} />
       </div>
 
       {viewMode === "chart" ? (
@@ -244,15 +267,21 @@ const TopKeyView: React.FC<TopKeyViewProps> = ({ topKeys, teams, showTags = fals
                 <div className="relative z-floating max-w-xs rounded-lg border bg-popover px-3 py-2 text-xs shadow-lg">
                   <div className="grid gap-1">
                     <div>
-                      <span className="text-muted-foreground">Key Alias: </span>
+                      <span className="text-muted-foreground">
+                        <LocalizedText text={"Key Alias: "} />
+                      </span>
                       <span className="break-all font-mono text-foreground">{item?.key_alias}</span>
                     </div>
                     <div>
-                      <span className="text-muted-foreground">Key ID: </span>
+                      <span className="text-muted-foreground">
+                        <LocalizedText text={"Key ID: "} />
+                      </span>
                       <span className="break-all font-mono text-foreground">{item?.api_key}</span>
                     </div>
                     <div>
-                      <span className="text-muted-foreground">Spend: </span>
+                      <span className="text-muted-foreground">
+                        <LocalizedText text={"Spend: "} />
+                      </span>
                       <span className="font-medium tabular-nums text-foreground">
                         ${formatNumberWithCommas(item?.spend, 2)}
                       </span>
@@ -277,7 +306,7 @@ const TopKeyView: React.FC<TopKeyViewProps> = ({ topKeys, teams, showTags = fals
             <button
               onClick={handleClose}
               className="absolute top-4 right-4 text-muted-foreground hover:text-foreground focus:outline-hidden"
-              aria-label="Close"
+              aria-label={translateMessage("Close")}
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />

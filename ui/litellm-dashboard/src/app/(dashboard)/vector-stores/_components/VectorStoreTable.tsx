@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { SortingState } from "@tanstack/react-table";
 import { Inbox } from "lucide-react";
@@ -20,20 +21,24 @@ interface VectorStoreTableProps {
 const DEFAULT_SORTING: SortingState = [{ id: "created_at", desc: true }];
 
 function EmptyState() {
+  useUiLocale();
   return (
     <div className="flex flex-col items-center gap-1 py-6">
       <div className="mb-1 flex size-10 items-center justify-center rounded-lg bg-muted">
         <Inbox className="size-5 text-muted-foreground" />
       </div>
-      <div className="text-sm font-medium text-foreground">No vector stores</div>
+      <div className="text-sm font-medium text-foreground">
+        <LocalizedText text={"No vector stores"} />
+      </div>
       <div className="text-sm text-muted-foreground">
-        Connect a vector store to enable retrieval-augmented generation.
+        <LocalizedText text={"Connect a vector store to enable retrieval-augmented generation."} />
       </div>
     </div>
   );
 }
 
 const VectorStoreTable: React.FC<VectorStoreTableProps> = ({ data, onView, onEdit, onDelete, isLoading = false }) => {
+  useUiLocale();
   const [sorting, setSorting] = useState<SortingState>(DEFAULT_SORTING);
 
   const columns = useMemo(() => getVectorStoreTableColumns({ onView, onEdit, onDelete }), [onView, onEdit, onDelete]);
@@ -48,7 +53,7 @@ const VectorStoreTable: React.FC<VectorStoreTableProps> = ({ data, onView, onEdi
       sorting={sorting}
       onSortingChange={setSorting}
       isLoading={isLoading}
-      loadingMessage="Loading vector stores…"
+      loadingMessage={translateMessage("Loading vector stores…")}
       noDataMessage={<EmptyState />}
       size="compact"
     />

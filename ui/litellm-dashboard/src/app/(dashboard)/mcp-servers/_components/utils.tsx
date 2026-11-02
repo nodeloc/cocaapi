@@ -1,3 +1,4 @@
+import { markUiCopy } from "@/lib/i18n";
 import { MCPEnvVar, MCPEnvVarScope, type MCPServer } from "@/components/mcp_tools/types";
 
 export const getMCPNetworkAccess = (
@@ -9,28 +10,50 @@ export const getMCPNetworkAccess = (
 } => {
   const explicitlyPublished = server.mcp_info?.is_public_explicit;
   if (server.available_on_public_internet === true || explicitlyPublished === true) {
-    return {
-      label: "All Networks",
-      dotClassName: "bg-success",
-      description:
-        server.available_on_public_internet === true
-          ? "Allows requests from public and internal IPs. Authentication and access permissions still apply"
-          : "Allows requests from public and internal IPs because this server is published in MCP Hub. Authentication and access permissions still apply",
-    };
+    return markUiCopy(
+      {
+        label: "All Networks",
+        dotClassName: "bg-success",
+        description:
+          server.available_on_public_internet === true
+            ? "Allows requests from public and internal IPs. Authentication and access permissions still apply"
+            : "Allows requests from public and internal IPs because this server is published in MCP Hub. Authentication and access permissions still apply",
+      },
+      {
+        label: "All Networks",
+        description: [
+          "Allows requests from public and internal IPs. Authentication and access permissions still apply",
+          "Allows requests from public and internal IPs because this server is published in MCP Hub. Authentication and access permissions still apply",
+        ],
+      },
+    );
   }
   if (server.available_on_public_internet === false && explicitlyPublished === false) {
-    return {
-      label: "Internal Only",
-      dotClassName: "bg-warning",
-      description:
-        "Allows requests only from internal/private IP ranges. Authentication and access permissions still apply",
-    };
+    return markUiCopy(
+      {
+        label: "Internal Only",
+        dotClassName: "bg-warning",
+        description:
+          "Allows requests only from internal/private IP ranges. Authentication and access permissions still apply",
+      },
+      {
+        label: "Internal Only",
+        description:
+          "Allows requests only from internal/private IP ranges. Authentication and access permissions still apply",
+      },
+    );
   }
-  return {
-    label: "Unknown",
-    dotClassName: "bg-border",
-    description: "The proxy did not report enough network and publication settings to determine allowed client IPs",
-  };
+  return markUiCopy(
+    {
+      label: "Unknown",
+      dotClassName: "bg-border",
+      description: "The proxy did not report enough network and publication settings to determine allowed client IPs",
+    },
+    {
+      label: "Unknown",
+      description: "The proxy did not report enough network and publication settings to determine allowed client IPs",
+    },
+  );
 };
 
 export const extractMCPToken = (url: string): { token: string | null; baseUrl: string } => {

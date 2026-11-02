@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, useUiLocale } from "@/lib/i18n";
 
 import { useState } from "react";
 
@@ -34,6 +35,7 @@ export function LiveRun({
   name: string;
   queue?: QueueContext;
 }) {
+  useUiLocale();
   const reason = useQueueReason(job, queue);
   const [stripOpen, setStripOpen] = useStripOpen();
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -72,7 +74,7 @@ export function LiveRun({
           onClick={() => setStripOpen(true)}
           className="self-start text-xs text-muted-foreground hover:text-foreground"
         >
-          Show live trace results
+          <LocalizedText text={"Show live trace results"} />
         </button>
       )}
       <LiveDrawer

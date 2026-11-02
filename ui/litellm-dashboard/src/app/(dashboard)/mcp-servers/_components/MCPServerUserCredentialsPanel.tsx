@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, getIntlLocale, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import React, { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -29,7 +30,7 @@ export function credentialTypeLabel(credentialType: MCPServerUserCredentialListI
 export function formatTimestamp(value: string | null): string {
   if (value === null) return "-";
   const parsed = new Date(value);
-  return Number.isNaN(parsed.getTime()) ? value : parsed.toLocaleString();
+  return Number.isNaN(parsed.getTime()) ? value : parsed.toLocaleString(getIntlLocale());
 }
 
 function CredentialsBody({
@@ -43,6 +44,7 @@ function CredentialsBody({
   isLoading: boolean;
   onRevoke: ((item: MCPServerUserCredentialListItem) => void) | null;
 }) {
+  useUiLocale();
   if (isLoading) {
     return (
       <div
@@ -50,15 +52,19 @@ function CredentialsBody({
         className="flex items-center justify-center gap-3 rounded-lg border border-dashed border-border bg-card p-12"
       >
         <UiLoadingSpinner className="size-6 text-muted-foreground" />
-        <p className="text-sm text-muted-foreground">Loading user credentials...</p>
+        <p className="text-sm text-muted-foreground">
+          <LocalizedText text={"Loading user credentials..."} />
+        </p>
       </div>
     );
   }
   if (error) {
     return (
       <Alert variant="destructive">
-        <AlertTitle>Could not load user credentials</AlertTitle>
-        <AlertDescription>{error.message}</AlertDescription>
+        <AlertTitle>
+          <LocalizedText text={"Could not load user credentials"} />
+        </AlertTitle>
+        <AlertDescription>{localizedProperty(error, "message", error.message)}</AlertDescription>
       </Alert>
     );
   }
@@ -66,21 +72,40 @@ function CredentialsBody({
   if (items.length === 0) {
     return (
       <div className="rounded-lg border border-dashed border-border bg-card p-12 text-center">
-        <p className="text-sm text-muted-foreground">No user has a stored credential for this server.</p>
+        <p className="text-sm text-muted-foreground">
+          <LocalizedText text={"No user has a stored credential for this server."} />
+        </p>
       </div>
     );
   }
   return (
-    <section aria-label="Stored user credentials" className="rounded-lg border border-border bg-card">
+    <section
+      aria-label={translateMessage("Stored user credentials")}
+      className="rounded-lg border border-border bg-card"
+    >
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>User</TableHead>
-            <TableHead>Type</TableHead>
-            <TableHead>Connected</TableHead>
-            <TableHead>Expires</TableHead>
-            <TableHead>Updated</TableHead>
-            {onRevoke ? <TableHead className="text-right">Actions</TableHead> : null}
+            <TableHead>
+              <LocalizedText text={"User"} />
+            </TableHead>
+            <TableHead>
+              <LocalizedText text={"Type"} />
+            </TableHead>
+            <TableHead>
+              <LocalizedText text={"Connected"} />
+            </TableHead>
+            <TableHead>
+              <LocalizedText text={"Expires"} />
+            </TableHead>
+            <TableHead>
+              <LocalizedText text={"Updated"} />
+            </TableHead>
+            {onRevoke ? (
+              <TableHead className="text-right">
+                <LocalizedText text={"Actions"} />
+              </TableHead>
+            ) : null}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -99,10 +124,10 @@ function CredentialsBody({
                     variant="outline"
                     size="sm"
                     onClick={() => onRevoke(item)}
-                    aria-label={`Revoke credential for user ${item.user_id}`}
+                    aria-label={translateMessage("Revoke credential for user %{0}", [item.user_id])}
                   >
                     <ShieldOff className="size-4" />
-                    Revoke
+                    <LocalizedText text={"Revoke"} />
                   </Button>
                 </TableCell>
               ) : null}
@@ -125,6 +150,7 @@ export function MCPServerUserCredentialsPanel({
   accessToken,
   canRevoke,
 }: MCPServerUserCredentialsPanelProps) {
+  useUiLocale();
   const queryClient = useQueryClient();
   const [pendingItem, setPendingItem] = useState<MCPServerUserCredentialListItem | null>(null);
   const queryKey = mcpServerUserCredentialKeys.detail(serverId);
@@ -147,11 +173,15 @@ export function MCPServerUserCredentialsPanel({
     <div className="space-y-4" data-testid="mcp-server-user-credentials-panel">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="text-lg font-medium">User Credentials</h2>
+          <h2 className="text-lg font-medium">
+            <LocalizedText text={"User Credentials"} />
+          </h2>
           <p className="text-sm text-muted-foreground">
-            Per-user OAuth2 tokens and BYOK API keys stored for this server. Revoking one deletes it from the database
-            and clears the cached copy, so the user must connect again before the gateway will call this server for
-            them.
+            <LocalizedText
+              text={
+                "Per-user OAuth2 tokens and BYOK API keys stored for this server. Revoking one deletes it from the database and clears the cached copy, so the user must connect again before the gateway will call this server for them."
+              }
+            />
           </p>
         </div>
         <Button
@@ -159,25 +189,31 @@ export function MCPServerUserCredentialsPanel({
           size="sm"
           onClick={() => refetch()}
           disabled={isFetching}
-          aria-label="Refresh user credentials"
+          aria-label={translateMessage("Refresh user credentials")}
         >
           <RefreshCw className={`size-4 ${isFetching ? "animate-spin" : ""}`} />
-          Refresh
+          <LocalizedText text={"Refresh"} />
         </Button>
       </div>
 
       {revoke.isError ? (
         <Alert variant="destructive">
-          <AlertTitle>Could not revoke credential</AlertTitle>
-          <AlertDescription>{revoke.error.message}</AlertDescription>
+          <AlertTitle>
+            <LocalizedText text={"Could not revoke credential"} />
+          </AlertTitle>
+          <AlertDescription>{localizedProperty(revoke.error, "message")}</AlertDescription>
         </Alert>
       ) : null}
       {revoke.isSuccess ? (
         <Alert>
-          <AlertTitle>Credential revoked</AlertTitle>
+          <AlertTitle>
+            <LocalizedText text={"Credential revoked"} />
+          </AlertTitle>
           <AlertDescription>
-            The stored {credentialTypeLabel(revoke.variables.credential_type)} credential for user{" "}
-            {revoke.variables.user_id} was deleted.
+            <LocalizedText text={"The stored "} />
+            {credentialTypeLabel(revoke.variables.credential_type)}
+            <LocalizedText text={" credential for user"} /> {revoke.variables.user_id}
+            <LocalizedText text={" was deleted."} />
           </AlertDescription>
         </Alert>
       ) : null}
@@ -187,20 +223,25 @@ export function MCPServerUserCredentialsPanel({
       <AlertDialog open={pendingItem !== null} onOpenChange={(open) => !open && setPendingItem(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Revoke stored credential</AlertDialogTitle>
+            <AlertDialogTitle>
+              <LocalizedText text={"Revoke stored credential"} />
+            </AlertDialogTitle>
             <AlertDialogDescription>
               {pendingItem
-                ? `This deletes the ${credentialTypeLabel(pendingItem.credential_type)} credential stored for user ${pendingItem.user_id}. `
+                ? translateMessage("This deletes the %{0} credential stored for user %{1}. ", [
+                    credentialTypeLabel(pendingItem.credential_type),
+                    pendingItem.user_id,
+                  ])
                 : ""}
-              Their next MCP request to this server fails until they connect again.
+              <LocalizedText text={"Their next MCP request to this server fails until they connect again."} />
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <Button variant="outline" onClick={() => setPendingItem(null)}>
-              Cancel
+              <LocalizedText text={"Cancel"} />
             </Button>
             <Button variant="destructive" onClick={confirmRevoke} disabled={revoke.isPending}>
-              Revoke
+              <LocalizedText text={"Revoke"} />
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>

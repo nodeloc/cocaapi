@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, useUiLocale } from "@/lib/i18n";
 
 import { Page, PageTabs, PageTabsList, PageTabsTrigger } from "@/components/shared/Page";
 import React from "react";
@@ -21,6 +22,7 @@ interface CostOptimizationViewProps {
 }
 
 const CostOptimizationView: React.FC<CostOptimizationViewProps> = ({ accessToken, userId, userRole }) => {
+  useUiLocale();
   const activity = useDailyActivityRange(accessToken, userId, userRole);
   const canViewProxyWideCostData = useCan("viewProxyWideCostData");
   const [visitedTabs, setVisitedTabs] = React.useState<readonly string[]>(["usage"]);
@@ -39,20 +41,31 @@ const CostOptimizationView: React.FC<CostOptimizationViewProps> = ({ accessToken
         <PageHeader>
           <PageHeaderTitle>
             <PiggyBank />
-            Cost Optimization
+            <LocalizedText text={"Cost Optimization"} />
           </PageHeaderTitle>
           <PageHeaderDescription>
-            Track and configure the mechanisms that save you money: prompt compression and prompt caching. Auto routers
-            live under Models + Endpoints, on the Auto-Routers tab
+            <LocalizedText
+              text={
+                "Track and configure the mechanisms that save you money: prompt compression and prompt caching. Auto routers live under Models + Endpoints, on the Auto-Routers tab"
+              }
+            />
           </PageHeaderDescription>
           <PageHeaderControls>
             <PageTabsList>
-              <PageTabsTrigger value="usage">Overall</PageTabsTrigger>
+              <PageTabsTrigger value="usage">
+                <LocalizedText text={"Overall"} />
+              </PageTabsTrigger>
               {canViewProxyWideCostData && (
                 <>
-                  <PageTabsTrigger value="compression">Prompt Compression</PageTabsTrigger>
-                  <PageTabsTrigger value="caching">Prompt Caching</PageTabsTrigger>
-                  <PageTabsTrigger value="autorouter-usage">Auto-Router</PageTabsTrigger>
+                  <PageTabsTrigger value="compression">
+                    <LocalizedText text={"Prompt Compression"} />
+                  </PageTabsTrigger>
+                  <PageTabsTrigger value="caching">
+                    <LocalizedText text={"Prompt Caching"} />
+                  </PageTabsTrigger>
+                  <PageTabsTrigger value="autorouter-usage">
+                    <LocalizedText text={"Auto-Router"} />
+                  </PageTabsTrigger>
                 </>
               )}
             </PageTabsList>
@@ -64,16 +77,18 @@ const CostOptimizationView: React.FC<CostOptimizationViewProps> = ({ accessToken
           className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 rounded-lg border border-border bg-muted/50 px-4 py-4"
         >
           <Info className="mt-0.5 size-5 text-primary" aria-hidden="true" />
-          <p className="font-medium text-foreground">This is an experimental dashboard</p>
+          <p className="font-medium text-foreground">
+            <LocalizedText text={"This is an experimental dashboard"} />
+          </p>
           <p className="col-start-2 text-sm text-muted-foreground">
-            Have feedback? Join the discussion{" "}
+            <LocalizedText text={"Have feedback? Join the discussion"} />{" "}
             <a
               href="https://github.com/BerriAI/litellm/discussions/32168"
               target="_blank"
               rel="noopener noreferrer"
               className="text-primary underline underline-offset-2"
             >
-              here
+              <LocalizedText text={"here"} />
             </a>
           </p>
         </div>
@@ -81,8 +96,11 @@ const CostOptimizationView: React.FC<CostOptimizationViewProps> = ({ accessToken
         {activity.failed && (
           <Alert variant="error">
             <AlertDescription className="text-inherit">
-              Fetching spend data failed, so the savings below may be empty rather than final. Reload the page to try
-              again.
+              <LocalizedText
+                text={
+                  "Fetching spend data failed, so the savings below may be empty rather than final. Reload the page to try again."
+                }
+              />
             </AlertDescription>
           </Alert>
         )}

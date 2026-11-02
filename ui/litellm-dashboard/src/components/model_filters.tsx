@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import { Card } from "@/components/ui/card";
 import { matchesSearchTerm } from "@/utils/searchUtils";
@@ -33,6 +35,7 @@ const ModelFilters: React.FC<ModelFiltersProps> = ({
   showFiltersCard = true,
   className = "",
 }) => {
+  useUiLocale();
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [selectedProvider, setSelectedProvider] = useState<string>("");
   const [selectedMode, setSelectedMode] = useState<string>("");
@@ -126,24 +129,28 @@ const ModelFilters: React.FC<ModelFiltersProps> = ({
   const filtersContent = (
     <div className="flex flex-wrap gap-4 items-center">
       <div>
-        <p className="text-sm font-medium mb-2">Search Models:</p>
+        <p className="text-sm font-medium mb-2">
+          <LocalizedText text={"Search Models:"} />
+        </p>
         <input
           type="text"
-          placeholder="Search model names..."
+          placeholder={translateMessage("Search model names...")}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="border rounded-sm px-3 py-2 w-64 h-10 text-sm"
         />
       </div>
       <div>
-        <p className="text-sm font-medium mb-2">Provider:</p>
+        <p className="text-sm font-medium mb-2">
+          <LocalizedText text={"Provider:"} />
+        </p>
         <select
           value={selectedProvider}
           onChange={(e) => setSelectedProvider(e.target.value)}
           className="border rounded-sm px-3 py-2 text-sm text-muted-foreground w-40 h-10"
         >
           <option value="" className="text-sm text-muted-foreground">
-            All Providers
+            <LocalizedText text={"All Providers"} />
           </option>
           {modelHubData &&
             getUniqueProviders(modelHubData).map((provider) => (
@@ -154,14 +161,16 @@ const ModelFilters: React.FC<ModelFiltersProps> = ({
         </select>
       </div>
       <div>
-        <p className="text-sm font-medium mb-2">Mode:</p>
+        <p className="text-sm font-medium mb-2">
+          <LocalizedText text={"Mode:"} />
+        </p>
         <select
           value={selectedMode}
           onChange={(e) => setSelectedMode(e.target.value)}
           className="border rounded-sm px-3 py-2 text-sm text-muted-foreground w-32 h-10"
         >
           <option value="" className="text-sm text-muted-foreground">
-            All Modes
+            <LocalizedText text={"All Modes"} />
           </option>
           {modelHubData &&
             getUniqueModes(modelHubData).map((mode) => (
@@ -172,14 +181,16 @@ const ModelFilters: React.FC<ModelFiltersProps> = ({
         </select>
       </div>
       <div>
-        <p className="text-sm font-medium mb-2">Features:</p>
+        <p className="text-sm font-medium mb-2">
+          <LocalizedText text={"Features:"} />
+        </p>
         <select
           value={selectedFeature}
           onChange={(e) => setSelectedFeature(e.target.value)}
           className="border rounded-sm px-3 py-2 text-sm text-muted-foreground w-48 h-10"
         >
           <option value="" className="text-sm text-muted-foreground">
-            All Features
+            <LocalizedText text={"All Features"} />
           </option>
           {modelHubData &&
             getUniqueFeatures(modelHubData).map((feature) => (
@@ -197,7 +208,7 @@ const ModelFilters: React.FC<ModelFiltersProps> = ({
             onClick={resetFilters}
             className="text-info hover:text-info/80 text-sm underline h-10 flex items-center"
           >
-            Clear Filters
+            <LocalizedText text={"Clear Filters"} />
           </button>
         </div>
       )}

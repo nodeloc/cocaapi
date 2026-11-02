@@ -1,3 +1,4 @@
+import { markUiCopy } from "@/lib/i18n";
 export interface KeyModelScope {
   hasModelAccess: boolean;
   label: string | null;
@@ -7,9 +8,15 @@ const MANAGEMENT_ROUTES_PRESET = "management_routes";
 const INFO_ROUTES_PRESET = "info_routes";
 const SCIM_ROUTE_PREFIX = "/scim";
 
-const MANAGEMENT_SCOPE: KeyModelScope = { hasModelAccess: false, label: "Management" };
-const READ_ONLY_SCOPE: KeyModelScope = { hasModelAccess: false, label: "Read-only" };
-const SCIM_SCOPE: KeyModelScope = { hasModelAccess: false, label: "SCIM" };
+const MANAGEMENT_SCOPE: KeyModelScope = markUiCopy(
+  { hasModelAccess: false, label: "Management" },
+  { label: "Management" },
+);
+const READ_ONLY_SCOPE: KeyModelScope = markUiCopy(
+  { hasModelAccess: false, label: "Read-only" },
+  { label: "Read-only" },
+);
+const SCIM_SCOPE: KeyModelScope = markUiCopy({ hasModelAccess: false, label: "SCIM" }, { label: "SCIM" });
 const FULL_MODEL_ACCESS: KeyModelScope = { hasModelAccess: true, label: null };
 
 const isScimRoute = (route: string): boolean => route.startsWith(SCIM_ROUTE_PREFIX);

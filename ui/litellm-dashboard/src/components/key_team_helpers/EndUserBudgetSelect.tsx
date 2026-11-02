@@ -1,4 +1,5 @@
 "use client";
+import { translateMessage, useUiLocale } from "@/lib/i18n";
 
 import React from "react";
 
@@ -33,6 +34,7 @@ export const EndUserBudgetSelect: React.FC<EndUserBudgetSelectProps> = ({
   onChange,
   canEdit,
 }) => {
+  useUiLocale();
   const { data: budgets } = useBudgetOptions(accessToken, canEdit);
   const options: SearchSelectOption[] = (budgets ?? []).map((budget) => ({
     label: budget.budget_id,
@@ -43,9 +45,9 @@ export const EndUserBudgetSelect: React.FC<EndUserBudgetSelectProps> = ({
   return (
     <SearchSelect
       inputId={id}
-      aria-label="Default Customer Budget"
-      placeholder="No default budget"
-      emptyText="No budgets found. Create one under Budgets."
+      aria-label={translateMessage("Default Customer Budget")}
+      placeholder={translateMessage("No default budget")}
+      emptyText={translateMessage("No budgets found. Create one under Budgets.")}
       options={options}
       value={value}
       onValueChange={onChange}

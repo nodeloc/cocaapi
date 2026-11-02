@@ -1,3 +1,4 @@
+import { markUiCopy } from "@/lib/i18n";
 const WORD_FORM_BUDGET_DURATIONS: Record<string, string> = {
   hourly: "1h",
   daily: "24h",
@@ -30,8 +31,11 @@ export const modelSentinelOptions = (
   keyTeamId: string | null | undefined,
   teamLoaded: boolean,
 ): { value: string; label: string }[] => {
-  if (keyTeamId == null) return [{ value: "all-proxy-models", label: "All Proxy Models" }];
-  return teamLoaded ? [{ value: "all-team-models", label: "All Team Models" }] : [];
+  if (keyTeamId == null)
+    return [markUiCopy({ value: "all-proxy-models", label: "All Proxy Models" }, { label: "All Proxy Models" })];
+  return teamLoaded
+    ? [markUiCopy({ value: "all-team-models", label: "All Team Models" }, { label: "All Team Models" })]
+    : [];
 };
 
 export type MovedMetadataTags = {

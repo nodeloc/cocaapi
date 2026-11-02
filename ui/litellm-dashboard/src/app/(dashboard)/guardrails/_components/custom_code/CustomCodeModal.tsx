@@ -1,3 +1,6 @@
+
+"use client";
+import { LocalizedText, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 import React, { useState, useRef, useEffect } from "react";
 import { CheckCircle2, ChevronRight, Code, ExternalLink, PlayCircle, Save, Users, XCircle } from "lucide-react";
 import { createGuardrailCall, updateGuardrailCall, testCustomCodeGuardrail } from "@/components/networking";
@@ -78,6 +81,7 @@ interface CustomCodeModalProps {
 }
 
 const CustomCodeModal: React.FC<CustomCodeModalProps> = ({ visible, onClose, onSuccess, accessToken, editData }) => {
+  useUiLocale();
   const anchor = useComboboxAnchor();
   const isEditMode = !!editData;
   const [guardrailName, setGuardrailName] = useState("");
@@ -319,7 +323,7 @@ const CustomCodeModal: React.FC<CustomCodeModalProps> = ({ visible, onClose, onS
         }
 
         await updateGuardrailCall(accessToken, editData.guardrail_id, updateData);
-        toast.success("Custom code guardrail updated successfully");
+        toast.success(translateMessage("Custom code guardrail updated successfully"));
       } else {
         // Create new guardrail
         const streamScope = streamScopePayload(mode, streamScopeByMode);
@@ -337,7 +341,7 @@ const CustomCodeModal: React.FC<CustomCodeModalProps> = ({ visible, onClose, onS
         };
 
         await createGuardrailCall(accessToken, guardrailData);
-        toast.success("Custom code guardrail created successfully");
+        toast.success(translateMessage("Custom code guardrail created successfully"));
       }
       onSuccess();
       onClose();
@@ -430,27 +434,27 @@ const CustomCodeModal: React.FC<CustomCodeModalProps> = ({ visible, onClose, onS
       <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-[1400px]">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold">
-            {isEditMode ? "Edit Custom Guardrail" : "Create Custom Guardrail"}
+            {isEditMode ? translateMessage("Edit Custom Guardrail") : translateMessage("Create Custom Guardrail")}
           </DialogTitle>
-          <DialogDescription>Define custom logic using Python-like syntax</DialogDescription>
+          <DialogDescription><LocalizedText text={"Define custom logic using Python-like syntax"} /></DialogDescription>
         </DialogHeader>
 
         {/* Top Controls */}
         <div className="flex flex-wrap items-center gap-4 border-b border-border py-4">
           <div className="min-w-[160px] max-w-[200px] flex-1">
-            <label className="mb-1 block text-xs font-medium text-muted-foreground">Guardrail Name</label>
+            <label className="mb-1 block text-xs font-medium text-muted-foreground"><LocalizedText text={"Guardrail Name"} /></label>
             <Input
               value={guardrailName}
               onChange={(e) => setGuardrailName(e.target.value)}
-              placeholder="e.g., block-pii-custom"
+              placeholder={translateMessage("e.g., block-pii-custom")}
             />
           </div>
           <div className="w-[280px]">
             <label className="mb-1 block text-xs font-medium text-muted-foreground">
-              {tagScopedModeLabel ? "Mode (tag-scoped, read-only)" : "Mode (can select multiple)"}
+              {tagScopedModeLabel ? translateMessage("Mode (tag-scoped, read-only)") : translateMessage("Mode (can select multiple)")}
             </label>
             {tagScopedModeLabel ? (
-              <Input value={tagScopedModeLabel} disabled aria-label="Mode (tag-scoped)" />
+              <Input value={tagScopedModeLabel} disabled aria-label={translateMessage("Mode (tag-scoped)")} />
             ) : (
               <Combobox
                 items={MODE_OPTIONS}
@@ -460,18 +464,18 @@ const CustomCodeModal: React.FC<CustomCodeModalProps> = ({ visible, onClose, onS
               >
                 <ComboboxChips render={<div ref={anchor} />} className="w-full">
                   {selectedModeOptions.map((option) => (
-                    <ComboboxChip key={option.value} aria-label={option.label}>
-                      {option.label}
+                    <ComboboxChip key={option.value} aria-label={localizedProperty(option, "label", option.label)}>
+                      {localizedProperty(option, "label", option.label)}
                     </ComboboxChip>
                   ))}
-                  <ComboboxChipsInput placeholder={mode.length === 0 ? "Select modes" : undefined} />
+                  <ComboboxChipsInput placeholder={mode.length === 0 ? translateMessage("Select modes") : undefined} />
                 </ComboboxChips>
                 <ComboboxContent anchor={anchor}>
-                  <ComboboxEmpty>No matching modes</ComboboxEmpty>
+                  <ComboboxEmpty><LocalizedText text={"No matching modes"} /></ComboboxEmpty>
                   <ComboboxList>
                     {(option: ModeOption) => (
                       <ComboboxItem key={option.value} value={option}>
-                        {option.label}
+                        {localizedProperty(option, "label", option.label)}
                       </ComboboxItem>
                     )}
                   </ComboboxList>
@@ -484,33 +488,31 @@ const CustomCodeModal: React.FC<CustomCodeModalProps> = ({ visible, onClose, onS
           )}
           {mode.includes("logging_only") && (
             <div className="flex shrink-0 items-center gap-2 pt-5">
-              <span className="text-sm text-muted-foreground">
-                Continue observing the response after a flagged request
-              </span>
+              <span className="text-sm text-muted-foreground"><LocalizedText text={"Continue observing the response after a flagged request"} /></span>
               <Switch
                 checked={loggingOnlyScopeChoice === "default" && loggingOnlyContinue}
                 disabled={loggingOnlyScopeChoice !== "default"}
                 onCheckedChange={setLoggingOnlyContinue}
-                aria-label="Continue observing the response after a flagged request"
+                aria-label={translateMessage("Continue observing the response after a flagged request")}
               />
             </div>
           )}
           <div className="w-[180px]">
-            <label className="mb-1 block text-xs font-medium text-muted-foreground">Template</label>
+            <label className="mb-1 block text-xs font-medium text-muted-foreground"><LocalizedText text={"Template"} /></label>
             <Select
               items={TEMPLATE_ITEMS}
               value={selectedTemplate}
               onValueChange={(value: string | null) => value && handleTemplateChange(value)}
             >
-              <SelectTrigger className="w-full" aria-label="Template">
+              <SelectTrigger className="w-full" aria-label={translateMessage("Template")}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
-                  <SelectLabel>STANDARD</SelectLabel>
+                  <SelectLabel><LocalizedText text={"STANDARD"} /></SelectLabel>
                   {TEMPLATE_ITEMS.map((template) => (
                     <SelectItem key={template.value} value={template.value}>
-                      {template.label}
+                      {localizedProperty(template, "label", template.label)}
                     </SelectItem>
                   ))}
                 </SelectGroup>
@@ -521,15 +523,15 @@ const CustomCodeModal: React.FC<CustomCodeModalProps> = ({ visible, onClose, onS
                   className="flex w-full items-center gap-1 rounded-sm px-2 py-1.5 text-xs text-primary hover:bg-accent"
                 >
                   <Users className="size-3.5" />
-                  <span>Browse Community templates</span>
+                  <span><LocalizedText text={"Browse Community templates"} /></span>
                   <ExternalLink className="size-2.5" />
                 </button>
               </SelectContent>
             </Select>
           </div>
           <div className="flex items-center gap-2 pt-5">
-            <span className="text-sm text-muted-foreground">Default On</span>
-            <Switch checked={defaultOn} onCheckedChange={setDefaultOn} aria-label="Default On" />
+            <span className="text-sm text-muted-foreground"><LocalizedText text={"Default On"} /></span>
+            <Switch checked={defaultOn} onCheckedChange={setDefaultOn} aria-label={translateMessage("Default On")} />
           </div>
         </div>
         {mode.length > 0 && (
@@ -543,8 +545,8 @@ const CustomCodeModal: React.FC<CustomCodeModalProps> = ({ visible, onClose, onS
           {/* Code Editor */}
           <div className="flex min-w-0 flex-1 flex-col">
             <div className="mb-2 flex shrink-0 items-center justify-between">
-              <span className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">Python Logic</span>
-              <span className="text-xs text-muted-foreground">Restricted environment (no imports)</span>
+              <span className="text-xs font-semibold tracking-wide text-muted-foreground uppercase"><LocalizedText text={"Python Logic"} /></span>
+              <span className="text-xs text-muted-foreground"><LocalizedText text={"Restricted environment (no imports)"} /></span>
             </div>
             <div
               className="relative rounded-lg overflow-hidden border border-gray-700 bg-[#1e1e1e] shrink-0"
@@ -590,61 +592,49 @@ const CustomCodeModal: React.FC<CustomCodeModalProps> = ({ visible, onClose, onS
             >
               <CollapsibleTrigger className="flex w-full items-center gap-2 p-3 text-sm font-medium">
                 <ChevronRight className={`size-4 transition-transform ${testExpanded ? "rotate-90" : ""}`} />
-                <PlayCircle className="size-4 text-muted-foreground" />
-                Test Your Guardrail
-              </CollapsibleTrigger>
+                <PlayCircle className="size-4 text-muted-foreground" /><LocalizedText text={"Test Your Guardrail"} /></CollapsibleTrigger>
               <CollapsibleContent className="p-3 pt-0">
                 <div className="space-y-3">
                   <div>
                     <div className="flex items-center justify-between mb-2">
-                      <label className="block text-xs font-medium text-muted-foreground">Test Input (JSON)</label>
+                      <label className="block text-xs font-medium text-muted-foreground"><LocalizedText text={"Test Input (JSON)"} /></label>
                       <div className="flex items-center gap-2">
-                        <span className="text-xs text-muted-foreground">Load example:</span>
+                        <span className="text-xs text-muted-foreground"><LocalizedText text={"Load example:"} /></span>
                         <button
                           type="button"
                           onClick={() => setTestInput(JSON.stringify(TEST_INPUT_EXAMPLES.pre_call.data, null, 2))}
                           className="px-2 py-1 text-xs rounded-sm border border-warning/20 bg-warning/10 text-warning hover:bg-warning/15 transition-colors"
-                        >
-                          Pre-call
-                        </button>
+                        ><LocalizedText text={"Pre-call"} /></button>
                         <button
                           type="button"
                           onClick={() => setTestInput(JSON.stringify(TEST_INPUT_EXAMPLES.pre_mcp_call.data, null, 2))}
                           className="px-2 py-1 text-xs rounded-sm border border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-100 transition-colors dark:border-purple-800 dark:bg-purple-950 dark:text-purple-300 dark:hover:bg-purple-900"
-                        >
-                          Pre MCP
-                        </button>
+                        ><LocalizedText text={"Pre MCP"} /></button>
                         <button
                           type="button"
                           onClick={() => setTestInput(JSON.stringify(TEST_INPUT_EXAMPLES.post_call.data, null, 2))}
                           className="px-2 py-1 text-xs rounded-sm border border-success/20 bg-success/10 text-success hover:bg-success/15 transition-colors"
-                        >
-                          Post-call
-                        </button>
+                        ><LocalizedText text={"Post-call"} /></button>
                       </div>
                     </div>
                     <div className="mb-2 rounded-sm border border-border bg-muted/40 p-2 text-xs text-muted-foreground">
                       <div className="grid grid-cols-2 gap-x-4 gap-y-1">
                         <div>
-                          <strong>texts</strong>: Message content (always)
+                          <strong><LocalizedText text={"texts"} /></strong><LocalizedText text={": Message content (always)"} /></div>
+                        <div>
+                          <strong><LocalizedText text={"images"} /></strong><LocalizedText text={": Base64 images (vision)"} /></div>
+                        <div>
+                          <strong><LocalizedText text={"tools"} /></strong><LocalizedText text={": Tool definitions "} /><span className="text-warning"><LocalizedText text={"(pre_call)"} /></span><LocalizedText text={", MCP as OpenAI tool "} /><span className="text-purple-600"><LocalizedText text={"(pre_mcp_call)"} /></span>
                         </div>
                         <div>
-                          <strong>images</strong>: Base64 images (vision)
+                          <strong>tool_calls</strong><LocalizedText text={": LLM tool calls "} /><span className="text-success"><LocalizedText text={"(post_call)"} /></span>
                         </div>
                         <div>
-                          <strong>tools</strong>: Tool definitions <span className="text-warning">(pre_call)</span>, MCP
-                          as OpenAI tool <span className="text-purple-600">(pre_mcp_call)</span>
+                          <strong>structured_messages</strong><LocalizedText text={": Full messages"} />{" "}
+                          <span className="text-warning"><LocalizedText text={"(pre_call)"} /></span>
                         </div>
                         <div>
-                          <strong>tool_calls</strong>: LLM tool calls <span className="text-success">(post_call)</span>
-                        </div>
-                        <div>
-                          <strong>structured_messages</strong>: Full messages{" "}
-                          <span className="text-warning">(pre_call)</span>
-                        </div>
-                        <div>
-                          <strong>model</strong>: Model name (always)
-                        </div>
+                          <strong><LocalizedText text={"model"} /></strong><LocalizedText text={": Model name (always)"} /></div>
                       </div>
                     </div>
                     <Textarea
@@ -658,7 +648,7 @@ const CustomCodeModal: React.FC<CustomCodeModalProps> = ({ visible, onClose, onS
                   <div className="flex items-center gap-3">
                     <Button size="sm" onClick={handleTest} disabled={isTesting} aria-busy={isTesting}>
                       {isTesting ? <UiLoadingSpinner className="size-4" /> : <PlayCircle />}
-                      {isTesting ? "Running..." : "Run Test"}
+                      {isTesting ? translateMessage("Running...") : translateMessage("Run Test")}
                     </Button>
                     {testResult && (
                       <div
@@ -682,16 +672,14 @@ const CustomCodeModal: React.FC<CustomCodeModalProps> = ({ visible, onClose, onS
                           </>
                         ) : testResult.action === "allow" ? (
                           <>
-                            <CheckCircle2 className="size-4" /> Allowed
-                          </>
+                            <CheckCircle2 className="size-4" /><LocalizedText text={" Allowed"} /></>
                         ) : testResult.action === "block" ? (
                           <>
-                            <XCircle className="size-4" /> Blocked: {testResult.reason}
+                            <XCircle className="size-4" /><LocalizedText text={" Blocked: "} />{testResult.reason}
                           </>
                         ) : testResult.action === "modify" ? (
                           <>
-                            <CheckCircle2 className="size-4" /> Modified
-                            {testResult.texts && testResult.texts.length > 0 && (
+                            <CheckCircle2 className="size-4" /><LocalizedText text={" Modified"} />{testResult.texts && testResult.texts.length > 0 && (
                               <span className="ml-1 text-xs text-muted-foreground">
                                 -&gt; {testResult.texts[0].substring(0, 50)}
                                 {testResult.texts[0].length > 50 ? "..." : ""}
@@ -700,7 +688,7 @@ const CustomCodeModal: React.FC<CustomCodeModalProps> = ({ visible, onClose, onS
                           </>
                         ) : (
                           <>
-                            <CheckCircle2 className="size-4" /> {testResult.action || "Unknown"}
+                            <CheckCircle2 className="size-4" /> {testResult.action || translateMessage("Unknown")}
                           </>
                         )}
                       </div>
@@ -716,16 +704,12 @@ const CustomCodeModal: React.FC<CustomCodeModalProps> = ({ visible, onClose, onS
                   <Users className="size-5 text-info" />
                 </div>
                 <div>
-                  <div className="text-sm font-medium">Built a useful guardrail?</div>
-                  <div className="text-xs text-muted-foreground">
-                    Share it with the community and help others build faster
-                  </div>
+                  <div className="text-sm font-medium"><LocalizedText text={"Built a useful guardrail?"} /></div>
+                  <div className="text-xs text-muted-foreground"><LocalizedText text={"Share it with the community and help others build faster"} /></div>
                 </div>
               </div>
               <Button size="sm" onClick={() => window.open("https://github.com/BerriAI/litellm-guardrails", "_blank")}>
-                <ExternalLink />
-                Contribute Template
-              </Button>
+                <ExternalLink /><LocalizedText text={"Contribute Template"} /></Button>
             </div>
           </div>
 
@@ -733,9 +717,9 @@ const CustomCodeModal: React.FC<CustomCodeModalProps> = ({ visible, onClose, onS
           <div className="w-[300px] shrink-0 overflow-auto border-l border-border pl-6">
             <div className="mb-3 flex items-center gap-2">
               <Code className="size-4 text-muted-foreground" />
-              <span className="font-semibold">Available Primitives</span>
+              <span className="font-semibold"><LocalizedText text={"Available Primitives"} /></span>
             </div>
-            <p className="mb-3 text-xs text-muted-foreground">Click to copy functions to clipboard</p>
+            <p className="mb-3 text-xs text-muted-foreground"><LocalizedText text={"Click to copy functions to clipboard"} /></p>
 
             <div className="space-y-2">
               {Object.entries(PRIMITIVES).map(([category, primitives]) => (
@@ -780,14 +764,12 @@ const CustomCodeModal: React.FC<CustomCodeModalProps> = ({ visible, onClose, onS
 
         {/* Footer */}
         <div className="mt-4 flex items-center justify-between border-t border-border pt-4">
-          <span className="text-xs text-muted-foreground">Changes are auto-saved to local draft</span>
+          <span className="text-xs text-muted-foreground"><LocalizedText text={"Changes are auto-saved to local draft"} /></span>
           <div className="flex items-center gap-3">
-            <Button variant="secondary" onClick={onClose}>
-              Cancel
-            </Button>
+            <Button variant="secondary" onClick={onClose}><LocalizedText text={"Cancel"} /></Button>
             <Button onClick={handleSave} disabled={isSaving || !guardrailName.trim()} aria-busy={isSaving}>
               {isSaving ? <UiLoadingSpinner className="size-4" /> : <Save />}
-              {isEditMode ? "Update Guardrail" : "Save Guardrail"}
+              {isEditMode ? translateMessage("Update Guardrail") : translateMessage("Save Guardrail")}
             </Button>
           </div>
         </div>

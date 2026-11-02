@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, useUiLocale } from "@/lib/i18n";
 
 import { ArrowUpRight, Newspaper } from "lucide-react";
 import { useBlogPosts, type BlogPost } from "@/app/(dashboard)/hooks/blogPosts/useBlogPosts";
@@ -22,17 +23,21 @@ export const formatRelativeDate = (isoDate: string, now: Date = new Date()): str
   return relativeTime.format(-Math.round(days / 365), "year");
 };
 
-const Row = ({ children }: { children: React.ReactNode }) => (
-  <li className="flex gap-3 py-3">
-    <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full border border-border bg-background text-muted-foreground">
-      <Newspaper className="size-3.5" />
-    </span>
-    <div className="flex min-w-0 flex-1 flex-col gap-0.5">{children}</div>
-  </li>
-);
+const Row = ({ children }: { children: React.ReactNode }) => {
+  useUiLocale();
+  return (
+    <li className="flex gap-3 py-3">
+      <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full border border-border bg-background text-muted-foreground">
+        <Newspaper className="size-3.5" />
+      </span>
+      <div className="flex min-w-0 flex-1 flex-col gap-0.5">{children}</div>
+    </li>
+  );
+};
 
 /** Latest posts from the LiteLLM blog RSS feed, via /public/litellm_blog_posts, one row per post. */
 export default function UpdatesFeed({ className }: { className?: string }) {
+  useUiLocale();
   const disabled = useDisableBlogPosts();
   const { data, isLoading, isError, refetch } = useBlogPosts();
   if (disabled) return null;
@@ -43,10 +48,10 @@ export default function UpdatesFeed({ className }: { className?: string }) {
     <section aria-labelledby="home-updates-title" data-testid="home-updates" className={className}>
       <div className="flex items-center justify-between gap-2">
         <h2 id="home-updates-title" className="text-lg font-semibold">
-          Updates
+          <LocalizedText text={"Updates"} />
         </h2>
         <Button variant="ghost" size="sm" render={<a href={BLOG_URL} target="_blank" rel="noopener noreferrer" />}>
-          View all
+          <LocalizedText text={"View all"} />
           <ArrowUpRight className="size-3.5" />
         </Button>
       </div>
@@ -63,13 +68,19 @@ export default function UpdatesFeed({ className }: { className?: string }) {
       )}
       {isError && (
         <div className="flex items-center justify-between gap-2 py-3 text-sm">
-          <span className="text-destructive">Failed to load posts</span>
+          <span className="text-destructive">
+            <LocalizedText text={"Failed to load posts"} />
+          </span>
           <Button variant="outline" size="sm" onClick={() => void refetch()}>
-            Retry
+            <LocalizedText text={"Retry"} />
           </Button>
         </div>
       )}
-      {data && posts.length === 0 && <p className="py-3 text-sm text-muted-foreground">No posts yet</p>}
+      {data && posts.length === 0 && (
+        <p className="py-3 text-sm text-muted-foreground">
+          <LocalizedText text={"No posts yet"} />
+        </p>
+      )}
       {posts.length > 0 && (
         <ol className="m-0 list-none p-0">
           {posts.map((post: BlogPost) => (
@@ -81,9 +92,11 @@ export default function UpdatesFeed({ className }: { className?: string }) {
                 rel="noopener noreferrer"
                 className="text-sm font-semibold leading-5 text-foreground outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring/50"
               >
-                {post.title}
+                {localizedProperty(post, "title", post.title)}
               </a>
-              <span className="line-clamp-2 text-sm leading-5 text-muted-foreground">{post.description}</span>
+              <span className="line-clamp-2 text-sm leading-5 text-muted-foreground">
+                {localizedProperty(post, "description", post.description)}
+              </span>
             </Row>
           ))}
         </ol>

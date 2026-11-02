@@ -1,4 +1,5 @@
 "use client";
+import { localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { CircleHelp } from "lucide-react";
 import React, { useEffect, useId } from "react";
@@ -90,16 +91,9 @@ export interface GuardrailFieldProps {
   children: (control: GuardrailFieldControlProps) => React.ReactNode;
 }
 
-export const GuardrailField: React.FC<GuardrailFieldProps> = ({
-  control,
-  name,
-  label,
-  description,
-  rules,
-  defaultValue,
-  className,
-  children,
-}) => {
+export const GuardrailField: React.FC<GuardrailFieldProps> = (cocaCopyProps0) => {
+  const { control, name, label, description, rules, defaultValue, className, children } = cocaCopyProps0;
+  useUiLocale();
   const reactId = useId();
   const controlId = `${reactId}-control`;
   const descriptionId = `${reactId}-description`;
@@ -113,32 +107,42 @@ export const GuardrailField: React.FC<GuardrailFieldProps> = ({
 
   return (
     <Field data-invalid={invalid || undefined} className={className}>
-      {label !== undefined && <FieldLabel htmlFor={controlId}>{label}</FieldLabel>}
+      {label !== undefined && (
+        <FieldLabel htmlFor={controlId}>{localizedProperty(cocaCopyProps0, "label", label)}</FieldLabel>
+      )}
       {children({ ...field, id: controlId, "aria-invalid": invalid || undefined, "aria-describedby": describedBy })}
-      {description !== undefined && <FieldDescription id={descriptionId}>{description}</FieldDescription>}
+      {description !== undefined && (
+        <FieldDescription id={descriptionId}>
+          {localizedProperty(cocaCopyProps0, "description", description)}
+        </FieldDescription>
+      )}
       <FieldError id={errorId} errors={[fieldState.error]} />
     </Field>
   );
 };
 
 const SKIP_MESSAGE_ITEMS = [
-  { label: "Use global default", value: "inherit" },
-  { label: "Yes — exclude from guardrail scan", value: "yes" },
-  { label: "No — always include in scan", value: "no" },
+  markUiCopy({ label: "Use global default", value: "inherit" }, { label: "Use global default" }),
+  markUiCopy(
+    { label: "Yes — exclude from guardrail scan", value: "yes" },
+    { label: "Yes — exclude from guardrail scan" },
+  ),
+  markUiCopy({ label: "No — always include in scan", value: "no" }, { label: "No — always include in scan" }),
 ];
 
 export const SkipMessageSelect: React.FC<{ control: GuardrailFieldControlProps }> = ({ control }) => {
+  useUiLocale();
   const { id, value, onChange, "aria-invalid": ariaInvalid, "aria-describedby": ariaDescribedBy } = control;
 
   return (
     <Select items={SKIP_MESSAGE_ITEMS} value={asText(value) || null} onValueChange={onChange}>
       <SelectTrigger id={id} aria-invalid={ariaInvalid} aria-describedby={ariaDescribedBy} className="w-full">
-        <SelectValue placeholder="Select an option" />
+        <SelectValue placeholder={translateMessage("Select an option")} />
       </SelectTrigger>
       <SelectContent>
         {SKIP_MESSAGE_ITEMS.map((item) => (
           <SelectItem key={item.value} value={item.value}>
-            {item.label}
+            {localizedProperty(item, "label", item.label)}
           </SelectItem>
         ))}
       </SelectContent>
@@ -150,6 +154,7 @@ export const LoggingOnlyScopeSelect: React.FC<{
   control: GuardrailFieldControlProps;
   directionalScopeSupported: boolean;
 }> = ({ control, directionalScopeSupported }) => {
+  useUiLocale();
   const { id, value, onChange, "aria-invalid": ariaInvalid, "aria-describedby": ariaDescribedBy } = control;
   const items = getLoggingOnlyScopeOptions(directionalScopeSupported);
 
@@ -162,12 +167,12 @@ export const LoggingOnlyScopeSelect: React.FC<{
   return (
     <Select items={items} value={asText(value) || "default"} onValueChange={onChange}>
       <SelectTrigger id={id} aria-invalid={ariaInvalid} aria-describedby={ariaDescribedBy} className="w-full">
-        <SelectValue placeholder="Select an option" />
+        <SelectValue placeholder={translateMessage("Select an option")} />
       </SelectTrigger>
       <SelectContent>
         {items.map((item) => (
           <SelectItem key={item.value} value={item.value}>
-            {item.label}
+            {localizedProperty(item, "label", item.label)}
           </SelectItem>
         ))}
       </SelectContent>
@@ -180,6 +185,7 @@ export const LoggingOnlyScopeField: React.FC<{
   mode: unknown;
   directionalScopeSupported: boolean;
 }> = ({ control, mode, directionalScopeSupported }) => {
+  useUiLocale();
   const scopeChoice = useWatch({ control, name: "logging_only_scope_choice" });
   const continueDisabled = scopeChoice === "input" || scopeChoice === "output";
   if (!modeIncludesLoggingOnly(mode)) return null;
@@ -214,7 +220,7 @@ export const LoggingOnlyScopeField: React.FC<{
             onCheckedChange={fieldControl.onChange}
             aria-invalid={fieldControl["aria-invalid"]}
             aria-describedby={fieldControl["aria-describedby"]}
-            aria-label="Continue observing the response after a flagged request"
+            aria-label={translateMessage("Continue observing the response after a flagged request")}
           />
         )}
       </GuardrailField>

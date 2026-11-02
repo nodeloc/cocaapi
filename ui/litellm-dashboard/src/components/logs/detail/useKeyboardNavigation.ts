@@ -1,3 +1,4 @@
+import { markUiCopy } from "@/lib/i18n";
 import { useShortcut } from "@/components/shared/useShortcut";
 
 import { LogEntry } from "../types";
@@ -28,8 +29,8 @@ export function useKeyboardNavigation({
     if (index > 0) selectAt(index - 1);
   };
   const modal = { layer: "modal", enabled: isOpen } as const;
-  useShortcut("escape", onClose, { ...modal, description: "close" });
-  useShortcut("j", selectNextLog, { ...modal, description: "log" });
-  useShortcut("k", selectPreviousLog, { ...modal, description: "log" });
+  useShortcut("escape", onClose, markUiCopy({ ...modal, description: "close" }, { description: "close" }, [modal]));
+  useShortcut("j", selectNextLog, markUiCopy({ ...modal, description: "log" }, { description: "log" }, [modal]));
+  useShortcut("k", selectPreviousLog, markUiCopy({ ...modal, description: "log" }, { description: "log" }, [modal]));
   return { selectNextLog, selectPreviousLog };
 }

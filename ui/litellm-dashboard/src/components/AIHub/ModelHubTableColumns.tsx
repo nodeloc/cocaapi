@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { ColumnDef } from "@tanstack/react-table";
 import { Copy, Info, MoreHorizontal } from "lucide-react";
@@ -60,10 +61,11 @@ interface ModelHubRowActionsProps {
 }
 
 function ModelHubRowActions({ model, onModelClick }: ModelHubRowActionsProps) {
+  useUiLocale();
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        aria-label="Open model actions"
+        aria-label={translateMessage("Open model actions")}
         data-testid={`model-hub-actions-${model.model_group}`}
         className={cn(buttonVariants({ variant: "ghost", size: "icon-sm" }), "text-muted-foreground")}
       >
@@ -72,14 +74,14 @@ function ModelHubRowActions({ model, onModelClick }: ModelHubRowActionsProps) {
       <DropdownMenuContent align="end" className="w-52">
         <DropdownMenuItem data-testid="model-hub-action-details" onClick={() => onModelClick(model)}>
           <Info />
-          View details
+          <LocalizedText text={"View details"} />
         </DropdownMenuItem>
         <DropdownMenuItem
           data-testid="model-hub-action-copy"
           onClick={() => void copyToClipboard(model.model_group, "Model name copied")}
         >
           <Copy />
-          Copy model name
+          <LocalizedText text={"Copy model name"} />
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -94,8 +96,8 @@ export const getModelHubTableColumns = ({ onModelClick }: ModelHubTableColumnsDe
   {
     id: "model_group",
     accessorKey: "model_group",
-    meta: { title: "Public Model Name" },
-    header: ({ column }) => <DataTableSortHeader column={column} title="Public Model Name" />,
+    meta: markUiCopy({ title: "Public Model Name" }, { title: "Public Model Name" }),
+    header: ({ column }) => <DataTableSortHeader column={column} title={translateMessage("Public Model Name")} />,
     size: 220,
     enableSorting: true,
     sortingFn: "alphanumeric",
@@ -106,8 +108,11 @@ export const getModelHubTableColumns = ({ onModelClick }: ModelHubTableColumnsDe
   {
     id: "providers",
     accessorKey: "providers",
-    meta: { title: "Provider", skeleton: "chips", className: "hidden md:table-cell" },
-    header: ({ column }) => <DataTableSortHeader column={column} title="Provider" />,
+    meta: markUiCopy(
+      { title: "Provider", skeleton: "chips" as const, className: "hidden md:table-cell" },
+      { title: "Provider" },
+    ),
+    header: ({ column }) => <DataTableSortHeader column={column} title={translateMessage("Provider")} />,
     size: 150,
     enableSorting: true,
     sortingFn: (rowA, rowB) => rowA.original.providers.join(", ").localeCompare(rowB.original.providers.join(", ")),
@@ -128,8 +133,8 @@ export const getModelHubTableColumns = ({ onModelClick }: ModelHubTableColumnsDe
   {
     id: "mode",
     accessorKey: "mode",
-    meta: { title: "Mode", className: "hidden lg:table-cell" },
-    header: ({ column }) => <DataTableSortHeader column={column} title="Mode" />,
+    meta: markUiCopy({ title: "Mode", className: "hidden lg:table-cell" }, { title: "Mode" }),
+    header: ({ column }) => <DataTableSortHeader column={column} title={translateMessage("Mode")} />,
     size: 110,
     enableSorting: true,
     sortingFn: "alphanumeric",
@@ -143,8 +148,8 @@ export const getModelHubTableColumns = ({ onModelClick }: ModelHubTableColumnsDe
   {
     id: "max_input_tokens",
     accessorKey: "max_input_tokens",
-    meta: { title: "Tokens", className: "hidden lg:table-cell", numeric: true },
-    header: ({ column }) => <DataTableSortHeader column={column} title="Tokens" />,
+    meta: markUiCopy({ title: "Tokens", className: "hidden lg:table-cell", numeric: true }, { title: "Tokens" }),
+    header: ({ column }) => <DataTableSortHeader column={column} title={translateMessage("Tokens")} />,
     size: 110,
     enableSorting: true,
     sortingFn: (rowA, rowB) => {
@@ -186,33 +191,39 @@ export const getModelHubTableColumns = ({ onModelClick }: ModelHubTableColumnsDe
       );
     },
   },
-  {
-    id: "capabilities",
-    meta: { title: "Features", skeleton: "chips" },
-    header: "Features",
-    size: 220,
-    enableSorting: false,
-    cell: ({ row }) => {
-      const capabilities = getModelCapabilities(row.original);
-      if (capabilities.length === 0) {
-        return <span className="text-xs text-muted-foreground">-</span>;
-      }
-      return (
-        <div className="flex flex-wrap gap-1">
-          {capabilities.map((capability) => (
-            <Badge key={capability} variant="outline">
-              {formatCapabilityName(capability)}
-            </Badge>
-          ))}
-        </div>
-      );
+  markUiCopy(
+    {
+      id: "capabilities",
+      meta: markUiCopy({ title: "Features", skeleton: "chips" as const }, { title: "Features" }),
+      header: "Features",
+      size: 220,
+      enableSorting: false,
+      cell: ({ row }) => {
+        const capabilities = getModelCapabilities(row.original);
+        if (capabilities.length === 0) {
+          return <span className="text-xs text-muted-foreground">-</span>;
+        }
+        return (
+          <div className="flex flex-wrap gap-1">
+            {capabilities.map((capability) => (
+              <Badge key={capability} variant="outline">
+                {formatCapabilityName(capability)}
+              </Badge>
+            ))}
+          </div>
+        );
+      },
     },
-  },
+    { header: "Features" },
+  ),
   {
     id: "is_public_model_group",
     accessorKey: "is_public_model_group",
-    meta: { title: "Public", skeleton: "badge", className: "hidden md:table-cell" },
-    header: ({ column }) => <DataTableSortHeader column={column} title="Public" />,
+    meta: markUiCopy(
+      { title: "Public", skeleton: "badge" as const, className: "hidden md:table-cell" },
+      { title: "Public" },
+    ),
+    header: ({ column }) => <DataTableSortHeader column={column} title={translateMessage("Public")} />,
     size: 100,
     enableSorting: true,
     sortingFn: (rowA, rowB) => {
@@ -222,15 +233,19 @@ export const getModelHubTableColumns = ({ onModelClick }: ModelHubTableColumnsDe
     },
     cell: ({ row }) =>
       row.original.is_public_model_group === true ? (
-        <StatusBadge tone="success" label="Yes" />
+        <StatusBadge tone="success" label={translateMessage("Yes")} />
       ) : (
-        <StatusBadge tone="neutral" label="No" />
+        <StatusBadge tone="neutral" label={translateMessage("No")} />
       ),
   },
   {
     id: "actions",
     meta: { className: "text-right", headerClassName: "text-right" },
-    header: () => <span className="sr-only">Actions</span>,
+    header: () => (
+      <span className="sr-only">
+        <LocalizedText text={"Actions"} />
+      </span>
+    ),
     size: 64,
     enableSorting: false,
     enableHiding: false,

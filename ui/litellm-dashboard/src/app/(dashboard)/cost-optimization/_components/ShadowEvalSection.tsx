@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, getIntlLocale, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import React, { useMemo, useState } from "react";
 
@@ -91,21 +92,32 @@ const jobModelScope = (job: ShadowEvalJob): React.ReactNode =>
   job.models && job.models.length > 0 ? (
     <>
       {" "}
-      on <span className="font-mono text-xs">{job.models.join(", ")}</span>
+      <LocalizedText text={"on "} />
+      <span className="font-mono text-xs">{job.models.join(", ")}</span>
     </>
   ) : null;
 
 const jobHeadline = (job: ShadowEvalJob): React.ReactNode =>
   job.direction === "reverse" ? (
     <>
-      Comparing <span className="font-mono text-xs">{jobRouters(job)}</span> to{" "}
-      <span className="font-mono text-xs">{job.baseline_model}</span> on {job.shadow_percentage}% of{" "}
-      <span className="font-mono text-xs">{shadowedTargetsLabel(job)}</span> traffic{jobModelScope(job)}
+      <LocalizedText text={"Comparing "} />
+      <span className="font-mono text-xs">{jobRouters(job)}</span>
+      <LocalizedText text={" to"} /> <span className="font-mono text-xs">{job.baseline_model}</span>
+      <LocalizedText text={" on "} />
+      {job.shadow_percentage}
+      <LocalizedText text={"% of"} /> <span className="font-mono text-xs">{shadowedTargetsLabel(job)}</span>
+      <LocalizedText text={" traffic"} />
+      {jobModelScope(job)}
     </>
   ) : (
     <>
-      Shadowing {job.shadow_percentage}% of <span className="font-mono text-xs">{shadowedTargetsLabel(job)}</span>{" "}
-      traffic{jobModelScope(job)} via <span className="font-mono text-xs">{jobRouters(job)}</span>
+      <LocalizedText text={"Shadowing "} />
+      {job.shadow_percentage}
+      <LocalizedText text={"% of "} />
+      <span className="font-mono text-xs">{shadowedTargetsLabel(job)}</span> <LocalizedText text={"traffic"} />
+      {jobModelScope(job)}
+      <LocalizedText text={" via "} />
+      <span className="font-mono text-xs">{jobRouters(job)}</span>
     </>
   );
 
@@ -126,68 +138,79 @@ const STATUS_STYLES: Record<string, string> = {
   stopped: "bg-secondary text-muted-foreground",
 };
 
-const StatusBadge: React.FC<{ status: string }> = ({ status }) => (
-  <Badge variant="secondary" className={STATUS_STYLES[status] ?? STATUS_STYLES.stopped}>
-    {status}
-  </Badge>
-);
+const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
+  useUiLocale();
+  return (
+    <Badge variant="secondary" className={STATUS_STYLES[status] ?? STATUS_STYLES.stopped}>
+      {status}
+    </Badge>
+  );
+};
 
 const SliceTable: React.FC<{
   groupHeader: string;
   direction: ShadowEvalDirection;
   slices: readonly ShadowEvalSlice[];
-}> = ({ groupHeader, direction, slices }) => (
-  <Table>
-    <TableHeader>
-      <TableRow>
-        <TableHead>{groupHeader}</TableHead>
-        {[
-          "Judged turns",
-          "Router wins",
-          `${otherArmLabel(direction)} wins`,
-          "Ties",
-          "Judge confidence",
-          "Router cost",
-          `${otherArmLabel(direction)} cost`,
-        ].map((label) => (
-          <TableHead key={label} className="text-right">
-            {label}
-          </TableHead>
-        ))}
-      </TableRow>
-    </TableHeader>
-    <TableBody>
-      {slices.map((slice) => (
-        <TableRow key={slice.group}>
-          <TableCell className="font-medium text-foreground">
-            {slice.group}
-            {slice.turn_count < MIN_TURNS_FOR_CONFIDENCE && (
-              <span className="ml-2 text-xs font-normal text-muted-foreground">(low sample)</span>
-            )}
-          </TableCell>
-          <TableCell className="text-right tabular-nums">{slice.turn_count.toLocaleString()}</TableCell>
-          <TableCell className="text-right font-medium tabular-nums text-foreground">
-            {pct(routerWinRate(direction, slice))}
-          </TableCell>
-          <TableCell className="text-right tabular-nums">{pct(otherArmWinRate(direction, slice))}</TableCell>
-          <TableCell className="text-right tabular-nums">{pct(slice.tie_rate_pct)}</TableCell>
-          <TableCell className="text-right tabular-nums">{slice.avg_judge_confidence.toFixed(2)}</TableCell>
-          <TableCell className="text-right tabular-nums">
-            {routerSliceSpend(direction, slice) > 0 ? usd(routerSliceSpend(direction, slice)) : "-"}
-          </TableCell>
-          <TableCell className="text-right tabular-nums">
-            {otherSliceSpend(direction, slice) > 0 ? usd(otherSliceSpend(direction, slice)) : "-"}
-          </TableCell>
+}> = ({ groupHeader, direction, slices }) => {
+  useUiLocale();
+  return (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>{groupHeader}</TableHead>
+          {[
+            "Judged turns",
+            "Router wins",
+            `${otherArmLabel(direction)} wins`,
+            "Ties",
+            "Judge confidence",
+            "Router cost",
+            `${otherArmLabel(direction)} cost`,
+          ].map((label) => (
+            <TableHead key={label} className="text-right">
+              {label}
+            </TableHead>
+          ))}
         </TableRow>
-      ))}
-    </TableBody>
-  </Table>
-);
+      </TableHeader>
+      <TableBody>
+        {slices.map((slice) => (
+          <TableRow key={slice.group}>
+            <TableCell className="font-medium text-foreground">
+              {slice.group}
+              {slice.turn_count < MIN_TURNS_FOR_CONFIDENCE && (
+                <span className="ml-2 text-xs font-normal text-muted-foreground">
+                  <LocalizedText text={"(low sample)"} />
+                </span>
+              )}
+            </TableCell>
+            <TableCell className="text-right tabular-nums">
+              {slice.turn_count.toLocaleString(getIntlLocale())}
+            </TableCell>
+            <TableCell className="text-right font-medium tabular-nums text-foreground">
+              {pct(routerWinRate(direction, slice))}
+            </TableCell>
+            <TableCell className="text-right tabular-nums">{pct(otherArmWinRate(direction, slice))}</TableCell>
+            <TableCell className="text-right tabular-nums">{pct(slice.tie_rate_pct)}</TableCell>
+            <TableCell className="text-right tabular-nums">{slice.avg_judge_confidence.toFixed(2)}</TableCell>
+            <TableCell className="text-right tabular-nums">
+              {routerSliceSpend(direction, slice) > 0 ? usd(routerSliceSpend(direction, slice)) : "-"}
+            </TableCell>
+            <TableCell className="text-right tabular-nums">
+              {otherSliceSpend(direction, slice) > 0 ? usd(otherSliceSpend(direction, slice)) : "-"}
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  );
+};
 
 const CostComparison: React.FC<{
   direction: ShadowEvalDirection;
   results: NonNullable<ShadowEvalJob["results"]>;
 }> = ({ direction, results }) => {
+  useUiLocale();
   const routerSpend = routerArmSpend(direction, results);
   const otherSpend = otherArmSpend(direction, results);
   if (routerSpend <= 0 || otherSpend <= 0) return null;
@@ -196,13 +219,17 @@ const CostComparison: React.FC<{
   return (
     <div className="flex min-w-[240px] flex-1 flex-col gap-1 border-t px-6 py-4 sm:border-l sm:border-t-0">
       <p className="flex items-center gap-1 text-[11px] uppercase tracking-wide text-muted-foreground">
-        Router cost vs {direction === "reverse" ? "the baseline" : "your current model"}
+        <LocalizedText text={"Router cost vs "} />
+        {direction === "reverse" ? translateMessage("the baseline") : translateMessage("your current model")}
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger render={<CircleHelp className="size-3.5 shrink-0 cursor-help" />} />
             <TooltipContent>
-              Each arm is priced as its completion plus its own routing classifier call, measured on the same judged
-              turns; the judge&apos;s cost is excluded from both arms
+              <LocalizedText
+                text={
+                  "Each arm is priced as its completion plus its own routing classifier call, measured on the same judged turns; the judge's cost is excluded from both arms"
+                }
+              />
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
@@ -213,8 +240,11 @@ const CostComparison: React.FC<{
         {savingsPct != null ? `${savingsPct > 0 ? "-" : "+"}${Math.abs(savingsPct).toFixed(1)}%` : "n/a"}
       </p>
       <p className="text-xs text-muted-foreground">
-        {usd(routerSpend)} vs {usd(otherSpend)} on the same judged turns
-        {cacheHits > 0 ? `; ${cacheHits.toLocaleString()} cache-served turns excluded` : ""}
+        {usd(routerSpend)}
+        <LocalizedText text={" vs "} />
+        {usd(otherSpend)}
+        <LocalizedText text={" on the same judged turns"} />
+        {cacheHits > 0 ? translateMessage("; %{0} cache-served turns excluded", [cacheHits.toLocaleString()]) : ""}
       </p>
     </div>
   );
@@ -224,14 +254,15 @@ const VerdictBar: React.FC<{ direction: ShadowEvalDirection; results: NonNullabl
   direction,
   results,
 }) => {
+  useUiLocale();
   const ties = results.overall_tie_rate_pct;
   const routerWins =
     direction === "reverse"
       ? Math.max(0, 100 - results.overall_shadow_win_rate_pct - ties)
       : results.overall_shadow_win_rate_pct;
   const segments = [
-    { label: "Router won", value: routerWins, fill: "bg-success" },
-    { label: "Tie", value: ties, fill: "bg-success/20" },
+    markUiCopy({ label: "Router won", value: routerWins, fill: "bg-success" }, { label: "Router won" }),
+    markUiCopy({ label: "Tie", value: ties, fill: "bg-success/20" }, { label: "Tie" }),
     {
       label: `${otherArmLabel(direction)} won`,
       value: Math.max(0, 100 - routerWins - ties),
@@ -240,7 +271,11 @@ const VerdictBar: React.FC<{ direction: ShadowEvalDirection; results: NonNullabl
   ];
   return (
     <div className="space-y-2 border-b px-6 py-4">
-      <div className="flex h-2 w-full overflow-hidden rounded-full" role="img" aria-label="Verdict breakdown">
+      <div
+        className="flex h-2 w-full overflow-hidden rounded-full"
+        role="img"
+        aria-label={translateMessage("Verdict breakdown")}
+      >
         {segments
           .filter((segment) => segment.value > 0)
           .map((segment) => (
@@ -251,7 +286,7 @@ const VerdictBar: React.FC<{ direction: ShadowEvalDirection; results: NonNullabl
         {segments.map((segment) => (
           <span key={segment.label} className="flex items-center gap-1.5">
             <span className={`size-2 rounded-full ${segment.fill}`} />
-            {segment.label} {pct(segment.value)}
+            {localizedProperty(segment, "label", segment.label)} {pct(segment.value)}
           </span>
         ))}
       </div>
@@ -260,12 +295,17 @@ const VerdictBar: React.FC<{ direction: ShadowEvalDirection; results: NonNullabl
 };
 
 const TargetTable: React.FC<{ job: ShadowEvalJob }> = ({ job }) => {
+  useUiLocale();
   return (
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Target</TableHead>
-          <TableHead>Status</TableHead>
+          <TableHead>
+            <LocalizedText text={"Target"} />
+          </TableHead>
+          <TableHead>
+            <LocalizedText text={"Status"} />
+          </TableHead>
           {["Budget used", "Router wins", `${otherArmLabel(job.direction)} wins`].map((label) => (
             <TableHead key={label} className="text-right">
               {label}
@@ -290,7 +330,10 @@ const TargetTable: React.FC<{ job: ShadowEvalJob }> = ({ job }) => {
               <TableCell className="text-right tabular-nums">
                 {target.max_budget != null
                   ? `${usd(target.spend ?? 0)} / ${usd(target.max_budget)}`
-                  : `${(target.attempt_count ?? slice?.turn_count ?? 0).toLocaleString()} / ${target.max_turns.toLocaleString()} turns`}
+                  : translateMessage("%{0} / %{1} turns", [
+                      (target.attempt_count ?? slice?.turn_count ?? 0).toLocaleString(),
+                      target.max_turns.toLocaleString(),
+                    ])}
               </TableCell>
               {slice ? (
                 <>
@@ -303,7 +346,7 @@ const TargetTable: React.FC<{ job: ShadowEvalJob }> = ({ job }) => {
                 </>
               ) : (
                 <TableCell colSpan={2} className="text-right text-muted-foreground">
-                  No verdicts yet
+                  <LocalizedText text={"No verdicts yet"} />
                 </TableCell>
               )}
             </TableRow>
@@ -322,6 +365,7 @@ const emptyResultsText = (job: ShadowEvalJob, resultsError: boolean): string => 
 };
 
 const ResultsBody: React.FC<{ job: ShadowEvalJob; resultsError?: boolean }> = ({ job, resultsError = false }) => {
+  useUiLocale();
   const results = job.results;
   const hasVerdicts = results != null && (results.by_tier.length > 0 || results.by_current_model.length > 0);
   return (
@@ -339,13 +383,18 @@ const ResultsBody: React.FC<{ job: ShadowEvalJob; resultsError?: boolean }> = ({
           <div className="flex flex-wrap border-b">
             <div className="flex min-w-[240px] flex-1 flex-col gap-1 px-6 py-4">
               <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
-                Router matched or beat {job.direction === "reverse" ? "the baseline" : "your current model"}
+                <LocalizedText text={"Router matched or beat "} />
+                {job.direction === "reverse"
+                  ? translateMessage("the baseline")
+                  : translateMessage("your current model")}
               </p>
               <p className="text-3xl font-semibold text-foreground">
                 {pct(routerMatchedOrBeatPct(job.direction, results))}
               </p>
               <p className="text-xs text-muted-foreground">
-                of {(job.judged_count ?? 0).toLocaleString()} judged responses
+                <LocalizedText text={"of "} />
+                {(job.judged_count ?? 0).toLocaleString(getIntlLocale())}
+                <LocalizedText text={" judged responses"} />
               </p>
             </div>
             <CostComparison direction={job.direction} results={results} />
@@ -381,6 +430,7 @@ const JobResults: React.FC<{
   resultsError?: boolean;
   readOnly?: boolean;
 }> = ({ job, onStop, stopPending, resultsError = false, readOnly = false }) => {
+  useUiLocale();
   const active = isActive(job);
   const remaining = endsIn(job.ends_at);
   return (
@@ -391,22 +441,26 @@ const JobResults: React.FC<{
           <div>
             <p className="text-sm font-medium text-foreground">{jobHeadline(job)}</p>
             <p className="text-xs text-muted-foreground">
-              {(job.judged_count ?? 0).toLocaleString()} turns judged · {(job.error_count ?? 0).toLocaleString()}{" "}
-              errored · {usd(totalSpend(job))}
-              {totalBudget(job) !== null ? ` of ${usd(totalBudget(job) ?? 0)}` : ""} eval spend
+              {(job.judged_count ?? 0).toLocaleString(getIntlLocale())}
+              <LocalizedText text={" turns judged · "} />
+              {(job.error_count ?? 0).toLocaleString(getIntlLocale())} <LocalizedText text={"errored · "} />
+              {usd(totalSpend(job))}
+              {totalBudget(job) !== null ? translateMessage(" of %{0}", [usd(totalBudget(job) ?? 0)]) : ""}
+              <LocalizedText text={" eval spend"} />
               {active && remaining ? ` · ${remaining}` : ""}
             </p>
           </div>
         </div>
         {active && !readOnly && (
           <Button variant="outline" size="sm" onClick={onStop} disabled={stopPending}>
-            {stopPending ? "Stopping..." : "Stop"}
+            {stopPending ? translateMessage("Stopping...") : translateMessage("Stop")}
           </Button>
         )}
       </div>
       {(job.error_count ?? 0) > 0 && job.last_error != null && (
         <p className="border-b bg-destructive/10 px-6 py-2 text-xs text-destructive">
-          Last failure: <span className="font-mono">{job.last_error}</span>
+          <LocalizedText text={"Last failure: "} />
+          <span className="font-mono">{job.last_error}</span>
         </p>
       )}
       <ResultsBody job={job} resultsError={resultsError} />
@@ -421,6 +475,7 @@ const previousSummary = (job: ShadowEvalJob): string => {
 };
 
 const PreviousJob: React.FC<{ job: ShadowEvalJob }> = ({ job }) => {
+  useUiLocale();
   const [expanded, setExpanded] = useState(false);
   const { data: detail, isError } = useShadowEvalJob(expanded ? job.job_id : null);
   const shown = detail ?? job;
@@ -438,8 +493,12 @@ const PreviousJob: React.FC<{ job: ShadowEvalJob }> = ({ job }) => {
             <p className="text-sm font-medium text-foreground">{jobHeadline(shown)}</p>
             <p className="text-xs text-muted-foreground">
               {shown.judged_count != null &&
-                `${shown.judged_count.toLocaleString()} judged · ${(shown.error_count ?? 0).toLocaleString()} errored · ${usd(totalSpend(shown))} eval spend · `}
-              {new Date(shown.created_at).toLocaleDateString()}
+                translateMessage("%{0} judged · %{1} errored · %{2} eval spend · ", [
+                  shown.judged_count.toLocaleString(),
+                  (shown.error_count ?? 0).toLocaleString(),
+                  usd(totalSpend(shown)),
+                ])}
+              {new Date(shown.created_at).toLocaleDateString(getIntlLocale())}
             </p>
           </div>
         </div>
@@ -455,6 +514,7 @@ const PreviousJob: React.FC<{ job: ShadowEvalJob }> = ({ job }) => {
 };
 
 const PreviousJobs: React.FC<{ jobs: readonly ShadowEvalJob[] }> = ({ jobs }) => {
+  useUiLocale();
   const [open, setOpen] = useState(false);
   if (jobs.length === 0) return null;
   return (
@@ -465,8 +525,13 @@ const PreviousJobs: React.FC<{ jobs: readonly ShadowEvalJob[] }> = ({ jobs }) =>
         onClick={() => setOpen((prev) => !prev)}
         className="flex w-full items-center justify-between gap-3 px-6 py-3 text-left hover:bg-muted/50"
       >
-        <span className="text-sm font-medium text-foreground">Previous evaluations ({jobs.length})</span>
-        <span className="text-xs text-muted-foreground">{open ? "Hide" : "Show"}</span>
+        <span className="text-sm font-medium text-foreground">
+          <LocalizedText text={"Previous evaluations ("} />
+          {jobs.length})
+        </span>
+        <span className="text-xs text-muted-foreground">
+          {open ? translateMessage("Hide") : translateMessage("Show")}
+        </span>
       </button>
       {open && (
         <div className="border-t">
@@ -480,6 +545,7 @@ const PreviousJobs: React.FC<{ jobs: readonly ShadowEvalJob[] }> = ({ jobs }) =>
 };
 
 const JobCard: React.FC<{ job: ShadowEvalJob; readOnly: boolean }> = ({ job, readOnly }) => {
+  useUiLocale();
   const { data: detail, isError } = useShadowEvalJob(job.job_id);
   const stop = useStopShadowEval();
   const shown = detail ?? job;
@@ -495,6 +561,7 @@ const JobCard: React.FC<{ job: ShadowEvalJob; readOnly: boolean }> = ({ job, rea
 };
 
 const ShadowEvalSection: React.FC = () => {
+  useUiLocale();
   const { data: jobs, error, isPending } = useShadowEvalJobs();
   const { isViewOnly } = useAuthorized();
   const { showcased, listed } = useMemo(() => {
@@ -509,19 +576,29 @@ const ShadowEvalSection: React.FC = () => {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-baseline gap-2">
-        <h2 className="text-xl font-semibold text-foreground">Shadow eval</h2>
+        <h2 className="text-xl font-semibold text-foreground">
+          <LocalizedText text={"Shadow eval"} />
+        </h2>
         <p className="text-sm text-muted-foreground">
-          Blind-judge the auto-router on the real traffic of a key, team, or user (teams and users cover
-          JWT-authenticated traffic): against the models they use today before switching, or against a fixed baseline
-          after they have switched.
+          <LocalizedText
+            text={
+              "Blind-judge the auto-router on the real traffic of a key, team, or user (teams and users cover JWT-authenticated traffic): against the models they use today before switching, or against a fixed baseline after they have switched."
+            }
+          />
         </p>
       </div>
 
       {error != null && (
-        <p className="text-sm text-destructive">Existing evaluations could not be loaded. Refresh the page to retry.</p>
+        <p className="text-sm text-destructive">
+          <LocalizedText text={"Existing evaluations could not be loaded. Refresh the page to retry."} />
+        </p>
       )}
 
-      {isPending && error == null && <p className="text-sm text-muted-foreground">Loading evaluations...</p>}
+      {isPending && error == null && (
+        <p className="text-sm text-muted-foreground">
+          <LocalizedText text={"Loading evaluations..."} />
+        </p>
+      )}
 
       {showcased.map((job) => (
         <JobCard key={job.job_id} job={job} readOnly={isViewOnly} />

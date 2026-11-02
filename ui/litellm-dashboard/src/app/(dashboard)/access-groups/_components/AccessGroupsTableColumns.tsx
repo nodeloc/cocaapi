@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { ColumnDef } from "@tanstack/react-table";
 import { Bot, Layers, MoreHorizontal, Server, Trash2 } from "lucide-react";
@@ -32,10 +33,14 @@ const RESOURCE_TONES: Record<"models" | "mcpServers" | "agents", ResourceTone> =
 };
 
 function ResourcesCell({ group }: { group: AccessGroup }) {
+  useUiLocale();
   const items = [
-    { key: "models" as const, label: "Models", count: group.modelIds.length },
-    { key: "mcpServers" as const, label: "MCP Servers", count: group.mcpServerIds.length },
-    { key: "agents" as const, label: "Agents", count: group.agentIds.length },
+    markUiCopy({ key: "models" as const, label: "Models", count: group.modelIds.length }, { label: "Models" }),
+    markUiCopy(
+      { key: "mcpServers" as const, label: "MCP Servers", count: group.mcpServerIds.length },
+      { label: "MCP Servers" },
+    ),
+    markUiCopy({ key: "agents" as const, label: "Agents", count: group.agentIds.length }, { label: "Agents" }),
   ];
 
   return (
@@ -46,7 +51,7 @@ function ResourcesCell({ group }: { group: AccessGroup }) {
         return (
           <span
             key={item.key}
-            title={`${item.count} ${item.label}`}
+            title={`${item.count} ${localizedProperty(item, "label", item.label)}`}
             className={cn(
               "inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset [&_svg]:size-3.5",
               tone.className,
@@ -68,10 +73,11 @@ function AccessGroupRowActions({
   group: AccessGroup;
   onDeleteClick: (group: AccessGroup) => void;
 }) {
+  useUiLocale();
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        aria-label="Open access group actions"
+        aria-label={translateMessage("Open access group actions")}
         data-testid={`access-group-actions-${group.id}`}
         className={cn(buttonVariants({ variant: "ghost", size: "icon-sm" }), "text-muted-foreground")}
       >
@@ -84,7 +90,7 @@ function AccessGroupRowActions({
           onClick={() => onDeleteClick(group)}
         >
           <Trash2 />
-          Delete access group
+          <LocalizedText text={"Delete access group"} />
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -103,26 +109,29 @@ export const getAccessGroupsTableColumns = ({
   onDeleteClick,
 }: AccessGroupsTableColumnsDeps): ColumnDef<AccessGroup>[] => {
   const columns: ColumnDef<AccessGroup>[] = [
-    {
-      id: "id",
-      accessorKey: "id",
-      meta: { title: "ID" },
-      header: "ID",
-      size: 200,
-      enableSorting: false,
-      cell: ({ row }) => (
-        <IdentityCell
-          title={row.original.id}
-          titleClassName="font-mono text-xs font-normal"
-          onClick={() => onGroupClick(row.original.id)}
-        />
-      ),
-    },
+    markUiCopy(
+      {
+        id: "id",
+        accessorKey: "id",
+        meta: markUiCopy({ title: "ID" }, { title: "ID" }),
+        header: "ID",
+        size: 200,
+        enableSorting: false,
+        cell: ({ row }) => (
+          <IdentityCell
+            title={row.original.id}
+            titleClassName="font-mono text-xs font-normal"
+            onClick={() => onGroupClick(row.original.id)}
+          />
+        ),
+      },
+      { header: "ID" },
+    ),
     {
       id: "name",
       accessorKey: "name",
-      meta: { title: "Name" },
-      header: ({ column }) => <DataTableSortHeader column={column} title="Name" />,
+      meta: markUiCopy({ title: "Name" }, { title: "Name" }),
+      header: ({ column }) => <DataTableSortHeader column={column} title={translateMessage("Name")} />,
       size: 220,
       enableSorting: true,
       cell: ({ row }) => {
@@ -134,33 +143,39 @@ export const getAccessGroupsTableColumns = ({
         );
       },
     },
-    {
-      id: "resources",
-      meta: { title: "Resources" },
-      header: "Resources",
-      size: 220,
-      enableSorting: false,
-      cell: ({ row }) => <ResourcesCell group={row.original} />,
-    },
+    markUiCopy(
+      {
+        id: "resources",
+        meta: markUiCopy({ title: "Resources" }, { title: "Resources" }),
+        header: "Resources",
+        size: 220,
+        enableSorting: false,
+        cell: ({ row }) => <ResourcesCell group={row.original} />,
+      },
+      { header: "Resources" },
+    ),
     {
       id: "createdAt",
       accessorKey: "createdAt",
-      meta: { title: "Created" },
-      header: ({ column }) => <DataTableSortHeader column={column} title="Created" />,
+      meta: markUiCopy({ title: "Created" }, { title: "Created" }),
+      header: ({ column }) => <DataTableSortHeader column={column} title={translateMessage("Created")} />,
       size: 150,
       enableSorting: true,
       sortingFn: "datetime",
       cell: ({ row }) => <DateCell value={row.original.createdAt} precision="date" />,
     },
-    {
-      id: "updatedAt",
-      accessorKey: "updatedAt",
-      meta: { title: "Updated" },
-      header: "Updated",
-      size: 150,
-      enableSorting: false,
-      cell: ({ row }) => <DateCell value={row.original.updatedAt} precision="date" />,
-    },
+    markUiCopy(
+      {
+        id: "updatedAt",
+        accessorKey: "updatedAt",
+        meta: markUiCopy({ title: "Updated" }, { title: "Updated" }),
+        header: "Updated",
+        size: 150,
+        enableSorting: false,
+        cell: ({ row }) => <DateCell value={row.original.updatedAt} precision="date" />,
+      },
+      { header: "Updated" },
+    ),
   ];
 
   if (!canModify) {
@@ -172,7 +187,11 @@ export const getAccessGroupsTableColumns = ({
     {
       id: "actions",
       meta: { className: "text-right", headerClassName: "text-right" },
-      header: () => <span className="sr-only">Actions</span>,
+      header: () => (
+        <span className="sr-only">
+          <LocalizedText text={"Actions"} />
+        </span>
+      ),
       size: 64,
       enableSorting: false,
       enableHiding: false,

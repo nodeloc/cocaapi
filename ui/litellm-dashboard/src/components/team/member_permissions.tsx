@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 import { getTeamPermissionsCall, teamPermissionsUpdateCall } from "@/components/networking";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -15,6 +17,7 @@ interface MemberPermissionsProps {
 }
 
 const MemberPermissions: React.FC<MemberPermissionsProps> = ({ teamId, accessToken, canEditTeam }) => {
+  useUiLocale();
   const [permissions, setPermissions] = useState<string[]>([]);
   const [selectedPermissions, setSelectedPermissions] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -56,7 +59,7 @@ const MemberPermissions: React.FC<MemberPermissionsProps> = ({ teamId, accessTok
       if (!accessToken) return;
       setSaving(true);
       await teamPermissionsUpdateCall(accessToken, teamId, selectedPermissions);
-      toast.success("Permissions updated successfully");
+      toast.success(translateMessage("Permissions updated successfully"));
       setHasChanges(false);
     } catch (error) {
       toast.fromError("Failed to update permissions");
@@ -71,7 +74,11 @@ const MemberPermissions: React.FC<MemberPermissionsProps> = ({ teamId, accessTok
   };
 
   if (loading) {
-    return <div className="p-6 text-center">Loading permissions...</div>;
+    return (
+      <div className="p-6 text-center">
+        <LocalizedText text={"Loading permissions..."} />
+      </div>
+    );
   }
 
   const hasPermissions = permissions.length > 0;
@@ -79,23 +86,25 @@ const MemberPermissions: React.FC<MemberPermissionsProps> = ({ teamId, accessTok
   return (
     <Card className="block bg-card shadow-md rounded-md p-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b pb-4 mb-6">
-        <h3 className="text-lg font-medium text-foreground mb-2 sm:mb-0">Member Permissions</h3>
+        <h3 className="text-lg font-medium text-foreground mb-2 sm:mb-0">
+          <LocalizedText text={"Member Permissions"} />
+        </h3>
         {canEditTeam && hasChanges && (
           <div className="flex gap-3">
             <Button variant="outline" onClick={handleReset}>
               <RotateCw className="size-3.5" />
-              Reset
+              <LocalizedText text={"Reset"} />
             </Button>
             <Button onClick={handleSave} disabled={saving}>
               <Save className="size-3.5" />
-              Save Changes
+              <LocalizedText text={"Save Changes"} />
             </Button>
           </div>
         )}
       </div>
 
       <p className="mb-6 text-sm text-muted-foreground">
-        Control what team members can do when they are not team admins.
+        <LocalizedText text={"Control what team members can do when they are not team admins."} />
       </p>
 
       {hasPermissions ? (
@@ -103,11 +112,17 @@ const MemberPermissions: React.FC<MemberPermissionsProps> = ({ teamId, accessTok
           <Table className="min-w-full">
             <TableHeader>
               <TableRow>
-                <TableHead>Method</TableHead>
-                <TableHead>Endpoint</TableHead>
-                <TableHead>Description</TableHead>
+                <TableHead>
+                  <LocalizedText text={"Method"} />
+                </TableHead>
+                <TableHead>
+                  <LocalizedText text={"Endpoint"} />
+                </TableHead>
+                <TableHead>
+                  <LocalizedText text={"Description"} />
+                </TableHead>
                 <TableHead className="sticky right-0 bg-card shadow-[-4px_0_4px_-4px_rgba(0,0,0,0.1)] text-center">
-                  Allow Access
+                  <LocalizedText text={"Allow Access"} />
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -128,7 +143,9 @@ const MemberPermissions: React.FC<MemberPermissionsProps> = ({ teamId, accessTok
                     <TableCell>
                       <span className="font-mono text-sm text-foreground">{permInfo.endpoint}</span>
                     </TableCell>
-                    <TableCell className="text-foreground">{permInfo.description}</TableCell>
+                    <TableCell className="text-foreground">
+                      {localizedProperty(permInfo, "description", permInfo.description)}
+                    </TableCell>
                     <TableCell className="sticky right-0 bg-card shadow-[-4px_0_4px_-4px_rgba(0,0,0,0.1)] text-center">
                       <Checkbox
                         className="mx-auto"
@@ -145,7 +162,9 @@ const MemberPermissions: React.FC<MemberPermissionsProps> = ({ teamId, accessTok
         </div>
       ) : (
         <div className="py-12">
-          <p className="text-center text-sm text-muted-foreground">No permissions available</p>
+          <p className="text-center text-sm text-muted-foreground">
+            <LocalizedText text={"No permissions available"} />
+          </p>
         </div>
       )}
     </Card>

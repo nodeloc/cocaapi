@@ -1,3 +1,4 @@
+import { markUiCopy } from "@/lib/i18n";
 import arizeLogo from "../../public/assets/logos/arize.png";
 import awsLogo from "../../public/assets/logos/aws.svg";
 import braintrustLogo from "../../public/assets/logos/braintrust.png";
@@ -25,221 +26,272 @@ interface CallbackConfig {
 }
 
 export const CALLBACK_CONFIGS: CallbackConfig[] = [
-  {
-    id: "arize",
-    displayName: "Arize",
-    logo: arizeLogo.src,
-    supports_key_team_logging: true,
-    dynamic_params: {
-      arize_api_key: "password",
-      arize_space_id: "password",
-      arize_success_sampling_rate: "number",
-      arize_error_sampling_rate: "number",
-      arize_otlp_protocol: "select",
+  markUiCopy(
+    {
+      id: "arize",
+      displayName: "Arize",
+      logo: arizeLogo.src,
+      supports_key_team_logging: true,
+      dynamic_params: {
+        arize_api_key: "password",
+        arize_space_id: "password",
+        arize_success_sampling_rate: "number",
+        arize_error_sampling_rate: "number",
+        arize_otlp_protocol: "select",
+      },
+      dynamic_param_options: {
+        arize_otlp_protocol: ["grpc", "http/protobuf"],
+      },
+      success_event_params: ["arize_otlp_protocol"],
+      description: "Arize Logging Integration",
     },
-    dynamic_param_options: {
-      arize_otlp_protocol: ["grpc", "http/protobuf"],
+    { description: "Arize Logging Integration" },
+  ),
+  markUiCopy(
+    {
+      id: "braintrust",
+      displayName: "Braintrust",
+      logo: braintrustLogo.src,
+      supports_key_team_logging: false,
+      dynamic_params: {
+        braintrust_api_key: "password",
+        braintrust_project_name: "text",
+      },
+      description: "Braintrust Logging Integration",
     },
-    success_event_params: ["arize_otlp_protocol"],
-    description: "Arize Logging Integration",
-  },
-  {
-    id: "braintrust",
-    displayName: "Braintrust",
-    logo: braintrustLogo.src,
-    supports_key_team_logging: false,
-    dynamic_params: {
-      braintrust_api_key: "password",
-      braintrust_project_name: "text",
+    { description: "Braintrust Logging Integration" },
+  ),
+  markUiCopy(
+    {
+      id: "custom_callback_api",
+      displayName: "Custom Callback API",
+      supports_key_team_logging: true,
+      dynamic_params: {
+        custom_callback_api_url: "text",
+        custom_callback_api_headers: "text",
+      },
+      description: "Custom Callback API Logging Integration",
     },
-    description: "Braintrust Logging Integration",
-  },
-  {
-    id: "custom_callback_api",
-    displayName: "Custom Callback API",
-    supports_key_team_logging: true,
-    dynamic_params: {
-      custom_callback_api_url: "text",
-      custom_callback_api_headers: "text",
+    { description: "Custom Callback API Logging Integration" },
+  ),
+  markUiCopy(
+    {
+      id: "galileo",
+      displayName: "Galileo",
+      logo: galileoLogo.src,
+      supports_key_team_logging: false,
+      dynamic_params: {
+        GALILEO_API_KEY: "password",
+        GALILEO_PROJECT_ID: "text",
+        GALILEO_LOG_STREAM_ID: "text",
+        GALILEO_BASE_URL: "text",
+        GALILEO_USERNAME: "text",
+        GALILEO_PASSWORD: "password",
+      },
+      description: "Galileo AI Observability Integration",
     },
-    description: "Custom Callback API Logging Integration",
-  },
-  {
-    id: "galileo",
-    displayName: "Galileo",
-    logo: galileoLogo.src,
-    supports_key_team_logging: false,
-    dynamic_params: {
-      GALILEO_API_KEY: "password",
-      GALILEO_PROJECT_ID: "text",
-      GALILEO_LOG_STREAM_ID: "text",
-      GALILEO_BASE_URL: "text",
-      GALILEO_USERNAME: "text",
-      GALILEO_PASSWORD: "password",
+    { description: "Galileo AI Observability Integration" },
+  ),
+  markUiCopy(
+    {
+      id: "datadog",
+      displayName: "Datadog",
+      logo: datadogLogo.src,
+      supports_key_team_logging: false,
+      dynamic_params: {
+        dd_api_key: "password",
+        dd_site: "text",
+      },
+      description: "Datadog Logging Integration",
     },
-    description: "Galileo AI Observability Integration",
-  },
-  {
-    id: "datadog",
-    displayName: "Datadog",
-    logo: datadogLogo.src,
-    supports_key_team_logging: false,
-    dynamic_params: {
-      dd_api_key: "password",
-      dd_site: "text",
+    { description: "Datadog Logging Integration" },
+  ),
+  markUiCopy(
+    {
+      id: "newrelic",
+      displayName: "New Relic",
+      logo: newrelicLogo.src,
+      supports_key_team_logging: true,
+      dynamic_params: {
+        newrelic_api_key: "password",
+        newrelic_region: "text",
+      },
+      description: "New Relic Logging Integration",
     },
-    description: "Datadog Logging Integration",
-  },
-  {
-    id: "newrelic",
-    displayName: "New Relic",
-    logo: newrelicLogo.src,
-    supports_key_team_logging: true,
-    dynamic_params: {
-      newrelic_api_key: "password",
-      newrelic_region: "text",
+    { description: "New Relic Logging Integration" },
+  ),
+  markUiCopy(
+    {
+      id: "lago",
+      displayName: "Lago",
+      logo: lagoLogo.src,
+      supports_key_team_logging: false,
+      dynamic_params: {
+        lago_api_url: "text",
+        lago_api_key: "password",
+      },
+      description: "Lago Billing Logging Integration",
     },
-    description: "New Relic Logging Integration",
-  },
-  {
-    id: "lago",
-    displayName: "Lago",
-    logo: lagoLogo.src,
-    supports_key_team_logging: false,
-    dynamic_params: {
-      lago_api_url: "text",
-      lago_api_key: "password",
+    { description: "Lago Billing Logging Integration" },
+  ),
+  markUiCopy(
+    {
+      id: "langfuse",
+      displayName: "Langfuse",
+      logo: langfuseLogo.src,
+      supports_key_team_logging: true,
+      dynamic_params: {
+        langfuse_public_key: "text",
+        langfuse_secret_key: "password",
+        langfuse_host: "text",
+        langfuse_environment: "text",
+      },
+      description: "Langfuse v2 Logging Integration",
     },
-    description: "Lago Billing Logging Integration",
-  },
-  {
-    id: "langfuse",
-    displayName: "Langfuse",
-    logo: langfuseLogo.src,
-    supports_key_team_logging: true,
-    dynamic_params: {
-      langfuse_public_key: "text",
-      langfuse_secret_key: "password",
-      langfuse_host: "text",
-      langfuse_environment: "text",
+    { description: "Langfuse v2 Logging Integration" },
+  ),
+  markUiCopy(
+    {
+      id: "langfuse_otel",
+      displayName: "Langfuse OTEL",
+      logo: langfuseLogo.src,
+      supports_key_team_logging: true,
+      dynamic_params: {
+        langfuse_public_key: "text",
+        langfuse_secret_key: "password",
+        langfuse_host: "text",
+        langfuse_environment: "text",
+        langfuse_span_scope: "select",
+      },
+      dynamic_param_options: {
+        langfuse_span_scope: ["full", "llm_only"],
+      },
+      description: "Langfuse v3 OTEL Logging Integration",
     },
-    description: "Langfuse v2 Logging Integration",
-  },
-  {
-    id: "langfuse_otel",
-    displayName: "Langfuse OTEL",
-    logo: langfuseLogo.src,
-    supports_key_team_logging: true,
-    dynamic_params: {
-      langfuse_public_key: "text",
-      langfuse_secret_key: "password",
-      langfuse_host: "text",
-      langfuse_environment: "text",
-      langfuse_span_scope: "select",
+    { description: "Langfuse v3 OTEL Logging Integration" },
+  ),
+  markUiCopy(
+    {
+      id: "langsmith",
+      displayName: "LangSmith",
+      logo: langsmithLogo.src,
+      supports_key_team_logging: true,
+      dynamic_params: {
+        langsmith_api_key: "password",
+        langsmith_project: "text",
+        langsmith_base_url: "text",
+        langsmith_sampling_rate: "number",
+      },
+      description: "Langsmith Logging Integration",
     },
-    dynamic_param_options: {
-      langfuse_span_scope: ["full", "llm_only"],
+    { description: "Langsmith Logging Integration" },
+  ),
+  markUiCopy(
+    {
+      id: "openmeter",
+      displayName: "OpenMeter",
+      logo: openmeterLogo.src,
+      supports_key_team_logging: false,
+      dynamic_params: {
+        openmeter_api_key: "password",
+        openmeter_base_url: "text",
+      },
+      description: "OpenMeter Logging Integration",
     },
-    description: "Langfuse v3 OTEL Logging Integration",
-  },
-  {
-    id: "langsmith",
-    displayName: "LangSmith",
-    logo: langsmithLogo.src,
-    supports_key_team_logging: true,
-    dynamic_params: {
-      langsmith_api_key: "password",
-      langsmith_project: "text",
-      langsmith_base_url: "text",
-      langsmith_sampling_rate: "number",
+    { description: "OpenMeter Logging Integration" },
+  ),
+  markUiCopy(
+    {
+      id: "otel",
+      displayName: "Open Telemetry",
+      logo: otelLogo.src,
+      supports_key_team_logging: false,
+      dynamic_params: {
+        otel_endpoint: "text",
+        otel_headers: "text",
+        otel_exporter_otlp_protocol: "select",
+      },
+      description: "OpenTelemetry Logging Integration",
     },
-    description: "Langsmith Logging Integration",
-  },
-  {
-    id: "openmeter",
-    displayName: "OpenMeter",
-    logo: openmeterLogo.src,
-    supports_key_team_logging: false,
-    dynamic_params: {
-      openmeter_api_key: "password",
-      openmeter_base_url: "text",
+    { description: "OpenTelemetry Logging Integration" },
+  ),
+  markUiCopy(
+    {
+      id: "pointfive",
+      displayName: "PointFive",
+      logo: pointfiveLogo.src,
+      supports_key_team_logging: false,
+      dynamic_params: {
+        POINTFIVE_API_KEY: "password",
+        POINTFIVE_API_URL: "text",
+      },
+      description: "PointFive Logging Integration",
     },
-    description: "OpenMeter Logging Integration",
-  },
-  {
-    id: "otel",
-    displayName: "Open Telemetry",
-    logo: otelLogo.src,
-    supports_key_team_logging: false,
-    dynamic_params: {
-      otel_endpoint: "text",
-      otel_headers: "text",
-      otel_exporter_otlp_protocol: "select",
+    { description: "PointFive Logging Integration" },
+  ),
+  markUiCopy(
+    {
+      id: "zerobus",
+      displayName: "Databricks Zerobus",
+      logo: databricksLogo.src,
+      supports_key_team_logging: false,
+      dynamic_params: {
+        ZEROBUS_WORKSPACE_URL: "text",
+        ZEROBUS_SERVER_ENDPOINT: "text",
+        ZEROBUS_CLIENT_ID: "text",
+        ZEROBUS_CLIENT_SECRET: "password",
+        ZEROBUS_TABLE_NAME: "text",
+      },
+      description: "Databricks Zerobus Ingest Logging Integration",
     },
-    description: "OpenTelemetry Logging Integration",
-  },
-  {
-    id: "pointfive",
-    displayName: "PointFive",
-    logo: pointfiveLogo.src,
-    supports_key_team_logging: false,
-    dynamic_params: {
-      POINTFIVE_API_KEY: "password",
-      POINTFIVE_API_URL: "text",
+    { description: "Databricks Zerobus Ingest Logging Integration" },
+  ),
+  markUiCopy(
+    {
+      id: "s3",
+      displayName: "S3",
+      logo: awsLogo.src,
+      supports_key_team_logging: false,
+      dynamic_params: {
+        s3_bucket_name: "text",
+        aws_access_key_id: "password",
+        aws_secret_access_key: "password",
+        aws_region: "text",
+      },
+      description: "S3 Bucket (AWS) Logging Integration",
     },
-    description: "PointFive Logging Integration",
-  },
-  {
-    id: "zerobus",
-    displayName: "Databricks Zerobus",
-    logo: databricksLogo.src,
-    supports_key_team_logging: false,
-    dynamic_params: {
-      ZEROBUS_WORKSPACE_URL: "text",
-      ZEROBUS_SERVER_ENDPOINT: "text",
-      ZEROBUS_CLIENT_ID: "text",
-      ZEROBUS_CLIENT_SECRET: "password",
-      ZEROBUS_TABLE_NAME: "text",
+    { description: "S3 Bucket (AWS) Logging Integration" },
+  ),
+  markUiCopy(
+    {
+      id: "signoz",
+      displayName: "SigNoz",
+      logo: signozLogo.src,
+      supports_key_team_logging: true,
+      dynamic_params: {
+        signoz_ingestion_endpoint: "text",
+        signoz_ingestion_key: "password",
+      },
+      description: "SigNoz Logging Integration. Setup: https://signoz.io/docs/litellm-observability/",
     },
-    description: "Databricks Zerobus Ingest Logging Integration",
-  },
-  {
-    id: "s3",
-    displayName: "S3",
-    logo: awsLogo.src,
-    supports_key_team_logging: false,
-    dynamic_params: {
-      s3_bucket_name: "text",
-      aws_access_key_id: "password",
-      aws_secret_access_key: "password",
-      aws_region: "text",
+    { description: "SigNoz Logging Integration. Setup: https://signoz.io/docs/litellm-observability/" },
+  ),
+  markUiCopy(
+    {
+      id: "SQS",
+      displayName: "SQS",
+      logo: awsLogo.src,
+      supports_key_team_logging: false,
+      dynamic_params: {
+        sqs_queue_url: "text",
+        aws_access_key_id: "password",
+        aws_secret_access_key: "password",
+        aws_region: "text",
+      },
+      description: "SQS Queue (AWS) Logging Integration",
     },
-    description: "S3 Bucket (AWS) Logging Integration",
-  },
-  {
-    id: "signoz",
-    displayName: "SigNoz",
-    logo: signozLogo.src,
-    supports_key_team_logging: true,
-    dynamic_params: {
-      signoz_ingestion_endpoint: "text",
-      signoz_ingestion_key: "password",
-    },
-    description: "SigNoz Logging Integration. Setup: https://signoz.io/docs/litellm-observability/",
-  },
-  {
-    id: "SQS",
-    displayName: "SQS",
-    logo: awsLogo.src,
-    supports_key_team_logging: false,
-    dynamic_params: {
-      sqs_queue_url: "text",
-      aws_access_key_id: "password",
-      aws_secret_access_key: "password",
-      aws_region: "text",
-    },
-    description: "SQS Queue (AWS) Logging Integration",
-  },
+    { description: "SQS Queue (AWS) Logging Integration" },
+  ),
 ];
 
 // Create callbackInfo object mapping display names to config objects

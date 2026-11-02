@@ -1,3 +1,5 @@
+"use client";
+import { translateMessage, useUiLocale } from "@/lib/i18n";
 import { FileText, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -8,6 +10,7 @@ interface FilePreviewCardProps {
 }
 
 function FilePreviewCard({ file, previewUrl, onRemove }: FilePreviewCardProps) {
+  useUiLocale();
   const isPdf = file.name.toLowerCase().endsWith(".pdf");
 
   return (
@@ -21,20 +24,22 @@ function FilePreviewCard({ file, previewUrl, onRemove }: FilePreviewCardProps) {
           ) : (
             <img
               src={previewUrl || ""}
-              alt="Upload preview"
+              alt={translateMessage("Upload preview")}
               className="w-10 h-10 rounded-md border border-border object-cover"
             />
           )}
         </div>
         <div className="flex-1 min-w-0">
           <div className="text-sm font-medium text-foreground truncate">{file.name}</div>
-          <div className="text-xs text-muted-foreground">{isPdf ? "PDF" : "Image"}</div>
+          <div className="text-xs text-muted-foreground">
+            {isPdf ? translateMessage("PDF") : translateMessage("Image")}
+          </div>
         </div>
         <Button
           type="button"
           variant="ghost"
           size="icon-xs"
-          aria-label={`Remove ${file.name}`}
+          aria-label={translateMessage("Remove %{0}", [file.name])}
           className="text-muted-foreground hover:text-foreground hover:bg-accent"
           onClick={onRemove}
         >

@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, getIntlLocale, translateMessage, useUiLocale } from "@/lib/i18n";
 import React from "react";
 import type { components } from "@/lib/http/schema";
 import { useQuery } from "@tanstack/react-query";
@@ -7,7 +9,8 @@ import { readAgentIdentity } from "./agent_identity";
 
 const authenticationMessage = (error: boolean, lastAuthenticated?: string | null): string => {
   if (error) return "Could not load authentication evidence";
-  if (lastAuthenticated) return `Last authenticated identity match: ${new Date(lastAuthenticated).toLocaleString()}`;
+  if (lastAuthenticated)
+    return `Last authenticated identity match: ${new Date(lastAuthenticated).toLocaleString(getIntlLocale())}`;
   return "Configured, awaiting an authenticated request";
 };
 
@@ -22,6 +25,7 @@ export const AgentIdentityDetails = ({
   accessToken: string | null;
   isAdmin: boolean;
 }) => {
+  useUiLocale();
   const identity = readAgentIdentity(value);
   const { data, isError, isFetching, refetch } = useQuery({
     queryKey: ["agent-identity", agentId, identity],
@@ -38,28 +42,44 @@ export const AgentIdentityDetails = ({
   if (!identity || !isAdmin) return null;
   const executionLabel = data?.enabled ? "Enabled" : "Disabled";
   return (
-    <section aria-label="Agent Identity" className="mb-6 space-y-2 rounded-lg border border-border p-4">
-      <h3 className="font-medium">Agent Identity: Microsoft Entra ID</h3>
+    <section
+      aria-label={translateMessage("Agent Identity")}
+      className="mb-6 space-y-2 rounded-lg border border-border p-4"
+    >
+      <h3 className="font-medium">
+        <LocalizedText text={"Agent Identity: Microsoft Entra ID"} />
+      </h3>
       <p className="text-sm">
-        Tenant: <span className="font-mono">{identity.tenant_id}</span>
+        <LocalizedText text={"Tenant: "} />
+        <span className="font-mono">{identity.tenant_id}</span>
       </p>
       <>
         <p className="text-sm">
-          Application (Client) ID: <span className="font-mono">{identity.client_id}</span>
+          <LocalizedText text={"Application (Client) ID: "} />
+          <span className="font-mono">{identity.client_id}</span>
         </p>
-        <p className="text-sm">Enterprise application Object ID: {identity.service_principal_id || "Not configured"}</p>
+        <p className="text-sm">
+          <LocalizedText text={"Enterprise application Object ID: "} />
+          {identity.service_principal_id || translateMessage("Not configured")}
+        </p>
       </>
       <p className="text-sm">
-        Execution: {data ? executionLabel : "Loading"} · Mode: {data?.execution_mode ?? "Loading"}
+        <LocalizedText text={"Execution: "} />
+        {data ? executionLabel : translateMessage("Loading")}
+        <LocalizedText text={" · Mode: "} />
+        {data?.execution_mode ?? translateMessage("Loading")}
       </p>
       <p className="text-sm">
         {data?.identity?.active === false
-          ? "Identity unbound; execution is disabled"
+          ? translateMessage("Identity unbound; execution is disabled")
           : authenticationMessage(isError, data?.last_authenticated_at)}
       </p>
       <p className="text-xs text-muted-foreground">
-        Recent evidence comes from a validated Entra token matching this binding. It is persisted across restarts and
-        cleared when the binding changes. Tool and model permissions are checked separately.
+        <LocalizedText
+          text={
+            "Recent evidence comes from a validated Entra token matching this binding. It is persisted across restarts and cleared when the binding changes. Tool and model permissions are checked separately."
+          }
+        />
       </p>
       <div className="flex items-center gap-4">
         <Button
@@ -70,10 +90,10 @@ export const AgentIdentityDetails = ({
             void refetch();
           }}
         >
-          Refresh authentication evidence
+          <LocalizedText text={"Refresh authentication evidence"} />
         </Button>
         <a className="text-sm underline" href="/ui/logs/">
-          View request logs
+          <LocalizedText text={"View request logs"} />
         </a>
       </div>
     </section>

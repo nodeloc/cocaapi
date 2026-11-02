@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import { organizationKeys, useOrganizations } from "@/app/(dashboard)/hooks/organizations/useOrganizations";
 import { useUserModels } from "@/app/(dashboard)/hooks/models/useModels";
 import OrganizationFilters, { FilterState } from "@/app/(dashboard)/organizations/OrganizationFilters";
@@ -28,6 +30,7 @@ const ORGANIZATION_DETAIL_STATE = {
 const ORGANIZATION_DETAIL_URL_KEYS = { tab: ORGANIZATION_TAB_URL_KEY };
 
 const OrganizationsPanel: React.FC<OrganizationsPanelProps> = ({ userRole, accessToken, premiumUser }) => {
+  useUiLocale();
   const [{ org: selectedOrgId }, setOrganizationDetail] = useQueryStates(ORGANIZATION_DETAIL_STATE, {
     history: "push",
     urlKeys: ORGANIZATION_DETAIL_URL_KEYS,
@@ -78,7 +81,7 @@ const OrganizationsPanel: React.FC<OrganizationsPanelProps> = ({ userRole, acces
     try {
       setIsDeleting(true);
       await organizationDeleteCall(accessToken, orgToDelete);
-      toast.success("Organization deleted successfully");
+      toast.success(translateMessage("Organization deleted successfully"));
 
       setIsDeleteModalOpen(false);
       setOrgToDelete(null);
@@ -99,14 +102,16 @@ const OrganizationsPanel: React.FC<OrganizationsPanelProps> = ({ userRole, acces
     return (
       <div className="mx-4 mt-4">
         <p className="text-sm text-muted-foreground">
-          This is a LiteLLM Enterprise feature, and requires a valid key to use. Get a trial key{" "}
+          <LocalizedText
+            text={"This is a LiteLLM Enterprise feature, and requires a valid key to use. Get a trial key"}
+          />{" "}
           <a
             href="https://www.litellm.ai/#pricing"
             target="_blank"
             rel="noopener noreferrer"
             className="text-primary underline-offset-4 hover:underline"
           >
-            here
+            <LocalizedText text={"here"} />
           </a>
           .
         </p>
@@ -118,7 +123,7 @@ const OrganizationsPanel: React.FC<OrganizationsPanelProps> = ({ userRole, acces
     <div className="mx-4 mt-4 flex flex-col gap-4">
       {(userRole === "Admin" || userRole === "Org Admin") && (
         <Button className="w-fit" onClick={() => setIsOrgModalVisible(true)}>
-          + Create New Organization
+          <LocalizedText text={"+ Create New Organization"} />
         </Button>
       )}
 
@@ -133,7 +138,9 @@ const OrganizationsPanel: React.FC<OrganizationsPanelProps> = ({ userRole, acces
         />
       ) : (
         <>
-          <p className="text-sm text-muted-foreground">Click on an organization ID to view its details.</p>
+          <p className="text-sm text-muted-foreground">
+            <LocalizedText text={"Click on an organization ID to view its details."} />
+          </p>
           <OrganizationFilters
             filters={filters}
             showFilters={showFilters}
@@ -157,10 +164,12 @@ const OrganizationsPanel: React.FC<OrganizationsPanelProps> = ({ userRole, acces
 
       <DeleteResourceModal
         isOpen={isDeleteModalOpen}
-        title="Delete Organization?"
-        message="Are you sure you want to delete this organization? This action cannot be undone."
+        title={translateMessage("Delete Organization?")}
+        message={translateMessage("Are you sure you want to delete this organization? This action cannot be undone.")}
         resourceInformationTitle="Organization Information"
-        resourceInformation={[{ label: "Organization ID", value: orgToDelete, code: true }]}
+        resourceInformation={[
+          markUiCopy({ label: "Organization ID", value: orgToDelete, code: true }, { label: "Organization ID" }),
+        ]}
         onCancel={cancelDelete}
         onOk={confirmDelete}
         confirmLoading={isDeleting}

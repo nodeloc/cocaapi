@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 import React from "react";
 import { CircleHelp } from "lucide-react";
 
@@ -69,6 +71,7 @@ const AddProviderForm: React.FC<AddProviderFormProps> = ({
   onDiscountChange,
   onAddProvider,
 }) => {
+  useUiLocale();
   const options = providerOptionsWithoutDiscount(discountConfig);
   const selectedOption = selectedProviderOption(selectedProvider);
 
@@ -87,21 +90,35 @@ const AddProviderForm: React.FC<AddProviderFormProps> = ({
               itemToStringLabel={(option: ProviderOption) => option.label}
               isItemEqualToValue={(option: ProviderOption, value: ProviderOption) => option.value === value.value}
             >
-              <ComboboxInput id={PROVIDER_FIELD_ID} placeholder="Select provider" className="w-full">
+              <ComboboxInput
+                id={PROVIDER_FIELD_ID}
+                placeholder={translateMessage("Select provider")}
+                className="w-full"
+              >
                 {selectedOption && (
                   <InputGroupAddon align="inline-start">
-                    <Logo provider={selectedOption.value} label={selectedOption.label} className="w-5 h-5" />
+                    <Logo
+                      provider={selectedOption.value}
+                      label={localizedProperty(selectedOption, "label", selectedOption.label)}
+                      className="w-5 h-5"
+                    />
                   </InputGroupAddon>
                 )}
               </ComboboxInput>
               <ComboboxContent>
-                <ComboboxEmpty>No providers found</ComboboxEmpty>
+                <ComboboxEmpty>
+                  <LocalizedText text={"No providers found"} />
+                </ComboboxEmpty>
                 <ComboboxList>
                   {(option: ProviderOption) => (
                     <ComboboxItem key={option.value} value={option}>
                       <span className="flex items-center space-x-2">
-                        <Logo provider={option.value} label={option.label} className="w-5 h-5" />
-                        <span>{option.label}</span>
+                        <Logo
+                          provider={option.value}
+                          label={localizedProperty(option, "label", option.label)}
+                          className="w-5 h-5"
+                        />
+                        <span>{localizedProperty(option, "label", option.label)}</span>
                       </span>
                     </ComboboxItem>
                   )}
@@ -129,7 +146,7 @@ const AddProviderForm: React.FC<AddProviderFormProps> = ({
 
         <div className="flex items-center justify-end space-x-3 pt-6 border-t border-border">
           <Button type="submit" onClick={onAddProvider} disabled={!selectedProvider || !newDiscount}>
-            Add Provider Discount
+            <LocalizedText text={"Add Provider Discount"} />
           </Button>
         </div>
       </div>

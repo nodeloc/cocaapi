@@ -1,3 +1,4 @@
+import { markUiCopy } from "@/lib/i18n";
 import { insultsCompliancePrompts } from "./insultsCompliancePrompts";
 import { financialCompliancePrompts } from "./financialCompliancePrompts";
 import { codeExecutionCompliancePrompts } from "./codeExecutionCompliancePrompts";
@@ -523,43 +524,82 @@ export function getCategories(): ComplianceCategory[] {
 }
 
 const frameworkMeta: Record<string, { icon: string; description: string }> = {
-  "EU AI Act": {
-    icon: "shield",
-    description: "Article 5 prohibited AI practices under the European Union AI Act.",
-  },
-  GDPR: {
-    icon: "lock",
-    description: "General Data Protection Regulation — data privacy and protection requirements.",
-  },
-  "Topic Blocking": {
-    icon: "shield",
-    description:
-      "Content filter guardrails that block messages matching specific prohibited topics while allowing legitimate use of related words in context.",
-  },
-  "Canadian PII (PIPEDA)": {
-    icon: "shield",
-    description:
-      "Canadian PII detection under PIPEDA and provincial privacy legislation — masks SIN, OHIP, driver's licence, passport, immigration docs, bank accounts, and postal codes.",
-  },
-  "Canadian PII (FIPPA)": {
-    icon: "graduation-cap",
-    description:
-      "Ontario FIPPA institutional identifier detection — masks University of Toronto student/employee numbers, UTORid logins, and TCard campus IDs.",
-  },
-  "Airline Brand Protection": {
-    icon: "plane",
-    description: "Destination vs competitor intent — avoid answering competitor comparison questions.",
-  },
-  "Code Execution Safety": {
-    icon: "terminal",
-    description:
-      "Requests that ask the assistant to execute code, run commands, access the filesystem/network, or otherwise perform runtime actions should be blocked; static explanation/analysis is allowed.",
-  },
-  "Claims Assistant": {
-    icon: "shield",
-    description:
-      "Security + UX validation prompts for an AI claims assistant supporting out-of-network claim submissions.",
-  },
+  "EU AI Act": markUiCopy(
+    {
+      icon: "shield",
+      description: "Article 5 prohibited AI practices under the European Union AI Act.",
+    },
+    { description: "Article 5 prohibited AI practices under the European Union AI Act." },
+  ),
+  GDPR: markUiCopy(
+    {
+      icon: "lock",
+      description: "General Data Protection Regulation — data privacy and protection requirements.",
+    },
+    { description: "General Data Protection Regulation — data privacy and protection requirements." },
+  ),
+  "Topic Blocking": markUiCopy(
+    {
+      icon: "shield",
+      description:
+        "Content filter guardrails that block messages matching specific prohibited topics while allowing legitimate use of related words in context.",
+    },
+    {
+      description:
+        "Content filter guardrails that block messages matching specific prohibited topics while allowing legitimate use of related words in context.",
+    },
+  ),
+  "Canadian PII (PIPEDA)": markUiCopy(
+    {
+      icon: "shield",
+      description:
+        "Canadian PII detection under PIPEDA and provincial privacy legislation — masks SIN, OHIP, driver's licence, passport, immigration docs, bank accounts, and postal codes.",
+    },
+    {
+      description:
+        "Canadian PII detection under PIPEDA and provincial privacy legislation — masks SIN, OHIP, driver's licence, passport, immigration docs, bank accounts, and postal codes.",
+    },
+  ),
+  "Canadian PII (FIPPA)": markUiCopy(
+    {
+      icon: "graduation-cap",
+      description:
+        "Ontario FIPPA institutional identifier detection — masks University of Toronto student/employee numbers, UTORid logins, and TCard campus IDs.",
+    },
+    {
+      description:
+        "Ontario FIPPA institutional identifier detection — masks University of Toronto student/employee numbers, UTORid logins, and TCard campus IDs.",
+    },
+  ),
+  "Airline Brand Protection": markUiCopy(
+    {
+      icon: "plane",
+      description: "Destination vs competitor intent — avoid answering competitor comparison questions.",
+    },
+    { description: "Destination vs competitor intent — avoid answering competitor comparison questions." },
+  ),
+  "Code Execution Safety": markUiCopy(
+    {
+      icon: "terminal",
+      description:
+        "Requests that ask the assistant to execute code, run commands, access the filesystem/network, or otherwise perform runtime actions should be blocked; static explanation/analysis is allowed.",
+    },
+    {
+      description:
+        "Requests that ask the assistant to execute code, run commands, access the filesystem/network, or otherwise perform runtime actions should be blocked; static explanation/analysis is allowed.",
+    },
+  ),
+  "Claims Assistant": markUiCopy(
+    {
+      icon: "shield",
+      description:
+        "Security + UX validation prompts for an AI claims assistant supporting out-of-network claim submissions.",
+    },
+    {
+      description:
+        "Security + UX validation prompts for an AI claims assistant supporting out-of-network claim submissions.",
+    },
+  ),
 };
 
 /** Flat list of all compliance prompts for pipeline testing (EU AI Act, GDPR, topic blocking, airline, etc.). */

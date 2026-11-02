@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { InputGroup, InputGroupAddon, InputGroupInput, InputGroupText } from "@/components/ui/input-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -9,10 +11,13 @@ export interface BudgetWindowEntry {
 }
 
 export const BUDGET_WINDOW_OPTIONS = [
-  { value: "1h", label: "Hourly", resetHint: "Resets every hour" },
-  { value: "24h", label: "Daily", resetHint: "Resets daily at midnight UTC" },
-  { value: "7d", label: "Weekly", resetHint: "Resets every Sunday at midnight UTC" },
-  { value: "30d", label: "Monthly", resetHint: "Resets on the 1st of every month at midnight UTC" },
+  markUiCopy({ value: "1h", label: "Hourly", resetHint: "Resets every hour" }, { label: "Hourly" }),
+  markUiCopy({ value: "24h", label: "Daily", resetHint: "Resets daily at midnight UTC" }, { label: "Daily" }),
+  markUiCopy({ value: "7d", label: "Weekly", resetHint: "Resets every Sunday at midnight UTC" }, { label: "Weekly" }),
+  markUiCopy(
+    { value: "30d", label: "Monthly", resetHint: "Resets on the 1st of every month at midnight UTC" },
+    { label: "Monthly" },
+  ),
 ];
 
 interface BudgetWindowsEditorProps {
@@ -21,6 +26,7 @@ interface BudgetWindowsEditorProps {
 }
 
 export function BudgetWindowsEditor({ value, onChange }: BudgetWindowsEditorProps) {
+  useUiLocale();
   const addWindow = () => {
     onChange([...value, { budget_duration: "24h", max_budget: null }]);
   };
@@ -52,7 +58,7 @@ export function BudgetWindowsEditor({ value, onChange }: BudgetWindowsEditorProp
                 <SelectContent>
                   {BUDGET_WINDOW_OPTIONS.map((option) => (
                     <SelectItem key={option.value} value={option.value}>
-                      {option.label}
+                      {localizedProperty(option, "label", option.label)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -76,7 +82,7 @@ export function BudgetWindowsEditor({ value, onChange }: BudgetWindowsEditorProp
                       updateWindow(idx, "max_budget", Number(typed.toFixed(2)));
                     }
                   }}
-                  placeholder="Max spend ($)"
+                  placeholder={translateMessage("Max spend ($)")}
                 />
               </InputGroup>
               <Button
@@ -100,7 +106,7 @@ export function BudgetWindowsEditor({ value, onChange }: BudgetWindowsEditorProp
           addWindow();
         }}
       >
-        + Add Budget Window
+        <LocalizedText text={"+ Add Budget Window"} />
       </Button>
     </div>
   );

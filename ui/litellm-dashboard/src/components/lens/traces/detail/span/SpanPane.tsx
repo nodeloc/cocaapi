@@ -1,4 +1,5 @@
 "use client";
+import { localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import CopyButton from "@/components/shared/CopyButton";
 
@@ -16,7 +17,10 @@ import { PaneHeader } from "./PaneHeader";
 import { RequestTab } from "./RequestTab";
 import { SpendLogLink } from "./SpendLogLink";
 
-const TAB_LABELS: Record<SpanTab, string> = { content: "Content", request: "Request", attributes: "Attributes" };
+const TAB_LABELS: Record<SpanTab, string> = markUiCopy(
+  { content: "Content", request: "Request", attributes: "Attributes" },
+  { content: "Content", request: "Request", attributes: "Attributes" },
+);
 
 export interface SpanTabProps {
   spanTab: SpanTab;
@@ -45,12 +49,16 @@ export function SpanPane({
   onSpanTabChange,
   onClose,
 }: SpanTabProps & { trace: Trace; span: Span; accessToken: string; onClose: () => void }) {
+  useUiLocale();
   const { trace_id: traceId, trace_ref: traceRef, start_time: startTime } = trace.summary;
   const handoff = useTracesApi(accessToken).handoff(traceId, span.span_id, traceRef);
   const traceStartMs = Date.parse(startTime);
   const detailQuery = useSpanDetail(accessToken, traceId, tab === "attributes" ? span.span_id : null, traceRef);
   return (
-    <aside className="flex h-full min-w-0 flex-col bg-background text-sm text-foreground" aria-label="Span details">
+    <aside
+      className="flex h-full min-w-0 flex-col bg-background text-sm text-foreground"
+      aria-label={translateMessage("Span details")}
+    >
       <PaneHeader
         type={span.type}
         model={span.model}
@@ -65,21 +73,26 @@ export function SpanPane({
               <AddToDatasetButton
                 sources={[{ kind: "trace", trace_id: traceId, trace_ref: traceRef ?? "", span_id: span.span_id }]}
                 agentName={span.agent}
-                label="Add this turn to dataset"
+                label={translateMessage("Add this turn to dataset")}
                 className="h-6"
               />
             )}
-            <CopyButton variant="action" value={handoff.text} label="Copy step" copiedLabel={handoff.copied} />
+            <CopyButton
+              variant="action"
+              value={handoff.text}
+              label={translateMessage("Copy step")}
+              copiedLabel={handoff.copied}
+            />
           </>
         }
         onClose={onClose}
       />
       <Tabs value={tab} onValueChange={(value) => onSpanTabChange(value as SpanTab)} className="min-h-0 flex-1 gap-0">
         <div className="shrink-0 border-b px-4">
-          <TabsList variant="line" aria-label="Span detail sections" className="h-9 gap-4 px-0">
+          <TabsList variant="line" aria-label={translateMessage("Span detail sections")} className="h-9 gap-4 px-0">
             {SPAN_TABS.map((id) => (
               <TabsTrigger key={id} value={id} className="flex-none px-0 text-sm">
-                {TAB_LABELS[id]}
+                {localizedProperty(TAB_LABELS, id, TAB_LABELS[id])}
               </TabsTrigger>
             ))}
           </TabsList>

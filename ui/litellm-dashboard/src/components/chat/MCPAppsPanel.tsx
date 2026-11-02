@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -40,6 +41,7 @@ export const OAuth2ConnectButton: React.FC<OAuth2ConnectButtonProps> = ({
   variant = "badge",
   autoStartKey = null,
 }) => {
+  useUiLocale();
   const name = server.server_name ?? server.alias ?? server.server_id;
   const { startOAuthFlow, status } = useUserMcpOAuthFlow({
     accessToken,
@@ -60,7 +62,7 @@ export const OAuth2ConnectButton: React.FC<OAuth2ConnectButtonProps> = ({
     return (
       <Button onClick={startOAuthFlow} disabled={loading} className="font-semibold h-[38px] min-w-[110px]">
         {loading && <Loader2 className="h-4 w-4 animate-spin mr-1.5" />}
-        {loading ? "Connecting\u2026" : "Connect"}
+        {loading ? translateMessage("Connecting…") : translateMessage("Connect")}
       </Button>
     );
   }
@@ -77,7 +79,7 @@ export const OAuth2ConnectButton: React.FC<OAuth2ConnectButtonProps> = ({
           : "text-primary-foreground bg-primary cursor-pointer hover:bg-primary/90"
       }`}
     >
-      {loading ? "Connecting\u2026" : "Connect"}
+      {loading ? translateMessage("Connecting…") : translateMessage("Connect")}
     </span>
   );
 };
@@ -113,6 +115,7 @@ type TabKey = "all" | "connected";
 const TOOLS_FETCH_CONCURRENCY = 5;
 
 const MCPAppsPanel: React.FC<Props> = ({ accessToken, selectedServers, onChange, connectMode }) => {
+  useUiLocale();
   const [servers, setServers] = useState<MCPServer[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
@@ -264,7 +267,7 @@ const MCPAppsPanel: React.FC<Props> = ({ accessToken, selectedServers, onChange,
     try {
       const result = await listMCPTools(accessToken, server.server_id);
       if (result?.error) {
-        toast.warning(`Could not load tools for ${serverName}`);
+        toast.warning(translateMessage("Could not load tools for %{0}", [serverName]));
         return;
       }
       if (connectableNow(server.server_id) === undefined) return;
@@ -272,7 +275,7 @@ const MCPAppsPanel: React.FC<Props> = ({ accessToken, selectedServers, onChange,
         onChange([...selectedServersRef.current, serverName]);
       }
     } catch {
-      toast.warning(`Could not load tools for ${serverName}`);
+      toast.warning(translateMessage("Could not load tools for %{0}", [serverName]));
     } finally {
       setTogglingOn((prev) => {
         const next = new Set(prev);
@@ -358,7 +361,11 @@ const MCPAppsPanel: React.FC<Props> = ({ accessToken, selectedServers, onChange,
         return <span className="text-[13px] text-muted-foreground py-2.5 shrink-0">{unavailabilityLabel}</span>;
       }
       if (getMcpOAuthMode(detailServer) === "m2m") {
-        return <span className="text-[13px] text-muted-foreground">Authorized</span>;
+        return (
+          <span className="text-[13px] text-muted-foreground">
+            <LocalizedText text={"Authorized"} />
+          </span>
+        );
       }
       if (getMcpOAuthMode(detailServer) !== "authorization_code") {
         return (
@@ -369,7 +376,7 @@ const MCPAppsPanel: React.FC<Props> = ({ accessToken, selectedServers, onChange,
             className="font-semibold h-[38px] min-w-[110px]"
           >
             {isTogglingOn && <Loader2 className="h-4 w-4 animate-spin mr-1.5" />}
-            {isConnected ? "Disconnect" : "Connect"}
+            {isConnected ? translateMessage("Disconnect") : translateMessage("Connect")}
           </Button>
         );
       }
@@ -392,7 +399,7 @@ const MCPAppsPanel: React.FC<Props> = ({ accessToken, selectedServers, onChange,
             }}
             className="font-semibold h-[38px] min-w-[110px]"
           >
-            Disconnect
+            <LocalizedText text={"Disconnect"} />
           </Button>
         );
       }
@@ -417,7 +424,7 @@ const MCPAppsPanel: React.FC<Props> = ({ accessToken, selectedServers, onChange,
           className="-ml-3 mb-5 gap-1.5 text-muted-foreground hover:text-foreground"
         >
           <ArrowLeft className="h-3 w-3" />
-          Back
+          <LocalizedText text={"Back"} />
         </Button>
 
         <div className="flex items-start gap-5 mb-7">
@@ -437,12 +444,17 @@ const MCPAppsPanel: React.FC<Props> = ({ accessToken, selectedServers, onChange,
           )}
           <div className="flex-1">
             <h2 className="m-0 mb-1 text-[22px] font-bold text-foreground">{name}</h2>
-            <p className="m-0 text-sm text-muted-foreground">{detailServer.description ?? "MCP server"}</p>
+            <p className="m-0 text-sm text-muted-foreground">
+              {localizedProperty(detailServer, "description", detailServer.description) ??
+                translateMessage("MCP server")}
+            </p>
           </div>
           {renderDetailAction()}
         </div>
 
-        <h3 className="m-0 mb-3 text-[15px] font-semibold text-foreground">Information</h3>
+        <h3 className="m-0 mb-3 text-[15px] font-semibold text-foreground">
+          <LocalizedText text={"Information"} />
+        </h3>
         <div className="border rounded-lg overflow-hidden mb-7">
           {[
             ["Server ID", detailServer.server_id],
@@ -459,7 +471,9 @@ const MCPAppsPanel: React.FC<Props> = ({ accessToken, selectedServers, onChange,
         </div>
 
         <div className="flex items-center gap-2 mb-3">
-          <h3 className="m-0 text-[15px] font-semibold text-foreground">Available Tools</h3>
+          <h3 className="m-0 text-[15px] font-semibold text-foreground">
+            <LocalizedText text={"Available Tools"} />
+          </h3>
           {!loadingTools && (
             <span className="text-[11px] font-semibold text-muted-foreground bg-muted rounded px-1.5 py-0.5">
               {detailTools.length}
@@ -476,7 +490,9 @@ const MCPAppsPanel: React.FC<Props> = ({ accessToken, selectedServers, onChange,
             ))}
           </div>
         ) : detailTools.length === 0 ? (
-          <div className="text-muted-foreground text-[13px] py-2">No tools available</div>
+          <div className="text-muted-foreground text-[13px] py-2">
+            <LocalizedText text={"No tools available"} />
+          </div>
         ) : (
           <div className="flex flex-col gap-2">
             {detailTools.map((tool) => (
@@ -485,7 +501,11 @@ const MCPAppsPanel: React.FC<Props> = ({ accessToken, selectedServers, onChange,
                   <Wrench className="h-3.5 w-3.5 text-muted-foreground" />
                   <span className="text-[13px] font-semibold text-foreground font-mono">{tool.name}</span>
                 </div>
-                {tool.description && <p className="m-0 text-xs text-muted-foreground pl-[21px]">{tool.description}</p>}
+                {tool.description && (
+                  <p className="m-0 text-xs text-muted-foreground pl-[21px]">
+                    {localizedProperty(tool, "description", tool.description)}
+                  </p>
+                )}
               </div>
             ))}
           </div>
@@ -499,27 +519,36 @@ const MCPAppsPanel: React.FC<Props> = ({ accessToken, selectedServers, onChange,
       <div className="flex items-center justify-between mb-5 gap-4 flex-wrap">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <h2 className="m-0 text-lg font-semibold text-foreground">MCP Servers</h2>
+            <h2 className="m-0 text-lg font-semibold text-foreground">
+              <LocalizedText text={"MCP Servers"} />
+            </h2>
             {!connectMode && (
               <span className="text-[10px] font-semibold text-primary bg-primary/10 rounded px-1.5 py-0.5 uppercase tracking-wider">
-                Beta
+                <LocalizedText text={"Beta"} />
               </span>
             )}
           </div>
           {connectMode ? (
-            <p className="m-0 text-[13px] text-muted-foreground">Click a server to see its tools and connect</p>
+            <p className="m-0 text-[13px] text-muted-foreground">
+              <LocalizedText text={"Click a server to see its tools and connect"} />
+            </p>
           ) : (
             <div className="flex items-center gap-3">
-              <p className="m-0 text-[13px] text-muted-foreground">Browse tools, authenticate once, use in chat</p>
+              <p className="m-0 text-[13px] text-muted-foreground">
+                <LocalizedText text={"Browse tools, authenticate once, use in chat"} />
+              </p>
               {loadingCounts ? (
                 <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
                   <Loader2 className="h-3 w-3 animate-spin" />
-                  Loading tools...
+                  <LocalizedText text={"Loading tools..."} />
                 </span>
               ) : totalTools > 0 ? (
                 <span className="flex items-center gap-1 text-xs text-muted-foreground">
                   <Wrench className="h-3 w-3" />
-                  {totalTools} tool{totalTools !== 1 ? "s" : ""} available
+                  {totalTools}
+                  <LocalizedText text={" tool"} />
+                  {totalTools !== 1 ? translateMessage("s") : ""}
+                  <LocalizedText text={" available"} />
                 </span>
               ) : null}
             </div>
@@ -528,7 +557,7 @@ const MCPAppsPanel: React.FC<Props> = ({ accessToken, selectedServers, onChange,
         <div className="relative w-[220px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
           <Input
-            placeholder="Search servers..."
+            placeholder={translateMessage("Search servers...")}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="pl-9 text-[13px] h-9"
@@ -539,10 +568,11 @@ const MCPAppsPanel: React.FC<Props> = ({ accessToken, selectedServers, onChange,
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as TabKey)} className="mb-4">
         <TabsList variant="line" className="border-b rounded-none w-full justify-start h-auto p-0">
           <TabsTrigger value="all" className="rounded-none px-4 py-2 text-[13px]">
-            All
+            <LocalizedText text={"All"} />
           </TabsTrigger>
           <TabsTrigger value="connected" className="rounded-none px-4 py-2 text-[13px]">
-            Connected{connectedCount > 0 ? ` (${connectedCount})` : ""}
+            <LocalizedText text={"Connected"} />
+            {connectedCount > 0 ? ` (${connectedCount})` : ""}
           </TabsTrigger>
         </TabsList>
       </Tabs>
@@ -600,7 +630,9 @@ const MCPAppsPanel: React.FC<Props> = ({ accessToken, selectedServers, onChange,
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-medium text-foreground truncate">{name}</div>
                   <div className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1.5">
-                    <span className="truncate">{server.description ?? "MCP server"}</span>
+                    <span className="truncate">
+                      {localizedProperty(server, "description", server.description) ?? translateMessage("MCP server")}
+                    </span>
                     {count !== undefined ? (
                       count > 0 ? (
                         <span className="shrink-0 flex items-center gap-1 text-muted-foreground">

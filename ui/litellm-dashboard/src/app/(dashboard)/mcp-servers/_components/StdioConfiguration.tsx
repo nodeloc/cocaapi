@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, useUiLocale } from "@/lib/i18n";
 import { Info } from "lucide-react";
 import React from "react";
 import { SimpleTooltip } from "@/components/ui/tooltip";
@@ -30,13 +32,14 @@ const PLACEHOLDER = `{
 }`;
 
 const StdioConfiguration: React.FC<StdioConfigurationProps> = ({ isVisible, required = true }) => {
+  useUiLocale();
   if (!isVisible) return null;
 
   return (
     <MountedFormField
       label={
         <span className="text-sm font-medium text-foreground flex items-center">
-          Stdio Configuration (JSON)
+          <LocalizedText text={"Stdio Configuration (JSON)"} />
           <SimpleTooltip content="Paste your stdio MCP server configuration in JSON format. You can use the full mcpServers structure from config.yaml or just the inner server configuration.">
             <Info className="ml-2 size-4 text-info hover:text-info/80 cursor-help" />
           </SimpleTooltip>

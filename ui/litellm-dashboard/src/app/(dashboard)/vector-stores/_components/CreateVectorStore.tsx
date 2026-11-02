@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 import React, { useId, useState } from "react";
 import { toast } from "@/lib/toast";
 import { CircleCheck, CircleHelp, Inbox, X } from "lucide-react";
@@ -48,6 +50,7 @@ const providerItems = Object.entries(VectorStoreProviders)
 const asText = (value: unknown): string => (typeof value === "string" ? value : "");
 
 const IngestSuccessAlert: React.FC<{ ingestResults: RAGIngestResponse[] }> = ({ ingestResults }) => {
+  useUiLocale();
   const [dismissed, setDismissed] = useState(false);
 
   if (dismissed) {
@@ -57,19 +60,32 @@ const IngestSuccessAlert: React.FC<{ ingestResults: RAGIngestResponse[] }> = ({ 
   return (
     <Alert variant="success">
       <CircleCheck />
-      <AlertTitle>Vector Store Created Successfully</AlertTitle>
+      <AlertTitle>
+        <LocalizedText text={"Vector Store Created Successfully"} />
+      </AlertTitle>
       <AlertDescription>
         <div>
           <p>
-            <strong>Vector Store ID:</strong> {ingestResults[0]?.vector_store_id}
+            <strong>
+              <LocalizedText text={"Vector Store ID:"} />
+            </strong>{" "}
+            {ingestResults[0]?.vector_store_id}
           </p>
           <p>
-            <strong>Documents Ingested:</strong> {ingestResults.length}
+            <strong>
+              <LocalizedText text={"Documents Ingested:"} />
+            </strong>{" "}
+            {ingestResults.length}
           </p>
         </div>
       </AlertDescription>
       <AlertAction>
-        <Button variant="ghost" size="icon-sm" aria-label="Close" onClick={() => setDismissed(true)}>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          aria-label={translateMessage("Close")}
+          onClick={() => setDismissed(true)}
+        >
           <X className="size-4" />
         </Button>
       </AlertAction>
@@ -93,6 +109,7 @@ interface CreateVectorStoreProps {
 }
 
 const CreateVectorStore: React.FC<CreateVectorStoreProps> = ({ accessToken, onSuccess }) => {
+  useUiLocale();
   const [documents, setDocuments] = useState<DocumentUpload[]>([]);
   const [isCreating, setIsCreating] = useState(false);
   const [selectedProvider, setSelectedProvider] = useState<string>("bedrock");
@@ -104,11 +121,13 @@ const CreateVectorStore: React.FC<CreateVectorStoreProps> = ({ accessToken, onSu
 
   const isSupportedDocument = (file: File): boolean => {
     if (!ACCEPTED_DOCUMENT_TYPES.includes(file.type)) {
-      toast.error(`${file.name} is not a supported file type. Please upload PDF, TXT, DOCX, or MD files.`);
+      toast.error(
+        translateMessage("%{0} is not a supported file type. Please upload PDF, TXT, DOCX, or MD files.", [file.name]),
+      );
       return false;
     }
     if (file.size >= MAX_DOCUMENT_BYTES) {
-      toast.error(`${file.name} must be smaller than 50MB!`);
+      toast.error(translateMessage("%{0} must be smaller than 50MB!", [file.name]));
       return false;
     }
     return true;
@@ -135,12 +154,12 @@ const CreateVectorStore: React.FC<CreateVectorStoreProps> = ({ accessToken, onSu
 
   const handleCreateVectorStore = async () => {
     if (documents.length === 0) {
-      toast.warning("Please upload at least one document");
+      toast.warning(translateMessage("Please upload at least one document"));
       return;
     }
 
     if (!selectedProvider) {
-      toast.warning("Please select a provider");
+      toast.warning(translateMessage("Please select a provider"));
       return;
     }
 
@@ -148,7 +167,7 @@ const CreateVectorStore: React.FC<CreateVectorStoreProps> = ({ accessToken, onSu
     const requiredFields = getProviderSpecificFields(selectedProvider).filter((field) => field.required);
     for (const field of requiredFields) {
       if (!providerParams[field.name]) {
-        toast.warning(`Please provide ${field.label}`);
+        toast.warning(translateMessage("Please provide %{0}", [field.label]));
         return;
       }
     }
@@ -158,17 +177,17 @@ const CreateVectorStore: React.FC<CreateVectorStoreProps> = ({ accessToken, onSu
       const bucketName = asText(providerParams.vector_bucket_name);
       const indexName = asText(providerParams.index_name);
       if (bucketName && bucketName.length < 3) {
-        toast.warning("Vector bucket name must be at least 3 characters");
+        toast.warning(translateMessage("Vector bucket name must be at least 3 characters"));
         return;
       }
       if (indexName && indexName.length > 0 && indexName.length < 3) {
-        toast.warning("Index name must be at least 3 characters if provided");
+        toast.warning(translateMessage("Index name must be at least 3 characters if provided"));
         return;
       }
     }
 
     if (!accessToken) {
-      toast.error("No access token available");
+      toast.error(translateMessage("No access token available"));
       return;
     }
 
@@ -214,7 +233,10 @@ const CreateVectorStore: React.FC<CreateVectorStoreProps> = ({ accessToken, onSu
 
       setIngestResults(results);
       toast.success(
-        `Successfully created vector store with ${results.length} document(s). Vector Store ID: ${vectorStoreId}`,
+        translateMessage("Successfully created vector store with %{0} document(s). Vector Store ID: %{1}", [
+          results.length,
+          vectorStoreId,
+        ]),
       );
 
       if (onSuccess && vectorStoreId) {
@@ -238,9 +260,13 @@ const CreateVectorStore: React.FC<CreateVectorStoreProps> = ({ accessToken, onSu
     <TooltipProvider>
       <div className="space-y-6">
         <div>
-          <h3 className="text-lg font-medium">Create Vector Store</h3>
+          <h3 className="text-lg font-medium">
+            <LocalizedText text={"Create Vector Store"} />
+          </h3>
           <p className="text-sm text-muted-foreground">
-            Upload documents and select a provider to create a new vector store with embedded content.
+            <LocalizedText
+              text={"Upload documents and select a provider to create a new vector store with embedded content."}
+            />
           </p>
         </div>
 
@@ -248,9 +274,13 @@ const CreateVectorStore: React.FC<CreateVectorStoreProps> = ({ accessToken, onSu
         <Card>
           <CardContent>
             <div className="mb-4">
-              <p className="font-medium">Step 1: Upload Documents</p>
+              <p className="font-medium">
+                <LocalizedText text={"Step 1: Upload Documents"} />
+              </p>
               <p className="text-sm text-muted-foreground block mt-1">
-                Upload one or more documents (PDF, TXT, DOCX, MD). Maximum file size: 50MB per file.
+                <LocalizedText
+                  text={"Upload one or more documents (PDF, TXT, DOCX, MD). Maximum file size: 50MB per file."}
+                />
               </p>
             </div>
             <label
@@ -263,9 +293,11 @@ const CreateVectorStore: React.FC<CreateVectorStoreProps> = ({ accessToken, onSu
               }}
             >
               <Inbox className="size-12 text-primary" />
-              <span className="text-base">Click or drag files to this area to upload</span>
+              <span className="text-base">
+                <LocalizedText text={"Click or drag files to this area to upload"} />
+              </span>
               <span className="text-sm text-muted-foreground">
-                Support for single or bulk upload. Supported formats: PDF, TXT, DOCX, MD
+                <LocalizedText text={"Support for single or bulk upload. Supported formats: PDF, TXT, DOCX, MD"} />
               </span>
               <input
                 id={documentsInputId}
@@ -287,7 +319,10 @@ const CreateVectorStore: React.FC<CreateVectorStoreProps> = ({ accessToken, onSu
           <Card>
             <CardContent>
               <div className="mb-4">
-                <p className="font-medium">Uploaded Documents ({documents.length})</p>
+                <p className="font-medium">
+                  <LocalizedText text={"Uploaded Documents ("} />
+                  {documents.length})
+                </p>
               </div>
               <DocumentsTable documents={documents} onRemove={handleRemoveDocument} />
             </CardContent>
@@ -298,9 +333,13 @@ const CreateVectorStore: React.FC<CreateVectorStoreProps> = ({ accessToken, onSu
         <Card>
           <CardContent className="space-y-4">
             <div>
-              <p className="font-medium">Step 2: Configure Vector Store</p>
+              <p className="font-medium">
+                <LocalizedText text={"Step 2: Configure Vector Store"} />
+              </p>
               <p className="text-sm text-muted-foreground block mt-1">
-                Choose the provider and optionally provide a name and description for your vector store.
+                <LocalizedText
+                  text={"Choose the provider and optionally provide a name and description for your vector store."}
+                />
               </p>
             </div>
 
@@ -313,7 +352,7 @@ const CreateVectorStore: React.FC<CreateVectorStoreProps> = ({ accessToken, onSu
                   id="vector-store-name"
                   value={vectorStoreName}
                   onChange={(e) => setVectorStoreName(e.target.value)}
-                  placeholder="e.g., Product Documentation, Customer Support KB"
+                  placeholder={translateMessage("e.g., Product Documentation, Customer Support KB")}
                 />
               </Field>
 
@@ -325,7 +364,7 @@ const CreateVectorStore: React.FC<CreateVectorStoreProps> = ({ accessToken, onSu
                   id="vector-store-description"
                   value={vectorStoreDescription}
                   onChange={(e) => setVectorStoreDescription(e.target.value)}
-                  placeholder="e.g., Contains all product documentation and user guides"
+                  placeholder={translateMessage("e.g., Contains all product documentation and user guides")}
                   rows={2}
                 />
               </Field>
@@ -340,13 +379,17 @@ const CreateVectorStore: React.FC<CreateVectorStoreProps> = ({ accessToken, onSu
                   onValueChange={(value: string | null) => value !== null && setSelectedProvider(value)}
                 >
                   <SelectTrigger id="vector-store-provider" className="w-full">
-                    <SelectValue placeholder="Select a provider" />
+                    <SelectValue placeholder={translateMessage("Select a provider")} />
                   </SelectTrigger>
                   <SelectContent>
                     {providerItems.map((item) => (
                       <SelectItem key={item.value} value={item.value}>
-                        <Logo src={vectorStoreProviderLogoMap[item.label]} label={item.label} className="w-5 h-5" />
-                        <span>{item.label}</span>
+                        <Logo
+                          src={vectorStoreProviderLogoMap[item.label]}
+                          label={localizedProperty(item, "label", item.label)}
+                          className="w-5 h-5"
+                        />
+                        <span>{localizedProperty(item, "label", item.label)}</span>
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -374,7 +417,7 @@ const CreateVectorStore: React.FC<CreateVectorStoreProps> = ({ accessToken, onSu
                       type={field.type === "password" ? "password" : "text"}
                       value={asText(providerParams[field.name])}
                       onChange={(e) => setProviderParams((prev) => ({ ...prev, [field.name]: e.target.value }))}
-                      placeholder={field.placeholder}
+                      placeholder={localizedProperty(field, "placeholder", field.placeholder)}
                     />
                   </Field>
                 ))}
@@ -387,7 +430,7 @@ const CreateVectorStore: React.FC<CreateVectorStoreProps> = ({ accessToken, onSu
                 disabled={isCreating || documents.length === 0 || !selectedProvider}
               >
                 {isCreating && <UiLoadingSpinner className="size-4" />}
-                {isCreating ? "Creating Vector Store..." : "Create Vector Store"}
+                {isCreating ? translateMessage("Creating Vector Store...") : translateMessage("Create Vector Store")}
               </Button>
             </div>
           </CardContent>

@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Pencil, Trash2, Search, MessageSquare } from "lucide-react";
@@ -69,6 +70,7 @@ interface ConversationRowProps {
 }
 
 const ConversationRow: React.FC<ConversationRowProps> = ({ conv, isActive, onSelect, onDelete, onRename }) => {
+  useUiLocale();
   const [editing, setEditing] = useState(false);
   const [editValue, setEditValue] = useState(conv.title);
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -109,7 +111,8 @@ const ConversationRow: React.FC<ConversationRowProps> = ({ conv, isActive, onSel
     }
   };
 
-  const truncatedTitle = conv.title.length > 40 ? conv.title.slice(0, 40) + "\u2026" : conv.title;
+  const displayTitle = conv.title === "New conversation" ? translateMessage("New conversation") : conv.title;
+  const truncatedTitle = displayTitle.length > 40 ? displayTitle.slice(0, 40) + "\u2026" : displayTitle;
 
   return (
     <div
@@ -134,7 +137,7 @@ const ConversationRow: React.FC<ConversationRowProps> = ({ conv, isActive, onSel
             className={`flex-1 text-[13px] overflow-hidden whitespace-nowrap text-ellipsis ${
               isActive ? "font-medium" : ""
             }`}
-            title={conv.title}
+            title={displayTitle}
           >
             {truncatedTitle}
           </span>
@@ -153,7 +156,9 @@ const ConversationRow: React.FC<ConversationRowProps> = ({ conv, isActive, onSel
                   }
                 />
                 <TooltipContent side="bottom">
-                  <p>Rename</p>
+                  <p>
+                    <LocalizedText text={"Rename"} />
+                  </p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -177,22 +182,30 @@ const ConversationRow: React.FC<ConversationRowProps> = ({ conv, isActive, onSel
                     }
                   />
                   <TooltipContent side="bottom">
-                    <p>Delete</p>
+                    <p>
+                      <LocalizedText text={"Delete"} />
+                    </p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Delete this conversation?</AlertDialogTitle>
-                  <AlertDialogDescription>This action cannot be undone</AlertDialogDescription>
+                  <AlertDialogTitle>
+                    <LocalizedText text={"Delete this conversation?"} />
+                  </AlertDialogTitle>
+                  <AlertDialogDescription>
+                    <LocalizedText text={"This action cannot be undone"} />
+                  </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogCancel>
+                    <LocalizedText text={"Cancel"} />
+                  </AlertDialogCancel>
                   <AlertDialogAction
                     onClick={() => onDelete(conv.id)}
                     className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                   >
-                    Delete
+                    <LocalizedText text={"Delete"} />
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
@@ -212,6 +225,7 @@ interface SearchModalProps {
 }
 
 const SearchModal: React.FC<SearchModalProps> = ({ open, conversations, onSelect, onClose }) => {
+  useUiLocale();
   const [query, setQuery] = useState("");
   const [wasOpen, setWasOpen] = useState(open);
 
@@ -236,7 +250,7 @@ const SearchModal: React.FC<SearchModalProps> = ({ open, conversations, onSelect
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             autoFocus
-            placeholder="Search conversations\u2026"
+            placeholder={translateMessage("Search conversations\\u2026")}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="pl-9"
@@ -245,7 +259,9 @@ const SearchModal: React.FC<SearchModalProps> = ({ open, conversations, onSelect
 
         <ScrollArea className="max-h-[320px]">
           {filtered.length === 0 ? (
-            <div className="text-center py-6 text-muted-foreground text-sm">No conversations found</div>
+            <div className="text-center py-6 text-muted-foreground text-sm">
+              <LocalizedText text={"No conversations found"} />
+            </div>
           ) : (
             filtered.map((conv) => {
               const truncated = conv.title.length > 55 ? conv.title.slice(0, 55) + "\u2026" : conv.title;
@@ -271,6 +287,7 @@ const SearchModal: React.FC<SearchModalProps> = ({ open, conversations, onSelect
 };
 
 const ConversationList: React.FC<Props> = ({ conversations, activeConversationId, onSelect, onDelete, onRename }) => {
+  useUiLocale();
   const [searchModalOpen, setSearchModalOpen] = useState(false);
 
   const handleGlobalKeyDown = useCallback((e: KeyboardEvent) => {
@@ -293,15 +310,15 @@ const ConversationList: React.FC<Props> = ({ conversations, activeConversationId
         <ScrollArea className="flex-1 h-0 px-1.5 pt-2">
           {grouped.length === 0 ? (
             <div className="text-center text-muted-foreground/60 text-xs mt-8 px-3">
-              No conversations yet
+              <LocalizedText text={"No conversations yet"} />
               <br />
-              Start a new chat above
+              <LocalizedText text={"Start a new chat above"} />
             </div>
           ) : (
             grouped.map(({ group, items }) => (
               <div key={group} className="mb-2">
                 <div className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-2 pt-2 pb-1">
-                  {group}
+                  {translateMessage(group)}
                 </div>
                 {items.map((conv) => (
                   <ConversationRow

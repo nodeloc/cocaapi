@@ -1,3 +1,5 @@
+"use client";
+import { translateMessage, useUiLocale } from "@/lib/i18n";
 import React, { useMemo, useState } from "react";
 import { PaginatedMultiSelect } from "@/components/shared/PaginatedMultiSelect";
 import type { SearchSelectOption } from "@/components/shared/SearchSelect";
@@ -20,6 +22,7 @@ const TeamMultiSelect: React.FC<TeamMultiSelectProps> = ({
   pageSize = 20,
   placeholder = "Search teams by alias...",
 }) => {
+  useUiLocale();
   const [search, setSearch] = useState("");
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useInfiniteTeams(
@@ -57,8 +60,8 @@ const TeamMultiSelect: React.FC<TeamMultiSelectProps> = ({
       isLoading={isLoading}
       isFetchingNextPage={isFetchingNextPage}
       placeholder={placeholder}
-      emptyText="No teams found"
-      loadingText="Loading teams..."
+      emptyText={translateMessage("No teams found")}
+      loadingText={translateMessage("Loading teams...")}
       clearAllLabel="Clear all teams"
       disabled={disabled}
     />

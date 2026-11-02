@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 import React from "react";
 import { toast } from "@/lib/toast";
 import { Code, Info, TriangleAlert } from "lucide-react";
@@ -34,12 +36,13 @@ const CodeInterpreterTool: React.FC<CodeInterpreterToolProps> = ({
   selectedModel,
   disabled = false,
 }) => {
+  useUiLocale();
   const isOpenAI = isOpenAIModel(selectedModel);
   const isDisabled = disabled || !isOpenAI;
 
   const handleToggle = (checked: boolean) => {
     if (checked && !isOpenAI) {
-      toast.warning("Code Interpreter is only available for OpenAI models");
+      toast.warning(translateMessage("Code Interpreter is only available for OpenAI models"));
       return;
     }
     onEnabledChange(checked);
@@ -50,13 +53,19 @@ const CodeInterpreterTool: React.FC<CodeInterpreterToolProps> = ({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Code className="size-4 text-info" />
-          <span className="font-medium text-foreground">Code Interpreter</span>
+          <span className="font-medium text-foreground">
+            <LocalizedText text={"Code Interpreter"} />
+          </span>
           <Tooltip>
-            <TooltipTrigger aria-label="About Code Interpreter">
+            <TooltipTrigger aria-label={translateMessage("About Code Interpreter")}>
               <Info className="size-3 text-muted-foreground" />
             </TooltipTrigger>
             <TooltipContent>
-              Run Python code to generate files, charts, and analyze data. Container is created automatically.
+              <LocalizedText
+                text={
+                  "Run Python code to generate files, charts, and analyze data. Container is created automatically."
+                }
+              />
             </TooltipContent>
           </Tooltip>
         </div>
@@ -65,7 +74,7 @@ const CodeInterpreterTool: React.FC<CodeInterpreterToolProps> = ({
           onCheckedChange={handleToggle}
           disabled={isDisabled}
           size="sm"
-          aria-label="Enable Code Interpreter"
+          aria-label={translateMessage("Enable Code Interpreter")}
         />
       </div>
 
@@ -74,14 +83,16 @@ const CodeInterpreterTool: React.FC<CodeInterpreterToolProps> = ({
           <div className="flex items-start gap-2">
             <TriangleAlert className="mt-0.5 size-4 shrink-0 text-warning" />
             <div className="text-xs text-muted-foreground">
-              <span>Code Interpreter is currently only supported for OpenAI models. </span>
+              <span>
+                <LocalizedText text={"Code Interpreter is currently only supported for OpenAI models. "} />
+              </span>
               <a
                 href={GITHUB_FEATURE_REQUEST_URL}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-info hover:text-info/80 underline"
               >
-                Request support for other providers
+                <LocalizedText text={"Request support for other providers"} />
               </a>
             </div>
           </div>

@@ -1,3 +1,4 @@
+import { markUiCopy } from "@/lib/i18n";
 import { z } from "zod";
 import { openAIDecisionsRequestSchema, type OpenAIDecisionsRequest } from "./openAIDecisions";
 import {
@@ -62,11 +63,16 @@ function validatePayload<T>(raw: string, schema: z.ZodType<T>): PayloadValidatio
   if (!result.success) {
     return {
       isValid: false,
-      issues: result.error.issues.map((issue) => ({
-        path: issue.path.length > 0 ? issue.path.join(".") : "root",
-        message: issue.message,
-        severity: "error",
-      })),
+      issues: result.error.issues.map((issue) =>
+        markUiCopy(
+          {
+            path: issue.path.length > 0 ? issue.path.join(".") : "root",
+            message: issue.message,
+            severity: "error" as const,
+          },
+          { message: { owner: issue, field: "message" } },
+        ),
+      ),
     };
   }
 

@@ -1,3 +1,5 @@
+"use client";
+import { translateMessage, useUiLocale } from "@/lib/i18n";
 import { useCallback, useRef, useState } from "react";
 import type { components } from "@/lib/http/schema";
 import { toast } from "@/lib/toast";
@@ -28,6 +30,7 @@ type ResetRun =
   | { ok: false; attempted: number; error: unknown };
 
 export const useMemberBudgetReset = (gateway: MemberBudgetResetGateway) => {
+  useUiLocale();
   const [state, setState] = useState<MemberBudgetResetState>({ phase: "idle" });
   const activeRun = useRef<object | null>(null);
   const isCurrent = (run: object) => activeRun.current === run;
@@ -60,7 +63,11 @@ export const useMemberBudgetReset = (gateway: MemberBudgetResetGateway) => {
       const total = pending.userIds.length;
       if (outcome.attempted > 0) {
         toast.error(
-          `Reset ${outcome.attempted} of ${total} member ${pluralize(total, "budget", "budgets")}; the rest could not be reset`,
+          translateMessage("Reset %{0} of %{1} member %{2}; the rest could not be reset", [
+            outcome.attempted,
+            total,
+            pluralize(total, "budget", "budgets"),
+          ]),
         );
       } else {
         toast.fromError("Team updated, but member budgets could not be reset");
@@ -72,11 +79,17 @@ export const useMemberBudgetReset = (gateway: MemberBudgetResetGateway) => {
     const failed = outcome.results.filter((r) => !r.success);
     if (failed.length > 0) {
       toast.error(
-        `Team updated, but ${failed.length} member ${pluralize(failed.length, "budget", "budgets")} could not be reset`,
+        translateMessage("Team updated, but %{0} member %{1} could not be reset", [
+          failed.length,
+          pluralize(failed.length, "budget", "budgets"),
+        ]),
       );
     } else {
       toast.success(
-        `Reset ${outcome.attempted} member ${pluralize(outcome.attempted, "budget", "budgets")} to the team default`,
+        translateMessage("Reset %{0} member %{1} to the team default", [
+          outcome.attempted,
+          pluralize(outcome.attempted, "budget", "budgets"),
+        ]),
       );
     }
     setState({ phase: "idle" });
@@ -118,7 +131,7 @@ export const useMemberBudgetReset = (gateway: MemberBudgetResetGateway) => {
     setState({ phase: "idle" });
     try {
       await gateway.saveTeam(pending.updateData);
-      if (isCurrent(run)) toast.success("Team settings updated successfully");
+      if (isCurrent(run)) toast.success(translateMessage("Team settings updated successfully"));
     } catch (error) {
       console.error("Error updating team:", error);
     }

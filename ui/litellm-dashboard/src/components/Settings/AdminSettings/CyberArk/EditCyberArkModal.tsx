@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { useCyberArkConfig } from "@/app/(dashboard)/hooks/configOverrides/useCyberArkConfig";
 import { useUpdateCyberArkConfig } from "@/app/(dashboard)/hooks/configOverrides/useUpdateCyberArkConfig";
@@ -24,25 +25,37 @@ interface CyberArkFieldGroup {
 }
 
 const FIELD_GROUPS: CyberArkFieldGroup[] = [
-  {
-    title: "Connection",
-    fields: ["cyberark_api_base", "cyberark_account", "cyberark_username"],
-  },
-  {
-    title: "API Key Authentication",
-    subtitle: "Use a Conjur API key to authenticate. Only one auth method is required.",
-    fields: ["cyberark_api_key"],
-  },
-  {
-    title: "Certificate Authentication",
-    subtitle: "Use a client TLS certificate and key to authenticate. Only one auth method is required.",
-    fields: ["client_cert", "client_key"],
-  },
-  {
-    title: "Advanced",
-    subtitle: "Optional TLS and token caching settings.",
-    fields: ["ssl_verify", "refresh_interval"],
-  },
+  markUiCopy(
+    {
+      title: "Connection",
+      fields: ["cyberark_api_base", "cyberark_account", "cyberark_username"],
+    },
+    { title: "Connection" },
+  ),
+  markUiCopy(
+    {
+      title: "API Key Authentication",
+      subtitle: "Use a Conjur API key to authenticate. Only one auth method is required.",
+      fields: ["cyberark_api_key"],
+    },
+    { title: "API Key Authentication" },
+  ),
+  markUiCopy(
+    {
+      title: "Certificate Authentication",
+      subtitle: "Use a client TLS certificate and key to authenticate. Only one auth method is required.",
+      fields: ["client_cert", "client_key"],
+    },
+    { title: "Certificate Authentication" },
+  ),
+  markUiCopy(
+    {
+      title: "Advanced",
+      subtitle: "Optional TLS and token caching settings.",
+      fields: ["ssl_verify", "refresh_interval"],
+    },
+    { title: "Advanced" },
+  ),
 ];
 
 type CyberArkFormValues = Record<string, string>;
@@ -53,9 +66,15 @@ const buildSchema = (fields: readonly string[]): z.ZodType<CyberArkFormValues, C
       fields.map((name) => [
         name,
         name === "cyberark_api_base"
-          ? z.string().refine((value) => value.length === 0 || /^https?:\/\/.+/.test(value), {
-              message: "Must start with http:// or https://",
-            })
+          ? z.string().refine(
+              (value) => value.length === 0 || /^https?:\/\/.+/.test(value),
+              markUiCopy(
+                {
+                  message: "Must start with http:// or https://",
+                },
+                { message: "Must start with http:// or https://" },
+              ),
+            )
           : z.string(),
       ]),
     ),
@@ -68,6 +87,7 @@ interface EditCyberArkModalProps {
 }
 
 const EditCyberArkModal: React.FC<EditCyberArkModalProps> = ({ isVisible, onCancel, onSuccess }) => {
+  useUiLocale();
   const { accessToken } = useAuthorized();
   const { data } = useCyberArkConfig();
   const { mutate, isPending } = useUpdateCyberArkConfig(accessToken);
@@ -105,7 +125,7 @@ const EditCyberArkModal: React.FC<EditCyberArkModalProps> = ({ isVisible, onCanc
 
     mutate(config, {
       onSuccess: () => {
-        toast.success("CyberArk configuration updated successfully");
+        toast.success(translateMessage("CyberArk configuration updated successfully"));
         onSuccess();
       },
       onError: (err) => {
@@ -129,12 +149,21 @@ const EditCyberArkModal: React.FC<EditCyberArkModalProps> = ({ isVisible, onCanc
     const placeholder = hasExistingValue ? `Leave blank to keep existing (${existingValue})` : fieldSchema?.description;
 
     return (
-      <FormField key={fieldName} control={form.control} name={fieldName} label={FIELD_LABELS[fieldName] ?? fieldName}>
+      <FormField
+        key={fieldName}
+        control={form.control}
+        name={fieldName}
+        label={localizedProperty(FIELD_LABELS, fieldName, FIELD_LABELS[fieldName]) ?? fieldName}
+      >
         {({ ref, ...field }) =>
           isSensitive ? (
             <PasswordInput ref={ref} placeholder={placeholder} {...field} />
           ) : (
-            <Input ref={ref} placeholder={fieldSchema?.description} {...field} />
+            <Input
+              ref={ref}
+              placeholder={localizedProperty(fieldSchema, "description", fieldSchema?.description)}
+              {...field}
+            />
           )
         }
       </FormField>
@@ -145,13 +174,17 @@ const EditCyberArkModal: React.FC<EditCyberArkModalProps> = ({ isVisible, onCanc
     <Dialog open={isVisible} onOpenChange={(open) => !open && handleCancel()}>
       <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-[700px]">
         <DialogHeader>
-          <DialogTitle>Edit CyberArk Configuration</DialogTitle>
+          <DialogTitle>
+            <LocalizedText text={"Edit CyberArk Configuration"} />
+          </DialogTitle>
         </DialogHeader>
         <form onSubmit={form.handleSubmit(handleSubmit)}>
           {FIELD_GROUPS.map((group, index) => (
             <div key={group.title}>
               {index > 0 && <Separator className="my-6" />}
-              <h5 className="mb-1 text-base font-semibold text-foreground">{group.title}</h5>
+              <h5 className="mb-1 text-base font-semibold text-foreground">
+                {localizedProperty(group, "title", group.title)}
+              </h5>
               {group.subtitle && <p className="mb-4 text-sm text-muted-foreground">{group.subtitle}</p>}
               <FieldGroup>{group.fields.map(renderField)}</FieldGroup>
             </div>
@@ -160,11 +193,11 @@ const EditCyberArkModal: React.FC<EditCyberArkModalProps> = ({ isVisible, onCanc
         <DialogFooter>
           <div className="flex items-center justify-end gap-2">
             <Button type="button" variant="outline" onClick={handleCancel} disabled={isPending}>
-              Cancel
+              <LocalizedText text={"Cancel"} />
             </Button>
             <Button type="button" disabled={isPending} onClick={() => void form.handleSubmit(handleSubmit)()}>
               {isPending && <UiLoadingSpinner className="size-4 mr-1" />}
-              {isPending ? "Saving..." : "Save"}
+              {isPending ? translateMessage("Saving...") : translateMessage("Save")}
             </Button>
           </div>
         </DialogFooter>

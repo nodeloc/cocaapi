@@ -1,4 +1,5 @@
 "use client";
+import { translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { useState } from "react";
 
@@ -9,17 +10,15 @@ import { FoldChevron } from "../../ui/Collapse";
 const MODES = ["Formatted", "Raw"] as const;
 export type SectionMode = (typeof MODES)[number];
 
-function ModeSwitch({
-  mode,
-  onChange,
-  title,
-}: {
-  mode: SectionMode;
-  onChange: (mode: SectionMode) => void;
-  title: string;
-}) {
+function ModeSwitch(cocaCopyProps0: { mode: SectionMode; onChange: (mode: SectionMode) => void; title: string }) {
+  const { mode, onChange, title } = cocaCopyProps0;
+  useUiLocale();
   return (
-    <div role="radiogroup" aria-label={`${title} format`} className="flex items-center rounded-md bg-muted p-0.5">
+    <div
+      role="radiogroup"
+      aria-label={translateMessage("%{0} format", [title])}
+      className="flex items-center rounded-md bg-muted p-0.5"
+    >
       {MODES.map((option) => (
         <button
           key={option}
@@ -51,6 +50,7 @@ interface SectionProps {
 
 /** Collapsible "Input" / "Output" section with a sticky header. */
 export function Section({ title, count, defaultOpen = true, children }: SectionProps) {
+  useUiLocale();
   const [open, setOpen] = useState(defaultOpen);
   const [mode, setMode] = useState<SectionMode>("Formatted");
   const switchable = typeof children === "function";
@@ -67,7 +67,7 @@ export function Section({ title, count, defaultOpen = true, children }: SectionP
           <span className="text-sm font-semibold text-foreground">{title}</span>{" "}
           {count !== undefined && (
             <span className="text-xs text-muted-foreground">
-              {count} {count === 1 ? "message" : "messages"}
+              {count} {count === 1 ? translateMessage("message") : translateMessage("messages")}
             </span>
           )}
         </button>

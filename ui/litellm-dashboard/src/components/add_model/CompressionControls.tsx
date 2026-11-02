@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import { SimpleTooltip } from "@/components/ui/tooltip";
 import { SearchSelect, SearchSelectOption } from "@/components/shared/SearchSelect";
 import { Label } from "@/components/ui/label";
@@ -16,9 +18,13 @@ interface CompressionControlsProps {
   onChange: (state: AutoRouterCompressionState) => void;
 }
 
-const NONE_OPTION: SearchSelectOption = { label: "None (no compression)", value: NO_COMPRESSION };
+const NONE_OPTION: SearchSelectOption = markUiCopy(
+  { label: "None (no compression)", value: NO_COMPRESSION },
+  { label: "None (no compression)" },
+);
 
 const CompressionControls: React.FC<CompressionControlsProps> = ({ value, onChange }) => {
+  useUiLocale();
   const { routing, sameAsRouting, model } = value;
   const onRoutingChange = (newRouting: string | undefined) => onChange({ ...value, routing: newRouting });
   const onSameAsRoutingChange = (newSameAsRouting: boolean) => onChange({ ...value, sameAsRouting: newSameAsRouting });
@@ -34,7 +40,9 @@ const CompressionControls: React.FC<CompressionControlsProps> = ({ value, onChan
     <div className="space-y-4">
       <div>
         <div className="mb-1 flex items-center gap-2">
-          <span className="text-sm font-medium">Routing decision</span>
+          <span className="text-sm font-medium">
+            <LocalizedText text={"Routing decision"} />
+          </span>
           <SimpleTooltip content="Compression applied to the classifier's own call that picks a tier, separate from the model the request routes to.">
             <Info className="size-4 text-muted-foreground" />
           </SimpleTooltip>
@@ -43,15 +51,17 @@ const CompressionControls: React.FC<CompressionControlsProps> = ({ value, onChan
           options={options}
           value={routing}
           onValueChange={(value) => onRoutingChange(value ?? undefined)}
-          placeholder="Inherit from the request's own compression guardrails"
-          emptyText="No compression guardrails found"
-          aria-label="Routing decision compression"
+          placeholder={translateMessage("Inherit from the request's own compression guardrails")}
+          emptyText={translateMessage("No compression guardrails found")}
+          aria-label={translateMessage("Routing decision compression")}
         />
       </div>
 
       {routing !== undefined && (
         <div>
-          <span className="mb-2 block text-sm font-medium">Model call</span>
+          <span className="mb-2 block text-sm font-medium">
+            <LocalizedText text={"Model call"} />
+          </span>
           <RadioGroup
             value={sameAsRouting ? "same" : "different"}
             onValueChange={(value: unknown) => onSameAsRoutingChange(value === "same")}
@@ -60,11 +70,15 @@ const CompressionControls: React.FC<CompressionControlsProps> = ({ value, onChan
             <div className="flex w-full flex-col items-start gap-2">
               <Label className="items-start font-normal leading-normal">
                 <RadioGroupItem value="same" className="mt-0.5" />
-                <span>Same as the routing decision</span>
+                <span>
+                  <LocalizedText text={"Same as the routing decision"} />
+                </span>
               </Label>
               <Label className="items-start font-normal leading-normal">
                 <RadioGroupItem value="different" className="mt-0.5" />
-                <span>Use a different compression</span>
+                <span>
+                  <LocalizedText text={"Use a different compression"} />
+                </span>
               </Label>
             </div>
           </RadioGroup>
@@ -75,9 +89,9 @@ const CompressionControls: React.FC<CompressionControlsProps> = ({ value, onChan
                 options={options}
                 value={model}
                 onValueChange={(value) => onModelChange(value ?? undefined)}
-                placeholder="None (no compression)"
-                emptyText="No compression guardrails found"
-                aria-label="Model call compression"
+                placeholder={translateMessage("None (no compression)")}
+                emptyText={translateMessage("No compression guardrails found")}
+                aria-label={translateMessage("Model call compression")}
               />
             </div>
           )}

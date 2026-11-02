@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { Pause, Play, Settings2, MoreHorizontal, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -37,33 +38,36 @@ export function InvestigationActions({
   onEnableMonitoring,
   onRunNow,
 }: InvestigationActionsProps) {
+  useUiLocale();
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger render={<Button variant="ghost" size="icon" aria-label="Investigation actions" />}>
+      <DropdownMenuTrigger
+        render={<Button variant="ghost" size="icon" aria-label={translateMessage("Investigation actions")} />}
+      >
         <MoreHorizontal className="size-4" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48">
         <DropdownMenuItem disabled={busy || hasActiveJob(lens.jobs) || !ready} onClick={onRunNow}>
           <Play />
-          Run now
+          <LocalizedText text={"Run now"} />
         </DropdownMenuItem>
         <DropdownMenuItem onClick={onEdit}>
           <Settings2 />
-          Edit investigation
+          <LocalizedText text={"Edit investigation"} />
         </DropdownMenuItem>
         <DropdownMenuItem disabled={!ready} onClick={onDuplicate}>
           <Copy />
-          Duplicate
+          <LocalizedText text={"Duplicate"} />
         </DropdownMenuItem>
         {lens.settings.enabled ? (
           <DropdownMenuItem disabled={busy} onClick={onPause}>
             <Pause />
-            Pause monitoring
+            <LocalizedText text={"Pause monitoring"} />
           </DropdownMenuItem>
         ) : (
           <DropdownMenuItem disabled={!ready || busy} onClick={onEnableMonitoring}>
             <Play />
-            Enable monitoring
+            <LocalizedText text={"Enable monitoring"} />
           </DropdownMenuItem>
         )}
       </DropdownMenuContent>

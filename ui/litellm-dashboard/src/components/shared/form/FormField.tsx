@@ -1,4 +1,5 @@
 "use client";
+import { localizedProperty, useUiLocale } from "@/lib/i18n";
 
 import * as React from "react";
 import {
@@ -30,15 +31,11 @@ export interface FormFieldProps<TFieldValues extends FieldValues, TName extends 
   children: (control: FormFieldControlProps<TFieldValues, TName>) => React.ReactNode;
 }
 
-export const FormField = <TFieldValues extends FieldValues, TName extends FieldPath<TFieldValues>>({
-  control,
-  name,
-  label,
-  description,
-  orientation,
-  className,
-  children,
-}: FormFieldProps<TFieldValues, TName>) => {
+export const FormField = <TFieldValues extends FieldValues, TName extends FieldPath<TFieldValues>>(
+  cocaCopyProps0: FormFieldProps<TFieldValues, TName>,
+) => {
+  const { control, name, label, description, orientation, className, children } = cocaCopyProps0;
+  useUiLocale();
   const reactId = React.useId();
   const controlId = `${reactId}-control`;
   const descriptionId = `${reactId}-description`;
@@ -63,9 +60,15 @@ export const FormField = <TFieldValues extends FieldValues, TName extends FieldP
 
         return (
           <Field orientation={orientation} data-invalid={invalid || undefined} className={className}>
-            {label !== undefined && <FieldLabel htmlFor={controlId}>{label}</FieldLabel>}
+            {label !== undefined && (
+              <FieldLabel htmlFor={controlId}>{localizedProperty(cocaCopyProps0, "label", label)}</FieldLabel>
+            )}
             {children(controlProps)}
-            {description !== undefined && <FieldDescription id={descriptionId}>{description}</FieldDescription>}
+            {description !== undefined && (
+              <FieldDescription id={descriptionId}>
+                {localizedProperty(cocaCopyProps0, "description", description)}
+              </FieldDescription>
+            )}
             <FieldError id={errorId} errors={[fieldState.error]} />
           </Field>
         );

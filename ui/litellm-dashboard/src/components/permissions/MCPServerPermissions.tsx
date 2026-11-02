@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 import React, { useState, useEffect } from "react";
 import { ServerIcon, ChevronDownIcon, ChevronRightIcon } from "@heroicons/react/outline";
 import { Badge } from "@/components/ui/badge";
@@ -25,6 +27,7 @@ export function MCPServerPermissions({
   inheritedMcpServers = [],
   accessToken,
 }: MCPServerPermissionsProps) {
+  useUiLocale();
   const [mcpServerDetails, setMCPServerDetails] = useState<MCPServer[]>([]);
   const [toolsetDetails, setToolsetDetails] = useState<MCPToolset[]>([]);
   const [expandedServers, setExpandedServers] = useState<Set<string>>(new Set());
@@ -135,9 +138,15 @@ export function MCPServerPermissions({
     <div className="space-y-3">
       <div className="flex items-center gap-2">
         <ServerIcon className="h-4 w-4 text-info" />
-        <p className="text-sm font-semibold text-foreground">MCP Servers</p>
+        <p className="text-sm font-semibold text-foreground">
+          <LocalizedText text={"MCP Servers"} />
+        </p>
         <Badge variant={blocksAllMcpServers ? "destructive" : "secondary"}>
-          {blocksAllMcpServers ? "Blocked" : grantsAllProxyMcpServers ? "All" : totalCount}
+          {blocksAllMcpServers
+            ? translateMessage("Blocked")
+            : grantsAllProxyMcpServers
+              ? translateMessage("All")
+              : totalCount}
         </Badge>
       </div>
 
@@ -145,13 +154,17 @@ export function MCPServerPermissions({
         <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-destructive/10 border border-destructive/20">
           <ServerIcon className="h-4 w-4 text-destructive" />
           <p className="text-destructive text-sm">
-            No MCP servers — this key is blocked from all MCP servers, including its team&apos;s servers
+            <LocalizedText
+              text={"No MCP servers — this key is blocked from all MCP servers, including its team's servers"}
+            />
           </p>
         </div>
       ) : grantsAllProxyMcpServers ? (
         <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-info/10 border border-info/20">
           <ServerIcon className="h-4 w-4 text-info" />
-          <p className="text-info text-sm">All Proxy MCP Servers</p>
+          <p className="text-info text-sm">
+            <LocalizedText text={"All Proxy MCP Servers"} />
+          </p>
         </div>
       ) : totalCount > 0 ? (
         <div className="max-h-[400px] overflow-y-auto space-y-2 pr-1">
@@ -177,14 +190,14 @@ export function MCPServerPermissions({
                             {getMCPServerDisplayName(item.value)}
                           </span>
                         </TooltipTrigger>
-                        <TooltipContent>{item.tooltip}</TooltipContent>
+                        <TooltipContent>{localizedProperty(item, "tooltip", item.tooltip)}</TooltipContent>
                       </Tooltip>
                     ) : (
                       <div className="inline-flex items-center gap-2 min-w-0">
                         <span className="inline-block w-1.5 h-1.5 bg-success rounded-full shrink-0"></span>
                         <span className="text-sm font-medium text-foreground truncate">{item.value}</span>
                         <span className="ml-1 px-1.5 py-0.5 text-[9px] font-semibold text-success bg-success/10 border border-success/20 rounded-sm uppercase tracking-wide shrink-0">
-                          Group
+                          <LocalizedText text={"Group"} />
                         </span>
                       </div>
                     )}
@@ -194,7 +207,7 @@ export function MCPServerPermissions({
                     <div className="flex items-center gap-1 shrink-0 whitespace-nowrap">
                       <span className="text-xs font-medium text-muted-foreground">{toolsForServer.length}</span>
                       <span className="text-xs text-muted-foreground">
-                        {toolsForServer.length === 1 ? "tool" : "tools"}
+                        {toolsForServer.length === 1 ? translateMessage("tool") : translateMessage("tools")}
                       </span>
                       {isExpanded ? (
                         <ChevronDownIcon className="h-3.5 w-3.5 text-muted-foreground ml-0.5" />
@@ -247,13 +260,15 @@ export function MCPServerPermissions({
                         {detail?.toolset_name ?? toolsetId}
                       </span>
                       <span className="ml-1 px-1.5 py-0.5 text-[9px] font-semibold text-purple-600 bg-purple-50 border border-purple-200 rounded-sm uppercase tracking-wide shrink-0 dark:text-purple-300 dark:bg-purple-950 dark:border-purple-800">
-                        Toolset
+                        <LocalizedText text={"Toolset"} />
                       </span>
                     </div>
                     {toolCount > 0 && (
                       <div className="flex items-center gap-1 shrink-0 whitespace-nowrap">
                         <span className="text-xs font-medium text-muted-foreground">{toolCount}</span>
-                        <span className="text-xs text-muted-foreground">{toolCount === 1 ? "tool" : "tools"}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {toolCount === 1 ? translateMessage("tool") : translateMessage("tools")}
+                        </span>
                         {isExpanded ? (
                           <ChevronDownIcon className="h-3.5 w-3.5 text-muted-foreground ml-0.5" />
                         ) : (
@@ -285,7 +300,9 @@ export function MCPServerPermissions({
       ) : (
         <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted border border-border">
           <ServerIcon className="h-4 w-4 text-muted-foreground" />
-          <p className="text-muted-foreground text-sm">No MCP servers, access groups, or toolsets configured</p>
+          <p className="text-muted-foreground text-sm">
+            <LocalizedText text={"No MCP servers, access groups, or toolsets configured"} />
+          </p>
         </div>
       )}
     </div>

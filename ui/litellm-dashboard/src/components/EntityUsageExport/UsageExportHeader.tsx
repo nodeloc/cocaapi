@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 import type { DateRangePickerValue } from "@/components/shared/date_picker_types";
 import { Download } from "lucide-react";
 import React, { useState } from "react";
@@ -51,6 +53,7 @@ const UsageExportHeader: React.FC<UsageExportHeaderProps> = ({
   compactLayout = false,
   teams = [],
 }) => {
+  useUiLocale();
   const anchor = useComboboxAnchor();
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
@@ -65,7 +68,9 @@ const UsageExportHeader: React.FC<UsageExportHeaderProps> = ({
 
   const filterList = (
     <ComboboxContent anchor={anchor}>
-      <ComboboxEmpty>No options found</ComboboxEmpty>
+      <ComboboxEmpty>
+        <LocalizedText text={"No options found"} />
+      </ComboboxEmpty>
       <ComboboxList>
         {(value: string) => (
           <ComboboxItem key={value} value={value}>
@@ -98,7 +103,9 @@ const UsageExportHeader: React.FC<UsageExportHeaderProps> = ({
           placeholder={hasNoOptions ? emptyPlaceholder : filterPlaceholder}
           aria-label={hasNoOptions ? emptyPlaceholder : filterPlaceholder}
         />
-        {selectedFilters.length > 0 && <ComboboxClear aria-label={`Clear ${filterLabel ?? "filters"}`} />}
+        {selectedFilters.length > 0 && (
+          <ComboboxClear aria-label={translateMessage("Clear %{0}", [filterLabel ?? "filters"])} />
+        )}
       </ComboboxChips>
       {filterList}
     </Combobox>
@@ -123,7 +130,7 @@ const UsageExportHeader: React.FC<UsageExportHeaderProps> = ({
           <div className="justify-self-end">
             <Button variant="outline" size="sm" onClick={() => setIsExportModalOpen(true)}>
               <Download />
-              Export Data
+              <LocalizedText text={"Export Data"} />
             </Button>
           </div>
         </div>

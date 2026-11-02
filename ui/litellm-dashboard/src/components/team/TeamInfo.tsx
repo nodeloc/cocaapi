@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, getIntlLocale, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import useAuthorized from "@/app/(dashboard)/hooks/useAuthorized";
 import type { components } from "@/lib/http/schema";
 import useCan from "@/app/(dashboard)/hooks/useCan";
@@ -376,9 +378,19 @@ const teamUpdateFieldsSchema = z.object({
     .superRefine((rows, ctx) => {
       rows.forEach((row, index) => {
         if (!isValidThreshold(row.threshold)) {
-          ctx.addIssue({ code: "custom", message: "Enter a whole number from 1 to 100", path: [index, "threshold"] });
+          ctx.addIssue(
+            markUiCopy(
+              { code: "custom" as const, message: "Enter a whole number from 1 to 100", path: [index, "threshold"] },
+              { message: "Enter a whole number from 1 to 100" },
+            ),
+          );
         } else if (rows.filter((other) => other.threshold === row.threshold).length > 1) {
-          ctx.addIssue({ code: "custom", message: "Duplicate threshold", path: [index, "threshold"] });
+          ctx.addIssue(
+            markUiCopy(
+              { code: "custom" as const, message: "Duplicate threshold", path: [index, "threshold"] },
+              { message: "Duplicate threshold" },
+            ),
+          );
         }
       });
     })
@@ -401,10 +413,20 @@ const teamUpdateFieldsSchema = z.object({
     .superRefine((rows, ctx) => {
       rows.forEach((row, index) => {
         if (row.model && rows.filter((other) => other.model === row.model).length > 1) {
-          ctx.addIssue({ code: "custom", message: "Duplicate model", path: [index, "model"] });
+          ctx.addIssue(
+            markUiCopy(
+              { code: "custom" as const, message: "Duplicate model", path: [index, "model"] },
+              { message: "Duplicate model" },
+            ),
+          );
         }
         if (row.model && row.tpm == null && row.rpm == null) {
-          ctx.addIssue({ code: "custom", message: "Set at least one of TPM or RPM", path: [index, "tpm"] });
+          ctx.addIssue(
+            markUiCopy(
+              { code: "custom" as const, message: "Set at least one of TPM or RPM", path: [index, "tpm"] },
+              { message: "Set at least one of TPM or RPM" },
+            ),
+          );
         }
       });
     }),
@@ -585,6 +607,7 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
   premiumUser = false,
   onUpdate,
 }) => {
+  useUiLocale();
   const teamUpdateSchema = useMemo(
     () =>
       teamUpdateFieldsSchema.superRefine((values, ctx) => {
@@ -816,7 +839,7 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
 
       await teamMemberAddCall(accessToken, teamId, member);
 
-      toast.success("Team member added successfully");
+      toast.success(translateMessage("Team member added successfully"));
       setIsAddMemberModalVisible(false);
       form.reset(teamFormValues());
 
@@ -862,7 +885,7 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
 
       await teamMemberUpdateCall(accessToken, teamId, member);
 
-      toast.success("Team member updated successfully");
+      toast.success(translateMessage("Team member updated successfully"));
       setIsEditMemberModalVisible(false);
 
       // Fetch updated team info
@@ -899,7 +922,7 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
     try {
       await teamMemberDeleteCall(accessToken, teamId, memberToDelete);
 
-      toast.success("Team member removed successfully");
+      toast.success(translateMessage("Team member removed successfully"));
 
       // Fetch updated team info
       const updatedTeamData = await teamInfoCall(accessToken, teamId);
@@ -959,7 +982,7 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
     setIsTeamSaving(true);
     try {
       await persistTeamUpdate(accessToken, { team_id: teamId, ...changes });
-      toast.success("Team settings updated successfully");
+      toast.success(translateMessage("Team settings updated successfully"));
       await fetchTeamInfo();
     } catch (error) {
       console.error("Error updating team:", error);
@@ -1242,7 +1265,7 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
       }
 
       await persistTeamUpdate(accessToken, updateData);
-      toast.success("Team settings updated successfully");
+      toast.success(translateMessage("Team settings updated successfully"));
       await fetchTeamInfo();
     } catch (error) {
       console.error("Error updating team:", error);
@@ -1252,11 +1275,19 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
   };
 
   if (loading) {
-    return <div className="p-4">Loading...</div>;
+    return (
+      <div className="p-4">
+        <LocalizedText text={"Loading..."} />
+      </div>
+    );
   }
 
   if (!teamData?.team_info) {
-    return <div className="p-4">Team not found</div>;
+    return (
+      <div className="p-4">
+        <LocalizedText text={"Team not found"} />
+      </div>
+    );
   }
 
   const { team_info: info } = teamData;
@@ -1306,27 +1337,56 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
       children: (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           <Card className="block p-6">
-            <p>Budget Status</p>
+            <p>
+              <LocalizedText text={"Budget Status"} />
+            </p>
             <div className="mt-2">
               <h3 className="text-lg font-medium">${formatNumberWithCommas(info.spend, 2)}</h3>
-              <p>of {info.max_budget === null ? "Unlimited" : `$${formatNumberWithCommas(info.max_budget, 2)}`}</p>
-              {info.budget_duration && <p className="text-muted-foreground">Reset: {info.budget_duration}</p>}
+              <p>
+                <LocalizedText text={"of "} />
+                {info.max_budget === null
+                  ? translateMessage("Unlimited")
+                  : `$${formatNumberWithCommas(info.max_budget, 2)}`}
+              </p>
+              {info.budget_duration && (
+                <p className="text-muted-foreground">
+                  <LocalizedText text={"Reset: "} />
+                  {info.budget_duration}
+                </p>
+              )}
               <br />
               {info.team_member_budget_table && (
                 <p className="text-muted-foreground">
-                  Team Member Budget: ${formatNumberWithCommas(info.team_member_budget_table.max_budget, 2)}
+                  <LocalizedText text={"Team Member Budget: $"} />
+                  {formatNumberWithCommas(info.team_member_budget_table.max_budget, 2)}
                 </p>
               )}
             </div>
           </Card>
 
           <Card className="block p-6">
-            <p>Rate Limits</p>
+            <p>
+              <LocalizedText text={"Rate Limits"} />
+            </p>
             <div className="mt-2">
-              <p>TPM: {info.tpm_limit ?? "Unlimited"}</p>
-              <p>RPM: {info.rpm_limit ?? "Unlimited"}</p>
-              <p>TPD (batch): {info.tpd_limit ?? "Unlimited"}</p>
-              {info.max_parallel_requests && <p>Max Parallel Requests: {info.max_parallel_requests}</p>}
+              <p>
+                <LocalizedText text={"TPM: "} />
+                {info.tpm_limit ?? translateMessage("Unlimited")}
+              </p>
+              <p>
+                <LocalizedText text={"RPM: "} />
+                {info.rpm_limit ?? translateMessage("Unlimited")}
+              </p>
+              <p>
+                <LocalizedText text={"TPD (batch): "} />
+                {info.tpd_limit ?? translateMessage("Unlimited")}
+              </p>
+              {info.max_parallel_requests && (
+                <p>
+                  <LocalizedText text={"Max Parallel Requests: "} />
+                  {info.max_parallel_requests}
+                </p>
+              )}
               {(() => {
                 const modelTpm = (info.metadata?.model_tpm_limit ?? {}) as Record<string, number>;
                 const modelRpm = (info.metadata?.model_rpm_limit ?? {}) as Record<string, number>;
@@ -1334,27 +1394,38 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
                 if (models.length === 0) return null;
                 return (
                   <div className="mt-3">
-                    <p className="text-muted-foreground">Per-model limits:</p>
+                    <p className="text-muted-foreground">
+                      <LocalizedText text={"Per-model limits:"} />
+                    </p>
                     {models.map((m) => (
                       <p key={m} className="text-xs">
-                        {m}: TPM {modelTpm[m] ?? "—"}, RPM {modelRpm[m] ?? "—"}
+                        {m}
+                        <LocalizedText text={": TPM "} />
+                        {modelTpm[m] ?? "—"}
+                        <LocalizedText text={", RPM "} />
+                        {modelRpm[m] ?? "—"}
                       </p>
                     ))}
                   </div>
                 );
               })()}
-              <p>Estimated Output Tokens: {info.metadata?.default_estimated_output_tokens ?? "Default"}</p>
               <p>
-                Estimated Output Tokens Per Model:{" "}
+                <LocalizedText text={"Estimated Output Tokens: "} />
+                {info.metadata?.default_estimated_output_tokens ?? translateMessage("Default")}
+              </p>
+              <p>
+                <LocalizedText text={"Estimated Output Tokens Per Model:"} />{" "}
                 {info.metadata?.default_estimated_output_tokens_per_model
                   ? JSON.stringify(info.metadata.default_estimated_output_tokens_per_model)
-                  : "Default"}
+                  : translateMessage("Default")}
               </p>
             </div>
           </Card>
 
           <Card className="block p-6">
-            <p>Models</p>
+            <p>
+              <LocalizedText text={"Models"} />
+            </p>
             <div className="mt-2 flex flex-wrap gap-2">
               {computeTeamModelBadges(info.models, info.access_group_models || [], info.access_group_details).map(
                 (badge, index) => (
@@ -1362,7 +1433,7 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
                     <span>
                       <StatusBadge
                         tone={TEAM_MODEL_BADGE_TONES[badge.kind]}
-                        label={badge.label}
+                        label={localizedProperty(badge, "label", badge.label)}
                         href={teamModelBadgeHref(badge, accessGroupNames)}
                       />
                     </span>
@@ -1373,11 +1444,22 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
           </Card>
 
           <Card className="block p-6">
-            <p className="font-semibold text-foreground">Virtual Keys</p>
+            <p className="font-semibold text-foreground">
+              <LocalizedText text={"Virtual Keys"} />
+            </p>
             <div className="mt-2">
-              <p>User Keys: {teamData.keys.filter((key) => key.user_id).length}</p>
-              <p>Service Account Keys: {teamData.keys.filter((key) => !key.user_id).length}</p>
-              <p className="text-muted-foreground">Total: {teamData.keys.length}</p>
+              <p>
+                <LocalizedText text={"User Keys: "} />
+                {teamData.keys.filter((key) => key.user_id).length}
+              </p>
+              <p>
+                <LocalizedText text={"Service Account Keys: "} />
+                {teamData.keys.filter((key) => !key.user_id).length}
+              </p>
+              <p className="text-muted-foreground">
+                <LocalizedText text={"Total: "} />
+                {teamData.keys.length}
+              </p>
             </div>
           </Card>
 
@@ -1404,18 +1486,26 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
           </Card>
 
           <Card className="block p-6">
-            <p className="font-semibold text-foreground mb-3">Policies</p>
+            <p className="font-semibold text-foreground mb-3">
+              <LocalizedText text={"Policies"} />
+            </p>
             {info.policies && info.policies.length > 0 ? (
               <div className="space-y-4">
                 {info.policies.map((policy: string, index: number) => (
                   <div key={index} className="space-y-2">
                     <div className="flex items-center gap-2">
                       <Badge variant="secondary">{policy}</Badge>
-                      {loadingPolicies && <p className="text-xs text-muted-foreground">Loading guardrails...</p>}
+                      {loadingPolicies && (
+                        <p className="text-xs text-muted-foreground">
+                          <LocalizedText text={"Loading guardrails..."} />
+                        </p>
+                      )}
                     </div>
                     {!loadingPolicies && policyGuardrails[policy] && policyGuardrails[policy].length > 0 && (
                       <div className="ml-4 pl-3 border-l-2 border-border">
-                        <p className="text-xs text-muted-foreground mb-1">Resolved Guardrails:</p>
+                        <p className="text-xs text-muted-foreground mb-1">
+                          <LocalizedText text={"Resolved Guardrails:"} />
+                        </p>
                         <div className="flex flex-wrap gap-1">
                           {policyGuardrails[policy].map((guardrail: string, gIndex: number) => (
                             <Badge key={gIndex} variant="secondary">
@@ -1429,7 +1519,9 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
                 ))}
               </div>
             ) : (
-              <p className="text-muted-foreground">No policies configured</p>
+              <p className="text-muted-foreground">
+                <LocalizedText text={"No policies configured"} />
+              </p>
             )}
           </Card>
 
@@ -1474,33 +1566,41 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
       children: (
         <Card className="block p-6 overflow-y-auto max-h-[65vh]">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-medium">Team Settings</h3>
+            <h3 className="text-lg font-medium">
+              <LocalizedText text={"Team Settings"} />
+            </h3>
             {canEditTeam && !isEditing && (
               <Button
                 variant="outline"
                 onClick={() => openSettingsEditor(info.litellm_model_table?.model_aliases ?? {})}
               >
                 <Pencil />
-                Edit Settings
+                <LocalizedText text={"Edit Settings"} />
               </Button>
             )}
           </div>
 
           {isEditing && (teamAdminSettingsEditor !== null || isGuardrailsLoading) ? (
-            teamAdminSettingsEditor ?? <div className="p-4">Loading...</div>
+            teamAdminSettingsEditor ?? (
+              <div className="p-4">
+                <LocalizedText text={"Loading..."} />
+              </div>
+            )
           ) : isEditing ? (
             <TooltipProvider>
               <form onSubmit={(event) => void form.handleSubmit(onTeamUpdateSubmit)(event)}>
                 <FieldGroup>
-                  <FormField control={form.control} name="team_alias" label="Team Name">
+                  <FormField control={form.control} name="team_alias" label={translateMessage("Team Name")}>
                     {({ ref, value, ...field }) => <UIInput {...field} ref={ref} value={value ?? ""} />}
                   </FormField>
 
                   <FormField
                     control={form.control}
                     name="models"
-                    label="Models"
-                    description="Leave empty to grant no models directly. The team keeps any models granted through its access groups"
+                    label={translateMessage("Models")}
+                    description={translateMessage(
+                      "Leave empty to grant no models directly. The team keeps any models granted through its access groups",
+                    )}
                   >
                     {({ id, value, onChange }) => (
                       <ModelSelect
@@ -1536,13 +1636,13 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
                     />
                   </Field>
 
-                  <FormField control={form.control} name="max_budget" label="Max Budget (USD)">
+                  <FormField control={form.control} name="max_budget" label={translateMessage("Max Budget (USD)")}>
                     {({ ref, value, ...field }) => (
                       <NumericalInput {...field} ref={ref} value={value ?? ""} step={0.01} precision={2} />
                     )}
                   </FormField>
 
-                  <FormField control={form.control} name="soft_budget" label="Soft Budget (USD)">
+                  <FormField control={form.control} name="soft_budget" label={translateMessage("Soft Budget (USD)")}>
                     {({ ref, value, ...field }) => (
                       <NumericalInput {...field} ref={ref} value={value ?? ""} step={0.01} precision={2} />
                     )}
@@ -1561,7 +1661,7 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
                         {...field}
                         ref={ref}
                         value={typeof value === "string" ? value : ""}
-                        placeholder="example1@test.com, example2@test.com"
+                        placeholder={translateMessage("example1@test.com, example2@test.com")}
                       />
                     )}
                   </FormField>
@@ -1572,12 +1672,18 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
                     className="mt-4 mb-4 overflow-hidden rounded-lg border"
                   >
                     <CollapsibleTrigger className="group/section flex w-full items-center justify-between px-4 py-3 text-left">
-                      <b>Team Member Settings</b>
+                      <b>
+                        <LocalizedText text={"Team Member Settings"} />
+                      </b>
                       <ChevronDown className="size-5 shrink-0 text-muted-foreground transition-transform group-data-[panel-open]/section:rotate-180" />
                     </CollapsibleTrigger>
                     <CollapsibleContent className="px-4 pb-3">
                       <p className="mb-4 text-xs text-muted-foreground">
-                        Optional defaults applied when members join this team. All fields can be overridden per member.
+                        <LocalizedText
+                          text={
+                            "Optional defaults applied when members join this team. All fields can be overridden per member."
+                          }
+                        />
                       </p>
                       <FieldGroup>
                         <FormField
@@ -1597,7 +1703,7 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
                                 label: model,
                                 value: model,
                               }))}
-                              placeholder="Leave empty — all team models accessible to every member"
+                              placeholder={translateMessage("Leave empty — all team models accessible to every member")}
                             />
                           )}
                         </FormField>
@@ -1616,13 +1722,13 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
                         <FormField
                           control={form.control}
                           name="team_member_budget_duration"
-                          label="Default Budget Duration"
+                          label={translateMessage("Default Budget Duration")}
                         >
                           {({ id, value, onChange }) => (
                             <BudgetDurationDropdown
                               id={id}
                               showNeverResets
-                              placeholder="Inherit team reset period"
+                              placeholder={translateMessage("Inherit team reset period")}
                               value={value === null ? NEVER_RESETS_BUDGET_DURATION : value}
                               onChange={(next) =>
                                 onChange(next === NEVER_RESETS_BUDGET_DURATION ? null : next ?? undefined)
@@ -1639,7 +1745,12 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
                           )}
                         >
                           {({ ref, value, ...field }) => (
-                            <UIInput {...field} ref={ref} value={value ?? ""} placeholder="e.g., 30d" />
+                            <UIInput
+                              {...field}
+                              ref={ref}
+                              value={value ?? ""}
+                              placeholder={translateMessage("e.g., 30d")}
+                            />
                           )}
                         </FormField>
                         <FormField
@@ -1656,7 +1767,7 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
                               ref={ref}
                               value={value ?? ""}
                               step={1}
-                              placeholder="e.g., 1000"
+                              placeholder={translateMessage("e.g., 1000")}
                             />
                           )}
                         </FormField>
@@ -1669,7 +1780,13 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
                           )}
                         >
                           {({ ref, value, ...field }) => (
-                            <NumericalInput {...field} ref={ref} value={value ?? ""} step={1} placeholder="e.g., 100" />
+                            <NumericalInput
+                              {...field}
+                              ref={ref}
+                              value={value ?? ""}
+                              step={1}
+                              placeholder={translateMessage("e.g., 100")}
+                            />
                           )}
                         </FormField>
                         <Field>
@@ -1694,7 +1811,7 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
                                     onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                                       onChange(event.target.value === "" ? null : Number(event.target.value))
                                     }
-                                    placeholder="% of budget"
+                                    placeholder={translateMessage("% of budget")}
                                     min={1}
                                     max={100}
                                     step={1}
@@ -1711,7 +1828,7 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
                                     {...field}
                                     ref={ref}
                                     value={value ?? ""}
-                                    placeholder="Additional recipients, e.g. finance@example.com"
+                                    placeholder={translateMessage("Additional recipients, e.g. finance@example.com")}
                                   />
                                 )}
                               </FormField>
@@ -1719,7 +1836,7 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
                                 type="button"
                                 variant="ghost"
                                 size="icon"
-                                aria-label="Remove budget alert threshold"
+                                aria-label={translateMessage("Remove budget alert threshold")}
                                 className="mt-1 text-destructive"
                                 onClick={() => removeMemberBudgetAlertRow(index)}
                               >
@@ -1734,18 +1851,18 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
                             onClick={() => appendMemberBudgetAlertRow({ threshold: null, emails: "" })}
                           >
                             <Plus className="size-4" />
-                            Add Budget Alert Threshold
+                            <LocalizedText text={"Add Budget Alert Threshold"} />
                           </Button>
                         </Field>
                       </FieldGroup>
                     </CollapsibleContent>
                   </Collapsible>
 
-                  <FormField control={form.control} name="budget_duration" label="Reset Budget">
+                  <FormField control={form.control} name="budget_duration" label={translateMessage("Reset Budget")}>
                     {({ id, value, onChange }) => (
                       <BudgetDurationDropdown
                         id={id}
-                        placeholder="Never resets"
+                        placeholder={translateMessage("Never resets")}
                         value={value}
                         onChange={(next) => onChange(next ?? null)}
                       />
@@ -1761,11 +1878,19 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
                     hint="Cap this team's spend on individual models, each with its own reset window. Every key on the team shares the cap unless the key sets its own budget for that model."
                   />
 
-                  <FormField control={form.control} name="tpm_limit" label="Tokens per minute Limit (TPM)">
+                  <FormField
+                    control={form.control}
+                    name="tpm_limit"
+                    label={translateMessage("Tokens per minute Limit (TPM)")}
+                  >
                     {({ ref, value, ...field }) => <NumericalInput {...field} ref={ref} value={value ?? ""} step={1} />}
                   </FormField>
 
-                  <FormField control={form.control} name="rpm_limit" label="Requests per minute Limit (RPM)">
+                  <FormField
+                    control={form.control}
+                    name="rpm_limit"
+                    label={translateMessage("Requests per minute Limit (RPM)")}
+                  >
                     {({ ref, value, ...field }) => <NumericalInput {...field} ref={ref} value={value ?? ""} step={1} />}
                   </FormField>
 
@@ -1781,7 +1906,9 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
                   </FormField>
 
                   <Field>
-                    <FieldLabel>Metadata</FieldLabel>
+                    <FieldLabel>
+                      <LocalizedText text={"Metadata"} />
+                    </FieldLabel>
                     <MetadataKeyValueFields
                       control={form.control}
                       getValues={form.getValues}
@@ -1790,7 +1917,10 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
                       schemaLoading={isTeamMetadataSchemaLoading}
                     />
                     <FieldDescription>
-                      Values are saved as text. Enter JSON for typed values, e.g. 3, true, or {'{"region": "us"}'}.
+                      <LocalizedText
+                        text={"Values are saved as text. Enter JSON for typed values, e.g. 3, true, or "}
+                      />
+                      {'{"region": "us"}'}.
                     </FieldDescription>
                   </Field>
 
@@ -1813,7 +1943,7 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
                                 label: model,
                                 value: model,
                               }))}
-                              placeholder="Select model"
+                              placeholder={translateMessage("Select model")}
                             />
                           )}
                         </FormField>
@@ -1826,7 +1956,7 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
                               onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                                 onChange(event.target.value === "" ? null : Number(event.target.value))
                               }
-                              placeholder="TPM Limit"
+                              placeholder={translateMessage("TPM Limit")}
                               min={0}
                               step={1}
                             />
@@ -1841,7 +1971,7 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
                               onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                                 onChange(event.target.value === "" ? null : Number(event.target.value))
                               }
-                              placeholder="RPM Limit"
+                              placeholder={translateMessage("RPM Limit")}
                               min={0}
                               step={1}
                             />
@@ -1851,7 +1981,7 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
                           type="button"
                           variant="ghost"
                           size="icon"
-                          aria-label="Remove model limit"
+                          aria-label={translateMessage("Remove model limit")}
                           className="mt-1 text-destructive"
                           onClick={() => removeModelLimit(index)}
                         >
@@ -1866,7 +1996,7 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
                       onClick={() => appendModelLimit({ model: "", tpm: null, rpm: null })}
                     >
                       <Plus className="size-4" />
-                      Add Model Limit
+                      <LocalizedText text={"Add Model Limit"} />
                     </Button>
                   </Field>
 
@@ -1905,7 +2035,9 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
                   </FormField>
 
                   <Field>
-                    <FieldLabel>Router Settings</FieldLabel>
+                    <FieldLabel>
+                      <LocalizedText text={"Router Settings"} />
+                    </FieldLabel>
                     <RouterSettingsAccordion
                       ref={routerSettingsRef}
                       accessToken={accessToken || ""}
@@ -1979,7 +2111,7 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
                           value={value ?? []}
                           onValueChange={onChange}
                           options={policiesList.map((name) => ({ value: name, label: name }))}
-                          placeholder="Select or enter policies"
+                          placeholder={translateMessage("Select or enter policies")}
                         />
                       )}
                     </FormField>
@@ -1997,18 +2129,18 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
                       <AccessGroupSelector
                         value={value}
                         onChange={onChange}
-                        placeholder="Select access groups (optional)"
+                        placeholder={translateMessage("Select access groups (optional)")}
                       />
                     )}
                   </FormField>
 
-                  <FormField control={form.control} name="vector_stores" label="Vector Stores">
+                  <FormField control={form.control} name="vector_stores" label={translateMessage("Vector Stores")}>
                     {({ value, onChange }) => (
                       <VectorStoreSelector
                         onChange={onChange}
                         value={value}
                         accessToken={accessToken || ""}
-                        placeholder="Select vector stores"
+                        placeholder={translateMessage("Select vector stores")}
                       />
                     )}
                   </FormField>
@@ -2027,7 +2159,7 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
                               "Allowed Pass Through Routes",
                               "Only proxy admins can set allowed pass through routes",
                             )
-                          : "Allowed Pass Through Routes"
+                          : translateMessage("Allowed Pass Through Routes")
                     }
                   >
                     {({ value, onChange }) => (
@@ -2035,19 +2167,23 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
                         value={value}
                         onChange={onChange}
                         accessToken={accessToken || ""}
-                        placeholder="Select pass through routes"
+                        placeholder={translateMessage("Select pass through routes")}
                         disabled={!premiumUser || !is_proxy_admin}
                       />
                     )}
                   </FormField>
 
-                  <FormField control={form.control} name="mcp_servers_and_groups" label="MCP Servers / Access Groups">
+                  <FormField
+                    control={form.control}
+                    name="mcp_servers_and_groups"
+                    label={translateMessage("MCP Servers / Access Groups")}
+                  >
                     {({ value, onChange }) => (
                       <MCPServerSelector
                         onChange={onChange}
                         value={value}
                         accessToken={accessToken || ""}
-                        placeholder="Select MCP servers or access groups (optional)"
+                        placeholder={translateMessage("Select MCP servers or access groups (optional)")}
                         allowAllProxyMcpServers={is_proxy_admin}
                       />
                     )}
@@ -2064,13 +2200,17 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
                     />
                   </div>
 
-                  <FormField control={form.control} name="agents_and_groups" label="Agents / Access Groups">
+                  <FormField
+                    control={form.control}
+                    name="agents_and_groups"
+                    label={translateMessage("Agents / Access Groups")}
+                  >
                     {({ value, onChange }) => (
                       <AgentSelector
                         onChange={onChange}
                         value={value}
                         accessToken={accessToken || ""}
-                        placeholder="Select agents or access groups (optional)"
+                        placeholder={translateMessage("Select agents or access groups (optional)")}
                       />
                     )}
                   </FormField>
@@ -2081,7 +2221,9 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
                     className="mt-4 mb-4 overflow-hidden rounded-lg border"
                   >
                     <CollapsibleTrigger className="group/section flex w-full items-center justify-between px-4 py-3 text-left">
-                      <b>Search Tool Settings</b>
+                      <b>
+                        <LocalizedText text={"Search Tool Settings"} />
+                      </b>
                       <ChevronDown className="size-5 shrink-0 text-muted-foreground transition-transform group-data-[panel-open]/section:rotate-180" />
                     </CollapsibleTrigger>
                     <CollapsibleContent className="px-4 pb-3">
@@ -2098,7 +2240,7 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
                             onChange={onChange}
                             value={value}
                             accessToken={accessToken || ""}
-                            placeholder="Select search tools (optional, empty = all allowed)"
+                            placeholder={translateMessage("Select search tools (optional, empty = all allowed)")}
                           />
                         )}
                       </FormField>
@@ -2118,12 +2260,12 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
                         onChange={onChange}
                         value={value}
                         accessToken={accessToken || ""}
-                        placeholder="Select skills (optional)"
+                        placeholder={translateMessage("Select skills (optional)")}
                       />
                     )}
                   </FormField>
 
-                  <FormField control={form.control} name="organization_id" label="Organization">
+                  <FormField control={form.control} name="organization_id" label={translateMessage("Organization")}>
                     {({ id, value, onChange }) => (
                       <SearchSelect
                         inputId={id}
@@ -2133,13 +2275,17 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
                           value: org.organization_id ?? "",
                           label: org.organization_alias || org.organization_id || "",
                         }))}
-                        placeholder="Select an organization"
-                        emptyText="No matching organizations"
+                        placeholder={translateMessage("Select an organization")}
+                        emptyText={translateMessage("No matching organizations")}
                       />
                     )}
                   </FormField>
 
-                  <FormField control={form.control} name="logging_settings" label="Logging Settings">
+                  <FormField
+                    control={form.control}
+                    name="logging_settings"
+                    label={translateMessage("Logging Settings")}
+                  >
                     {({ value, onChange }) => (
                       <EditLoggingSettings value={(value as unknown[]) ?? []} onChange={onChange} />
                     )}
@@ -2148,11 +2294,11 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
                   <FormField
                     control={form.control}
                     name="secret_manager_settings"
-                    label="Secret Manager Settings"
+                    label={translateMessage("Secret Manager Settings")}
                     description={
                       premiumUser
-                        ? "Enter secret manager configuration as a JSON object."
-                        : "Premium feature - Upgrade to manage secret manager settings."
+                        ? translateMessage("Enter secret manager configuration as a JSON object.")
+                        : translateMessage("Premium feature - Upgrade to manage secret manager settings.")
                     }
                   >
                     {({ ref, value, ...field }) => (
@@ -2171,11 +2317,11 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
                 <div className="sticky z-chrome -inset-x-6 -bottom-6 border-t border-border bg-card p-4 pr-0">
                   <div className="flex items-center justify-end gap-2">
                     <Button type="button" variant="outline" onClick={() => setIsEditing(false)} disabled={isTeamSaving}>
-                      Cancel
+                      <LocalizedText text={"Cancel"} />
                     </Button>
                     <Button type="submit" disabled={isTeamSaving}>
                       {isTeamSaving ? <UiLoadingSpinner className="size-4" /> : <Save className="size-4" />}
-                      Save Changes
+                      <LocalizedText text={"Save Changes"} />
                     </Button>
                   </div>
                 </div>
@@ -2184,19 +2330,27 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
           ) : (
             <div className="space-y-4">
               <div>
-                <p className="font-medium">Team Name</p>
+                <p className="font-medium">
+                  <LocalizedText text={"Team Name"} />
+                </p>
                 <div>{info.team_alias}</div>
               </div>
               <div>
-                <p className="font-medium">Team ID</p>
+                <p className="font-medium">
+                  <LocalizedText text={"Team ID"} />
+                </p>
                 <div className="font-mono">{info.team_id}</div>
               </div>
               <div>
-                <p className="font-medium">Created At</p>
-                <div>{new Date(info.created_at).toLocaleString()}</div>
+                <p className="font-medium">
+                  <LocalizedText text={"Created At"} />
+                </p>
+                <div>{new Date(info.created_at).toLocaleString(getIntlLocale())}</div>
               </div>
               <div>
-                <p className="font-medium">Models</p>
+                <p className="font-medium">
+                  <LocalizedText text={"Models"} />
+                </p>
                 <div className="flex flex-wrap gap-2 mt-1">
                   {info.models.map((model, index) => (
                     <BadgeLink key={index} href={modelOrAccessGroupHref(model, accessGroupNames)}>
@@ -2207,7 +2361,9 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
               </div>
               {info.default_team_member_models && info.default_team_member_models.length > 0 && (
                 <div>
-                  <p className="font-medium">Default Member Models</p>
+                  <p className="font-medium">
+                    <LocalizedText text={"Default Member Models"} />
+                  </p>
                   <div className="flex flex-wrap gap-2 mt-1">
                     {info.default_team_member_models.map((model, index) => (
                       <BadgeLink key={index} href={modelOrAccessGroupHref(model, accessGroupNames)}>
@@ -2218,11 +2374,17 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
                 </div>
               )}
               <div>
-                <p className="font-medium">Model Aliases</p>
+                <p className="font-medium">
+                  <LocalizedText text={"Model Aliases"} />
+                </p>
                 {(() => {
                   const aliasEntries = Object.entries(info.litellm_model_table?.model_aliases ?? {});
                   if (aliasEntries.length === 0) {
-                    return <div className="text-muted-foreground">No model aliases configured</div>;
+                    return (
+                      <div className="text-muted-foreground">
+                        <LocalizedText text={"No model aliases configured"} />
+                      </div>
+                    );
                   }
                   return (
                     <div className="mt-1 space-y-1">
@@ -2238,10 +2400,21 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
                 })()}
               </div>
               <div>
-                <p className="font-medium">Rate Limits</p>
-                <div>TPM: {info.tpm_limit ?? "Unlimited"}</div>
-                <div>RPM: {info.rpm_limit ?? "Unlimited"}</div>
-                <div>TPD (batch): {info.tpd_limit ?? "Unlimited"}</div>
+                <p className="font-medium">
+                  <LocalizedText text={"Rate Limits"} />
+                </p>
+                <div>
+                  <LocalizedText text={"TPM: "} />
+                  {info.tpm_limit ?? translateMessage("Unlimited")}
+                </div>
+                <div>
+                  <LocalizedText text={"RPM: "} />
+                  {info.rpm_limit ?? translateMessage("Unlimited")}
+                </div>
+                <div>
+                  <LocalizedText text={"TPD (batch): "} />
+                  {info.tpd_limit ?? translateMessage("Unlimited")}
+                </div>
                 {(() => {
                   const modelTpm = (info.metadata?.model_tpm_limit ?? {}) as Record<string, number>;
                   const modelRpm = (info.metadata?.model_rpm_limit ?? {}) as Record<string, number>;
@@ -2249,42 +2422,62 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
                   if (models.length === 0) return null;
                   return (
                     <div className="mt-2">
-                      <p className="text-muted-foreground">Per-model limits:</p>
+                      <p className="text-muted-foreground">
+                        <LocalizedText text={"Per-model limits:"} />
+                      </p>
                       {models.map((m) => (
                         <div key={m} className="text-xs ml-2">
-                          {m}: TPM {modelTpm[m] ?? "—"}, RPM {modelRpm[m] ?? "—"}
+                          {m}
+                          <LocalizedText text={": TPM "} />
+                          {modelTpm[m] ?? "—"}
+                          <LocalizedText text={", RPM "} />
+                          {modelRpm[m] ?? "—"}
                         </div>
                       ))}
                     </div>
                   );
                 })()}
-                <div>Estimated Output Tokens: {info.metadata?.default_estimated_output_tokens ?? "Default"}</div>
                 <div>
-                  Estimated Output Tokens Per Model:{" "}
+                  <LocalizedText text={"Estimated Output Tokens: "} />
+                  {info.metadata?.default_estimated_output_tokens ?? translateMessage("Default")}
+                </div>
+                <div>
+                  <LocalizedText text={"Estimated Output Tokens Per Model:"} />{" "}
                   {info.metadata?.default_estimated_output_tokens_per_model
                     ? JSON.stringify(info.metadata.default_estimated_output_tokens_per_model)
-                    : "Default"}
+                    : translateMessage("Default")}
                 </div>
               </div>
               <div>
-                <p className="font-medium">Team Budget</p>
+                <p className="font-medium">
+                  <LocalizedText text={"Team Budget"} />
+                </p>
                 <div>
-                  Max Budget: {info.max_budget !== null ? `$${formatNumberWithCommas(info.max_budget, 4)}` : "No Limit"}
+                  <LocalizedText text={"Max Budget: "} />
+                  {info.max_budget !== null
+                    ? `$${formatNumberWithCommas(info.max_budget, 4)}`
+                    : translateMessage("No Limit")}
                 </div>
                 <div>
-                  Soft Budget:{" "}
+                  <LocalizedText text={"Soft Budget:"} />{" "}
                   {info.soft_budget !== null && info.soft_budget !== undefined
                     ? `$${formatNumberWithCommas(info.soft_budget, 4)}`
-                    : "No Limit"}
+                    : translateMessage("No Limit")}
                 </div>
-                <div>Budget Reset: {info.budget_duration || "Never"}</div>
+                <div>
+                  <LocalizedText text={"Budget Reset: "} />
+                  {info.budget_duration || translateMessage("Never")}
+                </div>
                 {modelMaxBudgetToEntries(info.model_max_budget as ModelMaxBudget | null | undefined).map(
                   ({ model, budgetLimit, timePeriod }) => {
                     const spent = model === null ? undefined : info.model_max_budget_usage?.[model]?.current_spend;
                     return (
                       <div key={model}>
-                        Per-Model Budget ({model}): ${budgetLimit ?? "?"} per {timePeriod}
-                        {spent !== undefined && `, spent $${spent}`}
+                        <LocalizedText text={"Per-Model Budget ("} />
+                        {model}): ${budgetLimit ?? "?"}
+                        <LocalizedText text={" per "} />
+                        {timePeriod}
+                        {spent !== undefined && translateMessage(", spent $%{0}", [spent])}
                       </div>
                     );
                   },
@@ -2292,25 +2485,48 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
                 {info.metadata?.soft_budget_alerting_emails &&
                   Array.isArray(info.metadata.soft_budget_alerting_emails) &&
                   info.metadata.soft_budget_alerting_emails.length > 0 && (
-                    <div>Soft Budget Alerting Emails: {info.metadata.soft_budget_alerting_emails.join(", ")}</div>
+                    <div>
+                      <LocalizedText text={"Soft Budget Alerting Emails: "} />
+                      {info.metadata.soft_budget_alerting_emails.join(", ")}
+                    </div>
                   )}
               </div>
               <div>
                 <p className="font-medium">
-                  Team Member Settings{" "}
+                  <LocalizedText text={"Team Member Settings"} />{" "}
                   <SimpleTooltip content="These are limits on individual team members">
                     <Info className="ml-1 inline size-3.5 align-text-bottom" />
                   </SimpleTooltip>
                 </p>
-                <div>Max Budget: {info.team_member_budget_table?.max_budget ?? "No Limit"}</div>
-                <div>Budget Duration: {info.team_member_budget_table?.budget_duration || "No Limit"}</div>
-                <div>Key Duration: {info.metadata?.team_member_key_duration || "No Limit"}</div>
-                <div>TPM Limit: {info.team_member_budget_table?.tpm_limit ?? "No Limit"}</div>
-                <div>RPM Limit: {info.team_member_budget_table?.rpm_limit ?? "No Limit"}</div>
-                <div>Budget Alert Thresholds: {teamMemberBudgetAlertSummary(info.metadata).join("; ") || "None"}</div>
+                <div>
+                  <LocalizedText text={"Max Budget: "} />
+                  {info.team_member_budget_table?.max_budget ?? translateMessage("No Limit")}
+                </div>
+                <div>
+                  <LocalizedText text={"Budget Duration: "} />
+                  {info.team_member_budget_table?.budget_duration || translateMessage("No Limit")}
+                </div>
+                <div>
+                  <LocalizedText text={"Key Duration: "} />
+                  {info.metadata?.team_member_key_duration || translateMessage("No Limit")}
+                </div>
+                <div>
+                  <LocalizedText text={"TPM Limit: "} />
+                  {info.team_member_budget_table?.tpm_limit ?? translateMessage("No Limit")}
+                </div>
+                <div>
+                  <LocalizedText text={"RPM Limit: "} />
+                  {info.team_member_budget_table?.rpm_limit ?? translateMessage("No Limit")}
+                </div>
+                <div>
+                  <LocalizedText text={"Budget Alert Thresholds: "} />
+                  {teamMemberBudgetAlertSummary(info.metadata).join("; ") || translateMessage("None")}
+                </div>
               </div>
               <div>
-                <p className="font-medium">Router Settings</p>
+                <p className="font-medium">
+                  <LocalizedText text={"Router Settings"} />
+                </p>
                 {info.router_settings &&
                 Object.values(info.router_settings).some(
                   (v) => v !== null && v !== undefined && v !== "" && !(Array.isArray(v) && v.length === 0),
@@ -2318,41 +2534,76 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
                   <div className="mt-1 space-y-1">
                     {info.router_settings.routing_strategy && (
                       <div>
-                        Routing Strategy: <Badge variant="secondary">{info.router_settings.routing_strategy}</Badge>
+                        <LocalizedText text={"Routing Strategy: "} />
+                        <Badge variant="secondary">{info.router_settings.routing_strategy}</Badge>
                       </div>
                     )}
                     {info.router_settings.num_retries != null && (
-                      <div>Number of Retries: {info.router_settings.num_retries}</div>
+                      <div>
+                        <LocalizedText text={"Number of Retries: "} />
+                        {info.router_settings.num_retries}
+                      </div>
                     )}
                     {info.router_settings.allowed_fails != null && (
-                      <div>Allowed Failures: {info.router_settings.allowed_fails}</div>
+                      <div>
+                        <LocalizedText text={"Allowed Failures: "} />
+                        {info.router_settings.allowed_fails}
+                      </div>
                     )}
                     {info.router_settings.cooldown_time != null && (
-                      <div>Cooldown Time: {info.router_settings.cooldown_time}s</div>
+                      <div>
+                        <LocalizedText text={"Cooldown Time: "} />
+                        {info.router_settings.cooldown_time}
+                        <LocalizedText text={"s"} />
+                      </div>
                     )}
-                    {info.router_settings.timeout != null && <div>Timeout: {info.router_settings.timeout}s</div>}
+                    {info.router_settings.timeout != null && (
+                      <div>
+                        <LocalizedText text={"Timeout: "} />
+                        {info.router_settings.timeout}
+                        <LocalizedText text={"s"} />
+                      </div>
+                    )}
                     {info.router_settings.retry_after != null && (
-                      <div>Retry After: {info.router_settings.retry_after}s</div>
+                      <div>
+                        <LocalizedText text={"Retry After: "} />
+                        {info.router_settings.retry_after}
+                        <LocalizedText text={"s"} />
+                      </div>
                     )}
                     {info.router_settings.fallbacks &&
                       Array.isArray(info.router_settings.fallbacks) &&
                       info.router_settings.fallbacks.length > 0 && (
-                        <div>Fallbacks: {info.router_settings.fallbacks.length} configured</div>
+                        <div>
+                          <LocalizedText text={"Fallbacks: "} />
+                          {info.router_settings.fallbacks.length}
+                          <LocalizedText text={" configured"} />
+                        </div>
                       )}
-                    {info.router_settings.enable_tag_filtering && <div>Tag Filtering: Enabled</div>}
+                    {info.router_settings.enable_tag_filtering && (
+                      <div>
+                        <LocalizedText text={"Tag Filtering: Enabled"} />
+                      </div>
+                    )}
                   </div>
                 ) : (
-                  <div className="text-muted-foreground">No router settings configured</div>
+                  <div className="text-muted-foreground">
+                    <LocalizedText text={"No router settings configured"} />
+                  </div>
                 )}
               </div>
               <div>
-                <p className="font-medium">Organization ID</p>
+                <p className="font-medium">
+                  <LocalizedText text={"Organization ID"} />
+                </p>
                 <div>{info.organization_id}</div>
               </div>
               <div>
-                <p className="font-medium">Status</p>
+                <p className="font-medium">
+                  <LocalizedText text={"Status"} />
+                </p>
                 <Badge variant={info.blocked ? "destructive" : "secondary"}>
-                  {info.blocked ? "Blocked" : "Active"}
+                  {info.blocked ? translateMessage("Blocked") : translateMessage("Active")}
                 </Badge>
               </div>
 
@@ -2387,7 +2638,9 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
 
               {info.metadata?.secret_manager_settings && (
                 <div className="pt-4 border-t border-border">
-                  <p className="font-medium">Secret Manager Settings</p>
+                  <p className="font-medium">
+                    <LocalizedText text={"Secret Manager Settings"} />
+                  </p>
                   <pre className="mt-2 bg-muted p-3 rounded-sm text-xs overflow-x-auto">
                     {JSON.stringify(info.metadata.secret_manager_settings, null, 2)}
                   </pre>
@@ -2406,7 +2659,7 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
         <div>
           <Button variant="ghost" onClick={onClose} className="mb-4">
             <ArrowLeftIcon className="h-4 w-4" />
-            Back to Teams
+            <LocalizedText text={"Back to Teams"} />
           </Button>
           <h1 className="text-2xl font-semibold">{info.team_alias}</h1>
           <div className="flex items-center">
@@ -2429,11 +2682,14 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
 
       <Tabs defaultValue={defaultTabKey} className="mb-4" onValueChange={onTabChange}>
         <TabsList variant="line" className="mb-4 h-auto w-full justify-start rounded-none border-b p-0">
-          {tabItems.map(({ key, label }) => (
-            <TabsTrigger key={key} value={key} className="flex-none rounded-none px-4 py-2">
-              {label}
-            </TabsTrigger>
-          ))}
+          {tabItems.map((cocaCopyProps0) => {
+            const { key, label } = cocaCopyProps0;
+            return (
+              <TabsTrigger key={key} value={key} className="flex-none rounded-none px-4 py-2">
+                {localizedProperty(cocaCopyProps0, "label", label)}
+              </TabsTrigger>
+            );
+          })}
         </TabsList>
         {tabItems.map(({ key, children }) => (
           <TabsContent key={key} value={key} keepMounted={hasVisited(key)}>
@@ -2448,115 +2704,133 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
         onSubmit={handleMemberUpdate}
         initialData={selectedEditMember}
         mode="edit"
-        config={{
-          title: "Edit Member",
-          showEmail: true,
-          showUserId: true,
-          roleOptions: [
-            { label: "Admin", value: "admin" },
-            { label: "User", value: "user" },
-          ],
-          additionalFields: [
-            {
-              name: "max_budget_in_team",
-              label: (
-                <span>
-                  Team Member Budget (USD){" "}
-                  <SimpleTooltip content="Maximum amount in USD this member can spend within this team. This is separate from any global user budget limits">
-                    <Info className="ml-1 inline size-3.5 align-text-bottom" />
-                  </SimpleTooltip>
-                </span>
+        config={markUiCopy(
+          {
+            title: "Edit Member",
+            showEmail: true,
+            showUserId: true,
+            roleOptions: [
+              markUiCopy({ label: "Admin", value: "admin" }, { label: "Admin" }),
+              markUiCopy({ label: "User", value: "user" }, { label: "User" }),
+            ],
+            additionalFields: [
+              markUiCopy(
+                {
+                  name: "max_budget_in_team",
+                  label: (
+                    <span>
+                      Team Member Budget (USD){" "}
+                      <SimpleTooltip content="Maximum amount in USD this member can spend within this team. This is separate from any global user budget limits">
+                        <Info className="ml-1 inline size-3.5 align-text-bottom" />
+                      </SimpleTooltip>
+                    </span>
+                  ),
+                  type: "numerical" as const,
+                  step: 0.01,
+                  min: 0,
+                  placeholder: "Budget limit for this member within this team",
+                },
+                { placeholder: "Budget limit for this member within this team" },
               ),
-              type: "numerical" as const,
-              step: 0.01,
-              min: 0,
-              placeholder: "Budget limit for this member within this team",
-            },
-            {
-              name: "budget_duration",
-              label: (
-                <span>
-                  Budget Reset Period{" "}
-                  <SimpleTooltip content="How often this member's budget resets within the team. Leave unset and the budget never resets.">
-                    <Info className="ml-1 inline size-3.5 align-text-bottom" />
-                  </SimpleTooltip>
-                </span>
+              {
+                name: "budget_duration",
+                label: (
+                  <span>
+                    Budget Reset Period{" "}
+                    <SimpleTooltip content="How often this member's budget resets within the team. Leave unset and the budget never resets.">
+                      <Info className="ml-1 inline size-3.5 align-text-bottom" />
+                    </SimpleTooltip>
+                  </span>
+                ),
+                type: "budget-duration" as const,
+              },
+              markUiCopy(
+                {
+                  name: "temp_budget_increase",
+                  label: (
+                    <span>
+                      Temporary Budget Increase (USD){" "}
+                      <SimpleTooltip content="Extra USD added on top of the team member budget until the expiry below. The permanent budget is left unchanged and the increase stops applying at expiry.">
+                        <Info className="ml-1 inline size-3.5 align-text-bottom" />
+                      </SimpleTooltip>
+                    </span>
+                  ),
+                  type: "numerical" as const,
+                  step: 0.01,
+                  min: 0,
+                  placeholder: "Extra budget for this member until the expiry",
+                },
+                { placeholder: "Extra budget for this member until the expiry" },
               ),
-              type: "budget-duration" as const,
-            },
-            {
-              name: "temp_budget_increase",
-              label: (
-                <span>
-                  Temporary Budget Increase (USD){" "}
-                  <SimpleTooltip content="Extra USD added on top of the team member budget until the expiry below. The permanent budget is left unchanged and the increase stops applying at expiry.">
-                    <Info className="ml-1 inline size-3.5 align-text-bottom" />
-                  </SimpleTooltip>
-                </span>
+              {
+                name: "temp_budget_expiry",
+                label: (
+                  <span>
+                    Temporary Budget Expiry (UTC){" "}
+                    <SimpleTooltip content="When the temporary budget increase stops applying. Required whenever a temporary budget increase is set.">
+                      <Info className="ml-1 inline size-3.5 align-text-bottom" />
+                    </SimpleTooltip>
+                  </span>
+                ),
+                type: "utc-datetime" as const,
+              },
+              markUiCopy(
+                {
+                  name: "tpm_limit",
+                  label: (
+                    <span>
+                      Team Member TPM Limit{" "}
+                      <SimpleTooltip content="Maximum tokens per minute this member can use within this team. This is separate from any global user TPM limit">
+                        <Info className="ml-1 inline size-3.5 align-text-bottom" />
+                      </SimpleTooltip>
+                    </span>
+                  ),
+                  type: "numerical" as const,
+                  step: 1,
+                  min: 0,
+                  placeholder: "Tokens per minute limit for this member in this team",
+                },
+                { placeholder: "Tokens per minute limit for this member in this team" },
               ),
-              type: "numerical" as const,
-              step: 0.01,
-              min: 0,
-              placeholder: "Extra budget for this member until the expiry",
-            },
-            {
-              name: "temp_budget_expiry",
-              label: (
-                <span>
-                  Temporary Budget Expiry (UTC){" "}
-                  <SimpleTooltip content="When the temporary budget increase stops applying. Required whenever a temporary budget increase is set.">
-                    <Info className="ml-1 inline size-3.5 align-text-bottom" />
-                  </SimpleTooltip>
-                </span>
+              markUiCopy(
+                {
+                  name: "rpm_limit",
+                  label: (
+                    <span>
+                      Team Member RPM Limit{" "}
+                      <SimpleTooltip content="Maximum requests per minute this member can make within this team. This is separate from any global user RPM limit">
+                        <Info className="ml-1 inline size-3.5 align-text-bottom" />
+                      </SimpleTooltip>
+                    </span>
+                  ),
+                  type: "numerical" as const,
+                  step: 1,
+                  min: 0,
+                  placeholder: "Requests per minute limit for this member in this team",
+                },
+                { placeholder: "Requests per minute limit for this member in this team" },
               ),
-              type: "utc-datetime" as const,
-            },
-            {
-              name: "tpm_limit",
-              label: (
-                <span>
-                  Team Member TPM Limit{" "}
-                  <SimpleTooltip content="Maximum tokens per minute this member can use within this team. This is separate from any global user TPM limit">
-                    <Info className="ml-1 inline size-3.5 align-text-bottom" />
-                  </SimpleTooltip>
-                </span>
+              markUiCopy(
+                {
+                  name: "allowed_models",
+                  label: (
+                    <span>
+                      Allowed Models{" "}
+                      <SimpleTooltip content="Models this member can access within this team. Leave empty to inherit all team models.">
+                        <Info className="ml-1 inline size-3.5 align-text-bottom" />
+                      </SimpleTooltip>
+                    </span>
+                  ),
+                  type: "multi-select" as const,
+                  options: (info.models || []).map((m: string) => ({ label: m, value: m })),
+                  placeholder: "Leave empty to inherit all team models",
+                },
+                { placeholder: "Leave empty to inherit all team models" },
               ),
-              type: "numerical" as const,
-              step: 1,
-              min: 0,
-              placeholder: "Tokens per minute limit for this member in this team",
-            },
-            {
-              name: "rpm_limit",
-              label: (
-                <span>
-                  Team Member RPM Limit{" "}
-                  <SimpleTooltip content="Maximum requests per minute this member can make within this team. This is separate from any global user RPM limit">
-                    <Info className="ml-1 inline size-3.5 align-text-bottom" />
-                  </SimpleTooltip>
-                </span>
-              ),
-              type: "numerical" as const,
-              step: 1,
-              min: 0,
-              placeholder: "Requests per minute limit for this member in this team",
-            },
-            {
-              name: "allowed_models",
-              label: (
-                <span>
-                  Allowed Models{" "}
-                  <SimpleTooltip content="Models this member can access within this team. Leave empty to inherit all team models.">
-                    <Info className="ml-1 inline size-3.5 align-text-bottom" />
-                  </SimpleTooltip>
-                </span>
-              ),
-              type: "multi-select" as const,
-              options: (info.models || []).map((m: string) => ({ label: m, value: m })),
-              placeholder: "Leave empty to inherit all team models",
-            },
-          ],
-        }}
+            ],
+          },
+          { title: "Edit Member" },
+        )}
       />
 
       <UserSearchModal
@@ -2570,14 +2844,16 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
       {/* Delete Member Confirmation Modal */}
       <DeleteResourceModal
         isOpen={isDeleteModalOpen}
-        title="Delete Team Member"
+        title={translateMessage("Delete Team Member")}
         alertMessage="Removing team members will also delete any keys created by or created for this member."
-        message="Are you sure you want to remove this member from the team? This action cannot be undone."
+        message={translateMessage(
+          "Are you sure you want to remove this member from the team? This action cannot be undone.",
+        )}
         resourceInformationTitle="Team Member Information"
         resourceInformation={[
-          { label: "User ID", value: memberToDelete?.user_id, code: true },
-          { label: "Email", value: memberToDelete?.user_email },
-          { label: "Role", value: memberToDelete?.role },
+          markUiCopy({ label: "User ID", value: memberToDelete?.user_id, code: true }, { label: "User ID" }),
+          markUiCopy({ label: "Email", value: memberToDelete?.user_email }, { label: "Email" }),
+          markUiCopy({ label: "Role", value: memberToDelete?.role }, { label: "Role" }),
         ]}
         onCancel={handleDeleteCancel}
         onOk={handleDeleteConfirm}

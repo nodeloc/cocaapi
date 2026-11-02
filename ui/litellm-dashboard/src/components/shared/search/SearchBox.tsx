@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import "prosemirror-view/style/prosemirror.css";
 
@@ -24,10 +25,10 @@ const EMIT_WAIT_MS = 150;
 const KEEP_MENU_CLOSED = "searchBoxKeepMenuClosed";
 
 const OPERATORS: readonly { readonly op: FilterOp; readonly label: string; readonly example: string }[] = [
-  { op: "eq", label: "equals", example: "foo:bar" },
-  { op: "neq", label: "not equals", example: "-foo:bar" },
-  { op: "glob", label: "wildcard match", example: "foo:*bar*" },
-  { op: "nglob", label: "does not contain", example: "-foo:*bar*" },
+  markUiCopy({ op: "eq", label: "equals", example: "foo:bar" }, { label: "equals" }),
+  markUiCopy({ op: "neq", label: "not equals", example: "-foo:bar" }, { label: "not equals" }),
+  markUiCopy({ op: "glob", label: "wildcard match", example: "foo:*bar*" }, { label: "wildcard match" }),
+  markUiCopy({ op: "nglob", label: "does not contain", example: "-foo:*bar*" }, { label: "does not contain" }),
 ];
 
 /** Colours each `key:` so the filters stand out from free text. */
@@ -82,6 +83,7 @@ interface SearchBoxState {
 const SearchBoxContext = createContext<SearchBoxState | null>(null);
 
 function useSearchBox(): SearchBoxState {
+  useUiLocale();
   const state = useContext(SearchBoxContext);
   if (!state) throw new Error("SearchBox parts must be rendered inside SearchBox.Root");
   return state;
@@ -98,16 +100,9 @@ export type SearchBoxRootProps<F extends string> = Omit<ComponentProps<"div">, "
 };
 
 /** A one-line query editor: free text plus `key:value` filters. Owns the text, the menu and the keyboard. */
-function Root<F extends string>({
-  language,
-  values,
-  value,
-  onValueChange,
-  label,
-  className,
-  children,
-  ...props
-}: SearchBoxRootProps<F>) {
+function Root<F extends string>(cocaCopyProps0: SearchBoxRootProps<F>) {
+  const { language, values, value, onValueChange, label, className, children, ...props } = cocaCopyProps0;
+  useUiLocale();
   const listId = useId();
   const [state, setState] = useState(() => createState(language, value));
   const [seenValue, setSeenValue] = useState(value);
@@ -238,6 +233,7 @@ export type SearchBoxInputProps = ComponentProps<"div"> & {
 
 /** The bordered field holding the editor; shows `placeholder` while the query is empty. */
 function Input({ placeholder, busy = false, className, ...props }: SearchBoxInputProps) {
+  useUiLocale();
   const { text } = useSearchBox();
   return (
     <div
@@ -251,7 +247,7 @@ function Input({ placeholder, busy = false, className, ...props }: SearchBoxInpu
       {busy ? (
         <Loader2
           role="status"
-          aria-label="Loading results"
+          aria-label={translateMessage("Loading results")}
           className="size-3.5 shrink-0 animate-spin text-muted-foreground motion-reduce:animate-none"
         />
       ) : (
@@ -276,6 +272,7 @@ export type SearchBoxSuggestionsProps = ComponentProps<"div">;
  * `children` render in the footer beside the key hints, e.g. a `CopyCommand`.
  */
 function Suggestions({ className, children, ...props }: SearchBoxSuggestionsProps) {
+  useUiLocale();
   const { listId, menu, activeId, icon, ops } = useSearchBox();
   const pick = useEditorEventCallback((view, item: Suggestion<string>) => applySuggestion(view, item));
   if (!menu) return null;
@@ -288,7 +285,12 @@ function Suggestions({ className, children, ...props }: SearchBoxSuggestionsProp
       )}
       {...props}
     >
-      <div id={listId} role="listbox" aria-label="Search suggestions" className="max-h-80 overflow-y-auto p-1">
+      <div
+        id={listId}
+        role="listbox"
+        aria-label={translateMessage("Search suggestions")}
+        className="max-h-80 overflow-y-auto p-1"
+      >
         {menu.groups.map((group) => (
           <div key={group.heading} role="group" aria-label={group.heading}>
             <div className="px-2 pt-2 pb-1 text-xs text-muted-foreground">{group.heading}</div>
@@ -322,13 +324,13 @@ function Suggestions({ className, children, ...props }: SearchBoxSuggestionsProp
         <span className="flex items-center gap-1">
           <Kbd>↑</Kbd>
           <Kbd>↓</Kbd>
-          Navigate
+          <LocalizedText text={"Navigate"} />
         </span>
         <span className="flex items-center gap-1">
           <Kbd>
             <CornerDownLeft className="size-3" />
           </Kbd>
-          Select
+          <LocalizedText text={"Select"} />
         </span>
         {children}
       </div>
@@ -351,7 +353,9 @@ const copyLabel = (last: CopyOutcome, command: string): string => {
 };
 
 /** Puts the current query on the clipboard as an API call, from the suggestions footer. */
-function CopyCommand<F extends string>({ title, command }: SearchBoxCopyCommandProps<F>) {
+function CopyCommand<F extends string>(cocaCopyProps1: SearchBoxCopyCommandProps<F>) {
+  const { title, command } = cocaCopyProps1;
+  useUiLocale();
   const { clauses } = useSearchBox();
   const [last, setLast] = useState<CopyOutcome>(null);
   const current = useMemo(() => command(toSearchQuery(clauses as readonly QueryClause<F>[])), [command, clauses]);
@@ -366,7 +370,7 @@ function CopyCommand<F extends string>({ title, command }: SearchBoxCopyCommandP
       type="button"
       variant="ghost"
       size="xs"
-      title={title}
+      title={localizedProperty(cocaCopyProps1, "title", title)}
       data-slot="search-box-copy-command"
       className="ml-auto shrink-0"
       onMouseDown={(event) => event.preventDefault()}
@@ -379,9 +383,12 @@ function CopyCommand<F extends string>({ title, command }: SearchBoxCopyCommandP
 }
 
 function OperatorHints({ ops }: { ops: readonly FilterOp[] }) {
+  useUiLocale();
   return (
     <div className="pb-1">
-      <div className="px-2 pt-2 pb-1 text-xs text-muted-foreground">Comparison operators</div>
+      <div className="px-2 pt-2 pb-1 text-xs text-muted-foreground">
+        <LocalizedText text={"Comparison operators"} />
+      </div>
       {OPERATORS.filter((op) => ops.includes(op.op)).map((op) => (
         <div key={op.label} className="flex items-center justify-between px-2 py-1 font-mono text-xs">
           <span className="text-warning">{op.label}</span>
@@ -393,6 +400,7 @@ function OperatorHints({ ops }: { ops: readonly FilterOp[] }) {
 }
 
 function Kbd({ children }: { children: ReactNode }) {
+  useUiLocale();
   return (
     <kbd className="inline-flex h-5 min-w-5 items-center justify-center rounded border border-border px-1 font-sans">
       {children}

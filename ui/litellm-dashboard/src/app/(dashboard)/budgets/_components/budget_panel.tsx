@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import { useCustomerNative } from "@/components/account/native/CustomerNativeContext";
 /**
  * The parent pane, showing list of budgets
@@ -30,6 +32,7 @@ interface BudgetSettingsPageProps {
 }
 
 const BudgetPanel: React.FC<BudgetSettingsPageProps> = ({ accessToken }) => {
+  useUiLocale();
   const customer = useCustomerNative();
   const syntaxTheme = useSyntaxTheme(prism);
   const [isCreateModelVisible, setIsCreateModelVisible] = useState(false);
@@ -67,7 +70,7 @@ const BudgetPanel: React.FC<BudgetSettingsPageProps> = ({ accessToken }) => {
     }
     try {
       await deleteBudget.mutateAsync(selectedBudget.budget_id);
-      toast.success("Budget deleted.");
+      toast.success(translateMessage("Budget deleted."));
     } catch (error) {
       console.error("Error deleting budget:", error);
       toast.fromError("Failed to delete budget");
@@ -87,10 +90,12 @@ const BudgetPanel: React.FC<BudgetSettingsPageProps> = ({ accessToken }) => {
         <PageHeader>
           <PageHeaderTitle>
             <Wallet />
-            Budgets
+            <LocalizedText text={"Budgets"} />
           </PageHeaderTitle>
           <PageHeaderDescription>
-            {customer ? "Your API budget and rate limits." : "Spend, TPM and RPM limits you can assign to customers."}
+            {customer
+              ? translateMessage("Your API budget and rate limits.")
+              : translateMessage("Spend, TPM and RPM limits you can assign to customers.")}
           </PageHeaderDescription>
           <PageHeaderControls>
             <PageTabsList>
@@ -98,13 +103,19 @@ const BudgetPanel: React.FC<BudgetSettingsPageProps> = ({ accessToken }) => {
                 <>
                   <Button onClick={() => setIsCreateModelVisible(true)}>
                     <Plus className="size-4" />
-                    Create Budget
+                    <LocalizedText text={"Create Budget"} />
                   </Button>
                   <ToolbarSeparator className="mx-0 h-6" />
                 </>
               )}
-              <PageTabsTrigger value="budgets">Budgets</PageTabsTrigger>
-              {!customer && <PageTabsTrigger value="examples">Examples</PageTabsTrigger>}
+              <PageTabsTrigger value="budgets">
+                <LocalizedText text={"Budgets"} />
+              </PageTabsTrigger>
+              {!customer && (
+                <PageTabsTrigger value="examples">
+                  <LocalizedText text={"Examples"} />
+                </PageTabsTrigger>
+              )}
             </PageTabsList>
           </PageHeaderControls>
         </PageHeader>
@@ -126,15 +137,18 @@ const BudgetPanel: React.FC<BudgetSettingsPageProps> = ({ accessToken }) => {
             />
             <DeleteResourceModal
               isOpen={isDeleteModalVisible}
-              title="Delete Budget?"
-              message="Are you sure you want to delete this budget? This action cannot be undone."
+              title={translateMessage("Delete Budget?")}
+              message={translateMessage("Are you sure you want to delete this budget? This action cannot be undone.")}
               resourceInformationTitle="Budget Information"
               resourceInformation={[
-                { label: "Budget ID", value: selectedBudget?.budget_id, code: true },
-                { label: "Max Budget", value: selectedBudget?.max_budget },
-                { label: "TPM", value: selectedBudget?.tpm_limit },
-                { label: "RPM", value: selectedBudget?.rpm_limit },
-                { label: "TPD (batch)", value: selectedBudget?.tpd_limit },
+                markUiCopy(
+                  { label: "Budget ID", value: selectedBudget?.budget_id, code: true },
+                  { label: "Budget ID" },
+                ),
+                markUiCopy({ label: "Max Budget", value: selectedBudget?.max_budget }, { label: "Max Budget" }),
+                markUiCopy({ label: "TPM", value: selectedBudget?.tpm_limit }, { label: "TPM" }),
+                markUiCopy({ label: "RPM", value: selectedBudget?.rpm_limit }, { label: "RPM" }),
+                markUiCopy({ label: "TPD (batch)", value: selectedBudget?.tpd_limit }, { label: "TPD (batch)" }),
               ]}
               onCancel={handleDeleteCancel}
               onOk={handleDeleteConfirm}
@@ -144,17 +158,19 @@ const BudgetPanel: React.FC<BudgetSettingsPageProps> = ({ accessToken }) => {
         </TabsContent>
         <TabsContent value="examples" className="min-h-0 flex-1 overflow-y-auto" keepMounted>
           <div className="pt-6">
-            <p className="text-base text-muted-foreground">How to use budget id</p>
+            <p className="text-base text-muted-foreground">
+              <LocalizedText text={"How to use budget id"} />
+            </p>
             <Tabs defaultValue="assign-budget">
               <TabsList variant="line" className="h-auto w-full justify-start rounded-none border-b p-0">
                 <TabsTrigger value="assign-budget" className="flex-none rounded-none px-4 py-2">
-                  Assign Budget to Customer
+                  <LocalizedText text={"Assign Budget to Customer"} />
                 </TabsTrigger>
                 <TabsTrigger value="curl" className="flex-none rounded-none px-4 py-2">
-                  Test it (Curl)
+                  <LocalizedText text={"Test it (Curl)"} />
                 </TabsTrigger>
                 <TabsTrigger value="openai-sdk" className="flex-none rounded-none px-4 py-2">
-                  Test it (OpenAI SDK)
+                  <LocalizedText text={"Test it (OpenAI SDK)"} />
                 </TabsTrigger>
               </TabsList>
               <TabsContent value="assign-budget" keepMounted>

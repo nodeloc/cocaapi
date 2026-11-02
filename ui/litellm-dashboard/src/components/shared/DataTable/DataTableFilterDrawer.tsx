@@ -1,4 +1,5 @@
 "use client";
+import { localizedProperty, useUiLocale } from "@/lib/i18n";
 
 import type { ColumnFiltersState, Table } from "@tanstack/react-table";
 import * as React from "react";
@@ -53,6 +54,7 @@ export function DataTableFilterDrawer<TData>({
   onReset,
   children,
 }: DataTableFilterDrawerProps<TData>) {
+  useUiLocale();
   const [draft, setDraft] = React.useState<Record<string, unknown>>(() => toDraft(table.getState().columnFilters));
   const [wasOpen, setWasOpen] = React.useState(open);
 
@@ -105,10 +107,12 @@ export function DataTableFilterDrawer<TData>({
   );
 }
 
-export function DataTableFilterField({ label, children }: { label: string; children: React.ReactNode }) {
+export function DataTableFilterField(cocaCopyProps0: { label: string; children: React.ReactNode }) {
+  const { label, children } = cocaCopyProps0;
+  useUiLocale();
   return (
     <div className="flex flex-col gap-1.5">
-      <Label>{label}</Label>
+      <Label>{localizedProperty(cocaCopyProps0, "label", label)}</Label>
       {children}
     </div>
   );

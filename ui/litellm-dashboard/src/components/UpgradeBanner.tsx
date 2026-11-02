@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import React, { useState } from "react";
 import { ArrowUpCircle, X } from "lucide-react";
@@ -34,6 +35,7 @@ export const describeRelease = ({ new_features, bug_fixes, other_updates }: Late
   ].join(", ");
 
 export const UpgradeBannerView: React.FC<UpgradeBannerViewProps> = ({ currentVersion, latestRelease }) => {
+  useUiLocale();
   const [dismissedVersion, setDismissedVersion] = useState<string | null>(null);
 
   if (!currentVersion || !latestRelease || !isNewerVersion(currentVersion, latestRelease.version)) {
@@ -54,15 +56,19 @@ export const UpgradeBannerView: React.FC<UpgradeBannerViewProps> = ({ currentVer
     <Alert role="status" variant="info" className="rounded-none border-x-0 border-t-0">
       <ArrowUpCircle className="size-4" aria-hidden />
       <AlertTitle>
-        The latest version is{" "}
+        <LocalizedText text={"The latest version is"} />{" "}
         <a href={latestRelease.release_url} target="_blank" rel="noopener noreferrer" className="underline">
-          v{latestRelease.version}
+          <LocalizedText text={"v"} />
+          {latestRelease.version}
         </a>
         : {describeRelease(latestRelease)}
       </AlertTitle>
-      <AlertDescription>Your current version is v{currentVersion}</AlertDescription>
+      <AlertDescription>
+        <LocalizedText text={"Your current version is v"} />
+        {currentVersion}
+      </AlertDescription>
       <AlertAction>
-        <Button variant="ghost" size="icon-sm" aria-label="Close" onClick={handleClose}>
+        <Button variant="ghost" size="icon-sm" aria-label={translateMessage("Close")} onClick={handleClose}>
           <X className="size-4" />
         </Button>
       </AlertAction>
@@ -71,6 +77,7 @@ export const UpgradeBannerView: React.FC<UpgradeBannerViewProps> = ({ currentVer
 };
 
 export const UpgradeBanner: React.FC<UpgradeBannerProps> = ({ accessToken }) => {
+  useUiLocale();
   const { data: healthData } = useHealthReadinessDetails(accessToken);
   const { data: latestRelease } = useLatestReleaseInfo(accessToken);
   return <UpgradeBannerView currentVersion={healthData?.litellm_version} latestRelease={latestRelease} />;

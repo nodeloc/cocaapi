@@ -1,10 +1,11 @@
+import { markUiCopy } from "@/lib/i18n";
 export const ACTION_ITEMS = [
-  { value: "BLOCK", label: "Block" },
-  { value: "MASK", label: "Mask" },
+  markUiCopy({ value: "BLOCK", label: "Block" }, { label: "Block" }),
+  markUiCopy({ value: "MASK", label: "Mask" }, { label: "Mask" }),
 ] as const;
 
 export const SEVERITY_ITEMS = [
-  { value: "high", label: "High" },
-  { value: "medium", label: "Medium" },
-  { value: "low", label: "Low" },
+  markUiCopy({ value: "high", label: "High" }, { label: "High" }),
+  markUiCopy({ value: "medium", label: "Medium" }, { label: "Medium" }),
+  markUiCopy({ value: "low", label: "Low" }, { label: "Low" }),
 ] as const;

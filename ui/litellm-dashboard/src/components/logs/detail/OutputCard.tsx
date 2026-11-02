@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 /**
  * OutputCard - Displays output message with token count and cost
  * Datadog-style: header with icon/metrics, content below
@@ -16,14 +18,16 @@ interface OutputCardProps {
   outputCost?: number;
 }
 
-export function OutputCard({ message, completionTokens, outputCost }: OutputCardProps) {
+export function OutputCard(cocaCopyProps0: OutputCardProps) {
+  const { message, completionTokens, outputCost } = cocaCopyProps0;
+  useUiLocale();
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   const handleCopy = () => {
     if (!message) return;
 
     navigator.clipboard.writeText(message.content || "");
-    toast.success("Output copied");
+    toast.success(translateMessage("Output copied"));
   };
 
   return (
@@ -43,9 +47,15 @@ export function OutputCard({ message, completionTokens, outputCost }: OutputCard
       >
         <div className="px-4 py-3">
           {message ? (
-            <SimpleMessageBlock label="ASSISTANT" content={message.content} toolCalls={message.toolCalls} />
+            <SimpleMessageBlock
+              label={translateMessage("ASSISTANT")}
+              content={message.content}
+              toolCalls={message.toolCalls}
+            />
           ) : (
-            <span className="text-[13px] text-muted-foreground italic">No response data available</span>
+            <span className="text-[13px] text-muted-foreground italic">
+              <LocalizedText text={"No response data available"} />
+            </span>
           )}
         </div>
       </div>

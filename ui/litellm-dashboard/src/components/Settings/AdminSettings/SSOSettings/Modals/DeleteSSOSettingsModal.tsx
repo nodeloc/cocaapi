@@ -1,3 +1,5 @@
+"use client";
+import { markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import { useEditSSOSettings } from "@/app/(dashboard)/hooks/sso/useEditSSOSettings";
 import { useSSOSettings } from "@/app/(dashboard)/hooks/sso/useSSOSettings";
 import React from "react";
@@ -13,6 +15,7 @@ interface DeleteSSOSettingsModalProps {
 }
 
 const DeleteSSOSettingsModal: React.FC<DeleteSSOSettingsModalProps> = ({ isVisible, onCancel, onSuccess }) => {
+  useUiLocale();
   const { data: ssoSettings } = useSSOSettings();
   const { mutateAsync: editSSOSettings, isPending: isEditingSSOSettings } = useEditSSOSettings();
 
@@ -42,7 +45,7 @@ const DeleteSSOSettingsModal: React.FC<DeleteSSOSettingsModalProps> = ({ isVisib
 
     await editSSOSettings(clearSettings, {
       onSuccess: () => {
-        toast.success("SSO settings cleared successfully");
+        toast.success(translateMessage("SSO settings cleared successfully"));
         onCancel();
         onSuccess();
       },
@@ -55,12 +58,17 @@ const DeleteSSOSettingsModal: React.FC<DeleteSSOSettingsModalProps> = ({ isVisib
   return (
     <DeleteResourceModal
       isOpen={isVisible}
-      title="Confirm Clear SSO Settings"
+      title={translateMessage("Confirm Clear SSO Settings")}
       alertMessage="This action cannot be undone."
-      message="Are you sure you want to clear all SSO settings? Users will no longer be able to login using SSO after this change."
+      message={translateMessage(
+        "Are you sure you want to clear all SSO settings? Users will no longer be able to login using SSO after this change.",
+      )}
       resourceInformationTitle="SSO Settings"
       resourceInformation={[
-        { label: "Provider", value: (ssoSettings?.values && detectSSOProvider(ssoSettings?.values)) || "Generic" },
+        markUiCopy(
+          { label: "Provider", value: (ssoSettings?.values && detectSSOProvider(ssoSettings?.values)) || "Generic" },
+          { label: "Provider" },
+        ),
       ]}
       onCancel={onCancel}
       onOk={handleClearSSO}

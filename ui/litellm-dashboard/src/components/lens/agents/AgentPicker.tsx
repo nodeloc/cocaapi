@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, getIntlLocale, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { Bot, Check, ChevronsUpDown, Search } from "lucide-react";
 import { useState } from "react";
@@ -11,6 +12,7 @@ import { FrameworkLogo, traceFramework } from "../traces/ui/TraceFramework";
 import type { AgentSummary } from "./agentRollup";
 
 export function AgentMark({ agent }: { agent: Pick<AgentSummary, "frameworks"> | undefined }) {
+  useUiLocale();
   const framework = agent ? traceFramework({ frameworks: [...agent.frameworks] }) : null;
   return framework ? (
     <FrameworkLogo framework={framework} className="size-4" />
@@ -32,6 +34,7 @@ const ITEM = "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left te
 
 /** The agent every Lens view is scoped to, like the project switcher in Braintrust. */
 export function AgentPicker({ agent, agents, onSelect }: AgentPickerProps) {
+  useUiLocale();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const shown = agents.filter((item) => matchesAgent(item, query));
@@ -43,7 +46,7 @@ export function AgentPicker({ agent, agents, onSelect }: AgentPickerProps) {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger
-        aria-label={`Agent: ${agent}`}
+        aria-label={translateMessage("Agent: %{0}", [agent])}
         className="inline-flex h-7 max-w-56 items-center gap-1.5 rounded-md border px-2 text-sm font-medium hover:bg-muted"
       >
         <AgentMark agent={agents.find((item) => item.name === agent)} />
@@ -54,8 +57,8 @@ export function AgentPicker({ agent, agents, onSelect }: AgentPickerProps) {
         <div className="relative">
           <Search aria-hidden className="absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
           <Input
-            aria-label="Find agent"
-            placeholder="Find agent"
+            aria-label={translateMessage("Find agent")}
+            placeholder={translateMessage("Find agent")}
             autoFocus
             value={query}
             onChange={(event) => setQuery(event.target.value)}
@@ -63,19 +66,27 @@ export function AgentPicker({ agent, agents, onSelect }: AgentPickerProps) {
           />
         </div>
         <div className="border-t" />
-        <p className="px-2 pt-1.5 pb-0.5 text-xs text-muted-foreground">Agents</p>
-        <ul aria-label="Agents" className="flex max-h-72 flex-col overflow-y-auto">
+        <p className="px-2 pt-1.5 pb-0.5 text-xs text-muted-foreground">
+          <LocalizedText text={"Agents"} />
+        </p>
+        <ul aria-label={translateMessage("Agents")} className="flex max-h-72 flex-col overflow-y-auto">
           {shown.map((item) => (
             <li key={item.name}>
               <button type="button" className={ITEM} onClick={() => choose(item.name)}>
                 <Check aria-hidden className={cn("size-3.5 shrink-0", item.name !== agent && "invisible")} />
                 <AgentMark agent={item} />
                 <span className="truncate">{item.name}</span>
-                <span className="ml-auto text-xs text-muted-foreground tabular-nums">{item.runs.toLocaleString()}</span>
+                <span className="ml-auto text-xs text-muted-foreground tabular-nums">
+                  {item.runs.toLocaleString(getIntlLocale())}
+                </span>
               </button>
             </li>
           ))}
-          {shown.length === 0 && <li className="px-2 py-1.5 text-sm text-muted-foreground">No agents match</li>}
+          {shown.length === 0 && (
+            <li className="px-2 py-1.5 text-sm text-muted-foreground">
+              <LocalizedText text={"No agents match"} />
+            </li>
+          )}
         </ul>
       </PopoverContent>
     </Popover>

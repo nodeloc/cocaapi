@@ -1,15 +1,16 @@
+import { markUiCopy } from "@/lib/i18n";
 export const ERROR_CODE_OPTIONS: { label: string; value: string }[] = [
-  { label: "400 - Bad Request", value: "400" },
-  { label: "401 - Invalid Authentication", value: "401" },
-  { label: "403 - Permission Denied", value: "403" },
-  { label: "404 - Not Found", value: "404" },
-  { label: "408 - Request Timeout", value: "408" },
-  { label: "422 - Unprocessable Entity", value: "422" },
-  { label: "429 - Rate Limited", value: "429" },
-  { label: "500 - Internal Server Error", value: "500" },
-  { label: "502 - Bad Gateway", value: "502" },
-  { label: "503 - Service Unavailable", value: "503" },
-  { label: "529 - Overloaded", value: "529" },
+  markUiCopy({ label: "400 - Bad Request", value: "400" }, { label: "400 - Bad Request" }),
+  markUiCopy({ label: "401 - Invalid Authentication", value: "401" }, { label: "401 - Invalid Authentication" }),
+  markUiCopy({ label: "403 - Permission Denied", value: "403" }, { label: "403 - Permission Denied" }),
+  markUiCopy({ label: "404 - Not Found", value: "404" }, { label: "404 - Not Found" }),
+  markUiCopy({ label: "408 - Request Timeout", value: "408" }, { label: "408 - Request Timeout" }),
+  markUiCopy({ label: "422 - Unprocessable Entity", value: "422" }, { label: "422 - Unprocessable Entity" }),
+  markUiCopy({ label: "429 - Rate Limited", value: "429" }, { label: "429 - Rate Limited" }),
+  markUiCopy({ label: "500 - Internal Server Error", value: "500" }, { label: "500 - Internal Server Error" }),
+  markUiCopy({ label: "502 - Bad Gateway", value: "502" }, { label: "502 - Bad Gateway" }),
+  markUiCopy({ label: "503 - Service Unavailable", value: "503" }, { label: "503 - Service Unavailable" }),
+  markUiCopy({ label: "529 - Overloaded", value: "529" }, { label: "529 - Overloaded" }),
 ];
 
 /** Call types that represent MCP tool invocations (shared across columns, index, drawer). */
@@ -21,23 +22,29 @@ export const AGENT_CALL_TYPES = ["asend_message"];
 /** Call types that represent Batch API operations (creation and retrieval, sync and async). */
 export const BATCH_CALL_TYPES = ["acreate_batch", "create_batch", "aretrieve_batch", "retrieve_batch"];
 
-export const SPAN_TYPE_LABELS: Record<string, string> = {
-  llm: "LLM",
-  agent: "Agent",
-  mcp: "MCP",
-  batch: "Batch",
-};
+export const SPAN_TYPE_LABELS: Record<string, string> = markUiCopy(
+  {
+    llm: "LLM",
+    agent: "Agent",
+    mcp: "MCP",
+    batch: "Batch",
+  },
+  { llm: "LLM", agent: "Agent", mcp: "MCP", batch: "Batch" },
+);
 
-export const CREDENTIAL_LABELS: Record<string, string> = {
-  true: "Client OAuth token",
-  false: "Configured key",
-};
+export const CREDENTIAL_LABELS: Record<string, string> = markUiCopy(
+  {
+    true: "Client OAuth token",
+    false: "Configured key",
+  },
+  { true: "Client OAuth token", false: "Configured key" },
+);
 
 export const QUICK_SELECT_OPTIONS: { label: string; value: number; unit: string }[] = [
-  { label: "Last Minute", value: 1, unit: "minutes" },
-  { label: "Last 15 Minutes", value: 15, unit: "minutes" },
-  { label: "Last Hour", value: 1, unit: "hours" },
-  { label: "Last 4 Hours", value: 4, unit: "hours" },
-  { label: "Last 24 Hours", value: 24, unit: "hours" },
-  { label: "Last 7 Days", value: 7, unit: "days" },
+  markUiCopy({ label: "Last Minute", value: 1, unit: "minutes" }, { label: "Last Minute" }),
+  markUiCopy({ label: "Last 15 Minutes", value: 15, unit: "minutes" }, { label: "Last 15 Minutes" }),
+  markUiCopy({ label: "Last Hour", value: 1, unit: "hours" }, { label: "Last Hour" }),
+  markUiCopy({ label: "Last 4 Hours", value: 4, unit: "hours" }, { label: "Last 4 Hours" }),
+  markUiCopy({ label: "Last 24 Hours", value: 24, unit: "hours" }, { label: "Last 24 Hours" }),
+  markUiCopy({ label: "Last 7 Days", value: 7, unit: "days" }, { label: "Last 7 Days" }),
 ];

@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { useState, type ReactNode } from "react";
 import { FormProvider } from "react-hook-form";
@@ -23,11 +24,13 @@ function defaultWorkerFormValues(): WorkerFormInput {
   };
 }
 
-function ErrorText({ message }: { message: string | undefined }) {
+function ErrorText(cocaCopyProps0: { message: string | undefined }) {
+  const { message } = cocaCopyProps0;
+  useUiLocale();
   if (!message) return null;
   return (
     <p role="alert" className="text-sm text-destructive">
-      {message}
+      {localizedProperty(cocaCopyProps0, "message", message)}
     </p>
   );
 }
@@ -52,21 +55,26 @@ function WorkerFormCard({
   onSubmit: () => void;
   children: ReactNode;
 }) {
+  useUiLocale();
   return (
     <SettingsCard className="flex flex-col gap-5">
       <header className="space-y-1">
-        <h3 className="text-base font-semibold">{editing ? "Analysis access" : "Connect a worker"}</h3>
+        <h3 className="text-base font-semibold">
+          {editing ? translateMessage("Analysis access") : translateMessage("Connect a worker")}
+        </h3>
         <p className="text-sm text-muted-foreground">
           {editing
-            ? "Choose which key pays for analysis."
-            : "Choose a model and spending limit. Your Lens service runs investigations automatically."}
+            ? translateMessage("Choose which key pays for analysis.")
+            : translateMessage(
+                "Choose a model and spending limit. Your Lens service runs investigations automatically.",
+              )}
         </p>
       </header>
       <WorkerForm editingWorker={editing?.id ?? null} />
       <div className="flex justify-end gap-2">
         {editing && (
           <Button variant="outline" disabled={busy} onClick={onCancel}>
-            Cancel
+            <LocalizedText text={"Cancel"} />
           </Button>
         )}
         <Button disabled={!valid || busy} onClick={onSubmit}>
@@ -86,6 +94,7 @@ export function WorkerSettings({
   /** Shown once a freshly installed worker connects; defaults to a Done button that returns to the list. */
   readyAction?: ReactNode;
 }) {
+  useUiLocale();
   const revokeWorker = useRevokeWorker();
   const prepareWorker = usePrepareWorker();
   const form = useZodForm(workerFormSchema, {
@@ -158,7 +167,7 @@ export function WorkerSettings({
         <WorkerInstall connected={screen.connected}>
           {readyAction ?? (
             <Button className="w-full" onClick={() => prepareWorker.reset()}>
-              Done
+              <LocalizedText text={"Done"} />
             </Button>
           )}
         </WorkerInstall>

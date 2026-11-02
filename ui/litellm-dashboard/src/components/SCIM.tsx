@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 import React, { useState, useEffect } from "react";
 import { z } from "zod";
 import { keyCreateCall } from "./networking";
@@ -28,6 +30,7 @@ const scimTokenSchema = z.object({
 type SCIMTokenFormValues = z.infer<typeof scimTokenSchema>;
 
 const SCIMConfig: React.FC<SCIMConfigProps> = ({ accessToken, userID, proxySettings }) => {
+  useUiLocale();
   const form = useZodForm(scimTokenSchema, { defaultValues: { key_alias: "" } });
   const [isCreatingToken, setIsCreatingToken] = useState(false);
   const [tokenData, setTokenData] = useState<any>(null);
@@ -66,7 +69,7 @@ const SCIMConfig: React.FC<SCIMConfigProps> = ({ accessToken, userID, proxySetti
 
       const response = await keyCreateCall(accessToken, userID, formData);
       setTokenData(response);
-      toast.success("SCIM token created successfully");
+      toast.success(translateMessage("SCIM token created successfully"));
     } catch (error: any) {
       console.error("Error creating SCIM token:", error);
       toast.fromError("Failed to create SCIM token: " + parseErrorMessage(error));
@@ -80,11 +83,16 @@ const SCIMConfig: React.FC<SCIMConfigProps> = ({ accessToken, userID, proxySetti
       <Card>
         <CardContent>
           <div className="flex items-center mb-4">
-            <CardTitle>SCIM Configuration</CardTitle>
+            <CardTitle>
+              <LocalizedText text={"SCIM Configuration"} />
+            </CardTitle>
           </div>
           <p className="text-muted-foreground">
-            System for Cross-domain Identity Management (SCIM) allows you to automatically provision and manage users
-            and groups in LiteLLM.
+            <LocalizedText
+              text={
+                "System for Cross-domain Identity Management (SCIM) allows you to automatically provision and manage users and groups in LiteLLM."
+              }
+            />
           </p>
 
           <Separator className="my-6" />
@@ -96,18 +104,21 @@ const SCIMConfig: React.FC<SCIMConfigProps> = ({ accessToken, userID, proxySetti
                 <div className="flex items-center justify-center w-6 h-6 rounded-full bg-info/15 text-info mr-2">1</div>
                 <h3 className="text-lg font-medium flex items-center">
                   <Link className="h-5 w-5 mr-2" />
-                  SCIM Tenant URL
+                  <LocalizedText text={"SCIM Tenant URL"} />
                 </h3>
               </div>
               <p className="text-muted-foreground mb-3">
-                Use this URL in your identity provider SCIM integration settings.
+                <LocalizedText text={"Use this URL in your identity provider SCIM integration settings."} />
               </p>
               <div className="flex items-center">
                 <Input value={scimBaseUrl} disabled={true} readOnly className="grow" />
-                <CopyToClipboard text={scimBaseUrl} onCopy={() => toast.success("URL copied to clipboard")}>
+                <CopyToClipboard
+                  text={scimBaseUrl}
+                  onCopy={() => toast.success(translateMessage("URL copied to clipboard"))}
+                >
                   <Button type="button" className="ml-2 flex items-center">
                     <Copy />
-                    Copy
+                    <LocalizedText text={"Copy"} />
                   </Button>
                 </CopyToClipboard>
               </div>
@@ -119,16 +130,21 @@ const SCIMConfig: React.FC<SCIMConfigProps> = ({ accessToken, userID, proxySetti
                 <div className="flex items-center justify-center w-6 h-6 rounded-full bg-info/15 text-info mr-2">2</div>
                 <h3 className="text-lg font-medium flex items-center">
                   <KeyRound className="h-5 w-5 mr-2" />
-                  Authentication Token
+                  <LocalizedText text={"Authentication Token"} />
                 </h3>
               </div>
 
               <Alert variant="info" className="mb-4">
                 <Info />
-                <AlertTitle>Using SCIM</AlertTitle>
+                <AlertTitle>
+                  <LocalizedText text={"Using SCIM"} />
+                </AlertTitle>
                 <AlertDescription>
-                  You need a SCIM token to authenticate with the SCIM API. Create one below and use it in your SCIM
-                  provider configuration.
+                  <LocalizedText
+                    text={
+                      "You need a SCIM token to authenticate with the SCIM API. Create one below and use it in your SCIM provider configuration."
+                    }
+                  />
                 </AlertDescription>
               </Alert>
 
@@ -136,8 +152,10 @@ const SCIMConfig: React.FC<SCIMConfigProps> = ({ accessToken, userID, proxySetti
                 <div className="bg-muted p-4 rounded-lg">
                   <form onSubmit={form.handleSubmit(handleCreateSCIMToken)}>
                     <FieldGroup>
-                      <FormField control={form.control} name="key_alias" label="Token Name">
-                        {({ ref, ...field }) => <Input {...field} ref={ref} placeholder="SCIM Access Token" />}
+                      <FormField control={form.control} name="key_alias" label={translateMessage("Token Name")}>
+                        {({ ref, ...field }) => (
+                          <Input {...field} ref={ref} placeholder={translateMessage("SCIM Access Token")} />
+                        )}
                       </FormField>
                       <div>
                         <Button
@@ -147,7 +165,7 @@ const SCIMConfig: React.FC<SCIMConfigProps> = ({ accessToken, userID, proxySetti
                           className="flex items-center"
                         >
                           {isCreatingToken ? <UiLoadingSpinner className="size-4" /> : <KeyRound />}
-                          Create SCIM Token
+                          <LocalizedText text={"Create SCIM Token"} />
                         </Button>
                       </div>
                     </FieldGroup>
@@ -157,17 +175,22 @@ const SCIMConfig: React.FC<SCIMConfigProps> = ({ accessToken, userID, proxySetti
                 <Card className="block p-6 border border-warning/30 bg-warning/10">
                   <div className="flex items-center mb-2 text-warning">
                     <CircleAlert className="h-5 w-5 mr-2" />
-                    <h4 className="text-lg font-medium text-warning">Your SCIM Token</h4>
+                    <h4 className="text-lg font-medium text-warning">
+                      <LocalizedText text={"Your SCIM Token"} />
+                    </h4>
                   </div>
                   <p className="text-warning mb-4 font-medium">
-                    Make sure to copy this token now. You will not be able to see it again.
+                    <LocalizedText text={"Make sure to copy this token now. You will not be able to see it again."} />
                   </p>
                   <div className="flex items-center">
                     <Input value={tokenData.key} className="grow mr-2" type="password" disabled={true} readOnly />
-                    <CopyToClipboard text={tokenData.key} onCopy={() => toast.success("Token copied to clipboard")}>
+                    <CopyToClipboard
+                      text={tokenData.key}
+                      onCopy={() => toast.success(translateMessage("Token copied to clipboard"))}
+                    >
                       <Button type="button" className="flex items-center">
                         <Copy />
-                        Copy
+                        <LocalizedText text={"Copy"} />
                       </Button>
                     </CopyToClipboard>
                   </div>
@@ -178,7 +201,7 @@ const SCIMConfig: React.FC<SCIMConfigProps> = ({ accessToken, userID, proxySetti
                     onClick={() => setTokenData(null)}
                   >
                     <CirclePlus />
-                    Create Another Token
+                    <LocalizedText text={"Create Another Token"} />
                   </Button>
                 </Card>
               )}

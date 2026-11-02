@@ -1,3 +1,5 @@
+"use client";
+import { localizedProperty, useUiLocale } from "@/lib/i18n";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
 import { cx } from "@/lib/cva.config";
 import { DEBOUNCE_WAIT_MS } from "@/utils/debounceConstants";
@@ -14,7 +16,9 @@ interface FilterInputProps {
   style?: React.CSSProperties;
 }
 
-export const FilterInput: React.FC<FilterInputProps> = ({ placeholder, value, onChange, icon: Icon, className }) => {
+export const FilterInput: React.FC<FilterInputProps> = (cocaCopyProps0) => {
+  const { placeholder, value, onChange, icon: Icon, className } = cocaCopyProps0;
+  useUiLocale();
   const [localValue, setLocalValue] = useState(value);
 
   useEffect(() => {
@@ -36,7 +40,11 @@ export const FilterInput: React.FC<FilterInputProps> = ({ placeholder, value, on
           <Icon className="size-4 text-muted-foreground" />
         </InputGroupAddon>
       )}
-      <InputGroupInput placeholder={placeholder} value={localValue} onChange={handleChange} />
+      <InputGroupInput
+        placeholder={localizedProperty(cocaCopyProps0, "placeholder", placeholder)}
+        value={localValue}
+        onChange={handleChange}
+      />
     </InputGroup>
   );
 };

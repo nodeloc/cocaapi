@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, markUiCopy, useUiLocale } from "@/lib/i18n";
 import React from "react";
 import { usePathname } from "next/navigation";
 import {
@@ -34,6 +36,7 @@ interface ViewSwitcherItem {
 }
 
 export default function ViewSwitcher() {
+  useUiLocale();
   const { mode, setMode, plugins } = usePluginMode();
   const { data: uiSettings } = useUISettings();
   const pathname = usePathname();
@@ -49,7 +52,7 @@ export default function ViewSwitcher() {
   const activeLabel = activeLabelFor(isChatRoute, isMoyaiRoute, plugins.find((p) => p.name === mode)?.display_name);
 
   const modeEntries = [
-    { key: GATEWAY, label: "AI Gateway" },
+    markUiCopy({ key: GATEWAY, label: "AI Gateway" }, { label: "AI Gateway" }),
     ...plugins.map((p) => ({ key: p.name, label: p.display_name })),
   ];
 
@@ -65,7 +68,9 @@ export default function ViewSwitcher() {
         key: CHAT,
         label: (
           <div className="flex items-center justify-between gap-6 py-0.5">
-            <span className="font-medium">Chat</span>
+            <span className="font-medium">
+              <LocalizedText text={"Chat"} />
+            </span>
             {isChatRoute && <Check className="size-4 text-info" />}
           </div>
         ),
@@ -76,9 +81,11 @@ export default function ViewSwitcher() {
         disabled: true,
         label: (
           <div className="flex max-w-[220px] flex-col py-0.5">
-            <span className="font-medium">Chat</span>
+            <span className="font-medium">
+              <LocalizedText text={"Chat"} />
+            </span>
             <span className="whitespace-normal text-xs leading-snug text-muted-foreground">
-              Admins can enable in Settings
+              <LocalizedText text={"Admins can enable in Settings"} />
             </span>
           </div>
         ),
@@ -89,7 +96,7 @@ export default function ViewSwitcher() {
       key: e.key,
       label: (
         <div className="flex items-center justify-between gap-6 py-0.5">
-          <span className="font-medium">{e.label}</span>
+          <span className="font-medium">{localizedProperty(e, "label", e.label)}</span>
           {!isStandaloneRoute && e.key === mode && <Check className="size-4 text-info" />}
         </div>
       ),
@@ -102,8 +109,12 @@ export default function ViewSwitcher() {
           <span className="flex items-center gap-2">
             <img src={moyaiHead.src} alt="" className="h-4 w-auto" />
             <span className="flex flex-col">
-              <span className="font-medium">Moyai</span>
-              <span className="text-xs leading-snug text-muted-foreground">Cloud Coding Agent</span>
+              <span className="font-medium">
+                <LocalizedText text={"Moyai"} />
+              </span>
+              <span className="text-xs leading-snug text-muted-foreground">
+                <LocalizedText text={"Cloud Coding Agent"} />
+              </span>
             </span>
           </span>
           {isMoyaiRoute && <Check className="size-4 text-info" />}
@@ -133,7 +144,7 @@ export default function ViewSwitcher() {
       <DropdownMenuContent className="w-auto">
         {items.map((item) => (
           <DropdownMenuItem key={item.key} disabled={item.disabled} onClick={item.onClick}>
-            {item.label}
+            {localizedProperty(item, "label", item.label)}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>

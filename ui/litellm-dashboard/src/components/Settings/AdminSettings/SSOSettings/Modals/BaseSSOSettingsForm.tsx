@@ -1,4 +1,5 @@
 "use client";
+import { localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import React from "react";
 import { FormProvider, useFormContext, useWatch, type UseFormReturn } from "react-hook-form";
@@ -67,8 +68,8 @@ export const ssoProviderConfigs: Record<string, SSOProviderConfig> = {
       google_client_secret: "GOOGLE_CLIENT_SECRET",
     },
     fields: [
-      { label: "Google Client ID", name: "google_client_id" },
-      { label: "Google Client Secret", name: "google_client_secret" },
+      markUiCopy({ label: "Google Client ID", name: "google_client_id" }, { label: "Google Client ID" }),
+      markUiCopy({ label: "Google Client Secret", name: "google_client_secret" }, { label: "Google Client Secret" }),
     ],
   },
   microsoft: {
@@ -78,9 +79,12 @@ export const ssoProviderConfigs: Record<string, SSOProviderConfig> = {
       microsoft_tenant: "MICROSOFT_TENANT",
     },
     fields: [
-      { label: "Microsoft Client ID", name: "microsoft_client_id" },
-      { label: "Microsoft Client Secret", name: "microsoft_client_secret" },
-      { label: "Microsoft Tenant", name: "microsoft_tenant" },
+      markUiCopy({ label: "Microsoft Client ID", name: "microsoft_client_id" }, { label: "Microsoft Client ID" }),
+      markUiCopy(
+        { label: "Microsoft Client Secret", name: "microsoft_client_secret" },
+        { label: "Microsoft Client Secret" },
+      ),
+      markUiCopy({ label: "Microsoft Tenant", name: "microsoft_tenant" }, { label: "Microsoft Tenant" }),
     ],
   },
   okta: {
@@ -93,20 +97,32 @@ export const ssoProviderConfigs: Record<string, SSOProviderConfig> = {
       generic_scope: "GENERIC_SCOPE",
     },
     fields: [
-      { label: "Generic Client ID", name: "generic_client_id" },
-      { label: "Generic Client Secret", name: "generic_client_secret" },
-      {
-        label: "Authorization Endpoint",
-        name: "generic_authorization_endpoint",
-        placeholder: "https://your-domain/authorize",
-      },
-      { label: "Token Endpoint", name: "generic_token_endpoint", placeholder: "https://your-domain/token" },
-      {
-        label: "Userinfo Endpoint",
-        name: "generic_userinfo_endpoint",
-        placeholder: "https://your-domain/userinfo",
-      },
-      { label: "Scopes", name: "generic_scope", placeholder: "openid email profile", required: false },
+      markUiCopy({ label: "Generic Client ID", name: "generic_client_id" }, { label: "Generic Client ID" }),
+      markUiCopy({ label: "Generic Client Secret", name: "generic_client_secret" }, { label: "Generic Client Secret" }),
+      markUiCopy(
+        {
+          label: "Authorization Endpoint",
+          name: "generic_authorization_endpoint",
+          placeholder: "https://your-domain/authorize",
+        },
+        { label: "Authorization Endpoint" },
+      ),
+      markUiCopy(
+        { label: "Token Endpoint", name: "generic_token_endpoint", placeholder: "https://your-domain/token" },
+        { label: "Token Endpoint" },
+      ),
+      markUiCopy(
+        {
+          label: "Userinfo Endpoint",
+          name: "generic_userinfo_endpoint",
+          placeholder: "https://your-domain/userinfo",
+        },
+        { label: "Userinfo Endpoint" },
+      ),
+      markUiCopy(
+        { label: "Scopes", name: "generic_scope", placeholder: "openid email profile", required: false },
+        { label: "Scopes", placeholder: "openid email profile" },
+      ),
     ],
   },
   generic: {
@@ -119,12 +135,18 @@ export const ssoProviderConfigs: Record<string, SSOProviderConfig> = {
       generic_scope: "GENERIC_SCOPE",
     },
     fields: [
-      { label: "Generic Client ID", name: "generic_client_id" },
-      { label: "Generic Client Secret", name: "generic_client_secret" },
-      { label: "Authorization Endpoint", name: "generic_authorization_endpoint" },
-      { label: "Token Endpoint", name: "generic_token_endpoint" },
-      { label: "Userinfo Endpoint", name: "generic_userinfo_endpoint" },
-      { label: "Scopes", name: "generic_scope", placeholder: "openid email profile", required: false },
+      markUiCopy({ label: "Generic Client ID", name: "generic_client_id" }, { label: "Generic Client ID" }),
+      markUiCopy({ label: "Generic Client Secret", name: "generic_client_secret" }, { label: "Generic Client Secret" }),
+      markUiCopy(
+        { label: "Authorization Endpoint", name: "generic_authorization_endpoint" },
+        { label: "Authorization Endpoint" },
+      ),
+      markUiCopy({ label: "Token Endpoint", name: "generic_token_endpoint" }, { label: "Token Endpoint" }),
+      markUiCopy({ label: "Userinfo Endpoint", name: "generic_userinfo_endpoint" }, { label: "Userinfo Endpoint" }),
+      markUiCopy(
+        { label: "Scopes", name: "generic_scope", placeholder: "openid email profile", required: false },
+        { label: "Scopes", placeholder: "openid email profile" },
+      ),
     ],
   },
   saml: {
@@ -135,31 +157,43 @@ export const ssoProviderConfigs: Record<string, SSOProviderConfig> = {
       saml_allow_unsolicited: "SAML_ALLOW_UNSOLICITED",
     },
     fields: [
-      {
-        label: "IdP Metadata URL",
-        name: "saml_idp_metadata_url",
-        required: false,
-        placeholder: "https://idp.example.com/metadata (use this or the metadata XML below)",
-      },
-      {
-        label: "IdP Metadata XML",
-        name: "saml_idp_metadata_xml",
-        required: false,
-        type: "textarea",
-        placeholder: "Paste the IdP metadata XML here if you do not have a metadata URL",
-      },
-      {
-        label: "SP Entity ID",
-        name: "saml_sp_entity_id",
-        required: false,
-        placeholder: "Defaults to <proxy base url>/sso/saml/metadata",
-      },
-      {
-        label: "Allow IdP-initiated (unsolicited) responses",
-        name: "saml_allow_unsolicited",
-        required: false,
-        type: "checkbox",
-      },
+      markUiCopy(
+        {
+          label: "IdP Metadata URL",
+          name: "saml_idp_metadata_url",
+          required: false,
+          placeholder: "https://idp.example.com/metadata (use this or the metadata XML below)",
+        },
+        { label: "IdP Metadata URL" },
+      ),
+      markUiCopy(
+        {
+          label: "IdP Metadata XML",
+          name: "saml_idp_metadata_xml",
+          required: false,
+          type: "textarea" as const,
+          placeholder: "Paste the IdP metadata XML here if you do not have a metadata URL",
+        },
+        { label: "IdP Metadata XML", placeholder: "Paste the IdP metadata XML here if you do not have a metadata URL" },
+      ),
+      markUiCopy(
+        {
+          label: "SP Entity ID",
+          name: "saml_sp_entity_id",
+          required: false,
+          placeholder: "Defaults to <proxy base url>/sso/saml/metadata",
+        },
+        { label: "SP Entity ID", placeholder: "Defaults to <proxy base url>/sso/saml/metadata" },
+      ),
+      markUiCopy(
+        {
+          label: "Allow IdP-initiated (unsolicited) responses",
+          name: "saml_allow_unsolicited",
+          required: false,
+          type: "checkbox" as const,
+        },
+        { label: "Allow IdP-initiated (unsolicited) responses" },
+      ),
     ],
   },
 };
@@ -213,13 +247,22 @@ export const submitMountedSSOValues =
   () =>
     void form.handleSubmit((values) => onFormSubmit(pickMountedSSOValues(values, variant)))();
 
-const REQUIRED_MESSAGES: Record<string, string> = {
-  sso_provider: "Please select an SSO provider",
-  user_email: "Please enter the email of the proxy admin",
-  proxy_base_url: "Please enter the proxy base url",
-  group_claim: "Please enter the group claim",
-  team_ids_jwt_field: "Please enter the team IDs JWT field",
-};
+const REQUIRED_MESSAGES: Record<string, string> = markUiCopy(
+  {
+    sso_provider: "Please select an SSO provider",
+    user_email: "Please enter the email of the proxy admin",
+    proxy_base_url: "Please enter the proxy base url",
+    group_claim: "Please enter the group claim",
+    team_ids_jwt_field: "Please enter the team IDs JWT field",
+  },
+  {
+    sso_provider: "Please select an SSO provider",
+    user_email: "Please enter the email of the proxy admin",
+    proxy_base_url: "Please enter the proxy base url",
+    group_claim: "Please enter the group claim",
+    team_ids_jwt_field: "Please enter the team IDs JWT field",
+  },
+);
 
 const isBlank = (value: unknown): boolean => value === undefined || value === null || value === "";
 
@@ -229,7 +272,12 @@ export const buildSSOSettingsSchema = (variant: SSOFormVariant) =>
 
     const requireField = (name: string) => {
       if (mounted.has(name) && isBlank(values[name as keyof SSOSettingsFormValues])) {
-        ctx.addIssue({ code: "custom", path: [name], message: REQUIRED_MESSAGES[name] });
+        ctx.addIssue(
+          markUiCopy(
+            { code: "custom" as const, path: [name], message: REQUIRED_MESSAGES[name] },
+            { message: { owner: REQUIRED_MESSAGES, field: name } },
+          ),
+        );
       }
     };
 
@@ -255,19 +303,29 @@ export const buildSSOSettingsSchema = (variant: SSOFormVariant) =>
       return;
     }
     if (!/^https?:\/\/.+/.test(proxyBaseUrl as string)) {
-      ctx.addIssue({
-        code: "custom",
-        path: ["proxy_base_url"],
-        message: "URL must start with http:// or https://",
-      });
+      ctx.addIssue(
+        markUiCopy(
+          {
+            code: "custom" as const,
+            path: ["proxy_base_url"],
+            message: "URL must start with http:// or https://",
+          },
+          { message: "URL must start with http:// or https://" },
+        ),
+      );
       return;
     }
     if ((proxyBaseUrl as string).endsWith("/")) {
-      ctx.addIssue({
-        code: "custom",
-        path: ["proxy_base_url"],
-        message: "URL must not end with a trailing slash",
-      });
+      ctx.addIssue(
+        markUiCopy(
+          {
+            code: "custom" as const,
+            path: ["proxy_base_url"],
+            message: "URL must not end with a trailing slash",
+          },
+          { message: "URL must not end with a trailing slash" },
+        ),
+      );
     }
   });
 
@@ -291,19 +349,27 @@ export const emptySSOSettingsFormValues: SSOSettingsFormValues = {
 export const useSSOSettingsForm = (
   variant: SSOFormVariant,
   values?: SSOSettingsFormValues,
-): UseFormReturn<SSOSettingsFormValues> =>
-  useZodForm(buildSSOSettingsSchema(variant), {
+): UseFormReturn<SSOSettingsFormValues> => {
+  useUiLocale();
+  return useZodForm(buildSSOSettingsSchema(variant), {
     mode: "onChange",
     defaultValues: emptySSOSettingsFormValues,
     ...(values ? { values } : {}),
   });
+};
 
 const SSOProviderField = ({ field }: { field: SSOProviderConfig["fields"][number] }) => {
+  useUiLocale();
   const { control } = useFormContext<SSOSettingsFormValues>();
 
   if (field.type === "checkbox") {
     return (
-      <FormField control={control} name={field.name} label={field.label} orientation="horizontal">
+      <FormField
+        control={control}
+        name={field.name}
+        label={localizedProperty(field, "label", field.label)}
+        orientation="horizontal"
+      >
         {({ value, onChange, onBlur, id, ...rest }) => (
           <Checkbox
             id={id}
@@ -319,9 +385,13 @@ const SSOProviderField = ({ field }: { field: SSOProviderConfig["fields"][number
   }
 
   return (
-    <FormField control={control} name={field.name} label={field.label}>
+    <FormField control={control} name={field.name} label={localizedProperty(field, "label", field.label)}>
       {({ ref, value, ...rest }) => {
-        const shared = { placeholder: field.placeholder, value: (value as string) ?? "", ...rest };
+        const shared = markUiCopy(
+          { placeholder: field.placeholder, value: (value as string) ?? "", ...rest },
+          { placeholder: { owner: field, field: "placeholder" } },
+          [rest],
+        );
         if (field.type === "textarea") return <Textarea ref={ref} rows={4} {...shared} />;
         if (field.type === "password" || field.name.includes("client")) return <PasswordInput ref={ref} {...shared} />;
         return <Input ref={ref} {...shared} />;
@@ -338,10 +408,11 @@ export const renderProviderFields = (provider: string) => {
 };
 
 export const SSOProviderSelectField = () => {
+  useUiLocale();
   const { control } = useFormContext<SSOSettingsFormValues>();
 
   return (
-    <FormField control={control} name="sso_provider" label="SSO Provider">
+    <FormField control={control} name="sso_provider" label={translateMessage("SSO Provider")}>
       {({ value, onChange, onBlur, id, ...rest }) => (
         <Select value={(value as string) ?? ""} onValueChange={onChange}>
           <SelectTrigger
@@ -376,20 +447,22 @@ export const SSOProviderSelectField = () => {
 };
 
 export const ProxyAdminEmailField = () => {
+  useUiLocale();
   const { control } = useFormContext<SSOSettingsFormValues>();
 
   return (
-    <FormField control={control} name="user_email" label="Proxy Admin Email">
+    <FormField control={control} name="user_email" label={translateMessage("Proxy Admin Email")}>
       {({ ref, value, ...rest }) => <Input ref={ref} value={(value as string) ?? ""} {...rest} />}
     </FormField>
   );
 };
 
 export const ProxyBaseUrlField = () => {
+  useUiLocale();
   const { control } = useFormContext<SSOSettingsFormValues>();
 
   return (
-    <FormField control={control} name="proxy_base_url" label="Proxy Base URL">
+    <FormField control={control} name="proxy_base_url" label={translateMessage("Proxy Base URL")}>
       {({ ref, value, onChange, ...rest }) => (
         <Input
           ref={ref}
@@ -403,17 +476,21 @@ export const ProxyBaseUrlField = () => {
   );
 };
 
-export const MappingToggleField = ({
-  name,
-  label,
-}: {
+export const MappingToggleField = (cocaCopyProps0: {
   name: "use_role_mappings" | "use_team_mappings";
   label: string;
 }) => {
+  const { name, label } = cocaCopyProps0;
+  useUiLocale();
   const { control } = useFormContext<SSOSettingsFormValues>();
 
   return (
-    <FormField control={control} name={name} label={label} orientation="horizontal">
+    <FormField
+      control={control}
+      name={name}
+      label={localizedProperty(cocaCopyProps0, "label", label)}
+      orientation="horizontal"
+    >
       {({ value, onChange, onBlur, id, ...rest }) => (
         <Checkbox
           id={id}
@@ -429,31 +506,33 @@ export const MappingToggleField = ({
 };
 
 export const GroupClaimField = () => {
+  useUiLocale();
   const { control } = useFormContext<SSOSettingsFormValues>();
 
   return (
-    <FormField control={control} name="group_claim" label="Group Claim">
+    <FormField control={control} name="group_claim" label={translateMessage("Group Claim")}>
       {({ ref, value, ...rest }) => <Input ref={ref} value={(value as string) ?? ""} {...rest} />}
     </FormField>
   );
 };
 
 const DEFAULT_ROLE_OPTIONS: ReadonlyArray<{ value: string; label: string }> = [
-  { value: "internal_user_viewer", label: "Internal Viewer" },
-  { value: "internal_user", label: "Internal User" },
-  { value: "proxy_admin_viewer", label: "Admin Viewer" },
-  { value: "proxy_admin", label: "Proxy Admin" },
+  markUiCopy({ value: "internal_user_viewer", label: "Internal Viewer" }, { label: "Internal Viewer" }),
+  markUiCopy({ value: "internal_user", label: "Internal User" }, { label: "Internal User" }),
+  markUiCopy({ value: "proxy_admin_viewer", label: "Admin Viewer" }, { label: "Admin Viewer" }),
+  markUiCopy({ value: "proxy_admin", label: "Proxy Admin" }, { label: "Proxy Admin" }),
 ];
 
 const providerOptionLabel = (value: string) =>
   ssoProviderDisplayNames[value] || value.charAt(0).toUpperCase() + value.slice(1) + " SSO";
 
 export const RoleMappingTeamFields = () => {
+  useUiLocale();
   const { control } = useFormContext<SSOSettingsFormValues>();
 
   return (
     <>
-      <FormField control={control} name="default_role" label="Default Role">
+      <FormField control={control} name="default_role" label={translateMessage("Default Role")}>
         {({ value, onChange, onBlur, id, ...rest }) => (
           <Select value={(value as string) ?? ""} onValueChange={onChange}>
             <SelectTrigger
@@ -470,7 +549,7 @@ export const RoleMappingTeamFields = () => {
             <SelectContent>
               {DEFAULT_ROLE_OPTIONS.map((option) => (
                 <SelectItem key={option.value} value={option.value}>
-                  {option.label}
+                  {localizedProperty(option, "label", option.label)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -478,19 +557,19 @@ export const RoleMappingTeamFields = () => {
         )}
       </FormField>
 
-      <FormField control={control} name="proxy_admin_teams" label="Proxy Admin Teams">
+      <FormField control={control} name="proxy_admin_teams" label={translateMessage("Proxy Admin Teams")}>
         {({ ref, value, ...rest }) => <Input ref={ref} value={(value as string) ?? ""} {...rest} />}
       </FormField>
 
-      <FormField control={control} name="admin_viewer_teams" label="Admin Viewer Teams">
+      <FormField control={control} name="admin_viewer_teams" label={translateMessage("Admin Viewer Teams")}>
         {({ ref, value, ...rest }) => <Input ref={ref} value={(value as string) ?? ""} {...rest} />}
       </FormField>
 
-      <FormField control={control} name="internal_user_teams" label="Internal User Teams">
+      <FormField control={control} name="internal_user_teams" label={translateMessage("Internal User Teams")}>
         {({ ref, value, ...rest }) => <Input ref={ref} value={(value as string) ?? ""} {...rest} />}
       </FormField>
 
-      <FormField control={control} name="internal_viewer_teams" label="Internal Viewer Teams">
+      <FormField control={control} name="internal_viewer_teams" label={translateMessage("Internal Viewer Teams")}>
         {({ ref, value, ...rest }) => <Input ref={ref} value={(value as string) ?? ""} {...rest} />}
       </FormField>
     </>
@@ -498,16 +577,18 @@ export const RoleMappingTeamFields = () => {
 };
 
 export const TeamIdsJwtFieldField = () => {
+  useUiLocale();
   const { control } = useFormContext<SSOSettingsFormValues>();
 
   return (
-    <FormField control={control} name="team_ids_jwt_field" label="Team IDs JWT Field">
+    <FormField control={control} name="team_ids_jwt_field" label={translateMessage("Team IDs JWT Field")}>
       {({ ref, value, ...rest }) => <Input ref={ref} value={(value as string) ?? ""} {...rest} />}
     </FormField>
   );
 };
 
 const BaseSSOSettingsForm: React.FC<BaseSSOSettingsFormProps> = ({ form, onFormSubmit }) => {
+  useUiLocale();
   const provider = useWatch({ control: form.control, name: "sso_provider" });
   const useRoleMappings = useWatch({ control: form.control, name: "use_role_mappings" });
   const useTeamMappings = useWatch({ control: form.control, name: "use_team_mappings" });
@@ -527,14 +608,18 @@ const BaseSSOSettingsForm: React.FC<BaseSSOSettingsFormProps> = ({ form, onFormS
             {provider ? renderProviderFields(provider) : null}
             <ProxyAdminEmailField />
             <ProxyBaseUrlField />
-            {showMappingToggles && <MappingToggleField name="use_role_mappings" label="Use Role Mappings" />}
+            {showMappingToggles && (
+              <MappingToggleField name="use_role_mappings" label={translateMessage("Use Role Mappings")} />
+            )}
             {useRoleMappings && showMappingToggles && (
               <>
                 <GroupClaimField />
                 <RoleMappingTeamFields />
               </>
             )}
-            {showMappingToggles && <MappingToggleField name="use_team_mappings" label="Use Team Mappings" />}
+            {showMappingToggles && (
+              <MappingToggleField name="use_team_mappings" label={translateMessage("Use Team Mappings")} />
+            )}
             {useTeamMappings && showMappingToggles && <TeamIdsJwtFieldField />}
           </FieldGroup>
         </form>

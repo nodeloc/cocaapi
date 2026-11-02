@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { Plus } from "lucide-react";
 import { useState } from "react";
@@ -23,6 +24,7 @@ import CredentialsTable from "./CredentialsTable";
 import { buildCredential, type CredentialSubmission } from "./credential_form_helpers";
 
 export default function CredentialsPanel() {
+  useUiLocale();
   const { accessToken, userRole } = useAuthorized();
   // Admin Viewer follows the read-parity rule: see credentials, do not modify.
   const canModifyCredentials = isProxyAdminRole(userRole ?? "");
@@ -46,7 +48,7 @@ export default function CredentialsPanel() {
         ...newCredential,
         ...(valuesToDelete.length > 0 ? { credential_values_to_delete: valuesToDelete } : {}),
       });
-      toast.success("Credential updated successfully");
+      toast.success(translateMessage("Credential updated successfully"));
       setIsUpdateModalOpen(false);
       await refetchCredentials();
     } catch (error) {
@@ -61,7 +63,7 @@ export default function CredentialsPanel() {
     try {
       const newCredential = buildCredential(submission, submission.credential_values);
       await credentialCreateCall(accessToken, newCredential);
-      toast.success("Credential added successfully");
+      toast.success(translateMessage("Credential added successfully"));
       setIsAddModalOpen(false);
       await refetchCredentials();
     } catch (error) {
@@ -76,10 +78,10 @@ export default function CredentialsPanel() {
     setIsCredentialDeleting(true);
     try {
       await credentialDeleteCall(accessToken, credentialToDelete.credential_name);
-      toast.success("Credential deleted successfully");
+      toast.success(translateMessage("Credential deleted successfully"));
       await refetchCredentials();
     } catch (error) {
-      toast.error("Failed to delete credential");
+      toast.error(translateMessage("Failed to delete credential"));
     } finally {
       setCredentialToDelete(null);
       setIsDeleteModalOpen(false);
@@ -106,12 +108,14 @@ export default function CredentialsPanel() {
     <div className="mx-auto flex w-full flex-auto flex-col gap-4 overflow-y-auto p-2">
       <div className="flex items-center justify-between gap-4">
         <p className="text-sm text-muted-foreground">
-          Configured credentials for different AI providers. Add and manage your API credentials.
+          <LocalizedText
+            text={"Configured credentials for different AI providers. Add and manage your API credentials."}
+          />
         </p>
         {canModifyCredentials && (
           <Button onClick={() => setIsAddModalOpen(true)}>
             <Plus className="size-4" />
-            Add Credential
+            <LocalizedText text={"Add Credential"} />
           </Button>
         )}
       </div>
@@ -146,12 +150,20 @@ export default function CredentialsPanel() {
         isOpen={isDeleteModalOpen}
         onCancel={closeDeleteModal}
         onOk={handleDeleteCredential}
-        title="Delete Credential?"
-        message="Are you sure you want to delete this credential? This action cannot be undone and may break existing integrations."
+        title={translateMessage("Delete Credential?")}
+        message={translateMessage(
+          "Are you sure you want to delete this credential? This action cannot be undone and may break existing integrations.",
+        )}
         resourceInformationTitle="Credential Information"
         resourceInformation={[
-          { label: "Credential Name", value: credentialToDelete?.credential_name },
-          { label: "Provider", value: credentialToDelete?.credential_info?.custom_llm_provider || "-" },
+          markUiCopy(
+            { label: "Credential Name", value: credentialToDelete?.credential_name },
+            { label: "Credential Name" },
+          ),
+          markUiCopy(
+            { label: "Provider", value: credentialToDelete?.credential_info?.custom_llm_provider || "-" },
+            { label: "Provider" },
+          ),
         ]}
         confirmLoading={isCredentialDeleting}
         requiredConfirmation={credentialToDelete?.credential_name}

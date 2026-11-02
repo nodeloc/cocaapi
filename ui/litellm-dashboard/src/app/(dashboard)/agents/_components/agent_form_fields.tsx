@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 import React from "react";
 import { useFieldArray, useFormContext } from "react-hook-form";
 import { Plus, Trash2 } from "lucide-react";
@@ -47,6 +49,7 @@ interface AgentFormFieldsProps {
 }
 
 const SkillsFieldArray = () => {
+  useUiLocale();
   const { control } = useFormContext<AgentFormValues>();
   const { fields, append, remove } = useFieldArray({ control, name: "skills" });
 
@@ -57,14 +60,14 @@ const SkillsFieldArray = () => {
           <FieldGroup>
             <AgentFormField
               name={`skills.${index}.id`}
-              label={SKILL_FIELD_CONFIG.id.label}
+              label={localizedProperty(SKILL_FIELD_CONFIG.id, "label")}
               rules={SKILL_FIELD_CONFIG.id.required ? { required: "Required" } : undefined}
             >
               {({ value, onChange, ref, ...control }) => (
                 <Input
                   {...control}
                   ref={ref}
-                  placeholder={SKILL_FIELD_CONFIG.id.placeholder}
+                  placeholder={localizedProperty(SKILL_FIELD_CONFIG.id, "placeholder")}
                   value={typeof value === "string" ? value : ""}
                   onChange={onChange}
                 />
@@ -73,14 +76,14 @@ const SkillsFieldArray = () => {
 
             <AgentFormField
               name={`skills.${index}.name`}
-              label={SKILL_FIELD_CONFIG.name.label}
+              label={localizedProperty(SKILL_FIELD_CONFIG.name, "label")}
               rules={SKILL_FIELD_CONFIG.name.required ? { required: "Required" } : undefined}
             >
               {({ value, onChange, ref, ...control }) => (
                 <Input
                   {...control}
                   ref={ref}
-                  placeholder={SKILL_FIELD_CONFIG.name.placeholder}
+                  placeholder={localizedProperty(SKILL_FIELD_CONFIG.name, "placeholder")}
                   value={typeof value === "string" ? value : ""}
                   onChange={onChange}
                 />
@@ -89,7 +92,7 @@ const SkillsFieldArray = () => {
 
             <AgentFormField
               name={`skills.${index}.description`}
-              label={SKILL_FIELD_CONFIG.description.label}
+              label={localizedProperty(SKILL_FIELD_CONFIG.description, "label")}
               rules={SKILL_FIELD_CONFIG.description.required ? { required: "Required" } : undefined}
             >
               {({ value, onChange, ref, ...control }) => (
@@ -97,7 +100,7 @@ const SkillsFieldArray = () => {
                   {...control}
                   ref={ref}
                   rows={SKILL_FIELD_CONFIG.description.rows}
-                  placeholder={SKILL_FIELD_CONFIG.description.placeholder}
+                  placeholder={localizedProperty(SKILL_FIELD_CONFIG.description, "placeholder")}
                   value={typeof value === "string" ? value : ""}
                   onChange={onChange}
                 />
@@ -106,7 +109,7 @@ const SkillsFieldArray = () => {
 
             <AgentFormField
               name={`skills.${index}.tags`}
-              label={SKILL_FIELD_CONFIG.tags.label}
+              label={localizedProperty(SKILL_FIELD_CONFIG.tags, "label")}
               rules={SKILL_FIELD_CONFIG.tags.required ? { required: "Required" } : undefined}
             >
               {({ id, value, onChange }) => (
@@ -114,18 +117,21 @@ const SkillsFieldArray = () => {
                   id={id}
                   value={Array.isArray(value) ? (value as string[]) : []}
                   onValueChange={onChange}
-                  placeholder={SKILL_FIELD_CONFIG.tags.placeholder}
+                  placeholder={localizedProperty(SKILL_FIELD_CONFIG.tags, "placeholder")}
                 />
               )}
             </AgentFormField>
 
-            <AgentFormField name={`skills.${index}.examples`} label={SKILL_FIELD_CONFIG.examples.label}>
+            <AgentFormField
+              name={`skills.${index}.examples`}
+              label={localizedProperty(SKILL_FIELD_CONFIG.examples, "label")}
+            >
               {({ id, value, onChange }) => (
                 <AgentTagsInput
                   id={id}
                   value={Array.isArray(value) ? (value as string[]) : []}
                   onValueChange={onChange}
-                  placeholder={SKILL_FIELD_CONFIG.examples.placeholder}
+                  placeholder={localizedProperty(SKILL_FIELD_CONFIG.examples, "placeholder")}
                 />
               )}
             </AgentFormField>
@@ -138,19 +144,20 @@ const SkillsFieldArray = () => {
             onClick={() => remove(index)}
           >
             <Trash2 />
-            Remove Skill
+            <LocalizedText text={"Remove Skill"} />
           </Button>
         </div>
       ))}
       <Button type="button" variant="outline" className="w-full border-dashed" onClick={() => append({})}>
         <Plus />
-        Add Skill
+        <LocalizedText text={"Add Skill"} />
       </Button>
     </>
   );
 };
 
 const StaticHeadersFieldArray = () => {
+  useUiLocale();
   const { control } = useFormContext<AgentFormValues>();
   const { fields, append, remove } = useFieldArray({ control, name: "static_headers" });
 
@@ -164,7 +171,7 @@ const StaticHeadersFieldArray = () => {
                 {...control}
                 ref={ref}
                 className="w-55"
-                placeholder="Header name (e.g. Authorization)"
+                placeholder={translateMessage("Header name (e.g. Authorization)")}
                 value={typeof value === "string" ? value : ""}
                 onChange={onChange}
               />
@@ -176,7 +183,7 @@ const StaticHeadersFieldArray = () => {
                 {...control}
                 ref={ref}
                 className="w-65"
-                placeholder="Value (e.g. Bearer token123)"
+                placeholder={translateMessage("Value (e.g. Bearer token123)")}
                 value={typeof value === "string" ? value : ""}
                 onChange={onChange}
               />
@@ -186,7 +193,7 @@ const StaticHeadersFieldArray = () => {
             type="button"
             variant="ghost"
             size="icon"
-            aria-label="Remove static header"
+            aria-label={translateMessage("Remove static header")}
             className="text-destructive hover:text-destructive/80"
             onClick={() => remove(index)}
           >
@@ -196,13 +203,14 @@ const StaticHeadersFieldArray = () => {
       ))}
       <Button type="button" variant="outline" className="w-full border-dashed" onClick={() => append({})}>
         <Plus />
-        Add Static Header
+        <LocalizedText text={"Add Static Header"} />
       </Button>
     </>
   );
 };
 
 const AgentFormFields: React.FC<AgentFormFieldsProps> = ({ panels, showAgentName = true, visiblePanels }) => {
+  useUiLocale();
   const shouldShow = (key: string) => !visiblePanels || visiblePanels.includes(key);
 
   return (
@@ -218,7 +226,7 @@ const AgentFormFields: React.FC<AgentFormFieldsProps> = ({ panels, showAgentName
               <Input
                 {...control}
                 ref={ref}
-                placeholder="e.g., customer-support-agent"
+                placeholder={translateMessage("e.g., customer-support-agent")}
                 value={typeof value === "string" ? value : ""}
                 onChange={onChange}
               />
@@ -231,14 +239,18 @@ const AgentFormFields: React.FC<AgentFormFieldsProps> = ({ panels, showAgentName
         {shouldShow(AGENT_FORM_CONFIG.basic.key) && (
           <AgentFormPanel
             panelKey={AGENT_FORM_CONFIG.basic.key}
-            title={`${AGENT_FORM_CONFIG.basic.title} (Required)`}
+            title={translateMessage("%{0} (Required)", [AGENT_FORM_CONFIG.basic.title])}
             panels={panels}
           >
             {AGENT_FORM_CONFIG.basic.fields.map((field) => (
               <AgentFormField
                 key={field.name}
                 name={field.name}
-                label={field.tooltip ? labelWithHint(field.label, field.tooltip) : field.label}
+                label={
+                  field.tooltip
+                    ? labelWithHint(field.label, field.tooltip)
+                    : localizedProperty(field, "label", field.label)
+                }
                 description={field.helpText}
                 rules={field.required ? { required: `Please enter ${field.label.toLowerCase()}` } : undefined}
               >
@@ -250,7 +262,7 @@ const AgentFormFields: React.FC<AgentFormFieldsProps> = ({ panels, showAgentName
                         {...control}
                         ref={ref}
                         rows={field.rows}
-                        placeholder={field.placeholder}
+                        placeholder={localizedProperty(field, "placeholder", field.placeholder)}
                         value={text}
                         onChange={onChange}
                       />
@@ -260,7 +272,7 @@ const AgentFormFields: React.FC<AgentFormFieldsProps> = ({ panels, showAgentName
                     return (
                       <Select value={text || null} onValueChange={onChange}>
                         <SelectTrigger {...control} className="w-full">
-                          <SelectValue placeholder={field.placeholder} />
+                          <SelectValue placeholder={localizedProperty(field, "placeholder", field.placeholder)} />
                         </SelectTrigger>
                         <SelectContent>
                           {(field.options ?? []).map((option) => (
@@ -273,7 +285,13 @@ const AgentFormFields: React.FC<AgentFormFieldsProps> = ({ panels, showAgentName
                     );
                   }
                   return (
-                    <Input {...control} ref={ref} placeholder={field.placeholder} value={text} onChange={onChange} />
+                    <Input
+                      {...control}
+                      ref={ref}
+                      placeholder={localizedProperty(field, "placeholder", field.placeholder)}
+                      value={text}
+                      onChange={onChange}
+                    />
                   );
                 }}
               </AgentFormField>
@@ -284,7 +302,7 @@ const AgentFormFields: React.FC<AgentFormFieldsProps> = ({ panels, showAgentName
         {shouldShow(AGENT_FORM_CONFIG.skills.key) && (
           <AgentFormPanel
             panelKey={AGENT_FORM_CONFIG.skills.key}
-            title={AGENT_FORM_CONFIG.skills.title}
+            title={localizedProperty(AGENT_FORM_CONFIG.skills, "title")}
             panels={panels}
           >
             <SkillsFieldArray />
@@ -294,11 +312,11 @@ const AgentFormFields: React.FC<AgentFormFieldsProps> = ({ panels, showAgentName
         {shouldShow(AGENT_FORM_CONFIG.capabilities.key) && (
           <AgentFormPanel
             panelKey={AGENT_FORM_CONFIG.capabilities.key}
-            title={AGENT_FORM_CONFIG.capabilities.title}
+            title={localizedProperty(AGENT_FORM_CONFIG.capabilities, "title")}
             panels={panels}
           >
             {AGENT_FORM_CONFIG.capabilities.fields.map((field) => (
-              <AgentFormField key={field.name} name={field.name} label={field.label}>
+              <AgentFormField key={field.name} name={field.name} label={localizedProperty(field, "label", field.label)}>
                 {({ value, onChange, ref, ...control }) => (
                   <Switch {...control} inputRef={ref} checked={value === true} onCheckedChange={onChange} />
                 )}
@@ -310,11 +328,11 @@ const AgentFormFields: React.FC<AgentFormFieldsProps> = ({ panels, showAgentName
         {shouldShow(AGENT_FORM_CONFIG.optional.key) && (
           <AgentFormPanel
             panelKey={AGENT_FORM_CONFIG.optional.key}
-            title={AGENT_FORM_CONFIG.optional.title}
+            title={localizedProperty(AGENT_FORM_CONFIG.optional, "title")}
             panels={panels}
           >
             {AGENT_FORM_CONFIG.optional.fields.map((field) => (
-              <AgentFormField key={field.name} name={field.name} label={field.label}>
+              <AgentFormField key={field.name} name={field.name} label={localizedProperty(field, "label", field.label)}>
                 {({ value, onChange, ref, ...control }) =>
                   field.type === "switch" ? (
                     <Switch {...control} inputRef={ref} checked={value === true} onCheckedChange={onChange} />
@@ -322,7 +340,7 @@ const AgentFormFields: React.FC<AgentFormFieldsProps> = ({ panels, showAgentName
                     <Input
                       {...control}
                       ref={ref}
-                      placeholder={field.placeholder}
+                      placeholder={localizedProperty(field, "placeholder", field.placeholder)}
                       value={typeof value === "string" ? value : ""}
                       onChange={onChange}
                     />
@@ -334,7 +352,11 @@ const AgentFormFields: React.FC<AgentFormFieldsProps> = ({ panels, showAgentName
         )}
 
         {shouldShow(AGENT_FORM_CONFIG.cost.key) && (
-          <AgentFormPanel panelKey={AGENT_FORM_CONFIG.cost.key} title={AGENT_FORM_CONFIG.cost.title} panels={panels}>
+          <AgentFormPanel
+            panelKey={AGENT_FORM_CONFIG.cost.key}
+            title={localizedProperty(AGENT_FORM_CONFIG.cost, "title")}
+            panels={panels}
+          >
             <CostConfigFields />
           </AgentFormPanel>
         )}
@@ -342,11 +364,11 @@ const AgentFormFields: React.FC<AgentFormFieldsProps> = ({ panels, showAgentName
         {shouldShow(AGENT_FORM_CONFIG.litellm.key) && (
           <AgentFormPanel
             panelKey={AGENT_FORM_CONFIG.litellm.key}
-            title={AGENT_FORM_CONFIG.litellm.title}
+            title={localizedProperty(AGENT_FORM_CONFIG.litellm, "title")}
             panels={panels}
           >
             {AGENT_FORM_CONFIG.litellm.fields.map((field) => (
-              <AgentFormField key={field.name} name={field.name} label={field.label}>
+              <AgentFormField key={field.name} name={field.name} label={localizedProperty(field, "label", field.label)}>
                 {({ value, onChange, ref, ...control }) =>
                   field.type === "switch" ? (
                     <Switch {...control} inputRef={ref} checked={value === true} onCheckedChange={onChange} />
@@ -354,7 +376,7 @@ const AgentFormFields: React.FC<AgentFormFieldsProps> = ({ panels, showAgentName
                     <Input
                       {...control}
                       ref={ref}
-                      placeholder={field.placeholder}
+                      placeholder={localizedProperty(field, "placeholder", field.placeholder)}
                       value={typeof value === "string" ? value : ""}
                       onChange={onChange}
                     />
@@ -366,7 +388,11 @@ const AgentFormFields: React.FC<AgentFormFieldsProps> = ({ panels, showAgentName
         )}
 
         {shouldShow(AUTH_HEADERS_PANEL_KEY) && (
-          <AgentFormPanel panelKey={AUTH_HEADERS_PANEL_KEY} title="Authentication Headers" panels={panels}>
+          <AgentFormPanel
+            panelKey={AUTH_HEADERS_PANEL_KEY}
+            title={translateMessage("Authentication Headers")}
+            panels={panels}
+          >
             <Field>
               <FieldTitle>
                 {labelWithHint(
@@ -391,7 +417,7 @@ const AgentFormFields: React.FC<AgentFormFieldsProps> = ({ panels, showAgentName
                   id={id}
                   value={Array.isArray(value) ? (value as string[]) : []}
                   onValueChange={onChange}
-                  placeholder="e.g. x-api-key, Authorization"
+                  placeholder={translateMessage("e.g. x-api-key, Authorization")}
                 />
               )}
             </AgentFormField>
@@ -399,7 +425,7 @@ const AgentFormFields: React.FC<AgentFormFieldsProps> = ({ panels, showAgentName
         )}
 
         {shouldShow(KILL_SWITCH_PANEL_KEY) && (
-          <AgentFormPanel panelKey={KILL_SWITCH_PANEL_KEY} title="Kill Switch" panels={panels}>
+          <AgentFormPanel panelKey={KILL_SWITCH_PANEL_KEY} title={translateMessage("Kill Switch")} panels={panels}>
             <KillSwitchFormFields />
           </AgentFormPanel>
         )}

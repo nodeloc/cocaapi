@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 import React, { useState } from "react";
 import { Eye, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -18,6 +20,7 @@ const ImpactPopover: React.FC<{ attachment: PolicyAttachment; accessToken: strin
   attachment,
   accessToken,
 }) => {
+  useUiLocale();
   const [impact, setImpact] = useState<ImpactResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [loaded, setLoaded] = useState(false);
@@ -55,38 +58,49 @@ const ImpactPopover: React.FC<{ attachment: PolicyAttachment; accessToken: strin
             render={
               <PopoverTrigger
                 render={
-                  <Button variant="ghost" size="icon-xs" aria-label="View blast radius">
+                  <Button variant="ghost" size="icon-xs" aria-label={translateMessage("View blast radius")}>
                     <Eye />
                   </Button>
                 }
               />
             }
           />
-          <TooltipContent>View blast radius</TooltipContent>
+          <TooltipContent>
+            <LocalizedText text={"View blast radius"} />
+          </TooltipContent>
         </Tooltip>
       </TooltipProvider>
 
       <PopoverContent className="w-72 gap-2">
-        <PopoverTitle>Blast Radius</PopoverTitle>
+        <PopoverTitle>
+          <LocalizedText text={"Blast Radius"} />
+        </PopoverTitle>
         {loading ? (
           <div className="flex items-center justify-center gap-2 py-2 text-xs text-muted-foreground">
             <Loader2 className="size-3.5 animate-spin" aria-hidden="true" />
-            Loading...
+            <LocalizedText text={"Loading..."} />
           </div>
         ) : impact ? (
           <div className="text-xs">
             {impact.affected_keys_count === -1 ? (
-              <p className="font-medium text-foreground">Global scope — affects all keys and teams</p>
+              <p className="font-medium text-foreground">
+                <LocalizedText text={"Global scope — affects all keys and teams"} />
+              </p>
             ) : (
               <>
                 <p className="mb-1">
-                  <strong>{impact.affected_keys_count}</strong> key{impact.affected_keys_count !== 1 ? "s" : ""},{" "}
-                  <strong>{impact.affected_teams_count}</strong> team{impact.affected_teams_count !== 1 ? "s" : ""}{" "}
-                  affected
+                  <strong>{impact.affected_keys_count}</strong>
+                  <LocalizedText text={" key"} />
+                  {impact.affected_keys_count !== 1 ? translateMessage("s") : ""},{" "}
+                  <strong>{impact.affected_teams_count}</strong>
+                  <LocalizedText text={" team"} />
+                  {impact.affected_teams_count !== 1 ? translateMessage("s") : ""} <LocalizedText text={"affected"} />
                 </p>
                 {impact.sample_keys.length > 0 && (
                   <div className="mb-1 flex flex-wrap items-center gap-1">
-                    <span className="text-muted-foreground">Keys:</span>
+                    <span className="text-muted-foreground">
+                      <LocalizedText text={"Keys:"} />
+                    </span>
                     {impact.sample_keys.map((key: string) => (
                       <Badge key={key} variant="secondary" className="px-1.5 py-0 text-[10px] font-normal">
                         {key}
@@ -96,7 +110,9 @@ const ImpactPopover: React.FC<{ attachment: PolicyAttachment; accessToken: strin
                 )}
                 {impact.sample_teams.length > 0 && (
                   <div className="flex flex-wrap items-center gap-1">
-                    <span className="text-muted-foreground">Teams:</span>
+                    <span className="text-muted-foreground">
+                      <LocalizedText text={"Teams:"} />
+                    </span>
                     {impact.sample_teams.map((team: string) => (
                       <Badge key={team} variant="secondary" className="px-1.5 py-0 text-[10px] font-normal">
                         {team}
@@ -105,13 +121,17 @@ const ImpactPopover: React.FC<{ attachment: PolicyAttachment; accessToken: strin
                   </div>
                 )}
                 {impact.affected_keys_count === 0 && impact.affected_teams_count === 0 && (
-                  <p className="text-muted-foreground">No keys or teams currently affected</p>
+                  <p className="text-muted-foreground">
+                    <LocalizedText text={"No keys or teams currently affected"} />
+                  </p>
                 )}
               </>
             )}
           </div>
         ) : (
-          <p className="text-xs text-muted-foreground">Click to load</p>
+          <p className="text-xs text-muted-foreground">
+            <LocalizedText text={"Click to load"} />
+          </p>
         )}
       </PopoverContent>
     </Popover>

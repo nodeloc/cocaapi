@@ -1,3 +1,6 @@
+
+"use client";
+import { LocalizedText, getIntlLocale, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import React, { useState, useMemo } from "react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import PresidioDetectedEntities from "./PresidioDetectedEntities";
@@ -198,7 +201,7 @@ const getDisplayName = (entry: GuardrailInformation): string => {
 
 // ── Icons (inline SVGs) ─────────────────────────────────────────────────────
 
-const ShieldIcon = () => (
+const ShieldIcon = () => { useUiLocale(); return ((
   <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
     <circle cx="20" cy="20" r="20" fill="#EEF2FF" />
     <path
@@ -216,50 +219,51 @@ const ShieldIcon = () => (
       fill="none"
     />
   </svg>
-);
+)); };
 
-const CheckCircleIcon = ({ className }: { className?: string }) => (
+const CheckCircleIcon = ({ className }: { className?: string }) => { useUiLocale(); return ((
   <svg width="22" height="22" viewBox="0 0 22 22" fill="none" className={className}>
     <circle cx="11" cy="11" r="10" stroke="#16A34A" strokeWidth="1.5" fill="#F0FDF4" />
     <path d="M7 11l3 3 5-6" stroke="#16A34A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
-);
+)); };
 
-const FailCircleIcon = ({ className }: { className?: string }) => (
+const FailCircleIcon = ({ className }: { className?: string }) => { useUiLocale(); return ((
   <svg width="22" height="22" viewBox="0 0 22 22" fill="none" className={className}>
     <circle cx="11" cy="11" r="10" stroke="#DC2626" strokeWidth="1.5" fill="#FEF2F2" />
     <path d="M8 8l6 6M14 8l-6 6" stroke="#DC2626" strokeWidth="1.5" strokeLinecap="round" />
   </svg>
-);
+)); };
 
-const FlagCircleIcon = ({ className }: { className?: string }) => (
+const FlagCircleIcon = ({ className }: { className?: string }) => { useUiLocale(); return ((
   <svg width="22" height="22" viewBox="0 0 22 22" fill="none" className={className}>
     <circle cx="11" cy="11" r="10" stroke="#D97706" strokeWidth="1.5" fill="#FFFBEB" />
     <path d="M11 6.5v5M11 14.5v.5" stroke="#D97706" strokeWidth="1.5" strokeLinecap="round" />
   </svg>
-);
+)); };
 
 const OutcomeIcon = ({ outcome }: { outcome: EntryOutcome }) => {
+  useUiLocale();
   if (outcome === "passed") return <CheckCircleIcon />;
   if (outcome === "flagged") return <FlagCircleIcon />;
   if (outcome === "not_run") return <GrayDotIcon />;
   return <FailCircleIcon />;
 };
 
-const PlayCircleIcon = () => (
+const PlayCircleIcon = () => { useUiLocale(); return ((
   <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
     <circle cx="11" cy="11" r="10" stroke="#3B82F6" strokeWidth="1.5" fill="#EFF6FF" />
     <path d="M9 7.5l6 3.5-6 3.5V7.5z" fill="#3B82F6" />
   </svg>
-);
+)); };
 
-const GrayDotIcon = () => (
+const GrayDotIcon = () => { useUiLocale(); return ((
   <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
     <circle cx="11" cy="11" r="5" fill="#9CA3AF" />
   </svg>
-);
+)); };
 
-const ChevronIcon = ({ expanded }: { expanded: boolean }) => (
+const ChevronIcon = ({ expanded }: { expanded: boolean }) => { useUiLocale(); return ((
   <svg
     width="20"
     height="20"
@@ -269,9 +273,9 @@ const ChevronIcon = ({ expanded }: { expanded: boolean }) => (
   >
     <path d="M6 8l4 4 4-4" stroke="#6B7280" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
-);
+)); };
 
-const DownloadIcon = () => (
+const DownloadIcon = () => { useUiLocale(); return ((
   <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
     <path
       d="M8 2v8m0 0l-3-3m3 3l3-3M3 12h10"
@@ -281,24 +285,25 @@ const DownloadIcon = () => (
       strokeLinejoin="round"
     />
   </svg>
-);
+)); };
 
 // ── Sub-components ──────────────────────────────────────────────────────────
 
 const MatchDetailsTable = ({ matchDetails }: { matchDetails: MatchDetail[] }) => {
+  useUiLocale();
   if (!matchDetails || matchDetails.length === 0) return null;
 
   return (
     <div className="mt-3">
-      <h5 className="text-sm font-medium mb-2 text-foreground">Match Details ({matchDetails.length})</h5>
+      <h5 className="text-sm font-medium mb-2 text-foreground"><LocalizedText text={"Match Details ("} />{matchDetails.length})</h5>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b text-left text-muted-foreground">
-              <th className="pb-2 pr-4 font-medium">Type</th>
-              <th className="pb-2 pr-4 font-medium">Method</th>
-              <th className="pb-2 pr-4 font-medium">Action</th>
-              <th className="pb-2 font-medium">Detail</th>
+              <th className="pb-2 pr-4 font-medium"><LocalizedText text={"Type"} /></th>
+              <th className="pb-2 pr-4 font-medium"><LocalizedText text={"Method"} /></th>
+              <th className="pb-2 pr-4 font-medium"><LocalizedText text={"Action"} /></th>
+              <th className="pb-2 font-medium"><LocalizedText text={"Detail"} /></th>
             </tr>
           </thead>
           <tbody>
@@ -333,6 +338,7 @@ const MatchDetailsTable = ({ matchDetails }: { matchDetails: MatchDetail[] }) =>
 };
 
 const GenericGuardrailResponse = ({ response }: { response: any }) => {
+  useUiLocale();
   const [showRaw, setShowRaw] = useState(false);
   return (
     <div className="mt-3">
@@ -343,7 +349,7 @@ const GenericGuardrailResponse = ({ response }: { response: any }) => {
         >
           <div className="flex items-center">
             <ChevronIcon expanded={showRaw} />
-            <h5 className="font-medium text-sm ml-1">Raw Guardrail Response</h5>
+            <h5 className="font-medium text-sm ml-1"><LocalizedText text={"Raw Guardrail Response"} /></h5>
           </div>
         </div>
         {showRaw && (
@@ -382,6 +388,7 @@ const orderWithinPhase = (group: GuardrailInformation[]): GuardrailInformation[]
 };
 
 const RequestLifecycle = ({ entries }: { entries: GuardrailInformation[] }) => {
+  useUiLocale();
   const sorted = useMemo(() => entries.filter(belongsOnLifecycle), [entries]);
 
   const timeline = useMemo(() => {
@@ -394,7 +401,7 @@ const RequestLifecycle = ({ entries }: { entries: GuardrailInformation[] }) => {
     const items: TimelineEntry[] = [];
 
     // Request received
-    items.push({ type: "request", label: "Request received", offsetMs: baseTime === null ? null : 0 });
+    items.push(markUiCopy({ type: "request" as const, label: "Request received", offsetMs: baseTime === null ? null : 0 }, {"label": "Request received"}));
 
     // Pre-call guardrails — use modeMatches so array modes (e.g. ["pre_call", "post_call"])
     // place the entry in every matching bucket.
@@ -420,11 +427,11 @@ const RequestLifecycle = ({ entries }: { entries: GuardrailInformation[] }) => {
     const firstPostStart = timedPost.length > 0 ? Math.min(...timedPost.map((e) => e.start_time)) : undefined;
     const llmEndTime = firstPostStart ?? (lastPreEnd === null ? null : lastPreEnd + 1);
 
-    items.push({
-      type: "llm",
+    items.push(markUiCopy({
+      type: "llm" as const,
       label: "LLM call",
       offsetMs: llmEndTime === null || baseTime === null ? null : Math.round((llmEndTime - baseTime) * 1000),
-    });
+    }, {"label": "LLM call"}));
 
     // During-call guardrails (rare)
     for (const e of duringCalls) {
@@ -449,14 +456,14 @@ const RequestLifecycle = ({ entries }: { entries: GuardrailInformation[] }) => {
     // Response returned
     const maxEnd = timed.length > 0 ? Math.max(...timed.map((e) => e.end_time)) : null;
     const responseOffsetMs = maxEnd === null || baseTime === null ? null : Math.round((maxEnd - baseTime) * 1000) + 1;
-    items.push({ type: "response", label: "Response returned", offsetMs: responseOffsetMs });
+    items.push(markUiCopy({ type: "response" as const, label: "Response returned", offsetMs: responseOffsetMs }, {"label": "Response returned"}));
 
     return items;
   }, [sorted]);
 
   return (
     <div>
-      <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">Request Lifecycle</h4>
+      <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4"><LocalizedText text={"Request Lifecycle"} /></h4>
       <div className="relative">
         {timeline.map((item, idx) => (
           <div key={idx} data-testid="lifecycle-row" className="flex items-start gap-3 relative">
@@ -478,7 +485,7 @@ const RequestLifecycle = ({ entries }: { entries: GuardrailInformation[] }) => {
             <div className="pb-4 flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <span className={`text-sm ${item.type === "llm" ? "text-info font-medium" : "text-foreground"}`}>
-                  {item.label}
+                  {localizedProperty(item, "label", item.label)}
                 </span>
                 {item.outcome && (
                   <span
@@ -509,6 +516,7 @@ const formatGuardrailCost = (cost: number): string => {
 };
 
 const EvaluationCard = ({ entry }: { entry: GuardrailInformation }) => {
+  useUiLocale();
   const [expanded, setExpanded] = useState(false);
   const outcome = getEntryOutcome(entry);
   const totalMasked = getTotalMasked(entry);
@@ -577,8 +585,7 @@ const EvaluationCard = ({ entry }: { entry: GuardrailInformation }) => {
 
           {entry.confidence_score != null && (
             <span className="px-2 py-0.5 bg-muted text-muted-foreground border border-border rounded-sm text-[11px] font-medium shrink-0">
-              {(entry.confidence_score * 100).toFixed(0)}% conf
-            </span>
+              {(entry.confidence_score * 100).toFixed(0)}<LocalizedText text={"% conf"} /></span>
           )}
 
           {riskScore != null && outcome === "passed" && (
@@ -590,17 +597,16 @@ const EvaluationCard = ({ entry }: { entry: GuardrailInformation }) => {
                       className={`px-2 py-0.5 border rounded-sm text-[11px] font-semibold shrink-0 ${getRiskColor(riskScore)}`}
                     />
                   }
-                >
-                  Risk {riskScore}/10
+                ><LocalizedText text={"Risk "} />{riskScore}/10
                 </TooltipTrigger>
-                <TooltipContent>{`Risk score: ${riskScore}/10`}</TooltipContent>
+                <TooltipContent>{translateMessage("Risk score: %{0}/10", [riskScore])}</TooltipContent>
               </Tooltip>
             </TooltipProvider>
           )}
 
           {textRecords != null && (
             <span className="px-2 py-0.5 bg-muted text-muted-foreground border border-border rounded-sm text-[11px] font-medium shrink-0">
-              {textRecords.toLocaleString()} text record{textRecords === 1 ? "" : "s"}
+              {textRecords.toLocaleString(getIntlLocale())}<LocalizedText text={" text record"} />{textRecords === 1 ? "" : translateMessage("s")}
             </span>
           )}
 
@@ -616,8 +622,8 @@ const EvaluationCard = ({ entry }: { entry: GuardrailInformation }) => {
                 </TooltipTrigger>
                 <TooltipContent>
                   {entry.guardrail_cost_in_spend === false
-                    ? "Estimated guardrail cost (reported only; not counted against spend or budgets)"
-                    : "Guardrail cost"}
+                    ? translateMessage("Estimated guardrail cost (reported only; not counted against spend or budgets)")
+                    : translateMessage("Guardrail cost")}
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -642,28 +648,28 @@ const EvaluationCard = ({ entry }: { entry: GuardrailInformation }) => {
           {/* Classification details for llm-judge */}
           {entry.classification && (
             <div className="mb-3 bg-muted rounded-lg p-3 space-y-1">
-              <h5 className="text-sm font-medium text-foreground mb-2">Classification</h5>
+              <h5 className="text-sm font-medium text-foreground mb-2"><LocalizedText text={"Classification"} /></h5>
               {entry.classification.category && (
                 <div className="flex text-sm">
-                  <span className="font-medium w-1/3 text-muted-foreground">Category:</span>
+                  <span className="font-medium w-1/3 text-muted-foreground"><LocalizedText text={"Category:"} /></span>
                   <span>{entry.classification.category}</span>
                 </div>
               )}
               {entry.classification.article_reference && (
                 <div className="flex text-sm">
-                  <span className="font-medium w-1/3 text-muted-foreground">Reference:</span>
+                  <span className="font-medium w-1/3 text-muted-foreground"><LocalizedText text={"Reference:"} /></span>
                   <span className="font-mono">{entry.classification.article_reference}</span>
                 </div>
               )}
               {entry.classification.confidence != null && (
                 <div className="flex text-sm">
-                  <span className="font-medium w-1/3 text-muted-foreground">Confidence:</span>
+                  <span className="font-medium w-1/3 text-muted-foreground"><LocalizedText text={"Confidence:"} /></span>
                   <span>{(entry.classification.confidence * 100).toFixed(0)}%</span>
                 </div>
               )}
               {entry.classification.reason && (
                 <div className="flex text-sm">
-                  <span className="font-medium w-1/3 text-muted-foreground">Reason:</span>
+                  <span className="font-medium w-1/3 text-muted-foreground"><LocalizedText text={"Reason:"} /></span>
                   <span>{entry.classification.reason}</span>
                 </div>
               )}
@@ -678,7 +684,7 @@ const EvaluationCard = ({ entry }: { entry: GuardrailInformation }) => {
           {/* Masked entity summary */}
           {totalMasked > 0 && (
             <div className="mt-3">
-              <h5 className="text-sm font-medium text-foreground mb-2">Masked Entities</h5>
+              <h5 className="text-sm font-medium text-foreground mb-2"><LocalizedText text={"Masked Entities"} /></h5>
               <div className="flex flex-wrap gap-2">
                 {Object.entries(entry.masked_entity_count || {}).map(([entityType, count]) => (
                   <span key={entityType} className="px-2 py-1 bg-info/10 text-info rounded-sm text-xs font-medium">
@@ -721,6 +727,7 @@ const EvaluationCard = ({ entry }: { entry: GuardrailInformation }) => {
 // ── Main Component ──────────────────────────────────────────────────────────
 
 const GuardrailViewer = ({ data, accessToken, logEntry }: GuardrailViewerProps) => {
+  useUiLocale();
   const guardrailEntries = useMemo(() => {
     return Array.isArray(data)
       ? data.filter((entry): entry is GuardrailInformation => Boolean(entry))
@@ -763,11 +770,10 @@ const GuardrailViewer = ({ data, accessToken, logEntry }: GuardrailViewerProps) 
         <div className="flex items-center gap-4">
           <ShieldIcon />
           <div>
-            <h3 className="text-lg font-semibold text-foreground">Guardrails &amp; Policy Compliance</h3>
+            <h3 className="text-lg font-semibold text-foreground"><LocalizedText text={"Guardrails & Policy Compliance"} /></h3>
             <div className="flex items-center gap-2 mt-0.5">
               <span className="text-sm text-muted-foreground">
-                {evaluatedCount} guardrail{evaluatedCount !== 1 ? "s" : ""} evaluated
-              </span>
+                {evaluatedCount}<LocalizedText text={" guardrail"} />{evaluatedCount !== 1 ? translateMessage("s") : ""}<LocalizedText text={" evaluated"} /></span>
               <span className="text-muted-foreground">|</span>
               <span
                 className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ${OUTCOME_BADGE_CLASS[headerOutcome]}`}
@@ -783,21 +789,18 @@ const GuardrailViewer = ({ data, accessToken, logEntry }: GuardrailViewerProps) 
                     />
                   </svg>
                 ) : null}
-                {passedCount} Passed
-              </span>
+                {passedCount}<LocalizedText text={" Passed"} /></span>
               {flaggedCount > 0 && (
                 <span
                   className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${OUTCOME_BADGE_CLASS.flagged}`}
                 >
-                  {flaggedCount} Flagged
-                </span>
+                  {flaggedCount}<LocalizedText text={" Flagged"} /></span>
               )}
               {notRunCount > 0 && (
                 <span
                   className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${OUTCOME_BADGE_CLASS.not_run}`}
                 >
-                  {notRunCount} Not run
-                </span>
+                  {notRunCount}<LocalizedText text={" Not run"} /></span>
               )}
             </div>
           </div>
@@ -805,16 +808,14 @@ const GuardrailViewer = ({ data, accessToken, logEntry }: GuardrailViewerProps) 
 
         <div className="flex items-center gap-6">
           <div className="text-right">
-            <div className="text-sm font-medium text-foreground">Total: {totalOverheadMs}ms overhead</div>
+            <div className="text-sm font-medium text-foreground"><LocalizedText text={"Total: "} />{totalOverheadMs}<LocalizedText text={"ms overhead"} /></div>
           </div>
 
           <button
             onClick={handleExport}
             className="inline-flex items-center gap-2 px-4 py-2 border border-border rounded-lg text-sm font-medium text-foreground bg-card hover:bg-accent transition-colors"
           >
-            <DownloadIcon />
-            Export Compliance Log
-          </button>
+            <DownloadIcon /><LocalizedText text={"Export Compliance Log"} /></button>
         </div>
       </div>
 
@@ -834,9 +835,7 @@ const GuardrailViewer = ({ data, accessToken, logEntry }: GuardrailViewerProps) 
 
         {/* Evaluation Details */}
         <div className="px-6 py-5">
-          <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">
-            Evaluation Details
-          </h4>
+          <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4"><LocalizedText text={"Evaluation Details"} /></h4>
           <div className="space-y-3">
             {guardrailEntries.map((entry, index) => (
               <EvaluationCard key={`${entry.guardrail_name ?? "guardrail"}-${index}`} entry={entry} />

@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 import { Switch } from "@/components/ui/switch";
 import React from "react";
 import type { ComplexityRouterConfigValue } from "./ComplexityRouterConfig";
@@ -5,32 +7,44 @@ import type { ComplexityRouterConfigValue } from "./ComplexityRouterConfig";
 const ResponseFormatControls: React.FC<{
   value: ComplexityRouterConfigValue;
   onChange: (value: ComplexityRouterConfigValue) => void;
-}> = ({ value, onChange }) => (
-  <>
-    <div className="flex items-center gap-2 mb-2">
-      <Switch
-        checked={value.return_raw_model_name ?? false}
-        onCheckedChange={(returnRawModelName) => onChange({ ...value, return_raw_model_name: returnRawModelName })}
-        aria-label="Return raw model name"
-      />
-      <strong className="font-semibold">Return raw model name</strong>
-    </div>
-    <span className="block text-xs text-muted-foreground">
-      Return the resolved underlying model name in responses instead of the autorouter alias.
-    </span>
-    <div className="mt-4 flex items-center gap-2 mb-2">
-      <Switch
-        checked={value.max_tokens_from_tier_model ?? true}
-        onCheckedChange={(enabled) => onChange({ ...value, max_tokens_from_tier_model: enabled })}
-        aria-label="Cap max_tokens at the tier model's output ceiling"
-      />
-      <strong className="font-semibold">Cap max_tokens at the tier model&apos;s output ceiling</strong>
-    </div>
-    <span className="block text-xs text-muted-foreground">
-      Replace the caller&apos;s max_tokens with the routed tier model&apos;s output ceiling so one client value fits
-      every tier. Off forwards the caller&apos;s value unchanged.
-    </span>
-  </>
-);
+}> = ({ value, onChange }) => {
+  useUiLocale();
+  return (
+    <>
+      <div className="flex items-center gap-2 mb-2">
+        <Switch
+          checked={value.return_raw_model_name ?? false}
+          onCheckedChange={(returnRawModelName) => onChange({ ...value, return_raw_model_name: returnRawModelName })}
+          aria-label={translateMessage("Return raw model name")}
+        />
+        <strong className="font-semibold">
+          <LocalizedText text={"Return raw model name"} />
+        </strong>
+      </div>
+      <span className="block text-xs text-muted-foreground">
+        <LocalizedText
+          text={"Return the resolved underlying model name in responses instead of the autorouter alias."}
+        />
+      </span>
+      <div className="mt-4 flex items-center gap-2 mb-2">
+        <Switch
+          checked={value.max_tokens_from_tier_model ?? true}
+          onCheckedChange={(enabled) => onChange({ ...value, max_tokens_from_tier_model: enabled })}
+          aria-label={translateMessage("Cap max_tokens at the tier model's output ceiling")}
+        />
+        <strong className="font-semibold">
+          <LocalizedText text={"Cap max_tokens at the tier model's output ceiling"} />
+        </strong>
+      </div>
+      <span className="block text-xs text-muted-foreground">
+        <LocalizedText
+          text={
+            "Replace the caller's max_tokens with the routed tier model's output ceiling so one client value fits every tier. Off forwards the caller's value unchanged."
+          }
+        />
+      </span>
+    </>
+  );
+};
 
 export default ResponseFormatControls;

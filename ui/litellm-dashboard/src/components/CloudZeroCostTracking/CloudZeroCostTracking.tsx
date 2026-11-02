@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, useUiLocale } from "@/lib/i18n";
 import { useCloudZeroSettings } from "@/app/(dashboard)/hooks/cloudzero/useCloudZeroSettings";
 import useAuthorized from "@/app/(dashboard)/hooks/useAuthorized";
 import { Card, CardContent } from "@/components/ui/card";
@@ -9,6 +11,7 @@ import { createQueryKeys } from "@/app/(dashboard)/hooks/common/queryKeysFactory
 import { CloudZeroIntegrationSettings } from "./CloudZeroIntegrationSettings";
 
 export default function CloudZeroCostTracking() {
+  useUiLocale();
   const { accessToken } = useAuthorized();
   const { data: settings, isLoading, error } = useCloudZeroSettings(accessToken);
   const queryClient = useQueryClient();
@@ -29,7 +32,9 @@ export default function CloudZeroCostTracking() {
     return (
       <Card>
         <CardContent>
-          <p className="text-sm text-muted-foreground">Loading CloudZero settings...</p>
+          <p className="text-sm text-muted-foreground">
+            <LocalizedText text={"Loading CloudZero settings..."} />
+          </p>
         </CardContent>
       </Card>
     );
@@ -40,7 +45,8 @@ export default function CloudZeroCostTracking() {
       <Card>
         <CardContent>
           <p className="text-sm text-destructive">
-            Error loading CloudZero settings: {error instanceof Error ? error.message : String(error)}
+            <LocalizedText text={"Error loading CloudZero settings: "} />
+            {error instanceof Error ? localizedProperty(error, "message", error.message) : String(error)}
           </p>
         </CardContent>
       </Card>

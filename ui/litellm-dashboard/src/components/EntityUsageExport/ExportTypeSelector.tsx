@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, markUiCopy, useUiLocale } from "@/lib/i18n";
 import React from "react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import type { ExportType, EntityType } from "./types";
@@ -9,6 +11,7 @@ interface ExportTypeSelectorProps {
 }
 
 const ExportTypeSelector: React.FC<ExportTypeSelectorProps> = ({ value, onChange, entityType }) => {
+  useUiLocale();
   const allScopes: { value: ExportType; title: string; description: string }[] = [
     {
       value: "daily",
@@ -20,11 +23,14 @@ const ExportTypeSelector: React.FC<ExportTypeSelectorProps> = ({ value, onChange
       title: `Day-by-day breakdown by ${entityType} and key`,
       description: `Daily metrics for each ${entityType}, split by API key`,
     },
-    {
-      value: "daily_with_models",
-      title: `Day-by-day by ${entityType} and model`,
-      description: "Daily metrics split by model",
-    },
+    markUiCopy(
+      {
+        value: "daily_with_models",
+        title: `Day-by-day by ${entityType} and model`,
+        description: "Daily metrics split by model",
+      },
+      { description: "Daily metrics split by model" },
+    ),
     {
       value: "daily_with_users",
       title: `Day-by-day breakdown by ${entityType} and user`,
@@ -35,7 +41,9 @@ const ExportTypeSelector: React.FC<ExportTypeSelectorProps> = ({ value, onChange
 
   return (
     <div>
-      <label className="text-sm font-medium text-foreground block mb-2">Export type</label>
+      <label className="text-sm font-medium text-foreground block mb-2">
+        <LocalizedText text={"Export type"} />
+      </label>
       <RadioGroup value={value} onValueChange={(next) => onChange(next as ExportType)} className="gap-2">
         {scopes.map((scope) => (
           <label
@@ -44,8 +52,10 @@ const ExportTypeSelector: React.FC<ExportTypeSelectorProps> = ({ value, onChange
           >
             <RadioGroupItem value={scope.value} className="mt-0.5" />
             <div className="ml-3 flex-1">
-              <div className="font-medium text-sm">{scope.title}</div>
-              <div className="text-xs text-muted-foreground mt-0.5">{scope.description}</div>
+              <div className="font-medium text-sm">{localizedProperty(scope, "title", scope.title)}</div>
+              <div className="text-xs text-muted-foreground mt-0.5">
+                {localizedProperty(scope, "description", scope.description)}
+              </div>
             </div>
           </label>
         ))}

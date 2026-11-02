@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, getIntlLocale, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { useCustomerNative } from "@/components/account/native/CustomerNativeContext";
 import React, { useMemo } from "react";
@@ -25,48 +26,58 @@ export default function UsageStatStrip({
   requestCountsPending,
   budget,
 }: UsageStatStripProps) {
+  useUiLocale();
   const customer = useCustomerNative();
   const daily = useMemo(() => dailyTotals(results), [results]);
   return (
     <div className="grid grid-cols-1 overflow-hidden rounded-xl border bg-card sm:grid-cols-2 lg:grid-cols-4 lg:divide-x">
       <StatCell trend={<Sparkline data={daily} dataKey="spend" color={BRAND} className="h-14" />}>
         <Stat
-          label="Spend"
+          label={translateMessage("Spend")}
           value={formatUsd(totals.spend)}
           pending={loading}
           hint={budget ? `of ${formatUsd(budget)} budget` : "No budget set"}
         />
       </StatCell>
       <StatCell trend={<Sparkline data={daily} dataKey="requests" color={BRAND} className="h-14" />}>
-        <Stat label="Total Requests" value={totals.requests.toLocaleString()} pending={requestCountsPending} />
+        <Stat
+          label={translateMessage("Total Requests")}
+          value={totals.requests.toLocaleString(getIntlLocale())}
+          pending={requestCountsPending}
+        />
         {!requestCountsPending && (
           <div className="mt-0.5 flex gap-3 text-xs leading-4 text-muted-foreground">
             <span>
-              <span className="text-success tabular-nums">{totals.successful.toLocaleString()}</span> ok
+              <span className="text-success tabular-nums">{totals.successful.toLocaleString(getIntlLocale())}</span>
+              <LocalizedText text={" ok"} />
             </span>
             <span>
               <span className={totals.failed > 0 ? "text-destructive tabular-nums" : "tabular-nums"}>
-                {totals.failed.toLocaleString()}
+                {totals.failed.toLocaleString(getIntlLocale())}
               </span>{" "}
-              failed
+              <LocalizedText text={"failed"} />
             </span>
           </div>
         )}
       </StatCell>
       <StatCell trend={<Sparkline data={daily} dataKey="tokens" color={BRAND} className="h-14" />}>
         <Stat
-          label="Total Tokens"
+          label={translateMessage("Total Tokens")}
           value={loading ? null : formatCompact(totals.tokens)}
-          exact={`${totals.tokens.toLocaleString()} tokens`}
+          exact={`${totals.tokens.toLocaleString(getIntlLocale())} tokens`}
           pending={loading}
           hint={loading || customer ? undefined : `${formatCompact(totals.cacheReadTokens)} cache read`}
         />
       </StatCell>
       <StatCell>
         <div className="grid gap-3">
-          <Stat label="Avg cost / request" value={formatUsd(totals.avgCostPerRequest, 4)} pending={loading} />
           <Stat
-            label="Avg latency"
+            label={translateMessage("Avg cost / request")}
+            value={formatUsd(totals.avgCostPerRequest, 4)}
+            pending={loading}
+          />
+          <Stat
+            label={translateMessage("Avg latency")}
             value={totals.avgLatencyMs === null ? "—" : formatLatency(totals.avgLatencyMs)}
             pending={loading}
             hint={totals.successRate === null ? undefined : `${totals.successRate.toFixed(1)}% success rate`}
@@ -78,6 +89,7 @@ export default function UsageStatStrip({
 }
 
 function StatCell({ children, trend }: { children: React.ReactNode; trend?: React.ReactNode }) {
+  useUiLocale();
   return (
     <div
       className={cn(

@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { cn } from "@/lib/cva.config";
 
@@ -23,6 +24,7 @@ function dotTone(reading: boolean, issueShown: boolean): string {
 }
 
 function LaneRow({ lane, now, charMs }: { lane: Lane; now: number; charMs: number }) {
+  useUiLocale();
   const { review } = lane;
   const text = review ? laneText(review.reasoning) : "";
   const typed = typedChars(lane, now, charMs);
@@ -32,10 +34,12 @@ function LaneRow({ lane, now, charMs }: { lane: Lane; now: number; charMs: numbe
     <li className="flex flex-col gap-1 rounded-lg bg-background/70 px-2.5 py-2 text-xs ring-1 ring-border/60 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-top-1 motion-safe:duration-200">
       <div className="flex items-center gap-2">
         <span aria-hidden="true" className={cn("size-1.5 shrink-0 rounded-full", dotTone(!review, issue && !typing))} />
-        <span className="truncate font-medium text-foreground">{lane.agent || "trace"}</span>
+        <span className="truncate font-medium text-foreground">{lane.agent || translateMessage("trace")}</span>
         <span className="truncate font-mono text-xs text-muted-foreground">{lane.traceId.slice(0, 8)}</span>
         <span className="ml-auto shrink-0 text-xs tabular-nums text-muted-foreground">
-          {review ? durationLabel(review.duration_ms) : `reading · ${durationLabel(Math.max(0, now - lane.startedAt))}`}
+          {review
+            ? durationLabel(review.duration_ms)
+            : translateMessage("reading · %{0}", [durationLabel(Math.max(0, now - lane.startedAt))])}
         </span>
       </div>
       {!review ? (
@@ -79,8 +83,12 @@ export function NowReading({
   now: number;
   charMs: number;
 }) {
+  useUiLocale();
   return (
-    <section aria-label="Now reading" className="mb-3 flex flex-col gap-2 rounded-xl bg-muted p-2.5 ring-1 ring-border">
+    <section
+      aria-label={translateMessage("Now reading")}
+      className="mb-3 flex flex-col gap-2 rounded-xl bg-muted p-2.5 ring-1 ring-border"
+    >
       <header className="flex items-center justify-between gap-3 px-0.5">
         <ModelName model={model} size="md" />
         <span role="status" className="text-xs tabular-nums text-muted-foreground">
@@ -103,17 +111,21 @@ export function NowReading({
 }
 
 export function ActiveWork({ model, activities }: { model: string; activities: readonly Activity[] }) {
+  useUiLocale();
   const now = useNow(500);
   return (
     <section
-      aria-label="Current work"
+      aria-label={translateMessage("Current work")}
       className="mb-3 flex flex-col gap-2 rounded-xl bg-muted p-2.5 ring-1 ring-border"
     >
       <header className="flex items-center justify-between gap-3 px-0.5">
         <ModelName model={model} size="md" />
-        <span className="text-xs tabular-nums text-muted-foreground">{activities.length} active</span>
+        <span className="text-xs tabular-nums text-muted-foreground">
+          {activities.length}
+          <LocalizedText text={" active"} />
+        </span>
       </header>
-      <ol aria-label="Active analysis tasks" className="flex flex-col gap-1.5">
+      <ol aria-label={translateMessage("Active analysis tasks")} className="flex flex-col gap-1.5">
         {activities.map((activity) => {
           const tools = toolCallSummary(activity.tool_calls);
           return (
@@ -122,7 +134,9 @@ export function ActiveWork({ model, activities }: { model: string; activities: r
               className="flex flex-col gap-1 rounded-lg bg-background/70 px-2.5 py-2 text-xs ring-1 ring-border/60"
             >
               <div className="flex items-start justify-between gap-2">
-                <span className="font-medium text-foreground">{activity.label || activityPhase(activity)}</span>
+                <span className="font-medium text-foreground">
+                  {localizedProperty(activity, "label", activity.label) || activityPhase(activity)}
+                </span>
                 <span className="shrink-0 tabular-nums text-muted-foreground">
                   {durationLabel(Math.max(0, now - Date.parse(activity.started_at)))}
                 </span>
@@ -130,12 +144,17 @@ export function ActiveWork({ model, activities }: { model: string; activities: r
               <p className="text-muted-foreground">
                 {activityPhase(activity)}
                 {activity.execution_ids.length > 0 &&
-                  ` · ${activity.execution_ids.length} ${activity.execution_ids.length === 1 ? "trace" : "traces"}`}
+                  ` · ${activity.execution_ids.length} ${activity.execution_ids.length === 1 ? translateMessage("trace") : translateMessage("traces")}`}
               </p>
               <p role="status" className="text-foreground">
                 {activityOperation(activity)}
               </p>
-              {tools && <p className="text-muted-foreground">Tool calls: {tools}</p>}
+              {tools && (
+                <p className="text-muted-foreground">
+                  <LocalizedText text={"Tool calls: "} />
+                  {tools}
+                </p>
+              )}
             </li>
           );
         })}

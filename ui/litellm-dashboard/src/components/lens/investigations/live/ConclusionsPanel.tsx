@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { memo, useEffect, useRef, useState } from "react";
 
@@ -9,6 +10,7 @@ import { grownGroups, share, type Conclusion } from "../../model/live";
 const FLASH_MS = 150;
 
 function useFlashing(groups: readonly Conclusion[]): ReadonlySet<string> {
+  useUiLocale();
   const previous = useRef(groups);
   const [flashing, setFlashing] = useState<ReadonlySet<string>>(new Set());
   useEffect(() => {
@@ -35,11 +37,17 @@ export const ConclusionsPanel = memo(function ConclusionsPanel({
   selected: string | null;
   onSelect: (key: string | null) => void;
 }) {
+  useUiLocale();
   const flashing = useFlashing(groups);
-  if (!groups.length) return <p className="text-xs text-muted-foreground">No observations flagged yet.</p>;
+  if (!groups.length)
+    return (
+      <p className="text-xs text-muted-foreground">
+        <LocalizedText text={"No observations flagged yet."} />
+      </p>
+    );
   return (
     <div className="flex flex-col gap-1.5">
-      <ol aria-label="Observations by check" className="flex flex-col gap-1.5">
+      <ol aria-label={translateMessage("Observations by check")} className="flex flex-col gap-1.5">
         {groups.map((group) => {
           const active = selected === group.key;
           return (
@@ -66,7 +74,7 @@ export const ConclusionsPanel = memo(function ConclusionsPanel({
                     />
                     <span className="flex min-w-0 flex-col gap-0.5">
                       <span className="line-clamp-2 text-sm leading-snug font-medium text-foreground">
-                        {group.label}
+                        {localizedProperty(group, "label", group.label)}
                       </span>
                       <span className="line-clamp-1 text-xs text-muted-foreground">{group.latest}</span>
                     </span>
@@ -81,7 +89,10 @@ export const ConclusionsPanel = memo(function ConclusionsPanel({
                       {group.count}
                     </span>
                     {group.noted > 0 && (
-                      <span className="text-xs tabular-nums text-muted-foreground">{group.noted} noted</span>
+                      <span className="text-xs tabular-nums text-muted-foreground">
+                        {group.noted}
+                        <LocalizedText text={" noted"} />
+                      </span>
                     )}
                   </span>
                 </span>

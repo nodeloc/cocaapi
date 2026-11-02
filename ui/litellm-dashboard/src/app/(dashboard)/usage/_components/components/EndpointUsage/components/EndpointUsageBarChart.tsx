@@ -1,3 +1,5 @@
+"use client";
+import { getIntlLocale, translateMessage, useUiLocale } from "@/lib/i18n";
 import React from "react";
 import { ChartColumnStacked } from "lucide-react";
 import { BarChart, CustomTooltip } from "@/components/shared/charts";
@@ -13,9 +15,10 @@ const FAILED_COLOR = "#ef4444";
 const CATEGORIES = ["Successful", "Failed"] as const;
 const COLORS = [SUCCESS_COLOR, FAILED_COLOR] as const;
 
-const valueFormatter = (value: number) => value.toLocaleString();
+const valueFormatter = (value: number) => value.toLocaleString(getIntlLocale());
 
 const EndpointUsageBarChart: React.FC<EndpointUsageBarChartProps> = ({ endpointData }) => {
+  useUiLocale();
   // Transform endpoint data into chart format
   const chartData = React.useMemo(() => {
     return Object.entries(endpointData || {}).map(([endpoint, data]) => ({
@@ -37,14 +40,14 @@ const EndpointUsageBarChart: React.FC<EndpointUsageBarChartProps> = ({ endpointD
   return (
     <Panel
       icon={ChartColumnStacked}
-      title="Success vs Failed Requests by Endpoint"
+      title={translateMessage("Success vs Failed Requests by Endpoint")}
       action={
         <div className="flex shrink-0 items-center gap-3 text-xs text-muted-foreground">
           {CATEGORIES.map((category, i) => (
             <span key={category} className="flex items-center gap-1.5">
               <span aria-hidden="true" className="size-2 rounded-[2px]" style={{ backgroundColor: COLORS[i] }} />
               <span>{category}</span>
-              <span className="tabular-nums text-foreground">{totals[category].toLocaleString()}</span>
+              <span className="tabular-nums text-foreground">{totals[category].toLocaleString(getIntlLocale())}</span>
             </span>
           ))}
         </div>

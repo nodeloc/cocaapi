@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, useUiLocale } from "@/lib/i18n";
 
 import { SimpleTooltip } from "@/components/ui/tooltip";
 import type { Team } from "@/components/key_team_helpers/key_list";
@@ -76,12 +77,15 @@ interface InheritedBudgetHintProps {
 }
 
 export function InheritedBudgetHint({ gates }: InheritedBudgetHintProps) {
+  useUiLocale();
   if (gates.length === 0) return null;
   return (
     <SimpleTooltip
       content={
         <div data-testid="inherited-budget-hint" className="flex flex-col gap-1">
-          <span>This key has no budget of its own, but its spend still counts toward:</span>
+          <span>
+            <LocalizedText text={"This key has no budget of its own, but its spend still counts toward:"} />
+          </span>
           {gates.map((gate) => (
             <span key={gate.scope}>{formatGate(gate)}</span>
           ))}

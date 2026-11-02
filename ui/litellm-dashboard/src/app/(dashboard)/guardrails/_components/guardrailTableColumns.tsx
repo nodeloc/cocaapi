@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { ColumnDef } from "@tanstack/react-table";
 import { MoreHorizontal, Trash2 } from "lucide-react";
@@ -21,6 +22,7 @@ import { Logo } from "@/components/molecules/logo/Logo";
 const CONFIG_DELETE_HINT = "Config guardrails are defined in the config file and cannot be deleted from the dashboard.";
 
 function GuardrailProviderCell({ provider }: { provider: string }) {
+  useUiLocale();
   const { logo, displayName } = getGuardrailLogoAndName(provider);
   return (
     <div className="flex items-center gap-2">
@@ -36,12 +38,13 @@ interface GuardrailRowActionsProps {
 }
 
 function GuardrailRowActions({ guardrail, onDeleteClick }: GuardrailRowActionsProps) {
+  useUiLocale();
   const isConfigGuardrail = guardrail.guardrail_definition_location === GuardrailDefinitionLocation.CONFIG;
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        aria-label="Open guardrail actions"
+        aria-label={translateMessage("Open guardrail actions")}
         data-testid={`guardrail-actions-${guardrail.guardrail_id}`}
         className={cn(buttonVariants({ variant: "ghost", size: "icon-sm" }), "text-muted-foreground")}
       >
@@ -56,7 +59,7 @@ function GuardrailRowActions({ guardrail, onDeleteClick }: GuardrailRowActionsPr
           onClick={() => onDeleteClick(guardrail.guardrail_id, guardrail.guardrail_name || "Unnamed Guardrail")}
         >
           <Trash2 />
-          Delete
+          <LocalizedText text={"Delete"} />
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -75,8 +78,8 @@ export const getGuardrailTableColumns = ({
   {
     id: "guardrail_id",
     accessorKey: "guardrail_id",
-    meta: { title: "Guardrail ID" },
-    header: ({ column }) => <DataTableSortHeader column={column} title="Guardrail ID" />,
+    meta: markUiCopy({ title: "Guardrail ID" }, { title: "Guardrail ID" }),
+    header: ({ column }) => <DataTableSortHeader column={column} title={translateMessage("Guardrail ID")} />,
     size: 200,
     enableSorting: true,
     cell: ({ row }) => (
@@ -90,8 +93,8 @@ export const getGuardrailTableColumns = ({
   {
     id: "guardrail_name",
     accessorKey: "guardrail_name",
-    meta: { title: "Name" },
-    header: ({ column }) => <DataTableSortHeader column={column} title="Name" />,
+    meta: markUiCopy({ title: "Name" }, { title: "Name" }),
+    header: ({ column }) => <DataTableSortHeader column={column} title={translateMessage("Name")} />,
     size: 200,
     enableSorting: true,
     cell: ({ row }) => {
@@ -103,47 +106,59 @@ export const getGuardrailTableColumns = ({
       );
     },
   },
-  {
-    id: "provider",
-    meta: { title: "Provider" },
-    header: "Provider",
-    size: 180,
-    enableSorting: false,
-    cell: ({ row }) => <GuardrailProviderCell provider={row.original.litellm_params.guardrail} />,
-  },
-  {
-    id: "mode",
-    meta: { title: "Mode" },
-    header: "Mode",
-    size: 130,
-    enableSorting: false,
-    cell: ({ row }) => {
-      const mode = formatGuardrailMode(row.original.litellm_params.mode);
-      return (
-        <span className="font-mono text-xs text-muted-foreground" title={mode || undefined}>
-          {mode || "-"}
-        </span>
-      );
+  markUiCopy(
+    {
+      id: "provider",
+      meta: markUiCopy({ title: "Provider" }, { title: "Provider" }),
+      header: "Provider",
+      size: 180,
+      enableSorting: false,
+      cell: ({ row }) => <GuardrailProviderCell provider={row.original.litellm_params.guardrail} />,
     },
-  },
-  {
-    id: "default_on",
-    meta: { title: "Default On" },
-    header: "Default On",
-    size: 120,
-    enableSorting: false,
-    cell: ({ row }) => {
-      const isDefaultOn = !!row.original.litellm_params?.default_on;
-      return (
-        <StatusBadge tone={isDefaultOn ? "success" : "neutral"} label={isDefaultOn ? "Default On" : "Default Off"} />
-      );
+    { header: "Provider" },
+  ),
+  markUiCopy(
+    {
+      id: "mode",
+      meta: markUiCopy({ title: "Mode" }, { title: "Mode" }),
+      header: "Mode",
+      size: 130,
+      enableSorting: false,
+      cell: ({ row }) => {
+        const mode = formatGuardrailMode(row.original.litellm_params.mode);
+        return (
+          <span className="font-mono text-xs text-muted-foreground" title={mode || undefined}>
+            {mode || "-"}
+          </span>
+        );
+      },
     },
-  },
+    { header: "Mode" },
+  ),
+  markUiCopy(
+    {
+      id: "default_on",
+      meta: markUiCopy({ title: "Default On" }, { title: "Default On" }),
+      header: "Default On",
+      size: 120,
+      enableSorting: false,
+      cell: ({ row }) => {
+        const isDefaultOn = !!row.original.litellm_params?.default_on;
+        return (
+          <StatusBadge
+            tone={isDefaultOn ? "success" : "neutral"}
+            label={isDefaultOn ? translateMessage("Default On") : translateMessage("Default Off")}
+          />
+        );
+      },
+    },
+    { header: "Default On" },
+  ),
   {
     id: "created_at",
     accessorKey: "created_at",
-    meta: { title: "Created At" },
-    header: ({ column }) => <DataTableSortHeader column={column} title="Created At" />,
+    meta: markUiCopy({ title: "Created At" }, { title: "Created At" }),
+    header: ({ column }) => <DataTableSortHeader column={column} title={translateMessage("Created At")} />,
     size: 150,
     enableSorting: true,
     cell: ({ row }) => <DateCell value={row.original.created_at} />,
@@ -151,8 +166,8 @@ export const getGuardrailTableColumns = ({
   {
     id: "updated_at",
     accessorKey: "updated_at",
-    meta: { title: "Updated At" },
-    header: ({ column }) => <DataTableSortHeader column={column} title="Updated At" />,
+    meta: markUiCopy({ title: "Updated At" }, { title: "Updated At" }),
+    header: ({ column }) => <DataTableSortHeader column={column} title={translateMessage("Updated At")} />,
     size: 150,
     enableSorting: true,
     cell: ({ row }) => <DateCell value={row.original.updated_at} />,
@@ -160,7 +175,11 @@ export const getGuardrailTableColumns = ({
   {
     id: "actions",
     meta: { className: "text-right", headerClassName: "text-right" },
-    header: () => <span className="sr-only">Actions</span>,
+    header: () => (
+      <span className="sr-only">
+        <LocalizedText text={"Actions"} />
+      </span>
+    ),
     size: 64,
     enableSorting: false,
     enableHiding: false,

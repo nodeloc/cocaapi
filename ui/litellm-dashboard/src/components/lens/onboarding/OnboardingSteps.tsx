@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { useId, useRef, useState, type ReactNode } from "react";
 import { ArrowRight, ChevronDown } from "lucide-react";
@@ -14,11 +15,13 @@ import { useOnboarding } from "./OnboardingContext";
 type StepProps = { state: LensReadiness; goTo: (step: number) => void; storageReady: boolean };
 
 function useLocked() {
+  useUiLocale();
   const { readOnly, canInvestigate } = useOnboarding();
   return readOnly || !canInvestigate;
 }
 
 function StorageStep({ state, goTo, storageReady }: StepProps) {
+  useUiLocale();
   const { readOnly, openTrace } = useOnboarding();
   const accessToken = useLensAccessToken();
   if (!storageReady)
@@ -38,10 +41,11 @@ function StorageStep({ state, goTo, storageReady }: StepProps) {
   return (
     <div className="space-y-4">
       <p role="status" className="text-sm text-success">
-        Trace storage is connected
+        <LocalizedText text={"Trace storage is connected"} />
       </p>
       <Button onClick={() => goTo(1)}>
-        Continue to your agent <ArrowRight aria-hidden="true" className="size-4" />
+        <LocalizedText text={"Continue to your agent "} />
+        <ArrowRight aria-hidden="true" className="size-4" />
       </Button>
       <ActivityContinuation state={state} />
     </div>
@@ -54,6 +58,7 @@ function continuationLabel(state: LensReadiness) {
 }
 
 function ActivityContinuation({ state }: { state: LensReadiness }) {
+  useUiLocale();
   const { connect, create } = useOnboarding();
   const locked = useLocked();
   if (!state.activityReady) return null;
@@ -65,7 +70,9 @@ function ActivityContinuation({ state }: { state: LensReadiness }) {
       </Button>
       {state.requestsReady && !state.tracesReady && (
         <p className="mt-2 text-xs text-muted-foreground">
-          Request logs are already available. You can investigate them now and add agent traces later.
+          <LocalizedText
+            text={"Request logs are already available. You can investigate them now and add agent traces later."}
+          />
         </p>
       )}
     </div>
@@ -73,6 +80,7 @@ function ActivityContinuation({ state }: { state: LensReadiness }) {
 }
 
 function AgentStep({ state }: StepProps) {
+  useUiLocale();
   const { readOnly, canMintTracingKey, openTrace } = useOnboarding();
   const accessToken = useLensAccessToken();
   return (
@@ -93,7 +101,9 @@ function AgentStep({ state }: StepProps) {
       </div>
       {state.tracesReady && (
         <p role="status" className="text-sm text-success">
-          Your first trace is ready. Continue setup so Lens can investigate your agent’s behavior.
+          <LocalizedText
+            text={"Your first trace is ready. Continue setup so Lens can investigate your agent’s behavior."}
+          />
         </p>
       )}
       <ActivityContinuation state={state} />
@@ -102,20 +112,25 @@ function AgentStep({ state }: StepProps) {
 }
 
 function WorkerStep({ state }: StepProps) {
+  useUiLocale();
   const { connect, create } = useOnboarding();
   const locked = useLocked();
   return (
     <div className="space-y-4">
       <p role="status" className="text-sm text-muted-foreground">
         {state.connected
-          ? "Worker connected. You’re ready to create an investigation."
-          : "The worker reviews recorded activity using a model on your gateway. You choose its analysis model and spending limit."}
+          ? translateMessage("Worker connected. You’re ready to create an investigation.")
+          : translateMessage(
+              "The worker reviews recorded activity using a model on your gateway. You choose its analysis model and spending limit.",
+            )}
       </p>
       {!state.activityReady && (
-        <p className="text-sm text-muted-foreground">Recorded activity is required before connecting a worker.</p>
+        <p className="text-sm text-muted-foreground">
+          <LocalizedText text={"Recorded activity is required before connecting a worker."} />
+        </p>
       )}
       <Button onClick={state.connected ? create : connect} disabled={!state.activityReady || locked}>
-        {state.connected ? "Continue to investigation" : "Connect worker"}
+        {state.connected ? translateMessage("Continue to investigation") : translateMessage("Connect worker")}
         <ArrowRight aria-hidden="true" className="size-4" />
       </Button>
     </div>
@@ -123,21 +138,28 @@ function WorkerStep({ state }: StepProps) {
 }
 
 function InvestigationStep({ state }: StepProps) {
+  useUiLocale();
   const { create } = useOnboarding();
   const locked = useLocked();
   return (
     <div className="space-y-4">
       <p className="text-sm leading-6 text-muted-foreground">
-        Choose the activity to review and describe how your agent should behave. Lens will show findings with evidence
-        and suggested changes.
+        <LocalizedText
+          text={
+            "Choose the activity to review and describe how your agent should behave. Lens will show findings with evidence and suggested changes."
+          }
+        />
       </p>
       {!state.ready && (
         <p className="text-sm text-muted-foreground">
-          Recorded activity and a connected worker are required before you can run an investigation.
+          <LocalizedText
+            text={"Recorded activity and a connected worker are required before you can run an investigation."}
+          />
         </p>
       )}
       <Button onClick={create} disabled={!state.ready || locked}>
-        New investigation <ArrowRight aria-hidden="true" className="size-4" />
+        <LocalizedText text={"New investigation "} />
+        <ArrowRight aria-hidden="true" className="size-4" />
       </Button>
     </div>
   );
@@ -151,30 +173,45 @@ interface StepDefinition {
 }
 
 const STEPS: readonly StepDefinition[] = [
-  {
-    title: "Install Lens",
-    description: "Enable Lens in your Helm or Docker deployment.",
-    complete: (_state, storageReady) => storageReady,
-    Content: StorageStep,
-  },
-  {
-    title: "Send your first trace",
-    description: "Capture your agent’s inputs, outputs, and tool calls.",
-    complete: (state) => state.tracesReady,
-    Content: AgentStep,
-  },
-  {
-    title: "Connect a worker",
-    description: "Choose an analysis model and spending limit.",
-    complete: (state) => state.connected,
-    Content: WorkerStep,
-  },
-  {
-    title: "Run your first investigation",
-    description: "Describe the expected behavior and review a sample of activity.",
-    complete: (state) => state.hasInvestigations,
-    Content: InvestigationStep,
-  },
+  markUiCopy(
+    {
+      title: "Install Lens",
+      description: "Enable Lens in your Helm or Docker deployment.",
+      complete: (_state, storageReady) => storageReady,
+      Content: StorageStep,
+    },
+    { title: "Install Lens", description: "Enable Lens in your Helm or Docker deployment." },
+  ),
+  markUiCopy(
+    {
+      title: "Send your first trace",
+      description: "Capture your agent’s inputs, outputs, and tool calls.",
+      complete: (state) => state.tracesReady,
+      Content: AgentStep,
+    },
+    { title: "Send your first trace", description: "Capture your agent’s inputs, outputs, and tool calls." },
+  ),
+  markUiCopy(
+    {
+      title: "Connect a worker",
+      description: "Choose an analysis model and spending limit.",
+      complete: (state) => state.connected,
+      Content: WorkerStep,
+    },
+    { title: "Connect a worker", description: "Choose an analysis model and spending limit." },
+  ),
+  markUiCopy(
+    {
+      title: "Run your first investigation",
+      description: "Describe the expected behavior and review a sample of activity.",
+      complete: (state) => state.hasInvestigations,
+      Content: InvestigationStep,
+    },
+    {
+      title: "Run your first investigation",
+      description: "Describe the expected behavior and review a sample of activity.",
+    },
+  ),
 ];
 
 function stepState(complete: boolean, open: boolean): StepState {
@@ -191,6 +228,7 @@ export function OnboardingSteps({
   className?: string;
   includeTracing: boolean;
 }) {
+  useUiLocale();
   const id = useId();
   const listRef = useRef<HTMLOListElement>(null);
   const offset = includeTracing ? 0 : 2;
@@ -209,7 +247,8 @@ export function OnboardingSteps({
       data-slot="onboarding-steps"
       className={cn("divide-y overflow-hidden rounded-2xl border bg-card", className)}
     >
-      {STEPS.slice(offset).map(({ title, description, complete, Content }, index) => {
+      {STEPS.slice(offset).map((cocaCopyProps0, index) => {
+        const { title, description, complete, Content } = cocaCopyProps0;
         const stepIndex = index + offset;
         const open = Math.max(offset, visibleStep) === stepIndex;
         return (
@@ -231,9 +270,11 @@ export function OnboardingSteps({
                       !open && "text-muted-foreground group-hover:text-foreground",
                     )}
                   >
-                    {title}
+                    {localizedProperty(cocaCopyProps0, "title", title)}
                   </span>
-                  <span className="mt-1 block text-sm leading-6 font-normal text-muted-foreground">{description}</span>
+                  <span className="mt-1 block text-sm leading-6 font-normal text-muted-foreground">
+                    {localizedProperty(cocaCopyProps0, "description", description)}
+                  </span>
                 </span>
                 <ChevronDown
                   aria-hidden="true"

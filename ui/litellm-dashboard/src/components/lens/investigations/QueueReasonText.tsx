@@ -1,15 +1,17 @@
 "use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { queueReasonText, workerTaskText, type QueueReason } from "../model/status";
 import type { QueueContext } from "./useQueueReason";
 
 export function QueueReasonText({ reason, onConnect }: { reason: QueueReason; onConnect?: () => void }) {
+  useUiLocale();
   if (reason.kind !== "no_worker" || !onConnect) return <>{queueReasonText(reason)}</>;
   return (
     <>
-      No worker connected. Start one from{" "}
+      <LocalizedText text={"No worker connected. Start one from"} />{" "}
       <button type="button" onClick={onConnect} className="font-medium text-foreground underline underline-offset-2">
-        Connect worker
+        <LocalizedText text={"Connect worker"} />
       </button>
       .
     </>
@@ -17,9 +19,10 @@ export function QueueReasonText({ reason, onConnect }: { reason: QueueReason; on
 }
 
 export function WorkerTasks({ reason, queue }: { reason: QueueReason; queue?: QueueContext }) {
+  useUiLocale();
   if (reason.kind === "no_worker" || !reason.tasks.length) return null;
   return (
-    <ol aria-label="What the worker is doing" className="flex flex-col">
+    <ol aria-label={translateMessage("What the worker is doing")} className="flex flex-col">
       {reason.tasks.map((task) => (
         <li key={task.lensId}>
           <button

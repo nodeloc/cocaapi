@@ -1,3 +1,4 @@
+import { markUiCopy } from "@/lib/i18n";
 import langgraphLogo from "../../../../../public/assets/logos/langgraph-color.svg";
 import langchainLogo from "../../../../../public/assets/logos/langchain.svg";
 import openaiAgentsLogo from "../../../../../public/assets/logos/openai-agents.svg";
@@ -27,14 +28,15 @@ export interface FrameworkGuide {
 }
 
 export const FRAMEWORKS: readonly FrameworkGuide[] = [
-  {
-    id: "deepagents",
-    label: "DeepAgents",
-    logo: langgraphLogo.src,
-    install:
-      "pip install opentelemetry-distro opentelemetry-exporter-otlp-proto-http deepagents openinference-instrumentation-langchain langchain-openai",
-    language: "python",
-    quickstart: `import os
+  markUiCopy(
+    {
+      id: "deepagents",
+      label: "DeepAgents",
+      logo: langgraphLogo.src,
+      install:
+        "pip install opentelemetry-distro opentelemetry-exporter-otlp-proto-http deepagents openinference-instrumentation-langchain langchain-openai",
+      language: "python",
+      quickstart: `import os
 
 AGENT_NAME = "research_agent"
 
@@ -55,16 +57,19 @@ model = ChatOpenAI(
 agent = create_deep_agent(name=AGENT_NAME, model=model, tools=[])
 result = agent.invoke({"messages": [{"role": "user", "content": "What is an agent trace?"}]})
 print(result["messages"][-1].content)`,
-    fileName: "agent.py",
-  },
-  {
-    id: "langgraph",
-    label: "LangGraph",
-    logo: langgraphLogo.src,
-    install:
-      "pip install opentelemetry-distro opentelemetry-exporter-otlp-proto-http langgraph openinference-instrumentation-langchain langchain-openai",
-    language: "python",
-    quickstart: `import os
+      fileName: "agent.py",
+    },
+    { label: "DeepAgents" },
+  ),
+  markUiCopy(
+    {
+      id: "langgraph",
+      label: "LangGraph",
+      logo: langgraphLogo.src,
+      install:
+        "pip install opentelemetry-distro opentelemetry-exporter-otlp-proto-http langgraph openinference-instrumentation-langchain langchain-openai",
+      language: "python",
+      quickstart: `import os
 
 AGENT_NAME = "research_agent"
 
@@ -87,16 +92,19 @@ graph.add_edge("answer", END)
 agent = graph.compile(name=AGENT_NAME)
 result = agent.invoke({"messages": [{"role": "user", "content": "What is an agent trace?"}]})
 print(result["messages"][-1].content)`,
-    fileName: "agent.py",
-  },
-  {
-    id: "langchain",
-    label: "LangChain",
-    logo: langchainLogo.src,
-    install:
-      "pip install opentelemetry-distro opentelemetry-exporter-otlp-proto-http langchain openinference-instrumentation-langchain langchain-openai",
-    language: "python",
-    quickstart: `import os
+      fileName: "agent.py",
+    },
+    { label: "LangGraph" },
+  ),
+  markUiCopy(
+    {
+      id: "langchain",
+      label: "LangChain",
+      logo: langchainLogo.src,
+      install:
+        "pip install opentelemetry-distro opentelemetry-exporter-otlp-proto-http langchain openinference-instrumentation-langchain langchain-openai",
+      language: "python",
+      quickstart: `import os
 
 AGENT_NAME = "research_agent"
 
@@ -117,16 +125,19 @@ model = ChatOpenAI(
 agent = create_agent(name=AGENT_NAME, model=model, tools=[])
 result = agent.invoke({"messages": [{"role": "user", "content": "What is an agent trace?"}]})
 print(result["messages"][-1].content)`,
-    fileName: "agent.py",
-  },
-  {
-    id: "openai-agents",
-    label: "OpenAI Agents",
-    logo: openaiAgentsLogo.src,
-    install:
-      "pip install opentelemetry-distro opentelemetry-exporter-otlp-proto-http openai-agents openinference-instrumentation-openai-agents",
-    language: "python",
-    quickstart: `import os
+      fileName: "agent.py",
+    },
+    { label: "LangChain" },
+  ),
+  markUiCopy(
+    {
+      id: "openai-agents",
+      label: "OpenAI Agents",
+      logo: openaiAgentsLogo.src,
+      install:
+        "pip install opentelemetry-distro opentelemetry-exporter-otlp-proto-http openai-agents openinference-instrumentation-openai-agents",
+      language: "python",
+      quickstart: `import os
 
 AGENT_NAME = "research_agent"
 
@@ -145,16 +156,19 @@ model = OpenAIChatCompletionsModel(model={MODEL}, openai_client=client)
 agent = Agent(name=AGENT_NAME, model=model)
 result = Runner.run_sync(agent, "What is an agent trace?")
 print(result.final_output)`,
-    fileName: "agent.py",
-  },
-  {
-    id: "claude",
-    label: "Claude Agent SDK",
-    logo: anthropicLogo.src,
-    install:
-      "pip install opentelemetry-distro opentelemetry-exporter-otlp-proto-http claude-agent-sdk openinference-instrumentation-claude-agent-sdk",
-    language: "python",
-    quickstart: `import asyncio
+      fileName: "agent.py",
+    },
+    { label: "OpenAI Agents" },
+  ),
+  markUiCopy(
+    {
+      id: "claude",
+      label: "Claude Agent SDK",
+      logo: anthropicLogo.src,
+      install:
+        "pip install opentelemetry-distro opentelemetry-exporter-otlp-proto-http claude-agent-sdk openinference-instrumentation-claude-agent-sdk",
+      language: "python",
+      quickstart: `import asyncio
 import os
 
 AGENT_NAME = "research_agent"
@@ -180,17 +194,20 @@ async def main():
             print(message.result)
 
 asyncio.run(main())`,
-    fileName: "agent.py",
-    note: "This captures SDK input and output; internal model calls are not exposed by this instrumentor.",
-  },
-  {
-    id: "crewai",
-    label: "CrewAI",
-    logo: crewaiLogo.src,
-    install:
-      "pip install opentelemetry-distro opentelemetry-exporter-otlp-proto-http crewai openinference-instrumentation-crewai",
-    language: "python",
-    quickstart: `import os
+      fileName: "agent.py",
+      note: "This captures SDK input and output; internal model calls are not exposed by this instrumentor.",
+    },
+    { label: "Claude Agent SDK" },
+  ),
+  markUiCopy(
+    {
+      id: "crewai",
+      label: "CrewAI",
+      logo: crewaiLogo.src,
+      install:
+        "pip install opentelemetry-distro opentelemetry-exporter-otlp-proto-http crewai openinference-instrumentation-crewai",
+      language: "python",
+      quickstart: `import os
 
 AGENT_NAME = "research_agent"
 
@@ -216,15 +233,18 @@ agent = Agent(
 )
 task = Task(description="What is an agent trace?", expected_output="A short answer", agent=agent)
 print(Crew(agents=[agent], tasks=[task]).kickoff())`,
-    fileName: "agent.py",
-  },
-  {
-    id: "pydantic-ai",
-    label: "Pydantic AI",
-    logo: pydanticAiLogo.src,
-    install: "pip install opentelemetry-distro opentelemetry-exporter-otlp-proto-http pydantic-ai",
-    language: "python",
-    quickstart: `import os
+      fileName: "agent.py",
+    },
+    { label: "CrewAI" },
+  ),
+  markUiCopy(
+    {
+      id: "pydantic-ai",
+      label: "Pydantic AI",
+      logo: pydanticAiLogo.src,
+      install: "pip install opentelemetry-distro opentelemetry-exporter-otlp-proto-http pydantic-ai",
+      language: "python",
+      quickstart: `import os
 
 AGENT_NAME = "research_agent"
 
@@ -245,16 +265,19 @@ model = OpenAIChatModel(
 Agent.instrument_all()
 agent = Agent(model, name=AGENT_NAME)
 print(agent.run_sync("What is an agent trace?").output)`,
-    fileName: "agent.py",
-  },
-  {
-    id: "llamaindex",
-    label: "LlamaIndex",
-    logo: llamaindexLogo.src,
-    install:
-      "pip install opentelemetry-distro opentelemetry-exporter-otlp-proto-http llama-index-core openinference-instrumentation-llama-index llama-index-llms-openai-like",
-    language: "python",
-    quickstart: `import asyncio
+      fileName: "agent.py",
+    },
+    { label: "Pydantic AI" },
+  ),
+  markUiCopy(
+    {
+      id: "llamaindex",
+      label: "LlamaIndex",
+      logo: llamaindexLogo.src,
+      install:
+        "pip install opentelemetry-distro opentelemetry-exporter-otlp-proto-http llama-index-core openinference-instrumentation-llama-index llama-index-llms-openai-like",
+      language: "python",
+      quickstart: `import asyncio
 import os
 
 AGENT_NAME = "research_agent"
@@ -287,16 +310,19 @@ async def main():
     print(result)
 
 asyncio.run(main())`,
-    fileName: "agent.py",
-    note: "The resource attribute supplies the agent name because this instrumentor does not export FunctionAgent.name.",
-  },
-  {
-    id: "adk",
-    label: "Google ADK",
-    logo: adkLogo.src,
-    install: "pip install opentelemetry-distro opentelemetry-exporter-otlp-proto-http google-adk",
-    language: "python",
-    quickstart: `import asyncio
+      fileName: "agent.py",
+      note: "The resource attribute supplies the agent name because this instrumentor does not export FunctionAgent.name.",
+    },
+    { label: "LlamaIndex" },
+  ),
+  markUiCopy(
+    {
+      id: "adk",
+      label: "Google ADK",
+      logo: adkLogo.src,
+      install: "pip install opentelemetry-distro opentelemetry-exporter-otlp-proto-http google-adk",
+      language: "python",
+      quickstart: `import asyncio
 import os
 
 AGENT_NAME = "research_agent"
@@ -320,16 +346,19 @@ model = LiteLlm(
 
 agent = Agent(name=AGENT_NAME, model=model)
 asyncio.run(InMemoryRunner(agent=agent).run_debug("What is an agent trace?"))`,
-    fileName: "agent.py",
-    note: "SPAN_ONLY records the messages needed to inspect and investigate the run.",
-  },
-  {
-    id: "strands",
-    label: "Strands",
-    logo: strandsLogo.src,
-    install: 'pip install opentelemetry-distro opentelemetry-exporter-otlp-proto-http "strands-agents[otel]" openai',
-    language: "python",
-    quickstart: `import os
+      fileName: "agent.py",
+      note: "SPAN_ONLY records the messages needed to inspect and investigate the run.",
+    },
+    { label: "Google ADK" },
+  ),
+  markUiCopy(
+    {
+      id: "strands",
+      label: "Strands",
+      logo: strandsLogo.src,
+      install: 'pip install opentelemetry-distro opentelemetry-exporter-otlp-proto-http "strands-agents[otel]" openai',
+      language: "python",
+      quickstart: `import os
 
 AGENT_NAME = "research_agent"
 
@@ -351,17 +380,20 @@ model = OpenAIModel(
 
 agent = Agent(name=AGENT_NAME, model=model)
 print(agent("What is an agent trace?"))`,
-    fileName: "agent.py",
-    note: "The semantic-convention setting enables message content in spans.",
-  },
-  {
-    id: "vercel",
-    label: "Vercel AI SDK",
-    logo: vercelLogo.src,
-    install:
-      "npm install ai @ai-sdk/otel @opentelemetry/sdk-node @opentelemetry/exporter-trace-otlp-http @ai-sdk/openai-compatible",
-    language: "typescript",
-    quickstart: `import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
+      fileName: "agent.py",
+      note: "The semantic-convention setting enables message content in spans.",
+    },
+    { label: "Strands" },
+  ),
+  markUiCopy(
+    {
+      id: "vercel",
+      label: "Vercel AI SDK",
+      logo: vercelLogo.src,
+      install:
+        "npm install ai @ai-sdk/otel @opentelemetry/sdk-node @opentelemetry/exporter-trace-otlp-http @ai-sdk/openai-compatible",
+      language: "typescript",
+      quickstart: `import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { NodeSDK } from "@opentelemetry/sdk-node";
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
 import { OpenTelemetry } from "@ai-sdk/otel";
@@ -389,14 +421,17 @@ try {
 } finally {
   await sdk.shutdown();
 }`,
-    fileName: "agent.mts",
-  },
-  {
-    id: "openclaw",
-    label: "OpenClaw",
-    logo: openclawLogo.src,
-    language: "json",
-    quickstart: `{
+      fileName: "agent.mts",
+    },
+    { label: "Vercel AI SDK" },
+  ),
+  markUiCopy(
+    {
+      id: "openclaw",
+      label: "OpenClaw",
+      logo: openclawLogo.src,
+      language: "json",
+      quickstart: `{
   "agents": {
     "list": [{ "id": "research_agent" }]
   },
@@ -417,22 +452,28 @@ try {
     }
   }
 }`,
-    existingModel: true,
-    fileName: "openclaw.json",
-    note: 'Set LITELLM_TRACING_KEY to your Lens tracing key, then run openclaw agent --local --session-id first-trace --message "What is an agent trace?". Select research_agent in Lens. Restart an existing gateway after changing the config.',
-    plugin: {
-      label: "diagnostics-otel plugin",
-      url: "https://docs.openclaw.ai/plugins/reference/diagnostics-otel",
-      instruction:
-        "Set your agent ID once in ~/.openclaw/openclaw.json. Keep your existing model and workspace settings when adding the tracing configuration.",
+      existingModel: true,
+      fileName: "openclaw.json",
+      note: 'Set LITELLM_TRACING_KEY to your Lens tracing key, then run openclaw agent --local --session-id first-trace --message "What is an agent trace?". Select research_agent in Lens. Restart an existing gateway after changing the config.',
+      plugin: markUiCopy(
+        {
+          label: "diagnostics-otel plugin",
+          url: "https://docs.openclaw.ai/plugins/reference/diagnostics-otel",
+          instruction:
+            "Set your agent ID once in ~/.openclaw/openclaw.json. Keep your existing model and workspace settings when adding the tracing configuration.",
+        },
+        { label: "diagnostics-otel plugin" },
+      ),
     },
-  },
-  {
-    id: "hermes",
-    label: "Hermes",
-    logo: hermesLogo.src,
-    language: "yaml",
-    quickstart: `resource_attributes:
+    { label: "OpenClaw" },
+  ),
+  markUiCopy(
+    {
+      id: "hermes",
+      label: "Hermes",
+      logo: hermesLogo.src,
+      language: "yaml",
+      quickstart: `resource_attributes:
   gen_ai.agent.name: research_agent
 content_capture: full
 backends:
@@ -442,22 +483,28 @@ backends:
       Authorization: "Bearer \${LITELLM_API_KEY}"
     metrics: false
     logs: false`,
-    existingModel: true,
-    fileName: "hermes_otel.yaml",
-    note: "Start a new Hermes session and ask a question. The configured name research_agent appears in Lens. Hermes' built-in diagnostic telemetry alone does not include the conversation content needed for investigations.",
-    plugin: {
-      label: "community hermes-otel plugin",
-      url: "https://github.com/briancaffey/hermes-otel#install",
-      instruction: "Set LITELLM_TRACING_KEY to your Lens tracing key, then add this to ~/.hermes/hermes_otel.yaml.",
+      existingModel: true,
+      fileName: "hermes_otel.yaml",
+      note: "Start a new Hermes session and ask a question. The configured name research_agent appears in Lens. Hermes' built-in diagnostic telemetry alone does not include the conversation content needed for investigations.",
+      plugin: markUiCopy(
+        {
+          label: "community hermes-otel plugin",
+          url: "https://github.com/briancaffey/hermes-otel#install",
+          instruction: "Set LITELLM_TRACING_KEY to your Lens tracing key, then add this to ~/.hermes/hermes_otel.yaml.",
+        },
+        { label: "community hermes-otel plugin" },
+      ),
     },
-  },
-  {
-    id: "otel",
-    label: "OpenTelemetry",
-    logo: otelLogo.src,
-    install: "pip install opentelemetry-distro opentelemetry-exporter-otlp-proto-http openai",
-    language: "python",
-    quickstart: `import os
+    { label: "Hermes" },
+  ),
+  markUiCopy(
+    {
+      id: "otel",
+      label: "OpenTelemetry",
+      logo: otelLogo.src,
+      install: "pip install opentelemetry-distro opentelemetry-exporter-otlp-proto-http openai",
+      language: "python",
+      quickstart: `import os
 
 AGENT_NAME = "research_agent"
 
@@ -481,8 +528,10 @@ with trace.get_tracer(__name__).start_as_current_span(AGENT_NAME) as span:
     answer = result.choices[0].message.content
     span.set_attribute("output.value", str(answer))
     print(answer)`,
-    fileName: "agent.py",
-  },
+      fileName: "agent.py",
+    },
+    { label: "OpenTelemetry" },
+  ),
 ];
 
 export function frameworkSnippet(guide: FrameworkGuide, proxyUrl: string, model: string, traceUrl: string): string {

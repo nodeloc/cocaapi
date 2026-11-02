@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import React from "react";
 import { CircleHelp } from "lucide-react";
 import { Providers, provider_map } from "@/components/provider_info_helpers";
@@ -36,11 +38,14 @@ interface ProviderOption {
   providerEnum: string | null;
 }
 
-const GLOBAL_OPTION: ProviderOption = {
-  value: "global",
-  label: "Global (All Providers)",
-  providerEnum: null,
-};
+const GLOBAL_OPTION: ProviderOption = markUiCopy(
+  {
+    value: "global",
+    label: "Global (All Providers)",
+    providerEnum: null,
+  },
+  { label: "Global (All Providers)" },
+);
 
 const buildProviderOptions = (marginConfig: MarginConfig): ProviderOption[] => [
   GLOBAL_OPTION,
@@ -75,6 +80,7 @@ const AddMarginForm: React.FC<AddMarginFormProps> = ({
   onFixedAmountChange,
   onAddProvider,
 }) => {
+  useUiLocale();
   const providerOptions = buildProviderOptions(marginConfig);
   const selectedOption = providerOptions.find((option) => option.value === selectedProvider) ?? null;
 
@@ -95,17 +101,29 @@ const AddMarginForm: React.FC<AddMarginFormProps> = ({
             itemToStringLabel={(option: ProviderOption) => option.label}
             isItemEqualToValue={(option: ProviderOption, selected: ProviderOption) => option.value === selected.value}
           >
-            <ComboboxInput id="margin-provider" placeholder="Select provider or 'Global'" className="w-full" />
+            <ComboboxInput
+              id="margin-provider"
+              placeholder={translateMessage("Select provider or 'Global'")}
+              className="w-full"
+            />
             <ComboboxContent>
-              <ComboboxEmpty>No matching providers</ComboboxEmpty>
+              <ComboboxEmpty>
+                <LocalizedText text={"No matching providers"} />
+              </ComboboxEmpty>
               <ComboboxList>
                 {(option: ProviderOption) => (
                   <ComboboxItem key={option.value} value={option}>
                     <span className="flex items-center space-x-2">
                       {option.providerEnum !== null && (
-                        <Logo provider={option.providerEnum} label={option.label} className="w-5 h-5" />
+                        <Logo
+                          provider={option.providerEnum}
+                          label={localizedProperty(option, "label", option.label)}
+                          className="w-5 h-5"
+                        />
                       )}
-                      <span className={option.providerEnum === null ? "font-medium" : undefined}>{option.label}</span>
+                      <span className={option.providerEnum === null ? "font-medium" : undefined}>
+                        {localizedProperty(option, "label", option.label)}
+                      </span>
                     </span>
                   </ComboboxItem>
                 )}
@@ -125,11 +143,11 @@ const AddMarginForm: React.FC<AddMarginFormProps> = ({
           >
             <FieldLabel className="font-normal">
               <RadioGroupItem value="percentage" />
-              Percentage-based
+              <LocalizedText text={"Percentage-based"} />
             </FieldLabel>
             <FieldLabel className="font-normal">
               <RadioGroupItem value="fixed" />
-              Fixed Amount
+              <LocalizedText text={"Fixed Amount"} />
             </FieldLabel>
           </RadioGroup>
         </Field>
@@ -180,7 +198,7 @@ const AddMarginForm: React.FC<AddMarginFormProps> = ({
               (marginType === "fixed" && !fixedAmountValue)
             }
           >
-            Add Provider Margin
+            <LocalizedText text={"Add Provider Margin"} />
           </Button>
         </div>
       </div>

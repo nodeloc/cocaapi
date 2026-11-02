@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, useUiLocale } from "@/lib/i18n";
 
 import { deriveKeyModelScope } from "@/components/key_scope";
 import { getModelDisplayName } from "@/components/key_team_helpers/fetch_available_models_team_key";
@@ -24,6 +25,7 @@ const formatModel = (model: string): string => {
 };
 
 export function ModelsCell({ models, maxVisible = 3, allowedRoutes, keyType }: ModelsCellProps) {
+  useUiLocale();
   if (!Array.isArray(models) || models.length === 0) {
     const scope = deriveKeyModelScope(allowedRoutes, keyType);
     if (!scope.hasModelAccess) {
@@ -32,13 +34,17 @@ export function ModelsCell({ models, maxVisible = 3, allowedRoutes, keyType }: M
           content={`Scoped to ${scope.label} routes; this key cannot call any models`}
           trigger={
             <Badge variant="secondary" className="cursor-default">
-              No model access
+              <LocalizedText text={"No model access"} />
             </Badge>
           }
         />
       );
     }
-    return <Badge variant="secondary">All Proxy Models</Badge>;
+    return (
+      <Badge variant="secondary">
+        <LocalizedText text={"All Proxy Models"} />
+      </Badge>
+    );
   }
 
   const visible = models.slice(0, maxVisible);
@@ -62,7 +68,8 @@ export function ModelsCell({ models, maxVisible = 3, allowedRoutes, keyType }: M
           }
           trigger={
             <Badge variant="outline" className="cursor-default">
-              +{overflow.length} more
+              +{overflow.length}
+              <LocalizedText text={" more"} />
             </Badge>
           }
         />

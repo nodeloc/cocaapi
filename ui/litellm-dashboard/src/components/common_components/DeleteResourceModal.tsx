@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 import { CircleAlert } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import { Alert, AlertTitle } from "@/components/shared/Alert";
@@ -23,18 +25,20 @@ interface DeleteResourceModalProps {
   requiredConfirmation?: string;
 }
 
-export default function DeleteResourceModal({
-  isOpen,
-  title,
-  alertMessage,
-  message,
-  resourceInformationTitle,
-  resourceInformation,
-  onCancel,
-  onOk,
-  confirmLoading,
-  requiredConfirmation,
-}: DeleteResourceModalProps) {
+export default function DeleteResourceModal(cocaCopyProps0: DeleteResourceModalProps) {
+  const {
+    isOpen,
+    title,
+    alertMessage,
+    message,
+    resourceInformationTitle,
+    resourceInformation,
+    onCancel,
+    onOk,
+    confirmLoading,
+    requiredConfirmation,
+  } = cocaCopyProps0;
+  useUiLocale();
   const [requiredConfirmationInput, setRequiredConfirmationInput] = useState("");
 
   useEffect(() => {
@@ -47,7 +51,7 @@ export default function DeleteResourceModal({
     <Dialog open={isOpen} onOpenChange={(open) => !open && !confirmLoading && onCancel()}>
       <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
+          <DialogTitle>{localizedProperty(cocaCopyProps0, "title", title)}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           {alertMessage && (
@@ -63,22 +67,27 @@ export default function DeleteResourceModal({
             )}
             <CardContent>
               <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-1">
-                {resourceInformation?.map(({ label, value, code }) => (
-                  <React.Fragment key={label}>
-                    <dt className="font-semibold">{label}</dt>
-                    <dd className="min-w-0 break-words">{code ? <code>{value ?? "-"}</code> : value ?? "-"}</dd>
-                  </React.Fragment>
-                ))}
+                {resourceInformation?.map((cocaCopyProps1) => {
+                  const { label, value, code } = cocaCopyProps1;
+                  return (
+                    <React.Fragment key={label}>
+                      <dt className="font-semibold">{localizedProperty(cocaCopyProps1, "label", label)}</dt>
+                      <dd className="min-w-0 break-words">{code ? <code>{value ?? "-"}</code> : value ?? "-"}</dd>
+                    </React.Fragment>
+                  );
+                })}
               </dl>
             </CardContent>
           </Card>
           <div>
-            <span>{message}</span>
+            <span>{localizedProperty(cocaCopyProps0, "message", message)}</span>
           </div>
           {requiredConfirmation && (
             <div className="mb-6 mt-4 pt-4 border-t border-border">
               <p className="block text-base font-medium text-foreground mb-2">
-                Type <span className="font-semibold text-destructive">{requiredConfirmation}</span> to confirm deletion:
+                <LocalizedText text={"Type "} />
+                <span className="font-semibold text-destructive">{requiredConfirmation}</span>
+                <LocalizedText text={" to confirm deletion:"} />
               </p>
               <InputGroup className="rounded-md">
                 <InputGroupAddon>
@@ -96,14 +105,14 @@ export default function DeleteResourceModal({
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onCancel} disabled={confirmLoading}>
-            Cancel
+            <LocalizedText text={"Cancel"} />
           </Button>
           <Button
             variant="destructive"
             onClick={onOk}
             disabled={(!!requiredConfirmation && requiredConfirmationInput !== requiredConfirmation) || confirmLoading}
           >
-            {confirmLoading ? "Deleting..." : "Delete"}
+            {confirmLoading ? translateMessage("Deleting...") : translateMessage("Delete")}
           </Button>
         </DialogFooter>
       </DialogContent>

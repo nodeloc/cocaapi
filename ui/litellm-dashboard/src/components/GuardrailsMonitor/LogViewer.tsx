@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import { CircleCheck, ChevronDown, MinusCircle, TriangleAlert, X } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import moment from "moment";
@@ -13,34 +15,46 @@ const actionConfig: Record<
   "blocked" | "passed" | "flagged" | "not_run",
   { icon: React.ElementType; color: string; bg: string; border: string; label: string }
 > = {
-  not_run: {
-    icon: MinusCircle,
-    color: "text-muted-foreground",
-    bg: "bg-muted",
-    border: "border-border",
-    label: "Not run",
-  },
-  blocked: {
-    icon: X,
-    color: "text-destructive",
-    bg: "bg-destructive/10",
-    border: "border-destructive/20",
-    label: "Blocked",
-  },
-  passed: {
-    icon: CircleCheck,
-    color: "text-success",
-    bg: "bg-success/10",
-    border: "border-success/20",
-    label: "Passed",
-  },
-  flagged: {
-    icon: TriangleAlert,
-    color: "text-warning",
-    bg: "bg-warning/10",
-    border: "border-warning/20",
-    label: "Flagged",
-  },
+  not_run: markUiCopy(
+    {
+      icon: MinusCircle,
+      color: "text-muted-foreground",
+      bg: "bg-muted",
+      border: "border-border",
+      label: "Not run",
+    },
+    { label: "Not run" },
+  ),
+  blocked: markUiCopy(
+    {
+      icon: X,
+      color: "text-destructive",
+      bg: "bg-destructive/10",
+      border: "border-destructive/20",
+      label: "Blocked",
+    },
+    { label: "Blocked" },
+  ),
+  passed: markUiCopy(
+    {
+      icon: CircleCheck,
+      color: "text-success",
+      bg: "bg-success/10",
+      border: "border-success/20",
+      label: "Passed",
+    },
+    { label: "Passed" },
+  ),
+  flagged: markUiCopy(
+    {
+      icon: TriangleAlert,
+      color: "text-warning",
+      bg: "bg-warning/10",
+      border: "border-warning/20",
+      label: "Flagged",
+    },
+    { label: "Flagged" },
+  ),
 };
 
 interface LogViewerProps {
@@ -64,6 +78,7 @@ export function LogViewer({
   startDate = "",
   endDate = "",
 }: LogViewerProps) {
+  useUiLocale();
   const [sampleSize, setSampleSize] = useState(10);
   const [activeFilter, setActiveFilter] = useState<string>(filterAction);
   const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
@@ -118,14 +133,14 @@ export function LogViewer({
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
             <h3 className="text-base font-semibold text-foreground">
-              {guardrailName ? `Logs — ${guardrailName}` : "Request Logs"}
+              {guardrailName ? translateMessage("Logs — %{0}", [guardrailName]) : translateMessage("Request Logs")}
             </h3>
             <p className="text-xs text-muted-foreground mt-0.5">
               {logsLoading
-                ? "Loading…"
+                ? translateMessage("Loading…")
                 : logs.length > 0
-                  ? `Showing ${displayLogs.length} of ${total} entries`
-                  : "No logs for this period. Select a guardrail and date range."}
+                  ? translateMessage("Showing %{0} of %{1} entries", [displayLogs.length, total])
+                  : translateMessage("No logs for this period. Select a guardrail and date range.")}
             </p>
           </div>
           {logs.length > 0 && (
@@ -144,7 +159,9 @@ export function LogViewer({
               </div>
               <div className="h-4 w-px bg-border" />
               <div className="flex items-center gap-1">
-                <span className="text-xs text-muted-foreground mr-1">Sample:</span>
+                <span className="text-xs text-muted-foreground mr-1">
+                  <LocalizedText text={"Sample:"} />
+                </span>
                 {sampleSizes.map((size) => (
                   <Button
                     key={size}
@@ -168,7 +185,7 @@ export function LogViewer({
       )}
       {!logsLoading && displayLogs.length === 0 && (
         <div className="py-12 text-center text-sm text-muted-foreground">
-          No logs to display. Adjust filters or date range.
+          <LocalizedText text={"No logs to display. Adjust filters or date range."} />
         </div>
       )}
       {!logsLoading && displayLogs.length > 0 && (
@@ -189,7 +206,7 @@ export function LogViewer({
                     <span
                       className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-sm border ${config.bg} ${config.color} ${config.border}`}
                     >
-                      {config.label}
+                      {localizedProperty(config, "label", config.label)}
                     </span>
                     <span className="text-xs text-muted-foreground">{log.timestamp}</span>
                     <span className="text-xs text-muted-foreground">·</span>

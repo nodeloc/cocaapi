@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, useUiLocale } from "@/lib/i18n";
 
 import { Inbox } from "lucide-react";
 import React, { useMemo } from "react";
@@ -14,18 +15,24 @@ interface DocumentsTableProps {
 }
 
 function EmptyState() {
+  useUiLocale();
   return (
     <div className="flex flex-col items-center gap-1 py-6">
       <div className="mb-1 flex size-10 items-center justify-center rounded-lg bg-muted">
         <Inbox className="size-5 text-muted-foreground" />
       </div>
-      <div className="text-sm font-medium text-foreground">No documents uploaded yet</div>
-      <div className="text-sm text-muted-foreground">Upload documents above to get started.</div>
+      <div className="text-sm font-medium text-foreground">
+        <LocalizedText text={"No documents uploaded yet"} />
+      </div>
+      <div className="text-sm text-muted-foreground">
+        <LocalizedText text={"Upload documents above to get started."} />
+      </div>
     </div>
   );
 }
 
 const DocumentsTable: React.FC<DocumentsTableProps> = ({ documents, onRemove }) => {
+  useUiLocale();
   const columns = useMemo(() => getDocumentsTableColumns({ onRemove }), [onRemove]);
 
   return (

@@ -1,4 +1,5 @@
 "use client";
+import { localizedProperty, useUiLocale } from "@/lib/i18n";
 
 import { ChevronRight } from "lucide-react";
 import * as React from "react";
@@ -19,16 +20,23 @@ interface IdentityCellProps {
 const INTERACTIVE_CELL_CLASSES =
   "group -mx-2 flex w-[calc(100%+1rem)] cursor-pointer items-center gap-2 rounded-md px-2 py-1 text-left transition-colors hover:bg-muted";
 
-const HoverChevron = () => (
-  <ChevronRight className="ml-auto size-4 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
-);
+const HoverChevron = () => {
+  useUiLocale();
+  return (
+    <ChevronRight className="ml-auto size-4 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
+  );
+};
 
-export function IdentityCell({ title, subtitle, badge, onClick, href, className, titleClassName }: IdentityCellProps) {
+export function IdentityCell(cocaCopyProps0: IdentityCellProps) {
+  const { title, subtitle, badge, onClick, href, className, titleClassName } = cocaCopyProps0;
+  useUiLocale();
   const hasSubtitleRow = (subtitle != null && subtitle !== "") || badge != null;
 
   const body = (
     <div className="flex min-w-0 flex-col gap-0.5">
-      <span className={cn("truncate text-sm font-medium text-foreground", titleClassName)}>{title}</span>
+      <span className={cn("truncate text-sm font-medium text-foreground", titleClassName)}>
+        {localizedProperty(cocaCopyProps0, "title", title)}
+      </span>
       {hasSubtitleRow && (
         <span className="flex min-w-0 items-center gap-2">
           {subtitle != null && subtitle !== "" && (
@@ -57,6 +65,7 @@ export function IdentityCell({ title, subtitle, badge, onClick, href, className,
 }
 
 function IdentityCellLink({ href, className, body }: { href: string; className?: string; body: React.ReactNode }) {
+  useUiLocale();
   const handleClick = useEntityLinkClick(href);
 
   return (

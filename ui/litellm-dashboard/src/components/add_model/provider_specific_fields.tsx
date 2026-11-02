@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import { useProviderFields } from "@/app/(dashboard)/hooks/providers/useProviderFields";
 import { PasswordInput } from "@/components/shared/PasswordInput";
 import { Input } from "@/components/ui/input";
@@ -69,16 +71,19 @@ const mapFieldMetadataToUiField = (field: ProviderCredentialFieldMetadata): Prov
             ? "textarea"
             : "text";
 
-  return {
-    key: field.key,
-    label: field.label,
-    placeholder: field.placeholder ?? undefined,
-    tooltip: field.tooltip ?? undefined,
-    required: field.required ?? false,
-    type,
-    options: field.options ?? undefined,
-    defaultValue: field.default_value ?? undefined,
-  };
+  return markUiCopy(
+    {
+      key: field.key,
+      label: field.label,
+      placeholder: field.placeholder ?? undefined,
+      tooltip: field.tooltip ?? undefined,
+      required: field.required ?? false,
+      type,
+      options: field.options ?? undefined,
+      defaultValue: field.default_value ?? undefined,
+    },
+    { label: { owner: field, field: "label" } },
+  );
 };
 
 const providerFieldsByDisplayName: Record<string, ProviderCredentialField[]> = {};
@@ -88,6 +93,7 @@ const ProviderSpecificFields: React.FC<ProviderSpecificFieldsProps> = ({
   hiddenFieldKeys,
   fieldValidators,
 }) => {
+  useUiLocale();
   const selectedProviderEnum = Providers[selectedProvider as keyof typeof Providers] as Providers;
   const form = useFormContext<MountedFormValues>();
   const credentialsFileRef = React.useRef<HTMLInputElement>(null);
@@ -210,7 +216,7 @@ const ProviderSpecificFields: React.FC<ProviderSpecificFieldsProps> = ({
           onValueChange={control.onChange}
         >
           <SelectTrigger id={control.id} onBlur={control.onBlur} className="w-full">
-            <SelectValue placeholder={field.placeholder} />
+            <SelectValue placeholder={localizedProperty(field, "placeholder", field.placeholder)} />
           </SelectTrigger>
           <SelectContent>
             {field.options?.map((option) => (
@@ -228,7 +234,7 @@ const ProviderSpecificFields: React.FC<ProviderSpecificFieldsProps> = ({
         <>
           <Button type="button" variant="outline" className="w-fit" onClick={() => credentialsFileRef.current?.click()}>
             <UploadIcon />
-            Click to Upload
+            <LocalizedText text={"Click to Upload"} />
           </Button>
           <input
             ref={credentialsFileRef}
@@ -250,7 +256,7 @@ const ProviderSpecificFields: React.FC<ProviderSpecificFieldsProps> = ({
           value={control.value as string | undefined}
           onChange={control.onChange}
           onBlur={control.onBlur}
-          placeholder={field.placeholder}
+          placeholder={localizedProperty(field, "placeholder", field.placeholder)}
           defaultValue={field.defaultValue}
           rows={6}
           className="font-mono text-xs"
@@ -265,7 +271,7 @@ const ProviderSpecificFields: React.FC<ProviderSpecificFieldsProps> = ({
           value={control.value as string | undefined}
           onChange={control.onChange}
           onBlur={control.onBlur}
-          placeholder={field.placeholder}
+          placeholder={localizedProperty(field, "placeholder", field.placeholder)}
           defaultValue={field.defaultValue}
         />
       );
@@ -276,7 +282,7 @@ const ProviderSpecificFields: React.FC<ProviderSpecificFieldsProps> = ({
         id={control.id}
         value={(control.value as string | undefined) ?? undefined}
         onBlur={control.onBlur}
-        placeholder={field.placeholder}
+        placeholder={localizedProperty(field, "placeholder", field.placeholder)}
         type="text"
         defaultValue={field.defaultValue}
         onChange={(event) => {
@@ -291,16 +297,24 @@ const ProviderSpecificFields: React.FC<ProviderSpecificFieldsProps> = ({
 
   return (
     <>
-      {isLoading && allFields.length === 0 && <p className="text-sm mb-2">Loading provider fields...</p>}
+      {isLoading && allFields.length === 0 && (
+        <p className="text-sm mb-2">
+          <LocalizedText text={"Loading provider fields..."} />
+        </p>
+      )}
       {loadError && allFields.length === 0 && (
         <p className="text-sm mb-2 text-destructive">
-          {loadError instanceof Error ? loadError.message : "Failed to load provider credential fields"}
+          {loadError instanceof Error
+            ? localizedProperty(loadError, "message", loadError.message)
+            : translateMessage("Failed to load provider credential fields")}
         </p>
       )}
       {allFields.map((field) => (
         <React.Fragment key={`${selectedProvider}:${field.key}`}>
           <MountedFormField
-            label={field.tooltip ? labelWithHint(field.label, field.tooltip) : field.label}
+            label={
+              field.tooltip ? labelWithHint(field.label, field.tooltip) : localizedProperty(field, "label", field.label)
+            }
             name={field.key}
             required={field.required}
             rules={{
@@ -316,21 +330,27 @@ const ProviderSpecificFields: React.FC<ProviderSpecificFieldsProps> = ({
 
           {/* Special case for Vertex Credentials help text */}
           {field.key === "vertex_credentials" && (
-            <p className="text-sm mb-3 mt-1">Give a gcp service account(.json file)</p>
+            <p className="text-sm mb-3 mt-1">
+              <LocalizedText text={"Give a gcp service account(.json file)"} />
+            </p>
           )}
 
           {/* Special case for Azure Base Model help text */}
           {field.key === "base_model" && (
             <div className="grid grid-cols-24">
               <p className="col-start-11 col-span-10 text-sm mb-2">
-                The actual model your azure deployment uses. Used for accurate cost tracking. Select name from{" "}
+                <LocalizedText
+                  text={
+                    "The actual model your azure deployment uses. Used for accurate cost tracking. Select name from"
+                  }
+                />{" "}
                 <a
                   href="https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-primary underline-offset-4 hover:underline"
                 >
-                  here
+                  <LocalizedText text={"here"} />
                 </a>
               </p>
             </div>

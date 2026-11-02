@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { ChevronRight, CircleHelp } from "lucide-react";
 import React from "react";
@@ -56,6 +57,7 @@ interface CreateTagModalProps {
 }
 
 const CreateTagModal: React.FC<CreateTagModalProps> = ({ visible, onCancel, onSubmit, availableModels }) => {
+  useUiLocale();
   const [budgetSectionOpen, setBudgetSectionOpen] = React.useState(false);
   const form = useZodForm(createTagSchema, { defaultValues: { tag_name: "" } });
 
@@ -80,16 +82,18 @@ const CreateTagModal: React.FC<CreateTagModalProps> = ({ visible, onCancel, onSu
     <Dialog open={visible} onOpenChange={(open) => !open && handleCancel()}>
       <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-[800px]">
         <DialogHeader>
-          <DialogTitle>Create New Tag</DialogTitle>
+          <DialogTitle>
+            <LocalizedText text={"Create New Tag"} />
+          </DialogTitle>
         </DialogHeader>
         <form onSubmit={form.handleSubmit(handleFinish)} noValidate>
           <TooltipProvider>
             <FieldGroup>
-              <FormField control={form.control} name="tag_name" label="Tag Name">
+              <FormField control={form.control} name="tag_name" label={translateMessage("Tag Name")}>
                 {({ ref, ...field }) => <Input {...field} ref={ref} />}
               </FormField>
 
-              <FormField control={form.control} name="description" label="Description">
+              <FormField control={form.control} name="description" label={translateMessage("Description")}>
                 {({ ref, value, ...field }) => <Textarea {...field} ref={ref} value={value ?? ""} rows={4} />}
               </FormField>
 
@@ -106,7 +110,7 @@ const CreateTagModal: React.FC<CreateTagModalProps> = ({ visible, onCancel, onSu
                     options={modelOptions}
                     value={value}
                     onValueChange={onChange}
-                    placeholder="Select Models"
+                    placeholder={translateMessage("Select Models")}
                   />
                 )}
               </FormField>
@@ -118,7 +122,7 @@ const CreateTagModal: React.FC<CreateTagModalProps> = ({ visible, onCancel, onSu
               className="mt-4 mb-4 rounded-md border border-border"
             >
               <CollapsibleTrigger className="group flex w-full items-center justify-between px-4 py-3 text-base font-medium text-foreground">
-                Budget & Rate Limits (Optional)
+                <LocalizedText text={"Budget & Rate Limits (Optional)"} />
                 <ChevronRight className="size-4 text-muted-foreground transition-transform group-data-panel-open:rotate-90" />
               </CollapsibleTrigger>
               <CollapsibleContent className="px-4 pb-4">
@@ -154,14 +158,16 @@ const CreateTagModal: React.FC<CreateTagModalProps> = ({ visible, onCancel, onSu
 
                 <div className="mt-4 rounded-md border border-border bg-muted p-3">
                   <p className="text-sm text-muted-foreground">
-                    TPM/RPM limits for tags are not currently supported. If you need this feature, please{" "}
+                    <LocalizedText
+                      text={"TPM/RPM limits for tags are not currently supported. If you need this feature, please"}
+                    />{" "}
                     <a
                       href="https://github.com/BerriAI/litellm/issues/new"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-info underline hover:text-info/80"
                     >
-                      create a GitHub issue
+                      <LocalizedText text={"create a GitHub issue"} />
                     </a>
                     .
                   </p>
@@ -170,7 +176,9 @@ const CreateTagModal: React.FC<CreateTagModalProps> = ({ visible, onCancel, onSu
             </Collapsible>
 
             <div className="mt-2.5 text-right">
-              <Button type="submit">Create Tag</Button>
+              <Button type="submit">
+                <LocalizedText text={"Create Tag"} />
+              </Button>
             </div>
           </TooltipProvider>
         </form>

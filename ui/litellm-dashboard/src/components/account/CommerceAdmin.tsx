@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, getIntlLocale, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { useCallback, useEffect, useRef, useState, useMemo, type FormEvent } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -35,6 +36,7 @@ function batchStatus(disabled: boolean, expiry: string | null): string {
 }
 
 export default function CommerceAdmin({ section = "wallets" }: { section?: Section }) {
+  useUiLocale();
   const { accessToken, userRole, isViewOnly, isAuthorized } = useAuthorized();
   const allowed = isAuthorized && !isViewOnly && isProxyAdminRole(userRole);
   const [wallets, setWallets] = useState<Wallets | null>(null);
@@ -60,7 +62,12 @@ export default function CommerceAdmin({ section = "wallets" }: { section?: Secti
   const [disableId, setDisableId] = useState("");
   const [disableReason, setDisableReason] = useState("");
   const request = useRef<{ body: string; key: string } | null>(null);
-  const showError = (cause: unknown) => setError(cause instanceof Error ? cause.message : "请求失败，请稍后重试。");
+  const showError = (cause: unknown) =>
+    setError(
+      cause instanceof Error
+        ? localizedProperty(cause, "message", cause.message)
+        : translateMessage("请求失败，请稍后重试。"),
+    );
   const load = useCallback(async () => {
     if (!allowed || !accessToken) return;
     if (section === "wallets") setWallets(await walletApi.wallets(accessToken, filter, offset));
@@ -129,7 +136,7 @@ export default function CommerceAdmin({ section = "wallets" }: { section?: Secti
       setGenerated(await walletApi.generate(accessToken, body, key));
       setAllowRepeatRedemption(false);
       request.current = null;
-      setMessage("批次已创建。请立即导出兑换码，离开或关闭后无法再次查看。");
+      setMessage(translateMessage("批次已创建。请立即导出兑换码，离开或关闭后无法再次查看。"));
     });
   };
   const adjust = (event: FormEvent) => {
@@ -141,7 +148,7 @@ export default function CommerceAdmin({ section = "wallets" }: { section?: Secti
       await walletApi.adjust(accessToken, selected, body, key);
       setReason("");
       request.current = null;
-      setMessage("余额已调整，已记录操作人和原因。");
+      setMessage(translateMessage("余额已调整，已记录操作人和原因。"));
       setLedger(await walletApi.adminLedger(accessToken, selected, 0));
       setLedgerOffset(0);
     });
@@ -159,153 +166,196 @@ export default function CommerceAdmin({ section = "wallets" }: { section?: Secti
   };
   const walletColumns = useMemo<ColumnDef<Wallets["items"][number]>[]>(
     () => [
-      {
-        id: "user",
-        header: "用户",
-        cell: ({ row: { original: wallet } }) => (
-          <div>
-            <p>{wallet.email ?? "未设置邮箱"}</p>
-            <p className="max-w-64 whitespace-normal break-all font-mono text-xs text-muted-foreground">
-              {wallet.user_id}
-            </p>
-          </div>
-        ),
-      },
-      {
-        accessorKey: "available_units",
-        header: "可用余额",
-        meta: { numeric: true },
-        cell: ({ row }) => formatCredits(row.original.available_units),
-      },
-      {
-        id: "totals",
-        header: "累计入账 / 扣减",
-        meta: { numeric: true },
-        cell: ({ row: { original: wallet } }) => (
-          <>
-            {formatCredits(wallet.credited_units)} / {formatCredits(wallet.debited_units)}
-          </>
-        ),
-      },
-      {
-        id: "holds",
-        header: "调用冻结 / 待补缴",
-        meta: { numeric: true },
-        cell: ({ row: { original: wallet } }) => (
-          <>
-            {formatCredits(wallet.reserved_units)} / {formatCredits(wallet.debt_units ?? "0")}
-          </>
-        ),
-      },
-      {
-        id: "actions",
-        header: "操作",
-        cell: ({ row }) => (
-          <Button variant="outline" size="sm" disabled={busy} onClick={() => selectWallet(row.original.user_id)}>
-            查看与调整
-          </Button>
-        ),
-      },
+      markUiCopy(
+        {
+          id: "user",
+          header: "用户",
+          cell: ({ row: { original: wallet } }) => (
+            <div>
+              <p>{wallet.email ?? translateMessage("未设置邮箱")}</p>
+              <p className="max-w-64 whitespace-normal break-all font-mono text-xs text-muted-foreground">
+                {wallet.user_id}
+              </p>
+            </div>
+          ),
+        },
+        { header: "用户" },
+      ),
+      markUiCopy(
+        {
+          accessorKey: "available_units",
+          header: "可用余额",
+          meta: { numeric: true },
+          cell: ({ row }) => formatCredits(row.original.available_units),
+        },
+        { header: "可用余额" },
+      ),
+      markUiCopy(
+        {
+          id: "totals",
+          header: "累计入账 / 扣减",
+          meta: { numeric: true },
+          cell: ({ row: { original: wallet } }) => (
+            <>
+              {formatCredits(wallet.credited_units)} / {formatCredits(wallet.debited_units)}
+            </>
+          ),
+        },
+        { header: "累计入账 / 扣减" },
+      ),
+      markUiCopy(
+        {
+          id: "holds",
+          header: "调用冻结 / 待补缴",
+          meta: { numeric: true },
+          cell: ({ row: { original: wallet } }) => (
+            <>
+              {formatCredits(wallet.reserved_units)} / {formatCredits(wallet.debt_units ?? "0")}
+            </>
+          ),
+        },
+        { header: "调用冻结 / 待补缴" },
+      ),
+      markUiCopy(
+        {
+          id: "actions",
+          header: "操作",
+          cell: ({ row }) => (
+            <Button variant="outline" size="sm" disabled={busy} onClick={() => selectWallet(row.original.user_id)}>
+              <LocalizedText text={"查看与调整"} />
+            </Button>
+          ),
+        },
+        { header: "操作" },
+      ),
     ],
     [busy, selectWallet],
   );
 
   const batchColumns = useMemo<ColumnDef<Batches["items"][number]>[]>(
     () => [
-      {
-        id: "batch",
-        header: "批次",
-        cell: ({ row: { original: batch } }) => (
-          <div>
-            <p>{batch.name}</p>
-            <p className="max-w-64 whitespace-normal break-all font-mono text-xs text-muted-foreground">{batch.id}</p>
-          </div>
-        ),
-      },
-      {
-        accessorKey: "face_units",
-        header: "面值",
-        meta: { numeric: true },
-        cell: ({ row }) => formatCredits(row.original.face_units),
-      },
-      {
-        id: "count",
-        header: "已兑换 / 数量",
-        meta: { numeric: true },
-        cell: ({ row: { original: batch } }) => (
-          <>
-            {batch.redeemed_count} / {batch.count}
-          </>
-        ),
-      },
-      {
-        id: "repeat_policy",
-        header: "每人兑换限制",
-        cell: ({ row: { original: batch } }) => (
-          <Badge variant="secondary">{batch.allow_repeat_redemption ? "允许多次" : "每人一次"}</Badge>
-        ),
-      },
-      {
-        id: "status",
-        header: "状态 / 有效期",
-        cell: ({ row: { original: batch } }) => (
-          <div>
-            <Badge variant="secondary">{batchStatus(batch.disabled, batch.expires_at)}</Badge>
-            <p className="mt-1 text-xs text-muted-foreground">
-              {batch.expires_at ? new Date(batch.expires_at).toLocaleString() : "长期有效"}
-            </p>
-          </div>
-        ),
-      },
-      {
-        id: "actions",
-        header: "操作",
-        cell: ({ row: { original: batch } }) => (
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={busy || batch.disabled}
-            onClick={() => {
-              setDisableId(batch.id);
-              setDisableReason("");
-            }}
-          >
-            停用
-          </Button>
-        ),
-      },
+      markUiCopy(
+        {
+          id: "batch",
+          header: "批次",
+          cell: ({ row: { original: batch } }) => (
+            <div>
+              <p>{batch.name}</p>
+              <p className="max-w-64 whitespace-normal break-all font-mono text-xs text-muted-foreground">{batch.id}</p>
+            </div>
+          ),
+        },
+        { header: "批次" },
+      ),
+      markUiCopy(
+        {
+          accessorKey: "face_units",
+          header: "面值",
+          meta: { numeric: true },
+          cell: ({ row }) => formatCredits(row.original.face_units),
+        },
+        { header: "面值" },
+      ),
+      markUiCopy(
+        {
+          id: "count",
+          header: "已兑换 / 数量",
+          meta: { numeric: true },
+          cell: ({ row: { original: batch } }) => (
+            <>
+              {batch.redeemed_count} / {batch.count}
+            </>
+          ),
+        },
+        { header: "已兑换 / 数量" },
+      ),
+      markUiCopy(
+        {
+          id: "repeat_policy",
+          header: "每人兑换限制",
+          cell: ({ row: { original: batch } }) => (
+            <Badge variant="secondary">
+              {batch.allow_repeat_redemption ? translateMessage("允许多次") : translateMessage("每人一次")}
+            </Badge>
+          ),
+        },
+        { header: "每人兑换限制" },
+      ),
+      markUiCopy(
+        {
+          id: "status",
+          header: "状态 / 有效期",
+          cell: ({ row: { original: batch } }) => (
+            <div>
+              <Badge variant="secondary">{batchStatus(batch.disabled, batch.expires_at)}</Badge>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {batch.expires_at
+                  ? new Date(batch.expires_at).toLocaleString(getIntlLocale())
+                  : translateMessage("长期有效")}
+              </p>
+            </div>
+          ),
+        },
+        { header: "状态 / 有效期" },
+      ),
+      markUiCopy(
+        {
+          id: "actions",
+          header: "操作",
+          cell: ({ row: { original: batch } }) => (
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={busy || batch.disabled}
+              onClick={() => {
+                setDisableId(batch.id);
+                setDisableReason("");
+              }}
+            >
+              <LocalizedText text={"停用"} />
+            </Button>
+          ),
+        },
+        { header: "操作" },
+      ),
     ],
     [busy],
   );
 
   if (!allowed)
-    return <div className="p-8 text-sm text-muted-foreground">仅完整代理管理员可以管理余额、充值和兑换码。</div>;
+    return (
+      <div className="p-8 text-sm text-muted-foreground">
+        <LocalizedText text={"仅完整代理管理员可以管理余额、充值和兑换码。"} />
+      </div>
+    );
   return (
     <CommercePage section={section}>
       <AccountNotice error={error} message={message} />
       <p className="text-sm text-muted-foreground">
-        余额按 USD 额度记账，API 调用通过预扣和实际费用结算。USDT 网关当前预留接口。
+        <LocalizedText text={"余额按 USD 额度记账，API 调用通过预扣和实际费用结算。USDT 网关当前预留接口。"} />
       </p>
       {section !== "redemptions" && (
         <form className="flex flex-wrap items-center gap-2" onSubmit={applySearch}>
           <Label className="sr-only" htmlFor="commerce-search">
-            搜索
+            <LocalizedText text={"搜索"} />
           </Label>
           <Input
             className="w-full sm:max-w-xs"
             id="commerce-search"
-            placeholder={section === "wallets" ? "邮箱或用户 ID" : "订单 ID 或用户 ID"}
+            placeholder={
+              section === "wallets" ? translateMessage("邮箱或用户 ID") : translateMessage("订单 ID 或用户 ID")
+            }
             value={search}
             maxLength={section === "wallets" ? 254 : 128}
             onChange={(event) => setSearch(event.target.value)}
           />
           <Button type="submit" variant="outline" disabled={busy}>
             <Search />
-            搜索
+            <LocalizedText text={"搜索"} />
           </Button>
           <Button type="button" variant="outline" disabled={busy} onClick={() => run(async () => {})}>
             <RefreshCw />
-            刷新
+            <LocalizedText text={"刷新"} />
           </Button>
         </form>
       )}
@@ -316,7 +366,7 @@ export default function CommerceAdmin({ section = "wallets" }: { section?: Secti
             getRowId={(wallet) => wallet.user_id}
             paginationMode="none"
             sortingMode="none"
-            noDataMessage="暂无用户"
+            noDataMessage={translateMessage("暂无用户")}
             columns={walletColumns}
           />
           <Pager offset={offset} hasMore={wallets.has_more} busy={busy} onPage={setOffset} />
@@ -326,35 +376,45 @@ export default function CommerceAdmin({ section = "wallets" }: { section?: Secti
         <Card>
           <CardHeader>
             <CardTitle>
-              <h2>余额调整</h2>
+              <h2>
+                <LocalizedText text={"余额调整"} />
+              </h2>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-xs font-mono break-all">{selected}</p>
             <form className="grid gap-3 sm:grid-cols-2" onSubmit={adjust}>
               <div className="space-y-2">
-                <Label htmlFor="adjust-direction">调整类型</Label>
+                <Label htmlFor="adjust-direction">
+                  <LocalizedText text={"调整类型"} />
+                </Label>
                 <Select
                   value={direction}
                   onValueChange={(value) => {
                     if (value === "credit" || value === "debit") setDirection(value);
                   }}
                   items={[
-                    { value: "credit", label: "增加额度" },
-                    { value: "debit", label: "扣减额度" },
+                    markUiCopy({ value: "credit", label: "增加额度" }, { label: "增加额度" }),
+                    markUiCopy({ value: "debit", label: "扣减额度" }, { label: "扣减额度" }),
                   ]}
                 >
                   <SelectTrigger id="adjust-direction" className="w-full">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="credit">增加额度</SelectItem>
-                    <SelectItem value="debit">扣减额度</SelectItem>
+                    <SelectItem value="credit">
+                      <LocalizedText text={"增加额度"} />
+                    </SelectItem>
+                    <SelectItem value="debit">
+                      <LocalizedText text={"扣减额度"} />
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="adjust-amount">金额（USD）</Label>
+                <Label htmlFor="adjust-amount">
+                  <LocalizedText text={"金额（USD）"} />
+                </Label>
                 <Input
                   id="adjust-amount"
                   required
@@ -364,7 +424,9 @@ export default function CommerceAdmin({ section = "wallets" }: { section?: Secti
                 />
               </div>
               <div className="sm:col-span-2 space-y-2">
-                <Label htmlFor="adjust-reason">调整原因</Label>
+                <Label htmlFor="adjust-reason">
+                  <LocalizedText text={"调整原因"} />
+                </Label>
                 <Input
                   id="adjust-reason"
                   required
@@ -374,7 +436,7 @@ export default function CommerceAdmin({ section = "wallets" }: { section?: Secti
                 />
               </div>
               <Button type="submit" disabled={busy || !reason.trim()}>
-                确认调整
+                <LocalizedText text={"确认调整"} />
               </Button>
             </form>
             {ledger && (
@@ -392,18 +454,24 @@ export default function CommerceAdmin({ section = "wallets" }: { section?: Secti
             <Card>
               <CardHeader>
                 <CardTitle>
-                  <h2>本次生成的兑换码</h2>
+                  <h2>
+                    <LocalizedText text={"本次生成的兑换码"} />
+                  </h2>
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <p className="text-sm text-muted-foreground">原始兑换码仅展示一次，请妥善保存。</p>
+                <p className="text-sm text-muted-foreground">
+                  <LocalizedText text={"原始兑换码仅展示一次，请妥善保存。"} />
+                </p>
                 <pre className="max-h-80 overflow-auto rounded-md border bg-muted p-3 text-xs select-all">
                   {generated.codes.join("\n")}
                 </pre>
                 <div className="flex gap-3">
-                  <Button onClick={download}>导出 TXT</Button>
+                  <Button onClick={download}>
+                    <LocalizedText text={"导出 TXT"} />
+                  </Button>
                   <Button variant="outline" onClick={() => setGenerated(null)}>
-                    已保存，关闭
+                    <LocalizedText text={"已保存，关闭"} />
                   </Button>
                 </div>
               </CardContent>
@@ -412,13 +480,17 @@ export default function CommerceAdmin({ section = "wallets" }: { section?: Secti
             <Card>
               <CardHeader>
                 <CardTitle>
-                  <h2>创建兑换码批次</h2>
+                  <h2>
+                    <LocalizedText text={"创建兑换码批次"} />
+                  </h2>
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <form onSubmit={generate} className="grid sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="batch-name">批次名称</Label>
+                    <Label htmlFor="batch-name">
+                      <LocalizedText text={"批次名称"} />
+                    </Label>
                     <Input
                       id="batch-name"
                       required
@@ -428,7 +500,9 @@ export default function CommerceAdmin({ section = "wallets" }: { section?: Secti
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="batch-amount">每个兑换额度（USD）</Label>
+                    <Label htmlFor="batch-amount">
+                      <LocalizedText text={"每个兑换额度（USD）"} />
+                    </Label>
                     <Input
                       id="batch-amount"
                       required
@@ -438,7 +512,9 @@ export default function CommerceAdmin({ section = "wallets" }: { section?: Secti
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="batch-count">数量（1 至 100）</Label>
+                    <Label htmlFor="batch-count">
+                      <LocalizedText text={"数量（1 至 100）"} />
+                    </Label>
                     <Input
                       id="batch-count"
                       required
@@ -451,7 +527,9 @@ export default function CommerceAdmin({ section = "wallets" }: { section?: Secti
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="batch-expiry">到期时间（可选，本地时区）</Label>
+                    <Label htmlFor="batch-expiry">
+                      <LocalizedText text={"到期时间（可选，本地时区）"} />
+                    </Label>
                     <Input
                       id="batch-expiry"
                       type="datetime-local"
@@ -470,15 +548,17 @@ export default function CommerceAdmin({ section = "wallets" }: { section?: Secti
                     />
                     <div className="space-y-1">
                       <Label htmlFor="batch-repeat" className="cursor-pointer">
-                        允许同一用户多次兑换
+                        <LocalizedText text={"允许同一用户多次兑换"} />
                       </Label>
                       <p id="batch-repeat-help" className="text-xs text-muted-foreground">
-                        默认每位用户在本批次只能兑换一个码。开启后可兑换多个不同码，每个码仍只入账一次。
+                        <LocalizedText
+                          text={"默认每位用户在本批次只能兑换一个码。开启后可兑换多个不同码，每个码仍只入账一次。"}
+                        />
                       </p>
                     </div>
                   </div>
                   <Button type="submit" disabled={busy || !name.trim()}>
-                    生成兑换码
+                    <LocalizedText text={"生成兑换码"} />
                   </Button>
                 </form>
               </CardContent>
@@ -491,7 +571,7 @@ export default function CommerceAdmin({ section = "wallets" }: { section?: Secti
                 getRowId={(batch) => batch.id}
                 paginationMode="none"
                 sortingMode="none"
-                noDataMessage="暂无兑换码批次"
+                noDataMessage={translateMessage("暂无兑换码批次")}
                 columns={batchColumns}
               />
               <Pager offset={offset} hasMore={batches.has_more} busy={busy} onPage={setOffset} />
@@ -501,7 +581,9 @@ export default function CommerceAdmin({ section = "wallets" }: { section?: Secti
             <Card>
               <CardHeader>
                 <CardTitle>
-                  <h2>停用批次</h2>
+                  <h2>
+                    <LocalizedText text={"停用批次"} />
+                  </h2>
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -513,12 +595,14 @@ export default function CommerceAdmin({ section = "wallets" }: { section?: Secti
                       void run(async () => {
                         await walletApi.disable(accessToken, disableId, disableReason);
                         setDisableId("");
-                        setMessage("批次已停用，未使用的兑换码无法继续兑换。");
+                        setMessage(translateMessage("批次已停用，未使用的兑换码无法继续兑换。"));
                       });
                   }}
                 >
                   <p className="font-mono text-xs">{disableId}</p>
-                  <Label htmlFor="disable-reason">停用原因</Label>
+                  <Label htmlFor="disable-reason">
+                    <LocalizedText text={"停用原因"} />
+                  </Label>
                   <Input
                     id="disable-reason"
                     required
@@ -528,10 +612,10 @@ export default function CommerceAdmin({ section = "wallets" }: { section?: Secti
                   />
                   <div className="flex gap-3">
                     <Button type="submit" disabled={busy || !disableReason.trim()}>
-                      确认停用
+                      <LocalizedText text={"确认停用"} />
                     </Button>
                     <Button type="button" variant="outline" disabled={busy} onClick={() => setDisableId("")}>
-                      取消
+                      <LocalizedText text={"取消"} />
                     </Button>
                   </div>
                 </form>
@@ -549,7 +633,7 @@ export default function CommerceAdmin({ section = "wallets" }: { section?: Secti
               if (accessToken)
                 void run(async () => {
                   await walletApi.adminRefresh(accessToken, id);
-                  setMessage("已从支付网关重新查询订单。");
+                  setMessage(translateMessage("已从支付网关重新查询订单。"));
                 });
             }}
           />

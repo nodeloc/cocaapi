@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 import useAuthorized from "@/app/(dashboard)/hooks/useAuthorized";
 import { Alert, AlertTitle } from "@/components/shared/Alert";
 import { Button } from "@/components/ui/button";
@@ -64,6 +66,7 @@ interface RegenerateKeyModalProps {
 }
 
 export function RegenerateKeyModal({ selectedToken, visible, onClose, onKeyUpdate }: RegenerateKeyModalProps) {
+  useUiLocale();
   const { accessToken } = useAuthorized();
   const [regeneratedKey, setRegeneratedKey] = useState<string | null>(null);
   const [isRegenerating, setIsRegenerating] = useState(false);
@@ -97,7 +100,7 @@ export function RegenerateKeyModal({ selectedToken, visible, onClose, onKeyUpdat
     try {
       const response = await regenerateKeyCall(accessToken, selectedToken.token || selectedToken.token_id, formValues);
       setRegeneratedKey(response.key);
-      toast.success("Virtual Key regenerated successfully");
+      toast.success(translateMessage("Virtual Key regenerated successfully"));
 
       // Build the update payload. Spread the API response first so any new
       // fields it returns (new token, timestamps, etc.) are captured, then
@@ -151,22 +154,32 @@ export function RegenerateKeyModal({ selectedToken, visible, onClose, onKeyUpdat
     <Dialog open={visible} onOpenChange={(open) => !open && handleClose()} disablePointerDismissal>
       <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-[520px]">
         <DialogHeader>
-          <DialogTitle>Regenerate Virtual Key</DialogTitle>
+          <DialogTitle>
+            <LocalizedText text={"Regenerate Virtual Key"} />
+          </DialogTitle>
         </DialogHeader>
         {regeneratedKey ? (
           <div className="flex flex-col gap-4">
             <Alert variant="warning">
               <TriangleAlert />
-              <AlertTitle>Save it now, you will not see it again</AlertTitle>
+              <AlertTitle>
+                <LocalizedText text={"Save it now, you will not see it again"} />
+              </AlertTitle>
             </Alert>
 
             <div className="flex flex-col gap-0.5">
-              <span className="text-xs text-muted-foreground">Key Alias</span>
-              <span className="text-sm text-foreground">{selectedToken?.key_alias || "No alias set"}</span>
+              <span className="text-xs text-muted-foreground">
+                <LocalizedText text={"Key Alias"} />
+              </span>
+              <span className="text-sm text-foreground">
+                {selectedToken?.key_alias || translateMessage("No alias set")}
+              </span>
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <span className="text-xs text-muted-foreground">Virtual Key</span>
+              <span className="text-xs text-muted-foreground">
+                <LocalizedText text={"Virtual Key"} />
+              </span>
               <div className="rounded-md border border-border bg-muted px-4 py-3.5 font-mono text-base break-all text-foreground">
                 {regeneratedKey}
               </div>
@@ -176,12 +189,12 @@ export function RegenerateKeyModal({ selectedToken, visible, onClose, onKeyUpdat
           <TooltipProvider>
             <form onSubmit={(event) => event.preventDefault()} noValidate className="mt-1">
               <FieldGroup>
-                <FormField control={form.control} name="key_alias" label="Key Alias">
+                <FormField control={form.control} name="key_alias" label={translateMessage("Key Alias")}>
                   {({ ref, value, ...field }) => <Input {...field} ref={ref} value={value ?? ""} disabled />}
                 </FormField>
 
                 <div className="grid grid-cols-3 gap-3">
-                  <FormField control={form.control} name="max_budget" label="Max Budget (USD)">
+                  <FormField control={form.control} name="max_budget" label={translateMessage("Max Budget (USD)")}>
                     {({ ref, value, onChange, ...field }) => (
                       <Input
                         {...field}
@@ -194,7 +207,7 @@ export function RegenerateKeyModal({ selectedToken, visible, onClose, onKeyUpdat
                     )}
                   </FormField>
 
-                  <FormField control={form.control} name="tpm_limit" label="TPM Limit">
+                  <FormField control={form.control} name="tpm_limit" label={translateMessage("TPM Limit")}>
                     {({ ref, value, onChange, ...field }) => (
                       <Input
                         {...field}
@@ -206,7 +219,7 @@ export function RegenerateKeyModal({ selectedToken, visible, onClose, onKeyUpdat
                     )}
                   </FormField>
 
-                  <FormField control={form.control} name="rpm_limit" label="RPM Limit">
+                  <FormField control={form.control} name="rpm_limit" label={translateMessage("RPM Limit")}>
                     {({ ref, value, onChange, ...field }) => (
                       <Input
                         {...field}
@@ -223,18 +236,26 @@ export function RegenerateKeyModal({ selectedToken, visible, onClose, onKeyUpdat
                   <FormField
                     control={form.control}
                     name="duration"
-                    label="Expire Key"
+                    label={translateMessage("Expire Key")}
                     description={
                       <span className="flex flex-col gap-0.5 text-xs">
                         <span className={keyIsExpired ? "text-destructive" : "text-muted-foreground"}>
-                          Current expiry: {selectedToken?.expires ? formatExpiresUtc(selectedToken.expires) : "Never"}
-                          {keyIsExpired && " (expired)"}
+                          <LocalizedText text={"Current expiry: "} />
+                          {selectedToken?.expires ? formatExpiresUtc(selectedToken.expires) : translateMessage("Never")}
+                          {keyIsExpired && translateMessage(" (expired)")}
                         </span>
-                        {newExpiryTime && <span className="text-success">New expiry: {newExpiryTime}</span>}
+                        {newExpiryTime && (
+                          <span className="text-success">
+                            <LocalizedText text={"New expiry: "} />
+                            {newExpiryTime}
+                          </span>
+                        )}
                       </span>
                     }
                   >
-                    {({ ref, ...field }) => <Input {...field} ref={ref} placeholder="e.g. 30s, 30h, 30d" />}
+                    {({ ref, ...field }) => (
+                      <Input {...field} ref={ref} placeholder={translateMessage("e.g. 30s, 30h, 30d")} />
+                    )}
                   </FormField>
 
                   <FormField
@@ -244,9 +265,15 @@ export function RegenerateKeyModal({ selectedToken, visible, onClose, onKeyUpdat
                       "Grace Period",
                       "Keep the old key valid for this duration after rotation. Both keys work during this period for seamless cutover. Empty = immediate revoke.",
                     )}
-                    description={<span className="text-xs">Recommended: 24h to 72h for production keys</span>}
+                    description={
+                      <span className="text-xs">
+                        <LocalizedText text={"Recommended: 24h to 72h for production keys"} />
+                      </span>
+                    }
                   >
-                    {({ ref, ...field }) => <Input {...field} ref={ref} placeholder="e.g. 24h, 2d" />}
+                    {({ ref, ...field }) => (
+                      <Input {...field} ref={ref} placeholder={translateMessage("e.g. 24h, 2d")} />
+                    )}
                   </FormField>
                 </div>
               </FieldGroup>
@@ -257,23 +284,23 @@ export function RegenerateKeyModal({ selectedToken, visible, onClose, onKeyUpdat
           {regeneratedKey ? (
             <>
               <Button variant="outline" onClick={handleClose}>
-                Close
+                <LocalizedText text={"Close"} />
               </Button>
               <CopyToClipboard text={regeneratedKey} onCopy={handleCopyKey}>
                 <Button>
                   {copied ? <Check /> : <Copy />}
-                  {copied ? "Copied" : "Copy Key"}
+                  {copied ? translateMessage("Copied") : translateMessage("Copy Key")}
                 </Button>
               </CopyToClipboard>
             </>
           ) : (
             <>
               <Button variant="outline" onClick={handleClose}>
-                Cancel
+                <LocalizedText text={"Cancel"} />
               </Button>
               <Button onClick={handleRegenerateKey} disabled={isRegenerating} aria-busy={isRegenerating}>
                 <RefreshCw />
-                Regenerate
+                <LocalizedText text={"Regenerate"} />
               </Button>
             </>
           )}

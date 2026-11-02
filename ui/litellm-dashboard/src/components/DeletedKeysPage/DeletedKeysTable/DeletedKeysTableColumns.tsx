@@ -1,4 +1,5 @@
 "use client";
+import { markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { ColumnDef } from "@tanstack/react-table";
 
@@ -8,6 +9,7 @@ import { DeletedKeyResponse } from "@/app/(dashboard)/hooks/keys/useKeys";
 import { userDetailHref } from "@/utils/entityLinks";
 
 function TruncatedTextCell({ value }: { value: string | null | undefined }) {
+  useUiLocale();
   if (!value) {
     return <span className="text-muted-foreground">-</span>;
   }
@@ -19,6 +21,7 @@ function TruncatedTextCell({ value }: { value: string | null | undefined }) {
 }
 
 function UserLinkCell({ userId }: { userId: string | null | undefined }) {
+  useUiLocale();
   if (!userId) {
     return <span className="text-muted-foreground">-</span>;
   }
@@ -30,113 +33,139 @@ function UserLinkCell({ userId }: { userId: string | null | undefined }) {
 }
 
 export const getDeletedKeysTableColumns = (): ColumnDef<DeletedKeyResponse>[] => [
-  {
-    id: "token",
-    accessorKey: "token",
-    meta: { title: "Key ID" },
-    header: "Key ID",
-    size: 150,
-    enableSorting: false,
-    cell: ({ row }) => <IdCell value={row.original.token} variant="plain" />,
-  },
-  {
-    id: "key_alias",
-    accessorKey: "key_alias",
-    meta: { title: "Key Alias" },
-    header: "Key Alias",
-    size: 150,
-    enableSorting: false,
-    cell: ({ row }) => {
-      const value = row.original.key_alias;
-      if (!value) {
-        return <span className="text-muted-foreground">-</span>;
-      }
-      return (
-        <span className="block max-w-60 truncate font-mono text-xs" title={value}>
-          {value}
-        </span>
-      );
+  markUiCopy(
+    {
+      id: "token",
+      accessorKey: "token",
+      meta: markUiCopy({ title: "Key ID" }, { title: "Key ID" }),
+      header: "Key ID",
+      size: 150,
+      enableSorting: false,
+      cell: ({ row }) => <IdCell value={row.original.token} variant="plain" />,
     },
-  },
-  {
-    id: "team_alias",
-    accessorKey: "team_alias",
-    meta: { title: "Team Alias" },
-    header: "Team Alias",
-    size: 120,
-    enableSorting: false,
-    cell: ({ row }) => <TruncatedTextCell value={row.original.team_alias} />,
-  },
+    { header: "Key ID" },
+  ),
+  markUiCopy(
+    {
+      id: "key_alias",
+      accessorKey: "key_alias",
+      meta: markUiCopy({ title: "Key Alias" }, { title: "Key Alias" }),
+      header: "Key Alias",
+      size: 150,
+      enableSorting: false,
+      cell: ({ row }) => {
+        const value = row.original.key_alias;
+        if (!value) {
+          return <span className="text-muted-foreground">-</span>;
+        }
+        return (
+          <span className="block max-w-60 truncate font-mono text-xs" title={value}>
+            {value}
+          </span>
+        );
+      },
+    },
+    { header: "Key Alias" },
+  ),
+  markUiCopy(
+    {
+      id: "team_alias",
+      accessorKey: "team_alias",
+      meta: markUiCopy({ title: "Team Alias" }, { title: "Team Alias" }),
+      header: "Team Alias",
+      size: 120,
+      enableSorting: false,
+      cell: ({ row }) => <TruncatedTextCell value={row.original.team_alias} />,
+    },
+    { header: "Team Alias" },
+  ),
   {
     id: "spend",
     accessorKey: "spend",
-    meta: { title: "Spend (USD)", numeric: true },
-    header: ({ column }) => <DataTableSortHeader column={column} title="Spend (USD)" />,
+    meta: markUiCopy({ title: "Spend (USD)", numeric: true }, { title: "Spend (USD)" }),
+    header: ({ column }) => <DataTableSortHeader column={column} title={translateMessage("Spend (USD)")} />,
     size: 100,
     enableSorting: true,
     cell: ({ row }) => <MoneyCell value={row.original.spend} decimals={4} />,
   },
-  {
-    id: "max_budget",
-    accessorKey: "max_budget",
-    meta: { title: "Budget (USD)", numeric: true },
-    header: "Budget (USD)",
-    size: 110,
-    enableSorting: false,
-    cell: ({ row }) => <MoneyCell value={row.original.max_budget} decimals={0} emptyText="Unlimited" showZero />,
-  },
-  {
-    id: "user_email",
-    accessorKey: "user_email",
-    meta: { title: "User Email" },
-    header: "User Email",
-    size: 160,
-    enableSorting: false,
-    cell: ({ row }) => <TruncatedTextCell value={row.original.user_email} />,
-  },
-  {
-    id: "user_id",
-    accessorKey: "user_id",
-    meta: { title: "User ID" },
-    header: "User ID",
-    size: 120,
-    enableSorting: false,
-    cell: ({ row }) => <UserLinkCell userId={row.original.user_id} />,
-  },
+  markUiCopy(
+    {
+      id: "max_budget",
+      accessorKey: "max_budget",
+      meta: markUiCopy({ title: "Budget (USD)", numeric: true }, { title: "Budget (USD)" }),
+      header: "Budget (USD)",
+      size: 110,
+      enableSorting: false,
+      cell: ({ row }) => (
+        <MoneyCell value={row.original.max_budget} decimals={0} emptyText={translateMessage("Unlimited")} showZero />
+      ),
+    },
+    { header: "Budget (USD)" },
+  ),
+  markUiCopy(
+    {
+      id: "user_email",
+      accessorKey: "user_email",
+      meta: markUiCopy({ title: "User Email" }, { title: "User Email" }),
+      header: "User Email",
+      size: 160,
+      enableSorting: false,
+      cell: ({ row }) => <TruncatedTextCell value={row.original.user_email} />,
+    },
+    { header: "User Email" },
+  ),
+  markUiCopy(
+    {
+      id: "user_id",
+      accessorKey: "user_id",
+      meta: markUiCopy({ title: "User ID" }, { title: "User ID" }),
+      header: "User ID",
+      size: 120,
+      enableSorting: false,
+      cell: ({ row }) => <UserLinkCell userId={row.original.user_id} />,
+    },
+    { header: "User ID" },
+  ),
   {
     id: "created_at",
     accessorKey: "created_at",
-    meta: { title: "Created At" },
-    header: ({ column }) => <DataTableSortHeader column={column} title="Created At" />,
+    meta: markUiCopy({ title: "Created At" }, { title: "Created At" }),
+    header: ({ column }) => <DataTableSortHeader column={column} title={translateMessage("Created At")} />,
     size: 120,
     enableSorting: true,
     cell: ({ row }) => <DateCell value={row.original.created_at} precision="date" />,
   },
-  {
-    id: "created_by",
-    accessorKey: "created_by",
-    meta: { title: "Created By" },
-    header: "Created By",
-    size: 120,
-    enableSorting: false,
-    cell: ({ row }) => <UserLinkCell userId={row.original.created_by} />,
-  },
+  markUiCopy(
+    {
+      id: "created_by",
+      accessorKey: "created_by",
+      meta: markUiCopy({ title: "Created By" }, { title: "Created By" }),
+      header: "Created By",
+      size: 120,
+      enableSorting: false,
+      cell: ({ row }) => <UserLinkCell userId={row.original.created_by} />,
+    },
+    { header: "Created By" },
+  ),
   {
     id: "deleted_at",
     accessorKey: "deleted_at",
-    meta: { title: "Deleted At" },
-    header: ({ column }) => <DataTableSortHeader column={column} title="Deleted At" />,
+    meta: markUiCopy({ title: "Deleted At" }, { title: "Deleted At" }),
+    header: ({ column }) => <DataTableSortHeader column={column} title={translateMessage("Deleted At")} />,
     size: 120,
     enableSorting: true,
     cell: ({ row }) => <DateCell value={row.original.deleted_at} precision="date" />,
   },
-  {
-    id: "deleted_by",
-    accessorKey: "deleted_by",
-    meta: { title: "Deleted By" },
-    header: "Deleted By",
-    size: 120,
-    enableSorting: false,
-    cell: ({ row }) => <UserLinkCell userId={row.original.deleted_by} />,
-  },
+  markUiCopy(
+    {
+      id: "deleted_by",
+      accessorKey: "deleted_by",
+      meta: markUiCopy({ title: "Deleted By" }, { title: "Deleted By" }),
+      header: "Deleted By",
+      size: 120,
+      enableSorting: false,
+      cell: ({ row }) => <UserLinkCell userId={row.original.deleted_by} />,
+    },
+    { header: "Deleted By" },
+  ),
 ];

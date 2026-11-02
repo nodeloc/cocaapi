@@ -1,4 +1,5 @@
 "use client";
+import { localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { Menu } from "@base-ui/react/menu";
 import type { Table } from "@tanstack/react-table";
@@ -16,10 +17,11 @@ interface DataTableViewOptionsProps<TData> {
 
 export function DataTableViewOptions<TData>({
   table,
-  label = "View",
+  label = translateMessage("View"),
   iconOnly = false,
   className,
 }: DataTableViewOptionsProps<TData>) {
+  useUiLocale();
   const hideableColumns = table.getAllLeafColumns().filter((column) => column.getCanHide());
 
   if (hideableColumns.length === 0) {
@@ -67,8 +69,10 @@ export function DataTableViewOptions<TData>({
                 <Menu.CheckboxItemIndicator className="absolute left-2 flex size-4 items-center justify-center">
                   <Check className="size-3.5" />
                 </Menu.CheckboxItemIndicator>
-                {column.columnDef.meta?.title ??
-                  (typeof column.columnDef.header === "string" ? column.columnDef.header : column.id)}
+                {localizedProperty(column.columnDef.meta, "title") ??
+                  (typeof column.columnDef.header === "string"
+                    ? localizedProperty(column.columnDef, "header", column.columnDef.header)
+                    : column.id)}
               </Menu.CheckboxItem>
             ))}
           </Menu.Popup>

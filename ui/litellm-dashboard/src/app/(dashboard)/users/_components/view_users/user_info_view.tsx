@@ -1,3 +1,6 @@
+
+"use client";
+import { LocalizedText, getIntlLocale, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -88,6 +91,7 @@ export default function UserInfoView({
   initialTab = 0,
   startInEditMode = false,
 }: UserInfoViewProps) {
+  useUiLocale();
   const { premiumUser, userId: signedInUserId } = useAuthorized();
   const canViewAutoRouterUsage = hasProxyWideSpendView(userRole);
   const canViewSavings = canViewAutoRouterUsage || (Boolean(userId.trim()) && userId === signedInUserId);
@@ -203,7 +207,7 @@ export default function UserInfoView({
         user_id: userId,
       };
       await teamMemberAddCall(accessToken, selectedTeamId, member);
-      toast.success("User added to team successfully");
+      toast.success(translateMessage("User added to team successfully"));
       setIsAddTeamModalOpen(false);
       // Re-fetch user data to refresh teams
       const data = await userGetInfoV2(accessToken, userId);
@@ -243,7 +247,7 @@ export default function UserInfoView({
         user_id: userId,
       };
       await teamMemberDeleteCall(accessToken, teamToRemove.team_id, member);
-      toast.success("User removed from team successfully");
+      toast.success(translateMessage("User removed from team successfully"));
       setIsRemoveTeamModalOpen(false);
       setTeamToRemove(null);
       // Re-fetch user data to refresh teams
@@ -285,7 +289,7 @@ export default function UserInfoView({
       return;
     }
     try {
-      toast.success("Generating password reset link...");
+      toast.success(translateMessage("Generating password reset link..."));
       const data = await invitationCreateCall(accessToken, userId);
       setInvitationLinkData(data);
       setIsInvitationLinkModalVisible(true);
@@ -299,7 +303,7 @@ export default function UserInfoView({
       if (!accessToken) return;
       setIsDeletingUser(true);
       await userDeleteCall(accessToken, [userId]);
-      toast.success("User deleted successfully");
+      toast.success(translateMessage("User deleted successfully"));
       if (onDelete) {
         onDelete();
       }
@@ -352,7 +356,7 @@ export default function UserInfoView({
           : userData.object_permission,
       });
 
-      toast.success("User updated successfully");
+      toast.success(translateMessage("User updated successfully"));
       setIsEditing(false);
     } catch (error) {
       console.error("Error updating user:", error);
@@ -364,10 +368,8 @@ export default function UserInfoView({
     return (
       <div className="p-4">
         <Button variant="ghost" onClick={onClose} className="mb-4">
-          <ArrowLeft />
-          Back to Users
-        </Button>
-        <p className="text-sm">Loading user data...</p>
+          <ArrowLeft /><LocalizedText text={"Back to Users"} /></Button>
+        <p className="text-sm"><LocalizedText text={"Loading user data..."} /></p>
       </div>
     );
   }
@@ -376,10 +378,8 @@ export default function UserInfoView({
     return (
       <div className="p-4">
         <Button variant="ghost" onClick={onClose} className="mb-4">
-          <ArrowLeft />
-          Back to Users
-        </Button>
-        <p className="text-sm">User not found</p>
+          <ArrowLeft /><LocalizedText text={"Back to Users"} /></Button>
+        <p className="text-sm"><LocalizedText text={"User not found"} /></p>
       </div>
     );
   }
@@ -419,10 +419,8 @@ export default function UserInfoView({
       <div className="flex justify-between items-center mb-6">
         <div>
           <Button variant="ghost" onClick={onClose} className="mb-4">
-            <ArrowLeft />
-            Back to Users
-          </Button>
-          <h2 className="text-xl font-semibold">{userData.user_email || "User"}</h2>
+            <ArrowLeft /><LocalizedText text={"Back to Users"} /></Button>
+          <h2 className="text-xl font-semibold">{userData.user_email || translateMessage("User")}</h2>
           <div className="flex items-center cursor-pointer">
             <span className="text-sm text-muted-foreground font-mono">{userData.user_id}</span>
             <Button
@@ -442,37 +440,33 @@ export default function UserInfoView({
         {userRole && rolesWithWriteAccess.includes(userRole) && (
           <div className="flex items-center space-x-2">
             <Button variant="secondary" onClick={handleResetPassword} className="flex items-center">
-              <RefreshCw />
-              Reset Password
-            </Button>
+              <RefreshCw /><LocalizedText text={"Reset Password"} /></Button>
             <Button
               variant="secondary"
               onClick={() => setIsDeleteModalOpen(true)}
               className="flex items-center text-destructive border-destructive hover:bg-destructive/10"
             >
-              <Trash2 />
-              Delete User
-            </Button>
+              <Trash2 /><LocalizedText text={"Delete User"} /></Button>
           </div>
         )}
       </div>
 
       <DeleteResourceModal
         isOpen={isDeleteModalOpen}
-        title="Delete User?"
-        message="Are you sure you want to delete this user? This action cannot be undone."
+        title={translateMessage("Delete User?")}
+        message={translateMessage("Are you sure you want to delete this user? This action cannot be undone.")}
         resourceInformationTitle="User Information"
         resourceInformation={[
-          { label: "Email", value: userData.user_email },
-          { label: "User ID", value: userData.user_id, code: true },
-          {
+          markUiCopy({ label: "Email", value: userData.user_email }, {"label": "Email"}),
+          markUiCopy({ label: "User ID", value: userData.user_id, code: true }, {"label": "User ID"}),
+          markUiCopy({
             label: "Global Proxy Role",
             value: (userData.user_role && possibleUIRoles?.[userData.user_role]?.ui_label) || userData.user_role || "-",
-          },
-          {
+          }, {"label": "Global Proxy Role"}),
+          markUiCopy({
             label: "Total Spend (USD)",
             value: userData.spend !== null && userData.spend !== undefined ? userData.spend.toFixed(2) : undefined,
-          },
+          }, {"label": "Total Spend (USD)"}),
         ]}
         onCancel={cancelDelete}
         onOk={handleDelete}
@@ -485,21 +479,13 @@ export default function UserInfoView({
         className="gap-0"
       >
         <TabsList variant="line" className="mb-4">
-          <TabsTrigger value="overview" className="flex-none data-active:text-primary after:bg-primary">
-            Overview
-          </TabsTrigger>
-          <TabsTrigger value="details" className="flex-none data-active:text-primary after:bg-primary">
-            Details
-          </TabsTrigger>
+          <TabsTrigger value="overview" className="flex-none data-active:text-primary after:bg-primary"><LocalizedText text={"Overview"} /></TabsTrigger>
+          <TabsTrigger value="details" className="flex-none data-active:text-primary after:bg-primary"><LocalizedText text={"Details"} /></TabsTrigger>
           {canViewSavings && (
-            <TabsTrigger value="savings" className="flex-none data-active:text-primary after:bg-primary">
-              Savings
-            </TabsTrigger>
+            <TabsTrigger value="savings" className="flex-none data-active:text-primary after:bg-primary"><LocalizedText text={"Savings"} /></TabsTrigger>
           )}
           {canViewAutoRouterUsage && (
-            <TabsTrigger value="auto-router-usage" className="flex-none data-active:text-primary after:bg-primary">
-              Auto-router usage
-            </TabsTrigger>
+            <TabsTrigger value="auto-router-usage" className="flex-none data-active:text-primary after:bg-primary"><LocalizedText text={"Auto-router usage"} /></TabsTrigger>
           )}
         </TabsList>
 
@@ -507,23 +493,20 @@ export default function UserInfoView({
         <TabsContent value="overview" keepMounted>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             <Card className="block p-6">
-              <p>Spend</p>
+              <p><LocalizedText text={"Spend"} /></p>
               <div className="mt-2">
                 <h3 className="text-lg font-medium">${formatNumberWithCommas(userData.spend || 0, 2)}</h3>
-                <p>
-                  of {userData.max_budget !== null ? `$${formatNumberWithCommas(userData.max_budget, 2)}` : "Unlimited"}
+                <p><LocalizedText text={"of "} />{userData.max_budget !== null ? `$${formatNumberWithCommas(userData.max_budget, 2)}` : translateMessage("Unlimited")}
                 </p>
               </div>
             </Card>
 
             <Card className="block p-6">
               <div className="flex justify-between items-center mb-2">
-                <p>Teams</p>
+                <p><LocalizedText text={"Teams"} /></p>
                 {isProxyAdmin && (
                   <Button variant="ghost" size="sm" onClick={handleOpenAddTeamModal}>
-                    <Plus />
-                    Add Team
-                  </Button>
+                    <Plus /><LocalizedText text={"Add Team"} /></Button>
                 )}
               </div>
               <div className="mt-2">
@@ -532,8 +515,8 @@ export default function UserInfoView({
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>Team Name</TableHead>
-                          {isProxyAdmin && <TableHead className="text-right">Actions</TableHead>}
+                          <TableHead><LocalizedText text={"Team Name"} /></TableHead>
+                          {isProxyAdmin && <TableHead className="text-right"><LocalizedText text={"Actions"} /></TableHead>}
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -549,7 +532,7 @@ export default function UserInfoView({
                                 <Button
                                   variant="ghost"
                                   size="icon-sm"
-                                  aria-label={`Remove from ${team.team_alias || team.team_id}`}
+                                  aria-label={translateMessage("Remove from %{0}", [team.team_alias || team.team_id])}
                                   onClick={() => handleOpenRemoveTeamModal(team)}
                                   className="text-destructive"
                                 >
@@ -563,28 +546,25 @@ export default function UserInfoView({
                     </Table>
                   </div>
                 ) : (
-                  <p>No teams</p>
+                  <p><LocalizedText text={"No teams"} /></p>
                 )}
                 {!isTeamsExpanded && teamDetails.length > 20 && (
                   <Button variant="ghost" size="sm" className="mt-2" onClick={() => setIsTeamsExpanded(true)}>
-                    +{teamDetails.length - 20} more
-                  </Button>
+                    +{teamDetails.length - 20}<LocalizedText text={" more"} /></Button>
                 )}
                 {isTeamsExpanded && teamDetails.length > 20 && (
-                  <Button variant="ghost" size="sm" className="mt-2" onClick={() => setIsTeamsExpanded(false)}>
-                    Show Less
-                  </Button>
+                  <Button variant="ghost" size="sm" className="mt-2" onClick={() => setIsTeamsExpanded(false)}><LocalizedText text={"Show Less"} /></Button>
                 )}
               </div>
             </Card>
 
             <Card className="block p-6">
-              <p>Personal Models</p>
+              <p><LocalizedText text={"Personal Models"} /></p>
               <div className="mt-2">
                 {userData.models?.length && userData.models?.length > 0 ? (
                   userData.models?.map((model, index) => <p key={index}>{model}</p>)
                 ) : (
-                  <p>All proxy models</p>
+                  <p><LocalizedText text={"All proxy models"} /></p>
                 )}
               </div>
             </Card>
@@ -595,9 +575,9 @@ export default function UserInfoView({
         <TabsContent value="details" keepMounted>
           <Card className="block p-6">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-medium">User Settings</h3>
+              <h3 className="text-lg font-medium"><LocalizedText text={"User Settings"} /></h3>
               {!isEditing && userRole && rolesWithWriteAccess.includes(userRole) && (
-                <Button onClick={() => setIsEditing(true)}>Edit Settings</Button>
+                <Button onClick={() => setIsEditing(true)}><LocalizedText text={"Edit Settings"} /></Button>
               )}
             </div>
 
@@ -618,7 +598,7 @@ export default function UserInfoView({
             ) : (
               <div className="space-y-4">
                 <div>
-                  <p className="font-medium">User ID</p>
+                  <p className="font-medium"><LocalizedText text={"User ID"} /></p>
                   <div className="flex items-center cursor-pointer">
                     <span className="font-mono">{userData.user_id}</span>
                     <Button
@@ -637,32 +617,32 @@ export default function UserInfoView({
                 </div>
 
                 <div>
-                  <p className="font-medium">Email</p>
-                  <p>{userData.user_email || "Not Set"}</p>
+                  <p className="font-medium"><LocalizedText text={"Email"} /></p>
+                  <p>{userData.user_email || translateMessage("Not Set")}</p>
                 </div>
 
                 <div>
-                  <p className="font-medium">User Alias</p>
-                  <p>{userData.user_alias || "Not Set"}</p>
+                  <p className="font-medium"><LocalizedText text={"User Alias"} /></p>
+                  <p>{userData.user_alias || translateMessage("Not Set")}</p>
                 </div>
 
                 <div>
-                  <p className="font-medium">Global Proxy Role</p>
-                  <p>{userData.user_role || "Not Set"}</p>
+                  <p className="font-medium"><LocalizedText text={"Global Proxy Role"} /></p>
+                  <p>{userData.user_role || translateMessage("Not Set")}</p>
                 </div>
 
                 <div>
-                  <p className="font-medium">Created</p>
-                  <p>{userData.created_at ? new Date(userData.created_at).toLocaleString() : "Unknown"}</p>
+                  <p className="font-medium"><LocalizedText text={"Created"} /></p>
+                  <p>{userData.created_at ? new Date(userData.created_at).toLocaleString(getIntlLocale()) : translateMessage("Unknown")}</p>
                 </div>
 
                 <div>
-                  <p className="font-medium">Last Updated</p>
-                  <p>{userData.updated_at ? new Date(userData.updated_at).toLocaleString() : "Unknown"}</p>
+                  <p className="font-medium"><LocalizedText text={"Last Updated"} /></p>
+                  <p>{userData.updated_at ? new Date(userData.updated_at).toLocaleString(getIntlLocale()) : translateMessage("Unknown")}</p>
                 </div>
 
                 <div>
-                  <p className="font-medium">Personal Models</p>
+                  <p className="font-medium"><LocalizedText text={"Personal Models"} /></p>
                   <div className="flex flex-wrap gap-2 mt-1">
                     {userData.models?.length && userData.models?.length > 0 ? (
                       userData.models?.map((model, index) => (
@@ -671,34 +651,34 @@ export default function UserInfoView({
                         </span>
                       ))
                     ) : (
-                      <p>All proxy models</p>
+                      <p><LocalizedText text={"All proxy models"} /></p>
                     )}
                   </div>
                 </div>
 
                 <div>
-                  <p className="font-medium">Max Budget</p>
+                  <p className="font-medium"><LocalizedText text={"Max Budget"} /></p>
                   <p>
                     {userData.max_budget !== null && userData.max_budget !== undefined
                       ? `$${formatNumberWithCommas(userData.max_budget, 4)}`
-                      : "Unlimited"}
+                      : translateMessage("Unlimited")}
                   </p>
                 </div>
 
                 <div>
-                  <p className="font-medium">Budget Reset</p>
+                  <p className="font-medium"><LocalizedText text={"Budget Reset"} /></p>
                   <p>{getBudgetDurationLabel(userData.budget_duration ?? null)}</p>
                 </div>
 
                 <div>
-                  <p className="font-medium">Metadata</p>
+                  <p className="font-medium"><LocalizedText text={"Metadata"} /></p>
                   <pre className="bg-muted p-2 rounded-sm text-xs overflow-auto mt-1">
                     {JSON.stringify(userData.metadata || {}, null, 2)}
                   </pre>
                 </div>
 
                 <div>
-                  <p className="font-medium mb-2">MCP Permissions</p>
+                  <p className="font-medium mb-2"><LocalizedText text={"MCP Permissions"} /></p>
                   <MCPServerPermissions
                     mcpServers={userData.object_permission?.mcp_servers || []}
                     mcpAccessGroups={userData.object_permission?.mcp_access_groups || []}
@@ -724,7 +704,7 @@ export default function UserInfoView({
                   scopeNote="Savings for this user across API keys and JWT-authenticated requests."
                 />
               ) : (
-                <p role="alert">Savings are unavailable because this user has no ID.</p>
+                <p role="alert"><LocalizedText text={"Savings are unavailable because this user has no ID."} /></p>
               ))}
           </TabsContent>
         )}
@@ -739,7 +719,7 @@ export default function UserInfoView({
                   activity={activityDateRange}
                 />
               ) : (
-                <p role="alert">Auto-router usage is unavailable because this user has no ID.</p>
+                <p role="alert"><LocalizedText text={"Auto-router usage is unavailable because this user has no ID."} /></p>
               ))}
           </TabsContent>
         )}
@@ -755,14 +735,14 @@ export default function UserInfoView({
       {/* Delete Team Member Modal */}
       <DeleteResourceModal
         isOpen={isRemoveTeamModalOpen}
-        title="Remove from Team"
+        title={translateMessage("Remove from Team")}
         alertMessage="Removing this user from the team will also delete any keys the user created for this team."
-        message="Are you sure you want to remove this user from the team? This action cannot be undone."
+        message={translateMessage("Are you sure you want to remove this user from the team? This action cannot be undone.")}
         resourceInformationTitle="Team Membership"
         resourceInformation={[
-          { label: "Team", value: teamToRemove?.team_alias || teamToRemove?.team_id },
-          { label: "User ID", value: userData?.user_id, code: true },
-          { label: "Email", value: userData?.user_email },
+          markUiCopy({ label: "Team", value: teamToRemove?.team_alias || teamToRemove?.team_id }, {"label": "Team"}),
+          markUiCopy({ label: "User ID", value: userData?.user_id, code: true }, {"label": "User ID"}),
+          markUiCopy({ label: "Email", value: userData?.user_email }, {"label": "Email"}),
         ]}
         onCancel={handleRemoveTeamCancel}
         onOk={handleRemoveTeamConfirm}
@@ -777,7 +757,7 @@ export default function UserInfoView({
       >
         <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>Add User to Team</DialogTitle>
+            <DialogTitle><LocalizedText text={"Add User to Team"} /></DialogTitle>
           </DialogHeader>
           <form
             onSubmit={(event) => {
@@ -787,7 +767,7 @@ export default function UserInfoView({
           >
             <FieldGroup>
               <Field>
-                <FieldLabel htmlFor={ADD_TEAM_FIELD_ID}>Team</FieldLabel>
+                <FieldLabel htmlFor={ADD_TEAM_FIELD_ID}><LocalizedText text={"Team"} /></FieldLabel>
                 <Combobox
                   items={availableTeamsForAdd}
                   value={selectedTeamOption}
@@ -795,9 +775,9 @@ export default function UserInfoView({
                   itemToStringLabel={(team: TeamOption) => team.team_alias}
                   isItemEqualToValue={(team: TeamOption, value: TeamOption) => team.team_id === value.team_id}
                 >
-                  <ComboboxInput id={ADD_TEAM_FIELD_ID} placeholder="Select a team" className="w-full" />
+                  <ComboboxInput id={ADD_TEAM_FIELD_ID} placeholder={translateMessage("Select a team")} className="w-full" />
                   <ComboboxContent>
-                    <ComboboxEmpty>No teams found</ComboboxEmpty>
+                    <ComboboxEmpty><LocalizedText text={"No teams found"} /></ComboboxEmpty>
                     <ComboboxList>
                       {(team: TeamOption) => (
                         <ComboboxItem key={team.team_id} value={team} title={team.team_alias}>
@@ -810,7 +790,7 @@ export default function UserInfoView({
               </Field>
 
               <Field>
-                <FieldLabel htmlFor={ADD_TEAM_ROLE_FIELD_ID}>Member Role</FieldLabel>
+                <FieldLabel htmlFor={ADD_TEAM_ROLE_FIELD_ID}><LocalizedText text={"Member Role"} /></FieldLabel>
                 <Select value={selectedRole} onValueChange={(value) => value !== null && setSelectedRole(value)}>
                   <SelectTrigger id={ADD_TEAM_ROLE_FIELD_ID} className="w-full">
                     <SelectValue />
@@ -831,7 +811,7 @@ export default function UserInfoView({
 
             <div className="text-right mt-4">
               <Button type="submit" disabled={isAddingTeam || !selectedTeamId} aria-busy={isAddingTeam}>
-                {isAddingTeam ? "Adding..." : "Add to Team"}
+                {isAddingTeam ? translateMessage("Adding...") : translateMessage("Add to Team")}
               </Button>
             </div>
           </form>

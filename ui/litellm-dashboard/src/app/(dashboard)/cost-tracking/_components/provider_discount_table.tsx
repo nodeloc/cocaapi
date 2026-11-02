@@ -1,3 +1,5 @@
+"use client";
+import { markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import React, { useState } from "react";
 import { Check, SquarePen, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -23,6 +25,7 @@ const ProviderDiscountTable: React.FC<ProviderDiscountTableProps> = ({
   onDiscountChange,
   onRemoveProvider,
 }) => {
+  useUiLocale();
   const [editingProvider, setEditingProvider] = useState<string | null>(null);
   const [editValue, setEditValue] = useState<string>("");
 
@@ -63,98 +66,107 @@ const ProviderDiscountTable: React.FC<ProviderDiscountTableProps> = ({
     });
 
   return (
-    <SimpleTable
+    <SimpleTable<ProviderDiscountRow>
       data={data}
       columns={[
-        {
-          header: "Provider",
-          cell: (row) => {
-            const { displayName } = getProviderLogoAndName(row.provider);
-            return (
-              <div className="flex items-center space-x-2">
-                <Logo provider={row.provider} label={displayName} className="w-5 h-5" />
-                <span className="font-medium">{displayName}</span>
-              </div>
-            );
+        markUiCopy(
+          {
+            header: "Provider",
+            cell: (row) => {
+              const { displayName } = getProviderLogoAndName(row.provider);
+              return (
+                <div className="flex items-center space-x-2">
+                  <Logo provider={row.provider} label={displayName} className="w-5 h-5" />
+                  <span className="font-medium">{displayName}</span>
+                </div>
+              );
+            },
           },
-        },
-        {
-          header: "Discount Percentage",
-          numeric: true,
-          cell: (row) => {
-            const { displayName } = getProviderLogoAndName(row.provider);
-            return (
-              <div className="flex items-center justify-end gap-2">
-                {editingProvider === row.provider ? (
-                  <>
-                    <Input
-                      value={editValue}
-                      onChange={(e) => setEditValue(e.target.value)}
-                      onKeyDown={(e) => handleKeyDown(e, row.provider)}
-                      placeholder="5"
-                      className="w-20"
-                      autoFocus
-                    />
-                    <span className="text-muted-foreground">%</span>
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      aria-label={`Save discount for ${displayName}`}
-                      onClick={() => handleSaveEdit(row.provider)}
-                      className="cursor-pointer text-success hover:text-success/80"
-                    >
-                      <Check className="size-5" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      aria-label={`Cancel editing discount for ${displayName}`}
-                      onClick={handleCancelEdit}
-                      className="cursor-pointer text-muted-foreground hover:text-foreground"
-                    >
-                      <X className="size-5" />
-                    </Button>
-                  </>
-                ) : (
-                  <>
-                    <p className="font-medium">{(row.discount * 100).toFixed(1)}%</p>
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      aria-label={`Edit discount for ${displayName}`}
-                      onClick={() => handleStartEdit(row.provider, row.discount)}
-                      className="cursor-pointer text-info hover:text-info/80"
-                    >
-                      <SquarePen className="size-5" />
-                    </Button>
-                  </>
-                )}
-              </div>
-            );
+          { header: "Provider" },
+        ),
+        markUiCopy(
+          {
+            header: "Discount Percentage",
+            numeric: true,
+            cell: (row) => {
+              const { displayName } = getProviderLogoAndName(row.provider);
+              return (
+                <div className="flex items-center justify-end gap-2">
+                  {editingProvider === row.provider ? (
+                    <>
+                      <Input
+                        value={editValue}
+                        onChange={(e) => setEditValue(e.target.value)}
+                        onKeyDown={(e) => handleKeyDown(e, row.provider)}
+                        placeholder="5"
+                        className="w-20"
+                        autoFocus
+                      />
+                      <span className="text-muted-foreground">%</span>
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        aria-label={translateMessage("Save discount for %{0}", [displayName])}
+                        onClick={() => handleSaveEdit(row.provider)}
+                        className="cursor-pointer text-success hover:text-success/80"
+                      >
+                        <Check className="size-5" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        aria-label={translateMessage("Cancel editing discount for %{0}", [displayName])}
+                        onClick={handleCancelEdit}
+                        className="cursor-pointer text-muted-foreground hover:text-foreground"
+                      >
+                        <X className="size-5" />
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <p className="font-medium">{(row.discount * 100).toFixed(1)}%</p>
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        aria-label={translateMessage("Edit discount for %{0}", [displayName])}
+                        onClick={() => handleStartEdit(row.provider, row.discount)}
+                        className="cursor-pointer text-info hover:text-info/80"
+                      >
+                        <SquarePen className="size-5" />
+                      </Button>
+                    </>
+                  )}
+                </div>
+              );
+            },
+            width: "250px",
           },
-          width: "250px",
-        },
-        {
-          header: "Actions",
-          cell: (row) => {
-            const { displayName } = getProviderLogoAndName(row.provider);
-            return (
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                aria-label={`Remove discount for ${displayName}`}
-                onClick={() => onRemoveProvider(row.provider, displayName)}
-                className="cursor-pointer hover:text-destructive"
-              >
-                <Trash2 className="size-5" />
-              </Button>
-            );
+          { header: "Discount Percentage" },
+        ),
+        markUiCopy(
+          {
+            header: "Actions",
+            cell: (row) => {
+              const { displayName } = getProviderLogoAndName(row.provider);
+              return (
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  aria-label={translateMessage("Remove discount for %{0}", [displayName])}
+                  onClick={() => onRemoveProvider(row.provider, displayName)}
+                  className="cursor-pointer hover:text-destructive"
+                >
+                  <Trash2 className="size-5" />
+                </Button>
+              );
+            },
+            width: "80px",
           },
-          width: "80px",
-        },
+          { header: "Actions" },
+        ),
       ]}
       getRowKey={(row) => row.provider}
-      emptyMessage="No provider discounts configured"
+      emptyMessage={translateMessage("No provider discounts configured")}
     />
   );
 };

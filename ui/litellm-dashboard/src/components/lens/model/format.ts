@@ -1,3 +1,4 @@
+import { markUiCopy } from "@/lib/i18n";
 import { formatActivityTimestamp as runTime } from "@/utils/activityTimestamp";
 import type { Settings } from "./types";
 
@@ -41,4 +42,7 @@ export const money = (n: number) =>
   new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 3 }).format(n);
 export const when = (value?: string | null) => (value ? runTime(value) : "Not yet");
 
-export const sourceLabels = { both: "Traces and requests", requests: "LLM requests", traces: "Agent traces" };
+export const sourceLabels = markUiCopy(
+  { both: "Traces and requests", requests: "LLM requests", traces: "Agent traces" },
+  { both: "Traces and requests", requests: "LLM requests", traces: "Agent traces" },
+);

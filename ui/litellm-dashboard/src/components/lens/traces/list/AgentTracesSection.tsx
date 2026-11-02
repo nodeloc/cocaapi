@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import moment from "moment";
 import { skipToken, useQuery } from "@tanstack/react-query";
@@ -51,6 +52,7 @@ interface AgentTracesSectionProps {
 }
 
 function useSignalSetup(enabled: boolean) {
+  useUiLocale();
   const api = useOptionalLensApi();
   const config = useQuery({
     queryKey: lensKeys.signalConfig(api?.scope ?? ""),
@@ -62,6 +64,7 @@ function useSignalSetup(enabled: boolean) {
 }
 
 function useTracingSetup(traces: AgentTracesResult, isActive: boolean, rangeChanged: boolean) {
+  useUiLocale();
   const [setupResult, setSetupResult] = useState<{ detail: string | null } | null>(null);
   const waitingForFirstTrace = traces.traces.length === 0 && !rangeChanged;
   const settledResponse = isActive && !traces.isFetching && !traces.error;
@@ -77,12 +80,16 @@ function useTracingSetup(traces: AgentTracesResult, isActive: boolean, rangeChan
 }
 
 function TraceHistoryError({ history }: { history: ReturnType<typeof useTraceAvailability> }) {
+  useUiLocale();
   if (!history.error) return null;
   return (
     <div role="alert" className="flex items-center justify-between gap-4 border-b px-3 py-3 text-sm">
-      <p>Could not check earlier traces. {history.error.message}</p>
+      <p>
+        <LocalizedText text={"Could not check earlier traces. "} />
+        {localizedProperty(history.error, "message")}
+      </p>
       <Button variant="outline" size="sm" disabled={history.isFetching} onClick={() => void history.refetch()}>
-        Retry trace check
+        <LocalizedText text={"Retry trace check"} />
       </Button>
     </div>
   );
@@ -99,6 +106,7 @@ export function AgentTracesSection({
   canViewFindings,
   onSetUpSignals,
 }: AgentTracesSectionProps) {
+  useUiLocale();
   const live = useTracesLive();
   const { trace: openTrace, openTrace: openRun, selection, fullScreen, setFullScreen } = useOpenTraceRouting();
   const { query, setQuery, agent, status } = useRunFilterRouting();
@@ -165,7 +173,7 @@ export function AgentTracesSection({
           onClick={() => setShowSetup(false)}
           className="mb-3 text-sm text-muted-foreground hover:text-foreground"
         >
-          ← Back to traces
+          <LocalizedText text={"← Back to traces"} />
         </button>
         <TracingSetupCard detail={null} connected {...setupProps} />
       </div>
@@ -186,7 +194,7 @@ export function AgentTracesSection({
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-card">
         {checkHistory && <TraceHistoryError history={history} />}
         <TracesReceived received={setup.received} />
-        <Inspector.Panel label="Trace details" testId="run-drawer">
+        <Inspector.Panel label={translateMessage("Trace details")} testId="run-drawer">
           {(shown: TraceRef) => (
             <RunView
               traceId={shown.traceId}
@@ -211,8 +219,8 @@ export function AgentTracesSection({
             variant="ghost"
             size="icon-sm"
             className="h-full w-10 shrink-0 rounded-none border-l"
-            aria-label="Refresh traces"
-            title="Refresh traces"
+            aria-label={translateMessage("Refresh traces")}
+            title={translateMessage("Refresh traces")}
             disabled={traces.isFetching}
             onClick={checkTraces}
           >
@@ -256,34 +264,41 @@ export function AgentTracesSection({
 }
 
 function TracesReceived({ received }: { received: boolean }) {
+  useUiLocale();
   if (!received) return null;
   return (
     <p role="status" className="border-b px-3 py-3 text-sm text-emerald-700 dark:text-emerald-400">
-      Traces received. Select a run to inspect it.
+      <LocalizedText text={"Traces received. Select a run to inspect it."} />
     </p>
   );
 }
 
 function TraceCounts({ runs }: { runs: readonly TraceSummary[] }) {
+  useUiLocale();
   return (
     <div className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-1 px-3 pt-2 text-xs text-muted-foreground">
       <span>
-        {runs.length} {runs.length === 1 ? "run" : "runs"} from {new Set(runs.flatMap(traceAgentNames)).size} agents
+        {runs.length} {runs.length === 1 ? translateMessage("run") : translateMessage("runs")}
+        <LocalizedText text={" from "} />
+        {new Set(runs.flatMap(traceAgentNames)).size}
+        <LocalizedText text={" agents"} />
       </span>
     </div>
   );
 }
 
 function TraceFooter({ runs, hasMore }: { runs: readonly TraceSummary[]; hasMore: boolean }) {
+  useUiLocale();
   return (
     <footer className="flex h-8 shrink-0 items-center border-t bg-muted/30 px-3 text-xs text-muted-foreground">
-      {runs.length} {runs.length === 1 ? "run" : "runs"}
-      {hasMore ? " loaded" : ""}
+      {runs.length} {runs.length === 1 ? translateMessage("run") : translateMessage("runs")}
+      {hasMore ? translateMessage(" loaded") : ""}
     </footer>
   );
 }
 
 function TracingSetupAction({ available, live, onSetup }: { available: boolean; live: boolean; onSetup: () => void }) {
+  useUiLocale();
   if (!available) return null;
   return (
     <Button
@@ -293,7 +308,7 @@ function TracingSetupAction({ available, live, onSetup }: { available: boolean; 
       disabled={!live}
       onClick={onSetup}
     >
-      Set up tracing
+      <LocalizedText text={"Set up tracing"} />
     </Button>
   );
 }

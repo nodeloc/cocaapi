@@ -1,3 +1,5 @@
+"use client";
+import { translateMessage, useUiLocale } from "@/lib/i18n";
 import React from "react";
 import { Loader2 } from "lucide-react";
 import EmptyState from "./EmptyState";
@@ -12,6 +14,7 @@ interface MessageListProps {
 }
 
 const MessageList: React.FC<MessageListProps> = ({ messages, isLoading, hasVariables, messagesEndRef }) => {
+  useUiLocale();
   return (
     <div className="flex-1 overflow-y-auto p-4 pb-0">
       {messages.length === 0 && <EmptyState hasVariables={hasVariables} />}
@@ -22,7 +25,10 @@ const MessageList: React.FC<MessageListProps> = ({ messages, isLoading, hasVaria
 
       {isLoading && (
         <div className="flex justify-center items-center my-4">
-          <Loader2 className="size-6 animate-spin text-muted-foreground" aria-label="Loading response" />
+          <Loader2
+            className="size-6 animate-spin text-muted-foreground"
+            aria-label={translateMessage("Loading response")}
+          />
         </div>
       )}
       <div ref={messagesEndRef} style={{ height: "1px" }} />

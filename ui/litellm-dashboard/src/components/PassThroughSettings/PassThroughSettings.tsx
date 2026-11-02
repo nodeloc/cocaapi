@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 import React, { useState, useEffect } from "react";
 import {
   AlertDialog,
@@ -38,6 +40,7 @@ export interface passThroughItem {
 }
 
 const PassThroughSettings: React.FC<PassThroughSettingsProps> = ({ accessToken, userRole, userID, premiumUser }) => {
+  useUiLocale();
   const [generalSettings, setGeneralSettings] = useState<passThroughItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedEndpointId, setSelectedEndpointId] = useState<string | null>(null);
@@ -84,7 +87,7 @@ const PassThroughSettings: React.FC<PassThroughSettingsProps> = ({ accessToken, 
       const updatedSettings = generalSettings.filter((setting) => setting.id !== endpointToDelete);
       setGeneralSettings(updatedSettings);
 
-      toast.success("Endpoint deleted successfully.");
+      toast.success(translateMessage("Endpoint deleted successfully."));
     } catch (error) {
       console.error("Error deleting the endpoint:", error);
       toast.fromError("Error deleting the endpoint: " + error);
@@ -107,7 +110,11 @@ const PassThroughSettings: React.FC<PassThroughSettingsProps> = ({ accessToken, 
     const selectedEndpoint = generalSettings.find((endpoint) => endpoint.id === selectedEndpointId);
 
     if (!selectedEndpoint) {
-      return <div>Endpoint not found</div>;
+      return (
+        <div>
+          <LocalizedText text={"Endpoint not found"} />
+        </div>
+      );
     }
 
     return (
@@ -125,8 +132,12 @@ const PassThroughSettings: React.FC<PassThroughSettingsProps> = ({ accessToken, 
   return (
     <div>
       <div className="mb-4">
-        <h2 className="text-lg font-semibold text-foreground">Pass Through Endpoints</h2>
-        <p className="text-sm text-muted-foreground">Configure and manage your pass-through endpoints</p>
+        <h2 className="text-lg font-semibold text-foreground">
+          <LocalizedText text={"Pass Through Endpoints"} />
+        </h2>
+        <p className="text-sm text-muted-foreground">
+          <LocalizedText text={"Configure and manage your pass-through endpoints"} />
+        </p>
       </div>
 
       <AddPassThroughEndpoint
@@ -146,15 +157,21 @@ const PassThroughSettings: React.FC<PassThroughSettingsProps> = ({ accessToken, 
       <AlertDialog open={isDeleteModalOpen} onOpenChange={(open) => !open && cancelDelete()}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Pass-Through Endpoint</AlertDialogTitle>
+            <AlertDialogTitle>
+              <LocalizedText text={"Delete Pass-Through Endpoint"} />
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this pass-through endpoint? This action cannot be undone.
+              <LocalizedText
+                text={"Are you sure you want to delete this pass-through endpoint? This action cannot be undone."}
+              />
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>
+              <LocalizedText text={"Cancel"} />
+            </AlertDialogCancel>
             <Button variant="destructive" onClick={confirmDelete}>
-              Delete
+              <LocalizedText text={"Delete"} />
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>

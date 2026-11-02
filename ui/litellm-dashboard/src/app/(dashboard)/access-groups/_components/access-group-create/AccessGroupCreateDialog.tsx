@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { BotIcon, InfoIcon, LayersIcon, ServerIcon } from "lucide-react";
@@ -41,6 +42,7 @@ export const AccessGroupCreateDialog = ({
   onOpenChange,
   createAccessGroup = defaultCreateAccessGroup,
 }: AccessGroupCreateDialogProps) => {
+  useUiLocale();
   const queryClient = useQueryClient();
   const form = useZodForm(accessGroupCreateSchema, { defaultValues: emptyAccessGroupFormValues });
   const [activeTab, setActiveTab] = React.useState(GENERAL_TAB);
@@ -66,7 +68,7 @@ export const AccessGroupCreateDialog = ({
   const mutation = useMutation({
     mutationFn: (body: AccessGroupCreateBody) => createAccessGroup(body),
     onSuccess: () => {
-      toast.success("Access group created successfully");
+      toast.success(translateMessage("Access group created successfully"));
       queryClient.invalidateQueries({ queryKey: accessGroupKeys.all });
       closeAndReset();
     },
@@ -96,7 +98,9 @@ export const AccessGroupCreateDialog = ({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Create Access Group</DialogTitle>
+          <DialogTitle>
+            <LocalizedText text={"Create Access Group"} />
+          </DialogTitle>
         </DialogHeader>
 
         <form onSubmit={onSubmit} noValidate>
@@ -104,34 +108,36 @@ export const AccessGroupCreateDialog = ({
             <TabsList className="w-full">
               <TabsTrigger value={GENERAL_TAB}>
                 <InfoIcon />
-                General Info
+                <LocalizedText text={"General Info"} />
               </TabsTrigger>
               <TabsTrigger value="models">
                 <LayersIcon />
-                Models
+                <LocalizedText text={"Models"} />
               </TabsTrigger>
               <TabsTrigger value="mcp-servers">
                 <ServerIcon />
-                MCP Servers
+                <LocalizedText text={"MCP Servers"} />
               </TabsTrigger>
               <TabsTrigger value="agents">
                 <BotIcon />
-                Agents
+                <LocalizedText text={"Agents"} />
               </TabsTrigger>
             </TabsList>
 
             <TabsContent value={GENERAL_TAB} className="pt-4">
               <FieldGroup>
-                <FormField control={form.control} name="name" label="Group Name">
-                  {({ ref, ...field }) => <Input {...field} ref={ref} placeholder="e.g. Engineering Team" />}
+                <FormField control={form.control} name="name" label={translateMessage("Group Name")}>
+                  {({ ref, ...field }) => (
+                    <Input {...field} ref={ref} placeholder={translateMessage("e.g. Engineering Team")} />
+                  )}
                 </FormField>
-                <FormField control={form.control} name="description" label="Description">
+                <FormField control={form.control} name="description" label={translateMessage("Description")}>
                   {({ ref, ...field }) => (
                     <Textarea
                       {...field}
                       ref={ref}
                       rows={4}
-                      placeholder="Describe the purpose of this access group..."
+                      placeholder={translateMessage("Describe the purpose of this access group...")}
                     />
                   )}
                 </FormField>
@@ -139,34 +145,34 @@ export const AccessGroupCreateDialog = ({
             </TabsContent>
 
             <TabsContent value="models" className="pt-4">
-              <FormField control={form.control} name="modelIds" label="Allowed Models">
+              <FormField control={form.control} name="modelIds" label={translateMessage("Allowed Models")}>
                 {(field) => <ModelSelect context="global" value={field.value} onChange={field.onChange} />}
               </FormField>
             </TabsContent>
 
             <TabsContent value="mcp-servers" className="pt-4">
-              <FormField control={form.control} name="mcpServerIds" label="Allowed MCP Servers">
+              <FormField control={form.control} name="mcpServerIds" label={translateMessage("Allowed MCP Servers")}>
                 {({ id, value, onChange }) => (
                   <MultiSelect
                     id={id}
                     value={value}
                     onValueChange={onChange}
                     options={mcpServerOptions}
-                    placeholder="Select MCP servers"
+                    placeholder={translateMessage("Select MCP servers")}
                   />
                 )}
               </FormField>
             </TabsContent>
 
             <TabsContent value="agents" className="pt-4">
-              <FormField control={form.control} name="agentIds" label="Allowed Agents">
+              <FormField control={form.control} name="agentIds" label={translateMessage("Allowed Agents")}>
                 {({ id, value, onChange }) => (
                   <MultiSelect
                     id={id}
                     value={value}
                     onValueChange={onChange}
                     options={agentOptions}
-                    placeholder="Select agents"
+                    placeholder={translateMessage("Select agents")}
                   />
                 )}
               </FormField>
@@ -180,10 +186,10 @@ export const AccessGroupCreateDialog = ({
               onClick={() => handleOpenChange(false)}
               disabled={mutation.isPending}
             >
-              Cancel
+              <LocalizedText text={"Cancel"} />
             </Button>
             <Button type="submit" disabled={mutation.isPending}>
-              {mutation.isPending ? "Creating..." : "Create Group"}
+              {mutation.isPending ? translateMessage("Creating...") : translateMessage("Create Group")}
             </Button>
           </DialogFooter>
         </form>

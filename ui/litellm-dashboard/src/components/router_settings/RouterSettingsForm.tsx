@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, useUiLocale } from "@/lib/i18n";
 import React from "react";
 import LatencyBasedConfiguration from "./LatencyBasedConfiguration";
 import ReliabilityRetriesSection from "./ReliabilityRetriesSection";
@@ -25,6 +27,7 @@ const RouterSettingsForm: React.FC<RouterSettingsFormProps> = ({
   availableRoutingStrategies,
   routingStrategyDescriptions,
 }) => {
+  useUiLocale();
   const handleStrategyChange = (strategy: string) => {
     onChange({
       ...value,
@@ -44,8 +47,12 @@ const RouterSettingsForm: React.FC<RouterSettingsFormProps> = ({
       {/* Routing Settings Section */}
       <div className="space-y-6">
         <div className="max-w-3xl">
-          <h3 className="text-sm font-medium text-foreground">Routing Settings</h3>
-          <p className="text-xs text-muted-foreground mt-1">Configure how requests are routed to deployments</p>
+          <h3 className="text-sm font-medium text-foreground">
+            <LocalizedText text={"Routing Settings"} />
+          </h3>
+          <p className="text-xs text-muted-foreground mt-1">
+            <LocalizedText text={"Configure how requests are routed to deployments"} />
+          </p>
         </div>
 
         {/* Routing Strategy */}

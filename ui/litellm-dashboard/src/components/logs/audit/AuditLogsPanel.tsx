@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 import { useCallback, useState } from "react";
 import { useDebouncedValue } from "@tanstack/react-pacer/debouncer";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
@@ -39,6 +41,7 @@ export default function AuditLogsPanel({
   isActive,
   premiumUser,
 }: AuditLogsProps) {
+  useUiLocale();
   const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: PAGE_SIZE });
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [searchInput, setSearchInput] = useState("");
@@ -101,16 +104,18 @@ export default function AuditLogsPanel({
   if (!premiumUser) {
     return (
       <div className="flex min-h-0 flex-1 flex-col items-center justify-center overflow-y-auto text-center">
-        <h1 style={{ display: "block", marginBottom: "10px" }}>✨ Enterprise Feature.</h1>
+        <h1 style={{ display: "block", marginBottom: "10px" }}>
+          <LocalizedText text={"✨ Enterprise Feature."} />
+        </h1>
         <p style={{ display: "block", marginBottom: "10px" }}>
-          This is a LiteLLM Enterprise feature, and requires a valid key to use.
+          <LocalizedText text={"This is a LiteLLM Enterprise feature, and requires a valid key to use."} />
         </p>
         <p style={{ display: "block", marginBottom: "20px", fontStyle: "italic" }}>
-          Here&apos;s a preview of what Audit Logs offer:
+          <LocalizedText text={"Here's a preview of what Audit Logs offer:"} />
         </p>
         <img
           src={resolveLogoSrc(auditLogsPreviewImg)}
-          alt="Audit Logs Preview"
+          alt={translateMessage("Audit Logs Preview")}
           style={{
             maxWidth: "100%",
             maxHeight: "700px",

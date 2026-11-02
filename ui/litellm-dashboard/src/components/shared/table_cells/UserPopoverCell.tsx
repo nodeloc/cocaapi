@@ -1,4 +1,5 @@
 "use client";
+import { localizedProperty, markUiCopy, useUiLocale } from "@/lib/i18n";
 
 import DefaultProxyAdminTag from "@/components/common_components/DefaultProxyAdminTag";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
@@ -18,25 +19,29 @@ interface UserPopoverCellProps {
 }
 
 export function UserPopoverCell({ userAlias, userEmail, userId, width }: UserPopoverCellProps) {
+  useUiLocale();
   const displayValue = userAlias || userEmail || userId;
   const isDefaultAdmin = userId === DEFAULT_PROXY_ADMIN_USER_ID;
 
   const popoverContent = (
     <div className="flex flex-col gap-2 text-xs min-w-[200px] max-w-[300px]">
       {[
-        { label: "User Alias", value: userAlias },
-        { label: "User Email", value: userEmail },
-        { label: "User ID", value: userId },
-      ].map(({ label, value }) => (
-        <div key={label} className="flex flex-col min-w-0">
-          <span className="text-muted-foreground">{label}</span>
-          {value ? (
-            <IdCell value={value} variant="plain" copyable copyLabel={`Copy ${label}`} className="max-w-full" />
-          ) : (
-            <span className="font-mono">-</span>
-          )}
-        </div>
-      ))}
+        markUiCopy({ label: "User Alias", value: userAlias }, { label: "User Alias" }),
+        markUiCopy({ label: "User Email", value: userEmail }, { label: "User Email" }),
+        markUiCopy({ label: "User ID", value: userId }, { label: "User ID" }),
+      ].map((cocaCopyProps0) => {
+        const { label, value } = cocaCopyProps0;
+        return (
+          <div key={label} className="flex flex-col min-w-0">
+            <span className="text-muted-foreground">{localizedProperty(cocaCopyProps0, "label", label)}</span>
+            {value ? (
+              <IdCell value={value} variant="plain" copyable copyLabel={`Copy ${label}`} className="max-w-full" />
+            ) : (
+              <span className="font-mono">-</span>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 

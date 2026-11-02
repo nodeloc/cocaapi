@@ -1,3 +1,6 @@
+
+"use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import RoutingOptions from "./RoutingOptions";
 import ClassifierPrimarySettings from "./ClassifierPrimarySettings";
 import { AutoRouterAllowanceNote } from "./AutoRouterAvailability";
@@ -102,33 +105,33 @@ export const NEW_CLASSIFIER_CLASSIFICATION_RUBRIC: ClassificationRubric = "agent
 
 export const CLASSIFICATION_RUBRIC_DESCRIPTIONS: Record<ClassificationRubric, { label: string; description: string }> =
   {
-    legacy: {
+    legacy: markUiCopy({
       label: "Legacy (uncalibrated)",
       description:
         "The rubric as it shipped before calibration examples, with no worked examples at all. Routers created " +
         "before this setting existed use it, so their tier decisions and spend are unchanged. It over-routes " +
         "ordinary engineering to the most expensive tier.",
-    },
-    agentic: {
+    }, {"label": "Legacy (uncalibrated)"}),
+    agentic: markUiCopy({
       label: "Agentic",
       description:
         "Anchors routine installs, builds, multi-file edits, and standard debugging at " +
         "Medium, so ordinary engineering does not route to your most expensive tier. Suits agent, terminal, and " +
         "coding-assistant traffic, and mixed traffic.",
-    },
-    chat: {
+    }, {"label": "Agentic"}),
+    chat: markUiCopy({
       label: "Chat",
       description:
         "Drops the engineering examples, for a router serving only conversational traffic that never sees those " +
         "requests.",
-    },
-    business: {
+    }, {"label": "Chat"}),
+    business: markUiCopy({
       label: "Business",
       description:
         "Business and sales examples plus business-oriented tier definitions: routine drafting and summarizing " +
         "stay at Medium, data-determined analysis is Complex, and only decisions under conflicting tradeoffs " +
         "reach Reasoning. Suits sales, support, and go-to-market traffic.",
-    },
+    }, {"label": "Business"}),
   };
 
 export const CLASSIFICATION_RUBRIC_KEYS = Object.keys(CLASSIFICATION_RUBRIC_DESCRIPTIONS) as ClassificationRubric[];
@@ -212,75 +215,63 @@ const TierSetToolbar: React.FC<{
   onEditingChange: ((editing: boolean) => void) | undefined;
   onAdd: () => void;
   onRestore: () => void;
-}> = ({ editing, isCustomSet, rowCount, rowsError, keywordRulesError, onEditingChange, onAdd, onRestore }) => (
+}> = ({ editing, isCustomSet, rowCount, rowsError, keywordRulesError, onEditingChange, onAdd, onRestore }) => { useUiLocale(); return ((
   <>
     <div className="mt-4 flex flex-wrap items-center gap-2">
       {editing ? (
         <>
           <Button variant="outline" onClick={onAdd} disabled={rowCount >= MAX_TIER_COUNT}>
-            <Plus />
-            Add tier
-          </Button>
+            <Plus /><LocalizedText text={"Add tier"} /></Button>
           <SimpleTooltip content={rowsError || undefined}>
-            <Button variant="outline" disabled={Boolean(rowsError)} onClick={() => onEditingChange?.(false)}>
-              Done
-            </Button>
+            <Button variant="outline" disabled={Boolean(rowsError)} onClick={() => onEditingChange?.(false)}><LocalizedText text={"Done"} /></Button>
           </SimpleTooltip>
           {isCustomSet && (
-            <Button variant="outline" size="sm" onClick={onRestore}>
-              Restore defaults
-            </Button>
+            <Button variant="outline" size="sm" onClick={onRestore}><LocalizedText text={"Restore defaults"} /></Button>
           )}
         </>
       ) : (
         onEditingChange && (
-          <Button variant="outline" onClick={() => onEditingChange(true)}>
-            Edit tiers
-          </Button>
+          <Button variant="outline" onClick={() => onEditingChange(true)}><LocalizedText text={"Edit tiers"} /></Button>
         )
       )}
     </div>
     {editing && (
       <AutoRouterAllowanceNote
         feature="tier_or_classifier_prompt"
-        label="Custom tiers and written prompts share this allowance"
+        label={translateMessage("Custom tiers and written prompts share this allowance")}
       />
     )}
     {editing && (
-      <span className="block mt-1 text-xs text-muted-foreground">
-        Add or remove tiers to define your own set. Every custom tier needs a definition the classifier routes on, and
-        an edited set requires the LLM or OSS classification method
-      </span>
+      <span className="block mt-1 text-xs text-muted-foreground"><LocalizedText text={"Add or remove tiers to define your own set. Every custom tier needs a definition the classifier routes on, and an edited set requires the LLM or OSS classification method"} /></span>
     )}
     {editing && keywordRulesError && (
       <span className="block mt-1 text-xs text-destructive">
-        {keywordRulesError}. Edit the rules under Advanced: Keyword/Semantic Matching, or bring the tier back
-      </span>
+        {keywordRulesError}<LocalizedText text={". Edit the rules under Advanced: Keyword/Semantic Matching, or bring the tier back"} /></span>
     )}
   </>
-);
+)); };
 
 const FallbackTierField: React.FC<{
   rows: readonly TierRow[];
   fallbackTierId: string;
   onValueChange: (rowId: string) => void;
-}> = ({ rows, fallbackTierId, onValueChange }) => (
+}> = ({ rows, fallbackTierId, onValueChange }) => { useUiLocale(); return ((
   <div className="mt-4">
     <div className="flex items-center gap-2 mb-2">
-      <strong className="text-base font-semibold">Fallback Tier</strong>
+      <strong className="text-base font-semibold"><LocalizedText text={"Fallback Tier"} /></strong>
       <SimpleTooltip content="Where requests route when the classifier errors, times out, or returns an unparseable reply. Required for an edited tier set: the heuristic scorer cannot produce your tiers">
         <Info className="size-4 text-muted-foreground" />
       </SimpleTooltip>
     </div>
     <TierRowSelect
-      label="Fallback tier"
+      label={translateMessage("Fallback tier")}
       options={rows.filter((row) => activeTierName(row)).map((row) => ({ value: row.id, label: activeTierName(row) }))}
       value={fallbackTierId || null}
       onValueChange={onValueChange}
-      placeholder="Pick the tier classifier failures route to"
+      placeholder={translateMessage("Pick the tier classifier failures route to")}
     />
   </div>
-);
+)); };
 
 const TierRowHeader: React.FC<{
   row: TierRow;
@@ -291,9 +282,9 @@ const TierRowHeader: React.FC<{
   editing: boolean;
   isCustomSet: boolean;
   onRemove: () => void;
-}> = ({ row, index, rowCount, label, description, editing, isCustomSet, onRemove }) => (
+}> = (cocaCopyProps0) => { const { row, index, rowCount, label, description, editing, isCustomSet, onRemove } = cocaCopyProps0; useUiLocale(); return ((
   <div className="flex items-center gap-2 mb-2">
-    <strong className="text-base font-semibold">{label} Tier</strong>
+    <strong className="text-base font-semibold">{localizedProperty(cocaCopyProps0, "label", label)}<LocalizedText text={" Tier"} /></strong>
     <SimpleTooltip
       content={
         row.definition.trim() ||
@@ -303,37 +294,34 @@ const TierRowHeader: React.FC<{
     >
       <Info className="size-4 text-muted-foreground" />
     </SimpleTooltip>
-    <span className="text-xs text-muted-foreground">
-      Tier {index + 1} of {rowCount} &middot; {rowOrigin(row, isCustomSet)}
+    <span className="text-xs text-muted-foreground"><LocalizedText text={"Tier "} />{index + 1}<LocalizedText text={" of "} />{rowCount} &middot; {rowOrigin(row, isCustomSet)}
     </span>
     {editing && (
       <Button
         variant="ghost"
         size="sm"
         className="text-destructive hover:text-destructive/80"
-        aria-label={`Remove the ${activeTierName(row) || `tier ${index + 1}`} tier`}
+        aria-label={translateMessage("Remove the %{0} tier", [activeTierName(row) || `tier ${index + 1}`])}
         disabled={rowCount <= MIN_TIER_COUNT}
         onClick={onRemove}
       >
-        <Trash2 />
-        Remove
-      </Button>
+        <Trash2 /><LocalizedText text={"Remove"} /></Button>
     )}
   </div>
-);
+)); };
 
 const TierRowEditFields: React.FC<{
   row: TierRow;
   index: number;
   definitionMissing: boolean;
   onPatch: (patch: Partial<Omit<TierRow, "id">>) => void;
-}> = ({ row, index, definitionMissing, onPatch }) => (
+}> = ({ row, index, definitionMissing, onPatch }) => { useUiLocale(); return ((
   <>
     <Input
       value={row.name}
       onChange={(event) => onPatch({ name: event.target.value })}
-      placeholder="Tier name, e.g. SECURITY_REVIEW"
-      aria-label={`Name for tier ${index + 1}`}
+      placeholder={translateMessage("Tier name, e.g. SECURITY_REVIEW")}
+      aria-label={translateMessage("Name for tier %{0}", [index + 1])}
       maxLength={MAX_TIER_NAME_CHARS}
       className="mb-2"
     />
@@ -342,21 +330,19 @@ const TierRowEditFields: React.FC<{
       onChange={(event) => onPatch({ definition: event.target.value.replace(/[\r\n]+/g, " ") })}
       placeholder={
         isBuiltInTierName(row.name)
-          ? "Leave blank to keep the built-in definition"
-          : "What belongs in this tier, e.g. requests asking for a security audit"
+          ? translateMessage("Leave blank to keep the built-in definition")
+          : translateMessage("What belongs in this tier, e.g. requests asking for a security audit")
       }
-      aria-label={`Definition for tier ${index + 1}`}
+      aria-label={translateMessage("Definition for tier %{0}", [index + 1])}
       maxLength={MAX_TIER_DEFINITION_CHARS}
       rows={2}
       className={definitionMissing ? "mb-2 border-destructive" : "mb-2"}
     />
     {definitionMissing && (
-      <span className="mb-2 block text-xs text-destructive">
-        A definition is required: it is the rubric the classifier routes on for this tier
-      </span>
+      <span className="mb-2 block text-xs text-destructive"><LocalizedText text={"A definition is required: it is the rubric the classifier routes on for this tier"} /></span>
     )}
   </>
-);
+)); };
 
 export type AdaptiveEligible = "all" | "classified_tier";
 
@@ -507,31 +493,31 @@ export const TIER_DESCRIPTIONS: Record<
   keyof ComplexityTiers,
   { label: string; description: string; examples: string }
 > = {
-  NON_REASONING: {
+  NON_REASONING: markUiCopy({
     label: "Non-reasoning",
     description: "Operational relay work: passing information along with no judgment about it",
     examples: '"Reformat this tool output", "Acknowledge the write succeeded"',
-  },
-  SIMPLE: {
+  }, {"label": "Non-reasoning", "description": "Operational relay work: passing information along with no judgment about it", "examples": "\"Reformat this tool output\", \"Acknowledge the write succeeded\""}),
+  SIMPLE: markUiCopy({
     label: "Simple",
     description: "Basic questions, greetings, simple factual queries",
     examples: '"Hello!", "What is Python?", "Thanks!"',
-  },
-  MEDIUM: {
+  }, {"label": "Simple", "description": "Basic questions, greetings, simple factual queries", "examples": "\"Hello!\", \"What is Python?\", \"Thanks!\""}),
+  MEDIUM: markUiCopy({
     label: "Medium",
     description: "Standard queries requiring some reasoning or explanation",
     examples: '"Explain how REST APIs work", "Debug this error"',
-  },
-  COMPLEX: {
+  }, {"label": "Medium", "description": "Standard queries requiring some reasoning or explanation", "examples": "\"Explain how REST APIs work\", \"Debug this error\""}),
+  COMPLEX: markUiCopy({
     label: "Complex",
     description: "Technical, multi-part requests requiring deep knowledge",
     examples: '"Design a microservices architecture", "Implement a rate limiter"',
-  },
-  REASONING: {
+  }, {"label": "Complex", "description": "Technical, multi-part requests requiring deep knowledge", "examples": "\"Design a microservices architecture\", \"Implement a rate limiter\""}),
+  REASONING: markUiCopy({
     label: "Reasoning",
     description: "Chain-of-thought, analysis, explicit reasoning requests",
     examples: '"Think step by step...", "Analyze the pros and cons..."',
-  },
+  }, {"label": "Reasoning", "description": "Chain-of-thought, analysis, explicit reasoning requests", "examples": "\"Think step by step...\", \"Analyze the pros and cons...\""}),
 };
 
 export const TIER_KEYS = Object.keys(TIER_DESCRIPTIONS) as Array<keyof ComplexityTiers>;
@@ -568,6 +554,7 @@ const CreationClassifierSettings = ({
   defaultModel: string | undefined;
   showValidationErrors: boolean;
 }) => {
+  useUiLocale();
   const jevCreation = isJevCreation(value, creationFlow);
   return (
     <>
@@ -580,7 +567,7 @@ const CreationClassifierSettings = ({
       />
       {jevCreation && (
         <div className="mb-6">
-          <RoutingOptions label="Advanced classifier settings" showValidationErrors={showValidationErrors}>
+          <RoutingOptions label={translateMessage("Advanced classifier settings")} showValidationErrors={showValidationErrors}>
             <div className="px-4 pb-4">
               <ClassificationMethodConfig
                 advancedOnly
@@ -626,6 +613,7 @@ const ComplexityRouterConfig: React.FC<ComplexityRouterConfigProps> = ({
   onAutoRouterCompressionChange,
   showValidationErrors = false,
 }) => {
+  useUiLocale();
   const forecast = isForecastClassifier(value.classifier_type);
   const tierHeading = creationFlow ? "Define your tiers" : "Models by tier";
   const customTierSet = value.custom_tier_set;
@@ -688,7 +676,7 @@ const ComplexityRouterConfig: React.FC<ComplexityRouterConfigProps> = ({
       {creationFlow && <Separator className="my-6" />}
       <div className="mb-4">
         <div className="inline-flex items-center gap-2">
-          <h4 className="m-0 text-xl font-semibold text-foreground">{forecast ? "Solver models" : tierHeading}</h4>
+          <h4 className="m-0 text-xl font-semibold text-foreground">{forecast ? translateMessage("Solver models") : tierHeading}</h4>
           {!forecast && (
             <SimpleTooltip content="Map each complexity tier to one or more models. Simple queries use cheaper/faster models, complex queries use more capable models.">
               <Info className="size-4 text-muted-foreground" />
@@ -739,13 +727,13 @@ const ComplexityRouterConfig: React.FC<ComplexityRouterConfigProps> = ({
                         index={index}
                         rowCount={tierRows.length}
                         label={label}
-                        description={tierInfo?.description}
+                        description={localizedProperty(tierInfo, "description", tierInfo?.description)}
                         editing={editingTiers}
                         isCustomSet={Boolean(customTierSet)}
                         onRemove={() => removeTierRow(row.id)}
                       />
                       {tierInfo && !customTierSet && (
-                        <span className="block mb-2 text-xs text-muted-foreground">Examples: {tierInfo.examples}</span>
+                        <span className="block mb-2 text-xs text-muted-foreground"><LocalizedText text={"Examples: "} />{tierInfo.examples}</span>
                       )}
                       {editingTiers && (
                         <TierRowEditFields
@@ -762,14 +750,14 @@ const ComplexityRouterConfig: React.FC<ComplexityRouterConfigProps> = ({
                             onChange={(event) =>
                               handleTierLabelChange(row.id as keyof ComplexityTiers, event.target.value)
                             }
-                            placeholder={`Display name (default: ${tierInfo.label})`}
-                            aria-label={`Display name for the ${tierInfo.label} tier`}
+                            placeholder={translateMessage("Display name (default: %{0})", [tierInfo.label])}
+                            aria-label={translateMessage("Display name for the %{0} tier", [tierInfo.label])}
                           />
                           {value.tier_labels?.[row.id as keyof ComplexityTiers] && (
                             <InputGroupAddon align="inline-end">
                               <InputGroupButton
                                 size="icon-xs"
-                                aria-label={`Clear display name for the ${tierInfo.label} tier`}
+                                aria-label={translateMessage("Clear display name for the %{0} tier", [tierInfo.label])}
                                 onClick={() => handleTierLabelChange(row.id as keyof ComplexityTiers, "")}
                               >
                                 <X />
@@ -782,8 +770,8 @@ const ComplexityRouterConfig: React.FC<ComplexityRouterConfigProps> = ({
                         options={modelOptions}
                         value={row.models}
                         onValueChange={(models: string[]) => setRowModels(row, models)}
-                        placeholder={`Select model(s) for ${label.toLowerCase()} queries`}
-                        emptyText="No models found"
+                        placeholder={translateMessage("Select model(s) for %{0} queries", [label.toLowerCase()])}
+                        emptyText={translateMessage("No models found")}
                         className={tierMissing ? "w-full border-destructive" : "w-full"}
                       />
                       <TierModelEffortRows
@@ -800,12 +788,9 @@ const ComplexityRouterConfig: React.FC<ComplexityRouterConfigProps> = ({
                         }
                       />
                       {row.models.length > 1 && (
-                        <span className="text-xs text-muted-foreground">
-                          Multiple models selected: the router randomly picks among them per request (or
-                          Thompson-samples within the pool when adaptive routing is on).
-                        </span>
+                        <span className="text-xs text-muted-foreground"><LocalizedText text={"Multiple models selected: the router randomly picks among them per request (or Thompson-samples within the pool when adaptive routing is on)."} /></span>
                       )}
-                      {tierMissing && <span className="text-xs text-destructive">The {label} tier is required</span>}
+                      {tierMissing && <span className="text-xs text-destructive"><LocalizedText text={"The "} />{label}<LocalizedText text={" tier is required"} /></span>}
                     </div>
                   </div>
                 );

@@ -1,3 +1,4 @@
+import { getIntlLocale } from "@/lib/i18n";
 interface ValidatorRule {
   validator: (rule: unknown, value: unknown) => Promise<void>;
 }
@@ -34,7 +35,11 @@ export const ptuCountRules: ValidatorRule[] = [
     validator: (_, value) =>
       isPositiveWholePtuCount(value)
         ? Promise.resolve()
-        : Promise.reject(new Error(`PTU Count must be a whole number between 1 and ${MAX_PTU_COUNT.toLocaleString()}`)),
+        : Promise.reject(
+            new Error(
+              `PTU Count must be a whole number between 1 and ${MAX_PTU_COUNT.toLocaleString(getIntlLocale())}`,
+            ),
+          ),
   },
 ];
 
@@ -53,7 +58,9 @@ export const ptuRateRules: ValidatorRule[] = [
       isNonNegativePtuRate(value)
         ? Promise.resolve()
         : Promise.reject(
-            new Error(`Cost per PTU / Hour must be between 0 and ${MAX_COST_PER_PTU_PER_HOUR.toLocaleString()}`),
+            new Error(
+              `Cost per PTU / Hour must be between 0 and ${MAX_COST_PER_PTU_PER_HOUR.toLocaleString(getIntlLocale())}`,
+            ),
           ),
   },
 ];

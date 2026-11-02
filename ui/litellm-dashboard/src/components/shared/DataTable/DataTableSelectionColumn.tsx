@@ -1,4 +1,5 @@
 "use client";
+import { localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import type { ColumnDef, Row, RowData, Table } from "@tanstack/react-table";
 
@@ -9,12 +10,13 @@ interface SelectionColumnOptions<TData> {
 }
 
 function SelectAllCheckbox<TData>({ table }: { table: Table<TData> }) {
+  useUiLocale();
   const allSelected = table.getIsAllPageRowsSelected();
   const someSelected = table.getIsSomePageRowsSelected();
 
   return (
     <Checkbox
-      aria-label="Select all rows"
+      aria-label={translateMessage("Select all rows")}
       data-testid="datatable-select-all"
       checked={allSelected}
       indeterminate={someSelected && !allSelected}
@@ -23,10 +25,12 @@ function SelectAllCheckbox<TData>({ table }: { table: Table<TData> }) {
   );
 }
 
-function SelectRowCheckbox<TData>({ row, label }: { row: Row<TData>; label: string }) {
+function SelectRowCheckbox<TData>(cocaCopyProps0: { row: Row<TData>; label: string }) {
+  const { row, label } = cocaCopyProps0;
+  useUiLocale();
   return (
     <Checkbox
-      aria-label={label}
+      aria-label={localizedProperty(cocaCopyProps0, "label", label)}
       data-testid={`datatable-select-row-${row.id}`}
       checked={row.getIsSelected()}
       disabled={!row.getCanSelect()}
@@ -46,8 +50,8 @@ export function createSelectionColumn<TData extends RowData>(
     enableSorting: false,
     enableHiding: false,
     enableResizing: false,
-    meta: { title: "Select", className: "w-11", headerClassName: "w-11" },
+    meta: markUiCopy({ title: "Select", className: "w-11", headerClassName: "w-11" }, { title: "Select" }),
     header: ({ table }) => <SelectAllCheckbox table={table} />,
-    cell: ({ row }) => <SelectRowCheckbox row={row} label={rowAriaLabel?.(row) ?? "Select row"} />,
+    cell: ({ row }) => <SelectRowCheckbox row={row} label={rowAriaLabel?.(row) ?? translateMessage("Select row")} />,
   };
 }

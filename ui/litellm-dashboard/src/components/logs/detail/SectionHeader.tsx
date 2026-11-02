@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, getIntlLocale, translateMessage, useUiLocale } from "@/lib/i18n";
 /**
  * SectionHeader - Datadog-style header with icon, label, metrics, and copy
  */
@@ -28,6 +30,7 @@ export function SectionHeader({
   onToggleCollapse,
   turnCount,
 }: SectionHeaderProps) {
+  useUiLocale();
   const summary = (
     <>
       {onToggleCollapse &&
@@ -43,15 +46,30 @@ export function SectionHeader({
         ) : (
           <span className="text-sm opacity-60 grayscale">✨</span>
         )}
-        <span className="text-sm font-medium">{type === "input" ? "Input" : "Output"}</span>
+        <span className="text-sm font-medium">
+          {type === "input" ? translateMessage("Input") : translateMessage("Output")}
+        </span>
       </div>
 
-      {tokens !== undefined && <span className="text-xs text-muted-foreground">Tokens: {tokens.toLocaleString()}</span>}
+      {tokens !== undefined && (
+        <span className="text-xs text-muted-foreground">
+          <LocalizedText text={"Tokens: "} />
+          {tokens.toLocaleString(getIntlLocale())}
+        </span>
+      )}
 
-      {cost !== undefined && <span className="text-xs text-muted-foreground">Cost: ${cost.toFixed(6)}</span>}
+      {cost !== undefined && (
+        <span className="text-xs text-muted-foreground">
+          <LocalizedText text={"Cost: $"} />
+          {cost.toFixed(6)}
+        </span>
+      )}
 
       {turnCount !== undefined && turnCount > 0 && (
-        <span className="text-xs text-muted-foreground">Turns: {turnCount}</span>
+        <span className="text-xs text-muted-foreground">
+          <LocalizedText text={"Turns: "} />
+          {turnCount}
+        </span>
       )}
     </>
   );
@@ -82,7 +100,7 @@ export function SectionHeader({
             <Button
               variant="ghost"
               size="icon-sm"
-              aria-label={type === "input" ? "Copy input" : "Copy output"}
+              aria-label={type === "input" ? translateMessage("Copy input") : translateMessage("Copy output")}
               onClick={(e) => {
                 e.stopPropagation();
                 onCopy();
@@ -92,7 +110,9 @@ export function SectionHeader({
         >
           <Copy />
         </TooltipTrigger>
-        <TooltipContent>Copy</TooltipContent>
+        <TooltipContent>
+          <LocalizedText text={"Copy"} />
+        </TooltipContent>
       </Tooltip>
     </div>
   );

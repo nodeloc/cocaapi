@@ -1,3 +1,5 @@
+"use client";
+import { translateMessage, useUiLocale } from "@/lib/i18n";
 import React, { useMemo, useState } from "react";
 import { PaginatedSearchSelect } from "@/components/shared/PaginatedSearchSelect";
 import type { SearchSelectOption } from "@/components/shared/SearchSelect";
@@ -19,6 +21,7 @@ export const userOptionLabel = (user: Pick<UserInfo, "user_id" | "user_alias" | 
 };
 
 const UserDropdown: React.FC<UserDropdownProps> = ({ value, onChange, disabled, pageSize = 50, id }) => {
+  useUiLocale();
   const [search, setSearch] = useState("");
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useInfiniteUsers(
@@ -54,9 +57,9 @@ const UserDropdown: React.FC<UserDropdownProps> = ({ value, onChange, disabled, 
         hasNextPage={hasNextPage}
         isLoading={isLoading}
         isFetchingNextPage={isFetchingNextPage}
-        placeholder="Search users by email…"
-        emptyText="No users found"
-        loadingText="Loading users…"
+        placeholder={translateMessage("Search users by email…")}
+        emptyText={translateMessage("No users found")}
+        loadingText={translateMessage("Loading users…")}
         disabled={disabled}
         inputId={id}
       />

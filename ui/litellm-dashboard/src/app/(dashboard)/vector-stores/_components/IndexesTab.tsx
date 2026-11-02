@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, useUiLocale } from "@/lib/i18n";
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 
@@ -29,6 +30,7 @@ interface IndexesTabProps {
 }
 
 const IndexesTab: React.FC<IndexesTabProps> = ({ accessToken, vectorStores, onViewVectorStore }) => {
+  useUiLocale();
   const [indexes, setIndexes] = useState<VectorStoreIndex[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -66,26 +68,31 @@ const IndexesTab: React.FC<IndexesTabProps> = ({ accessToken, vectorStores, onVi
   return (
     <div className="w-full">
       <p className="mb-4 text-sm text-muted-foreground">
-        Vector store indexes registered on this proxy via the <code>/v1/indexes</code> API. See the{" "}
+        <LocalizedText text={"Vector store indexes registered on this proxy via the "} />
+        <code>/v1/indexes</code>
+        <LocalizedText text={" API. See the"} />{" "}
         <a
           href="https://docs.litellm.ai/docs/providers/azure_ai/azure_ai_vector_stores_passthrough"
           target="_blank"
           rel="noopener noreferrer"
           className="text-info hover:underline"
         >
-          vector store index docs
+          <LocalizedText text={"vector store index docs"} />
         </a>{" "}
-        for how this works. Index passthrough is supported for Azure AI Search and Milvus today; support for more
-        providers can be added, so please{" "}
+        <LocalizedText
+          text={
+            "for how this works. Index passthrough is supported for Azure AI Search and Milvus today; support for more providers can be added, so please"
+          }
+        />{" "}
         <a
           href="https://github.com/BerriAI/litellm/issues"
           target="_blank"
           rel="noopener noreferrer"
           className="text-info hover:underline"
         >
-          file a GitHub issue
+          <LocalizedText text={"file a GitHub issue"} />
         </a>{" "}
-        if you want your provider supported.
+        <LocalizedText text={"if you want your provider supported."} />
       </p>
       <div className="grid grid-cols-1 gap-2 pt-2 pb-2 w-full">
         <IndexesTable

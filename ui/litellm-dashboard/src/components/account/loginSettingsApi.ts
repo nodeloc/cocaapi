@@ -1,3 +1,4 @@
+import { markUiCopy } from "@/lib/i18n";
 import createClient from "openapi-fetch";
 import type { components, paths } from "@/lib/http/schema";
 import { AccountRequestError } from "./accountApi";
@@ -12,12 +13,20 @@ const options = {
   fetch: (request: Request) => globalThis.fetch(request),
 };
 const client = createClient<paths>(options);
-const messages: Readonly<Record<string, string>> = {
-  login_settings_conflict: "设置已被其他管理员更新，请重新加载后再保存。",
-  provider_credentials_required: "启用登录方式前，请填写 Client ID 和 Client Secret。",
-  invalid_login_settings: "请检查提供商、Client ID 和密钥设置。",
-  login_settings_unavailable: "登录配置无法读取或解密，请检查服务端认证密钥。",
-};
+const messages: Readonly<Record<string, string>> = markUiCopy(
+  {
+    login_settings_conflict: "设置已被其他管理员更新，请重新加载后再保存。",
+    provider_credentials_required: "启用登录方式前，请填写 Client ID 和 Client Secret。",
+    invalid_login_settings: "请检查提供商、Client ID 和密钥设置。",
+    login_settings_unavailable: "登录配置无法读取或解密，请检查服务端认证密钥。",
+  },
+  {
+    login_settings_conflict: "设置已被其他管理员更新，请重新加载后再保存。",
+    provider_credentials_required: "启用登录方式前，请填写 Client ID 和 Client Secret。",
+    invalid_login_settings: "请检查提供商、Client ID 和密钥设置。",
+    login_settings_unavailable: "登录配置无法读取或解密，请检查服务端认证密钥。",
+  },
+);
 function unwrap<T>(result: { data?: T; error?: unknown; response: Response }): T {
   if (result.data !== undefined && result.response.ok) return result.data;
   const detail =

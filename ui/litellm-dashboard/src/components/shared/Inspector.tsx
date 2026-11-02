@@ -1,4 +1,5 @@
 "use client";
+import { localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { mergeProps } from "@base-ui/react/merge-props";
 import { useRender } from "@base-ui/react/use-render";
@@ -53,6 +54,7 @@ interface InspectorState<T> {
 const InspectorContext = createContext<unknown>(null);
 
 export function useInspector<T>(): InspectorState<T> {
+  useUiLocale();
   const state = useContext(InspectorContext);
   if (state === null) throw new Error("Inspector parts must be rendered inside Inspector.Root");
   return state as InspectorState<T>;
@@ -86,6 +88,7 @@ function Root<T>({
   onFullScreenChange,
   children,
 }: InspectorRootProps<T>) {
+  useUiLocale();
   const parent = useContext(InspectorContext) as InspectorState<never> | null;
   const [claims, setClaims] = useState(0);
   const claim = useCallback(() => {
@@ -110,7 +113,7 @@ function Root<T>({
   };
   const close = () => onSelectedChange(null);
   const toggle = (item: T) => onSelectedChange(itemKey(item) === selectedKey ? null : item);
-  useShortcut("escape", close, { enabled: keys, description: "close" });
+  useShortcut("escape", close, markUiCopy({ enabled: keys, description: "close" }, { description: "close" }));
   useShortcut("j", () => step(1), { enabled: keys, description: noun });
   useShortcut("k", () => step(-1), { enabled: keys, description: noun });
   const state: InspectorState<T> = {
@@ -137,6 +140,7 @@ const activates = (event: KeyboardEvent<HTMLElement>): boolean =>
 
 /** A list entry that opens its item on click or Enter/Space and reads `data-state="selected"` while open. */
 function Row<T>({ item, render, ...props }: InspectorRowProps<T>) {
+  useUiLocale();
   const { itemKey, selected, toggle } = useInspector<T>();
   const isSelected = selected !== null && itemKey(selected) === itemKey(item);
   const own = {
@@ -158,6 +162,7 @@ function Row<T>({ item, render, ...props }: InspectorRowProps<T>) {
 }
 
 function usePanelWidth(storageKey: string) {
+  useUiLocale();
   const { width: viewport } = useWindowSize();
   const [stored, setStored] = useLocalStorage<number | null>(storageKey, null, {
     serializer: String,
@@ -170,6 +175,7 @@ function usePanelWidth(storageKey: string) {
 
 /** Keeps the last item on screen through the exit animation, then lets the panel unmount. */
 function useExitPresence<T>(item: T | null, itemKey: (item: T) => string) {
+  useUiLocale();
   const reduceMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
   const [lastShown, setLastShown] = useState<T | null>(item);
   const [exitedKey, setExitedKey] = useState<string | null>(null);
@@ -185,6 +191,7 @@ function useExitPresence<T>(item: T | null, itemKey: (item: T) => string) {
 }
 
 function ResizeHandle({ noun, width, onResize }: { noun: string; width: number; onResize: (width: number) => void }) {
+  useUiLocale();
   const [dragging, setDragging] = useState(false);
 
   const onPointerDown = (event: PointerEvent<HTMLDivElement>) => {
@@ -207,7 +214,7 @@ function ResizeHandle({ noun, width, onResize }: { noun: string; width: number; 
     <div
       role="separator"
       aria-orientation="vertical"
-      aria-label={`Resize ${noun} panel`}
+      aria-label={translateMessage("Resize %{0} panel", [noun])}
       aria-valuenow={width}
       aria-valuemin={MIN_WIDTH}
       tabIndex={0}
@@ -239,6 +246,7 @@ function HeaderButton({
   onClick: () => void;
   children: ReactNode;
 }) {
+  useUiLocale();
   return (
     <button
       type="button"
@@ -254,17 +262,26 @@ function HeaderButton({
 }
 
 function Header() {
+  useUiLocale();
   const { index, total, noun, step, close, fullScreen, setFullScreen } = useInspector();
   return (
     <div data-slot="inspector-header" className="flex h-[37px] shrink-0 items-center gap-1 border-b border-border px-2">
-      <HeaderButton label="Close (Esc)" onClick={close}>
+      <HeaderButton label={translateMessage("Close (Esc)")} onClick={close}>
         <ChevronsRight className="size-4" />
       </HeaderButton>
       <span className="mx-1 h-4 w-px bg-border" />
-      <HeaderButton label={`Next ${noun} (J)`} disabled={index < 0 || index >= total - 1} onClick={() => step(1)}>
+      <HeaderButton
+        label={translateMessage("Next %{0} (J)", [noun])}
+        disabled={index < 0 || index >= total - 1}
+        onClick={() => step(1)}
+      >
         <ChevronDown className="size-4" />
       </HeaderButton>
-      <HeaderButton label={`Previous ${noun} (K)`} disabled={index <= 0} onClick={() => step(-1)}>
+      <HeaderButton
+        label={translateMessage("Previous %{0} (K)", [noun])}
+        disabled={index <= 0}
+        onClick={() => step(-1)}
+      >
         <ChevronUp className="size-4" />
       </HeaderButton>
       {index >= 0 && (
@@ -274,12 +291,12 @@ function Header() {
       )}
       <div className="ml-auto flex items-center gap-1">
         <HeaderButton
-          label={fullScreen ? "Exit full screen" : "Enter full screen"}
+          label={fullScreen ? translateMessage("Exit full screen") : translateMessage("Enter full screen")}
           onClick={() => setFullScreen(!fullScreen)}
         >
           {fullScreen ? <Minimize2 className="size-4" /> : <Maximize2 className="size-4" />}
         </HeaderButton>
-        <HeaderButton label={`Close ${noun} (Esc)`} onClick={close}>
+        <HeaderButton label={translateMessage("Close %{0} (Esc)", [noun])} onClick={close}>
           <X className="size-4" />
         </HeaderButton>
       </div>
@@ -294,7 +311,9 @@ export interface InspectorPanelProps<T> {
 }
 
 /** Resizable right-hand panel showing the open item; the list stays clickable beside it. */
-function Panel<T>({ label, testId, children }: InspectorPanelProps<T>) {
+function Panel<T>(cocaCopyProps0: InspectorPanelProps<T>) {
+  const { label, testId, children } = cocaCopyProps0;
+  useUiLocale();
   const { selected, itemKey, noun, storageKey, fullScreen, close } = useInspector<T>();
   const [width, setWidth] = usePanelWidth(storageKey);
   const panelRef = useRef<HTMLElement>(null);
@@ -310,7 +329,7 @@ function Panel<T>({ label, testId, children }: InspectorPanelProps<T>) {
   return (
     <aside
       ref={panelRef}
-      aria-label={label}
+      aria-label={localizedProperty(cocaCopyProps0, "label", label)}
       data-slot="inspector-panel"
       data-state={closing ? "closing" : "open"}
       data-testid={testId}
@@ -332,7 +351,9 @@ function Panel<T>({ label, testId, children }: InspectorPanelProps<T>) {
 }
 
 /** Returns from content stacked inside the panel, such as evidence opened over a finding. */
-function BackLink({ label, onClick }: { label: string; onClick: () => void }) {
+function BackLink(cocaCopyProps1: { label: string; onClick: () => void }) {
+  const { label, onClick } = cocaCopyProps1;
+  useUiLocale();
   return (
     <button
       type="button"
@@ -341,7 +362,7 @@ function BackLink({ label, onClick }: { label: string; onClick: () => void }) {
       className="-ml-1 inline-flex max-w-full items-center gap-1 rounded px-1 text-xs text-muted-foreground hover:text-foreground"
     >
       <ArrowLeft aria-hidden="true" className="size-3 shrink-0" />
-      <span className="truncate">{label}</span>
+      <span className="truncate">{localizedProperty(cocaCopyProps1, "label", label)}</span>
     </button>
   );
 }

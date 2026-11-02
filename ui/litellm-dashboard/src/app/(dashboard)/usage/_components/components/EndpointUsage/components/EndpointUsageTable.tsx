@@ -1,3 +1,5 @@
+"use client";
+import { getIntlLocale, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import React from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Route } from "lucide-react";
@@ -24,6 +26,7 @@ interface EndpointRow {
 }
 
 const EndpointUsageTable: React.FC<EndpointUsageTableProps> = ({ endpointData }) => {
+  useUiLocale();
   const calculateSuccessRate = (successful: number, total: number): number => {
     if (total === 0) return 0;
     return (successful / total) * 100;
@@ -41,87 +44,114 @@ const EndpointUsageTable: React.FC<EndpointUsageTableProps> = ({ endpointData })
   }));
 
   const columns: ColumnDef<EndpointRow>[] = [
-    {
-      header: "Endpoint",
-      accessorKey: "endpoint",
-      cell: ({ row }) => <span className="font-mono text-xs text-foreground">{row.original.endpoint}</span>,
-    },
-    {
-      header: "Successful / Failed",
-      id: "requests",
-      cell: ({ row }) => {
-        const record = row.original;
-        const successPercentage =
-          record.api_requests > 0 ? (record.successful_requests / record.api_requests) * 100 : 0;
-        const failurePercentage = record.api_requests > 0 ? (record.failed_requests / record.api_requests) * 100 : 0;
-        const totalPercentage = successPercentage + failurePercentage;
+    markUiCopy(
+      {
+        header: "Endpoint",
+        accessorKey: "endpoint",
+        cell: ({ row }) => <span className="font-mono text-xs text-foreground">{row.original.endpoint}</span>,
+      },
+      { header: "Endpoint" },
+    ),
+    markUiCopy(
+      {
+        header: "Successful / Failed",
+        id: "requests",
+        cell: ({ row }) => {
+          const record = row.original;
+          const successPercentage =
+            record.api_requests > 0 ? (record.successful_requests / record.api_requests) * 100 : 0;
+          const failurePercentage = record.api_requests > 0 ? (record.failed_requests / record.api_requests) * 100 : 0;
+          const totalPercentage = successPercentage + failurePercentage;
 
-        return (
-          <div className="flex items-center gap-3">
-            <div className="relative min-w-16 flex-1">
-              <Meter value={successPercentage} max={totalPercentage || 100} aria-label="Successful requests">
-                <MeterTrack className={failurePercentage > 0 ? "h-1 bg-destructive/70" : "h-1"}>
-                  <MeterIndicator className="bg-[#2b3fd6]" />
-                </MeterTrack>
-              </Meter>
+          return (
+            <div className="flex items-center gap-3">
+              <div className="relative min-w-16 flex-1">
+                <Meter
+                  value={successPercentage}
+                  max={totalPercentage || 100}
+                  aria-label={translateMessage("Successful requests")}
+                >
+                  <MeterTrack className={failurePercentage > 0 ? "h-1 bg-destructive/70" : "h-1"}>
+                    <MeterIndicator className="bg-[#2b3fd6]" />
+                  </MeterTrack>
+                </Meter>
+              </div>
+              <div className="flex min-w-[100px] items-center gap-1.5 text-xs tabular-nums">
+                <span className="text-foreground">{record.successful_requests.toLocaleString(getIntlLocale())}</span>
+                <span className="text-muted-foreground">/</span>
+                <span className={record.failed_requests > 0 ? "text-destructive" : "text-muted-foreground"}>
+                  {record.failed_requests.toLocaleString(getIntlLocale())}
+                </span>
+              </div>
             </div>
-            <div className="flex min-w-[100px] items-center gap-1.5 text-xs tabular-nums">
-              <span className="text-foreground">{record.successful_requests.toLocaleString()}</span>
-              <span className="text-muted-foreground">/</span>
-              <span className={record.failed_requests > 0 ? "text-destructive" : "text-muted-foreground"}>
-                {record.failed_requests.toLocaleString()}
-              </span>
-            </div>
-          </div>
-        );
+          );
+        },
       },
-    },
-    {
-      header: "Total Request",
-      accessorKey: "api_requests",
-      meta: { numeric: true },
-      cell: ({ row }) => <span className="tabular-nums">{row.original.api_requests.toLocaleString()}</span>,
-    },
-    {
-      header: "Success Rate",
-      accessorKey: "successRate",
-      meta: { numeric: true },
-      cell: ({ row }) => {
-        const value = row.original.successRate;
-        const successRateStr = value.toFixed(2);
-        return (
-          <span
-            className={cn(
-              "tabular-nums",
-              value >= 95 ? "text-foreground" : value >= 80 ? "text-warning" : "text-destructive",
-            )}
-          >
-            {successRateStr}%
-          </span>
-        );
+      { header: "Successful / Failed" },
+    ),
+    markUiCopy(
+      {
+        header: "Total Request",
+        accessorKey: "api_requests",
+        meta: { numeric: true },
+        cell: ({ row }) => (
+          <span className="tabular-nums">{row.original.api_requests.toLocaleString(getIntlLocale())}</span>
+        ),
       },
-    },
-    {
-      header: "Total Tokens",
-      accessorKey: "total_tokens",
-      meta: { numeric: true },
-      cell: ({ row }) => <span className="tabular-nums">{row.original.total_tokens.toLocaleString()}</span>,
-    },
-    {
-      header: "Spend",
-      accessorKey: "spend",
-      meta: { numeric: true },
-      cell: ({ row }) => <MoneyCell value={row.original.spend} decimals={2} />,
-    },
+      { header: "Total Request" },
+    ),
+    markUiCopy(
+      {
+        header: "Success Rate",
+        accessorKey: "successRate",
+        meta: { numeric: true },
+        cell: ({ row }) => {
+          const value = row.original.successRate;
+          const successRateStr = value.toFixed(2);
+          return (
+            <span
+              className={cn(
+                "tabular-nums",
+                value >= 95 ? "text-foreground" : value >= 80 ? "text-warning" : "text-destructive",
+              )}
+            >
+              {successRateStr}%
+            </span>
+          );
+        },
+      },
+      { header: "Success Rate" },
+    ),
+    markUiCopy(
+      {
+        header: "Total Tokens",
+        accessorKey: "total_tokens",
+        meta: { numeric: true },
+        cell: ({ row }) => (
+          <span className="tabular-nums">{row.original.total_tokens.toLocaleString(getIntlLocale())}</span>
+        ),
+      },
+      { header: "Total Tokens" },
+    ),
+    markUiCopy(
+      {
+        header: "Spend",
+        accessorKey: "spend",
+        meta: { numeric: true },
+        cell: ({ row }) => <MoneyCell value={row.original.spend} decimals={2} />,
+      },
+      { header: "Spend" },
+    ),
   ];
 
   return (
     <Panel
       icon={Route}
-      title="Endpoints"
+      title={translateMessage("Endpoints")}
       action={
         <span className="text-xs text-muted-foreground tabular-nums">
-          {dataSource.length.toLocaleString()} {dataSource.length === 1 ? "endpoint" : "endpoints"}
+          {dataSource.length.toLocaleString(getIntlLocale())}{" "}
+          {dataSource.length === 1 ? translateMessage("endpoint") : translateMessage("endpoints")}
         </span>
       }
     >
@@ -129,7 +159,7 @@ const EndpointUsageTable: React.FC<EndpointUsageTableProps> = ({ endpointData })
         columns={columns}
         data={dataSource}
         getRowId={(row) => row.key}
-        noDataMessage="No endpoint usage data"
+        noDataMessage={translateMessage("No endpoint usage data")}
         size="compact"
       />
     </Panel>

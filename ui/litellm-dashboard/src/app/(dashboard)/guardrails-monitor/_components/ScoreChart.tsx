@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, getIntlLocale, useUiLocale } from "@/lib/i18n";
 import React from "react";
 import { BarChart } from "@/components/shared/charts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,12 +13,15 @@ interface ScoreChartProps {
 }
 
 export function ScoreChart({ data }: ScoreChartProps) {
+  useUiLocale();
   const chartData = data && data.length > 0 ? data : [];
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base font-semibold">Request Outcomes Over Time</CardTitle>
+        <CardTitle className="text-base font-semibold">
+          <LocalizedText text={"Request Outcomes Over Time"} />
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="h-80 min-h-[280px]">
@@ -26,7 +31,7 @@ export function ScoreChart({ data }: ScoreChartProps) {
               index="date"
               categories={["passed", "blocked"]}
               colors={["green", "red"]}
-              valueFormatter={(v) => v.toLocaleString()}
+              valueFormatter={(v) => v.toLocaleString(getIntlLocale())}
               yAxisWidth={48}
               showLegend={true}
               stack={true}
@@ -34,7 +39,7 @@ export function ScoreChart({ data }: ScoreChartProps) {
             />
           ) : (
             <div className="flex items-center justify-center h-full text-sm text-muted-foreground">
-              No chart data for this period
+              <LocalizedText text={"No chart data for this period"} />
             </div>
           )}
         </div>

@@ -1,3 +1,5 @@
+"use client";
+import { translateMessage, useUiLocale } from "@/lib/i18n";
 import React from "react";
 import Image from "next/image";
 import { FileText } from "lucide-react";
@@ -8,7 +10,9 @@ interface ChatImageRendererProps {
   message: MessageType;
 }
 
-const ChatImageRenderer: React.FC<ChatImageRendererProps> = ({ message }) => {
+const ChatImageRenderer: React.FC<ChatImageRendererProps> = (cocaCopyProps0) => {
+  const { message } = cocaCopyProps0;
+  useUiLocale();
   if (!shouldShowChatAttachedImage(message)) {
     return null;
   }
@@ -19,12 +23,12 @@ const ChatImageRenderer: React.FC<ChatImageRendererProps> = ({ message }) => {
     <div className="mb-2">
       {isPdf ? (
         <div className="flex h-32 w-64 items-center justify-center rounded-md border border-border bg-destructive/10">
-          <FileText className="size-12 text-destructive" aria-label="PDF attachment" />
+          <FileText className="size-12 text-destructive" aria-label={translateMessage("PDF attachment")} />
         </div>
       ) : (
         <Image
           src={message.imagePreviewUrl || ""}
-          alt="User uploaded image"
+          alt={translateMessage("User uploaded image")}
           width={256}
           height={200}
           className="max-w-64 rounded-md border border-border shadow-xs"

@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 import { formatBudgetReset } from "@/utils/budgetUtils";
 import { formatNumberWithCommas } from "@/utils/dataUtils";
 import { SimpleTooltip } from "@/components/ui/tooltip";
@@ -15,7 +17,7 @@ const labelWithTooltip = (label: string, tooltip: string) => (
   <span className="flex items-center gap-1 text-muted-foreground">
     {label}
     <SimpleTooltip content={tooltip}>
-      <CircleHelp className="size-4" aria-label={`${label} information`} />
+      <CircleHelp className="size-4" aria-label={translateMessage("%{0} information", [label])} />
     </SimpleTooltip>
   </span>
 );
@@ -31,12 +33,15 @@ const formatRateLimit = (value: number | null | undefined): string => {
 };
 
 export default function MyUserTab({ teamId }: MyUserTabProps) {
+  useUiLocale();
   const { data, isLoading, error } = useMyTeamMember(teamId);
 
   if (isLoading) {
     return (
       <Card>
-        <CardContent className="text-muted-foreground">Loading your membership info…</CardContent>
+        <CardContent className="text-muted-foreground">
+          <LocalizedText text={"Loading your membership info…"} />
+        </CardContent>
       </Card>
     );
   }
@@ -45,7 +50,9 @@ export default function MyUserTab({ teamId }: MyUserTabProps) {
     return (
       <Card>
         <CardContent className="text-destructive">
-          {error instanceof Error ? error.message : "Failed to load your membership info for this team."}
+          {error instanceof Error
+            ? localizedProperty(error, "message", error.message)
+            : translateMessage("Failed to load your membership info for this team.")}
         </CardContent>
       </Card>
     );
@@ -55,7 +62,7 @@ export default function MyUserTab({ teamId }: MyUserTabProps) {
     return (
       <Card>
         <CardContent className="text-muted-foreground">
-          No membership info available for the current user in this team.
+          <LocalizedText text={"No membership info available for the current user in this team."} />
         </CardContent>
       </Card>
     );
@@ -76,14 +83,20 @@ export default function MyUserTab({ teamId }: MyUserTabProps) {
         <CardContent>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
             <div>
-              <span className="text-muted-foreground">User</span>
+              <span className="text-muted-foreground">
+                <LocalizedText text={"User"} />
+              </span>
               <div className="mt-1 font-semibold">{data.user_email || data.user_id}</div>
               <span className="font-mono text-xs text-muted-foreground">{data.user_id}</span>
             </div>
             <div>
-              <span className="text-muted-foreground">Team Role</span>
+              <span className="text-muted-foreground">
+                <LocalizedText text={"Team Role"} />
+              </span>
               <div className="mt-1">
-                <Badge variant={data.role === "admin" ? "default" : "secondary"}>{data.role || "user"}</Badge>
+                <Badge variant={data.role === "admin" ? "default" : "secondary"}>
+                  {data.role || translateMessage("user")}
+                </Badge>
               </div>
             </div>
           </div>
@@ -100,10 +113,16 @@ export default function MyUserTab({ teamId }: MyUserTabProps) {
             <div className="mt-2">
               <h3 className="text-2xl font-semibold">${formatNumber(spend, 4)}</h3>
               <span className="text-muted-foreground">
-                of {maxBudget === null ? "Unlimited" : `$${formatNumber(maxBudget, 4)}`}
+                <LocalizedText text={"of "} />
+                {maxBudget === null ? translateMessage("Unlimited") : `$${formatNumber(maxBudget, 4)}`}
               </span>
             </div>
-            {budgetReset && <div className="mt-1 text-muted-foreground">Resets {budgetReset}</div>}
+            {budgetReset && (
+              <div className="mt-1 text-muted-foreground">
+                <LocalizedText text={"Resets "} />
+                {budgetReset}
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -111,9 +130,15 @@ export default function MyUserTab({ teamId }: MyUserTabProps) {
           <CardContent>
             {labelWithTooltip("Rate Limits", "Your per-member rate limits within this team.")}
             <div className="mt-2">
-              <span>TPM: {formatRateLimit(tpmLimit)}</span>
+              <span>
+                <LocalizedText text={"TPM: "} />
+                {formatRateLimit(tpmLimit)}
+              </span>
               <br />
-              <span>RPM: {formatRateLimit(rpmLimit)}</span>
+              <span>
+                <LocalizedText text={"RPM: "} />
+                {formatRateLimit(rpmLimit)}
+              </span>
             </div>
           </CardContent>
         </Card>
@@ -138,7 +163,9 @@ export default function MyUserTab({ teamId }: MyUserTabProps) {
                   ))}
                 </div>
               ) : (
-                <span>All Team Models</span>
+                <span>
+                  <LocalizedText text={"All Team Models"} />
+                </span>
               )}
             </div>
           </CardContent>

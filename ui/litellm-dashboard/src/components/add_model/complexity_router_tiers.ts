@@ -1,3 +1,4 @@
+import { markUiCopy } from "@/lib/i18n";
 import type { ComplexityTier } from "./KeywordTierRules";
 import type { ModelGroup } from "@/components/llm_calls/fetch_models";
 import { ALL_BUILT_IN_TIERS, TIER_ORDER } from "./tier_rows";
@@ -153,13 +154,16 @@ export const pruneTierModelParams = (
   return Object.keys(next).length > 0 ? next : undefined;
 };
 
-export const DEFAULT_TIER_LABELS: Record<ComplexityTier, string> = {
-  NON_REASONING: "Non-reasoning",
-  SIMPLE: "Simple",
-  MEDIUM: "Medium",
-  COMPLEX: "Complex",
-  REASONING: "Reasoning",
-};
+export const DEFAULT_TIER_LABELS: Record<ComplexityTier, string> = markUiCopy(
+  {
+    NON_REASONING: "Non-reasoning",
+    SIMPLE: "Simple",
+    MEDIUM: "Medium",
+    COMPLEX: "Complex",
+    REASONING: "Reasoning",
+  },
+  { NON_REASONING: "Non-reasoning", SIMPLE: "Simple", MEDIUM: "Medium", COMPLEX: "Complex", REASONING: "Reasoning" },
+);
 
 const isBuiltInTier = (tier: string): tier is ComplexityTier => (ALL_BUILT_IN_TIERS as string[]).includes(tier);
 

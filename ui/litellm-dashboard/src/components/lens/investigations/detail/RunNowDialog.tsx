@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -41,6 +42,7 @@ export function RunNowDialog({
   onClose: () => void;
   onRun: (request: RunWindow) => Promise<void>;
 }) {
+  useUiLocale();
   const api = useLensApi();
   const agentsQuery = useQuery(lensQueries.agents(api, "traces"));
   const agents = Array.isArray(agentsQuery.data) ? agentsQuery.data : [];
@@ -64,14 +66,16 @@ export function RunNowDialog({
     <Dialog open onOpenChange={(open) => !open && !busy && onClose()}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Run now</DialogTitle>
+          <DialogTitle>
+            <LocalizedText text={"Run now"} />
+          </DialogTitle>
           <DialogDescription>
-            Runs once with these choices. The saved schedule and settings stay the same.
+            <LocalizedText text={"Runs once with these choices. The saved schedule and settings stay the same."} />
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
           <label className="grid gap-1.5 text-sm font-medium">
-            Agent
+            <LocalizedText text={"Agent"} />
             <Combobox
               items={agents}
               value={agent || null}
@@ -79,9 +83,16 @@ export function RunNowDialog({
               onInputValueChange={setAgent}
               onValueChange={(name) => setAgent(name ?? "")}
             >
-              <ComboboxInput aria-label="Agent" placeholder="All agents" showClear={!!agent} className="h-9 w-full" />
+              <ComboboxInput
+                aria-label={translateMessage("Agent")}
+                placeholder={translateMessage("All agents")}
+                showClear={!!agent}
+                className="h-9 w-full"
+              />
               <ComboboxContent>
-                <ComboboxEmpty>No matches. You can enter a recorded name.</ComboboxEmpty>
+                <ComboboxEmpty>
+                  <LocalizedText text={"No matches. You can enter a recorded name."} />
+                </ComboboxEmpty>
                 <ComboboxList>
                   {(name: string) => (
                     <ComboboxItem key={name} value={name}>
@@ -93,7 +104,9 @@ export function RunNowDialog({
             </Combobox>
           </label>
           <fieldset className="space-y-2">
-            <legend className="text-sm font-medium">Traces to review</legend>
+            <legend className="text-sm font-medium">
+              <LocalizedText text={"Traces to review"} />
+            </legend>
             <div className="flex flex-wrap gap-1.5">
               {RUN_PRESETS.map((p) => (
                 <button
@@ -103,18 +116,18 @@ export function RunNowDialog({
                   onClick={() => setPreset(p.hours)}
                   className="rounded-md bg-muted/60 px-2.5 py-1 text-xs text-muted-foreground hover:bg-muted aria-pressed:bg-background aria-pressed:text-foreground aria-pressed:ring-[1.5px] aria-pressed:ring-foreground aria-pressed:ring-inset"
                 >
-                  {p.label}
+                  {localizedProperty(p, "label", p.label)}
                 </button>
               ))}
             </div>
             {preset === -1 && (
               <div className="grid grid-cols-2 gap-2">
                 <label className="grid gap-1 text-xs text-muted-foreground">
-                  From
+                  <LocalizedText text={"From"} />
                   <Input type="datetime-local" value={start} onChange={(e) => setStart(e.target.value)} />
                 </label>
                 <label className="grid gap-1 text-xs text-muted-foreground">
-                  To
+                  <LocalizedText text={"To"} />
                   <Input type="datetime-local" value={end} onChange={(e) => setEnd(e.target.value)} />
                 </label>
               </div>
@@ -128,10 +141,10 @@ export function RunNowDialog({
         </div>
         <DialogFooter>
           <Button variant="outline" disabled={busy} onClick={onClose}>
-            Cancel
+            <LocalizedText text={"Cancel"} />
           </Button>
           <Button disabled={busy} onClick={() => void submit()}>
-            Run now
+            <LocalizedText text={"Run now"} />
           </Button>
         </DialogFooter>
       </DialogContent>

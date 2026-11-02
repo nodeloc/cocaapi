@@ -1,4 +1,6 @@
 "use client";
+import { LocalizedText, useUiLocale } from "@/lib/i18n";
+
 import React from "react";
 import { useCustomerNative } from "@/components/account/native/CustomerNativeContext";
 import CodeBlock from "@/components/CodeBlock";
@@ -15,6 +17,7 @@ interface ApiRefProps {
 }
 
 const APIReferenceView: React.FC<ApiRefProps> = ({ proxySettings }) => {
+  useUiLocale();
   const customer = useCustomerNative();
   const model = customer ? "YOUR_MODEL_ID" : "gpt-3.5-turbo";
   const key = customer ? "YOUR_API_KEY" : "<your-master-key>";
@@ -31,35 +34,42 @@ const APIReferenceView: React.FC<ApiRefProps> = ({ proxySettings }) => {
       <div className="mb-5">
         {/* Header row with Docs link on the right */}
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-semibold text-foreground">OpenAI Compatible Proxy: API Reference</h1>
+          <h1 className="text-2xl font-semibold text-foreground">
+            <LocalizedText text={"OpenAI Compatible Proxy: API Reference"} />
+          </h1>
           <DocLink className="ml-3 shrink-0" href="https://docs.litellm.ai/docs/proxy/user_keys" />
         </div>
 
         <p className="mt-2 mb-2 text-sm text-muted-foreground">
-          LiteLLM is OpenAI Compatible. This means your API Key works with the OpenAI SDK. Just replace the base_url to
-          point to your litellm proxy. Example Below{" "}
+          <LocalizedText
+            text={
+              "LiteLLM is OpenAI Compatible. This means your API Key works with the OpenAI SDK. Just replace the base_url to point to your litellm proxy. Example Below"
+            }
+          />{" "}
         </p>
 
         {customer && (
           <Alert variant="info" className="my-4">
             <Info />
             <AlertDescription>
-              文本 Chat、Completions、Responses、Messages 和 Embeddings 按模型计价扣除钱包余额。
-              调用前会冻结预计费用；可设置 max_tokens 或 max_output_tokens 控制输出上限。余额不足返回 402。
-              服务端会话历史、后台任务、图片音频、内置付费工具、透传和批处理暂未开放。
+              <LocalizedText
+                text={
+                  "文本 Chat、Completions、Responses、Messages 和 Embeddings 按模型计价扣除钱包余额。 调用前会冻结预计费用；可设置 max_tokens 或 max_output_tokens 控制输出上限。余额不足返回 402。 服务端会话历史、后台任务、图片音频、内置付费工具、透传和批处理暂未开放。"
+                }
+              />
             </AlertDescription>
           </Alert>
         )}
         <Tabs defaultValue="openai">
           <TabsList variant="line" className="border-b rounded-none w-full justify-start h-auto p-0 overflow-x-auto">
             <TabsTrigger value="openai" className="rounded-none px-4 py-2 flex-none">
-              OpenAI Python SDK
+              <LocalizedText text={"OpenAI Python SDK"} />
             </TabsTrigger>
             <TabsTrigger value="llamaindex" className="rounded-none px-4 py-2 flex-none">
-              LlamaIndex
+              <LocalizedText text={"LlamaIndex"} />
             </TabsTrigger>
             <TabsTrigger value="langchain" className="rounded-none px-4 py-2 flex-none">
-              Langchain Py
+              <LocalizedText text={"Langchain Py"} />
             </TabsTrigger>
           </TabsList>
           <TabsContent value="openai" keepMounted>

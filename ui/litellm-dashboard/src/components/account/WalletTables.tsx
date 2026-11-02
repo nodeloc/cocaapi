@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, getIntlLocale, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import type { ColumnDef } from "@tanstack/react-table";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -19,16 +20,19 @@ export function Pager({
   busy: boolean;
   onPage: (offset: number) => void;
 }) {
+  useUiLocale();
   return (
     <div className="flex flex-wrap items-center justify-between gap-4 px-4 py-2.5 text-sm text-muted-foreground">
-      <span>每页 25 条</span>
+      <span>
+        <LocalizedText text={"每页 25 条"} />
+      </span>
       <div className="flex items-center gap-4">
-        <span className="tabular-nums">第 {Math.floor(offset / 25) + 1} 页</span>
+        <span className="tabular-nums">{translateMessage("第 %{0} 页", [Math.floor(offset / 25) + 1])}</span>
         <div className="flex items-center gap-1">
           <Button
             variant="outline"
             size="icon-sm"
-            aria-label="上一页"
+            aria-label={translateMessage("上一页")}
             disabled={busy || offset === 0}
             onClick={() => onPage(Math.max(0, offset - 25))}
           >
@@ -37,7 +41,7 @@ export function Pager({
           <Button
             variant="outline"
             size="icon-sm"
-            aria-label="下一页"
+            aria-label={translateMessage("下一页")}
             disabled={busy || !hasMore}
             onClick={() => onPage(offset + 25)}
           >
@@ -49,42 +53,68 @@ export function Pager({
   );
 }
 
-const kinds = { adjustment: "人工调整", redemption: "兑换码", recharge: "USDT 充值", usage: "API 调用扣费" };
+const kinds = markUiCopy(
+  { adjustment: "人工调整", redemption: "兑换码", recharge: "USDT 充值", usage: "API 调用扣费" },
+  { adjustment: "人工调整", redemption: "兑换码", recharge: "USDT 充值", usage: "API 调用扣费" },
+);
 const ledgerColumns: ColumnDef<Ledger["items"][number]>[] = [
-  { accessorKey: "created_at", header: "时间", cell: ({ row }) => new Date(row.original.created_at).toLocaleString() },
-  {
-    id: "source",
-    header: "来源 / 说明",
-    cell: ({ row: { original: entry } }) => (
-      <div>
-        <p>{kinds[entry.kind]}</p>
-        <p className="max-w-sm whitespace-normal break-words text-xs text-muted-foreground">{entry.reason}</p>
-        {entry.pricing_snapshot && (
-          <p className="max-w-sm whitespace-normal text-xs text-muted-foreground">
-            {entry.pricing_snapshot.user_group_name} / {entry.pricing_snapshot.model_group_name}
-            {" · "}
-            {entry.pricing_snapshot.multiplier_millionths / 1_000_000} 倍
-            {entry.base_cost_units != null && <> · 基础费用 {formatCredits(entry.base_cost_units)}</>}
-          </p>
-        )}
-      </div>
-    ),
-  },
-  {
-    accessorKey: "delta_units",
-    header: "变动",
-    meta: { numeric: true },
-    cell: ({ row }) => formatCredits(row.original.delta_units),
-  },
-  {
-    accessorKey: "available_after",
-    header: "变动后余额",
-    meta: { numeric: true },
-    cell: ({ row }) => formatCredits(row.original.available_after),
-  },
+  markUiCopy(
+    {
+      accessorKey: "created_at",
+      header: "时间",
+      cell: ({ row }) => new Date(row.original.created_at).toLocaleString(getIntlLocale()),
+    },
+    { header: "时间" },
+  ),
+  markUiCopy(
+    {
+      id: "source",
+      header: "来源 / 说明",
+      cell: ({ row: { original: entry } }) => (
+        <div>
+          <p>{localizedProperty(kinds, entry.kind, kinds[entry.kind])}</p>
+          <p className="max-w-sm whitespace-normal break-words text-xs text-muted-foreground">{entry.reason}</p>
+          {entry.pricing_snapshot && (
+            <p className="max-w-sm whitespace-normal text-xs text-muted-foreground">
+              {entry.pricing_snapshot.user_group_name} / {entry.pricing_snapshot.model_group_name}
+              {" · "}
+              {entry.pricing_snapshot.multiplier_millionths / 1_000_000}
+              <LocalizedText text={" 倍"} />
+              {entry.base_cost_units != null && (
+                <>
+                  <LocalizedText text={" · 基础费用 "} />
+                  {formatCredits(entry.base_cost_units)}
+                </>
+              )}
+            </p>
+          )}
+        </div>
+      ),
+    },
+    { header: "来源 / 说明" },
+  ),
+  markUiCopy(
+    {
+      accessorKey: "delta_units",
+      header: "变动",
+      meta: { numeric: true },
+      cell: ({ row }) => formatCredits(row.original.delta_units),
+    },
+    { header: "变动" },
+  ),
+  markUiCopy(
+    {
+      accessorKey: "available_after",
+      header: "变动后余额",
+      meta: { numeric: true },
+      cell: ({ row }) => formatCredits(row.original.available_after),
+    },
+    { header: "变动后余额" },
+  ),
 ];
 
 export function LedgerTable({ ledger }: { ledger: Ledger }) {
+  useUiLocale();
   return (
     <DataTable
       data={ledger.items}
@@ -92,7 +122,7 @@ export function LedgerTable({ ledger }: { ledger: Ledger }) {
       getRowId={(row) => row.id}
       paginationMode="none"
       sortingMode="none"
-      noDataMessage="暂无余额变动"
+      noDataMessage={translateMessage("暂无余额变动")}
     />
   );
 }
@@ -108,65 +138,86 @@ export function OrdersTable({
   onRefresh: (id: string) => void;
   checkout?: boolean;
 }) {
+  useUiLocale();
   const columns: ColumnDef<Orders["items"][number]>[] = [
-    {
-      accessorKey: "id",
-      header: "订单",
-      cell: ({ row: { original: order } }) => (
-        <div>
-          <p className="max-w-64 whitespace-normal break-all font-mono text-xs">{order.id}</p>
-          <p className="text-xs text-muted-foreground">{new Date(order.created_at).toLocaleString()}</p>
-          {!checkout && (
-            <p className="max-w-64 whitespace-normal break-all text-xs text-muted-foreground">{order.user_id}</p>
-          )}
-        </div>
-      ),
-    },
-    {
-      id: "amount",
-      header: "金额 / 网络",
-      cell: ({ row: { original: order } }) => (
-        <div>
-          <p className="tabular-nums">{formatCredits(order.credit_units)}</p>
-          <p className="text-xs text-muted-foreground">
-            {order.amount_usdt ? `${order.amount_usdt} USDT · ` : ""}
-            {networkLabels[order.network]}
-          </p>
-        </div>
-      ),
-    },
-    {
-      accessorKey: "status",
-      header: "状态",
-      cell: ({ row: { original: order } }) => (
-        <div>
-          <Badge variant={order.status === "paid" ? "default" : "secondary"}>{orderLabels[order.status]}</Badge>
-          {order.status === "review" && <p className="mt-1 text-xs text-muted-foreground">请联系管理员核查</p>}
-        </div>
-      ),
-    },
-    {
-      id: "actions",
-      header: "操作",
-      cell: ({ row: { original: order } }) => (
-        <div className="flex items-center gap-2">
-          {checkout && order.status === "pending" && order.checkout_url && (
-            <Button
-              variant="outline"
-              size="sm"
-              render={<a href={order.checkout_url} target="_blank" rel="noopener noreferrer" />}
-            >
-              前往支付
-            </Button>
-          )}
-          {order.status !== "paid" && (
-            <Button variant="outline" size="sm" disabled={busy} onClick={() => onRefresh(order.id)}>
-              查单
-            </Button>
-          )}
-        </div>
-      ),
-    },
+    markUiCopy(
+      {
+        accessorKey: "id",
+        header: "订单",
+        cell: ({ row: { original: order } }) => (
+          <div>
+            <p className="max-w-64 whitespace-normal break-all font-mono text-xs">{order.id}</p>
+            <p className="text-xs text-muted-foreground">
+              {new Date(order.created_at).toLocaleString(getIntlLocale())}
+            </p>
+            {!checkout && (
+              <p className="max-w-64 whitespace-normal break-all text-xs text-muted-foreground">{order.user_id}</p>
+            )}
+          </div>
+        ),
+      },
+      { header: "订单" },
+    ),
+    markUiCopy(
+      {
+        id: "amount",
+        header: "金额 / 网络",
+        cell: ({ row: { original: order } }) => (
+          <div>
+            <p className="tabular-nums">{formatCredits(order.credit_units)}</p>
+            <p className="text-xs text-muted-foreground">
+              {order.amount_usdt ? translateMessage("%{0} USDT · ", [order.amount_usdt]) : ""}
+              {localizedProperty(networkLabels, order.network, networkLabels[order.network])}
+            </p>
+          </div>
+        ),
+      },
+      { header: "金额 / 网络" },
+    ),
+    markUiCopy(
+      {
+        accessorKey: "status",
+        header: "状态",
+        cell: ({ row: { original: order } }) => (
+          <div>
+            <Badge variant={order.status === "paid" ? "default" : "secondary"}>
+              {localizedProperty(orderLabels, order.status, orderLabels[order.status])}
+            </Badge>
+            {order.status === "review" && (
+              <p className="mt-1 text-xs text-muted-foreground">
+                <LocalizedText text={"请联系管理员核查"} />
+              </p>
+            )}
+          </div>
+        ),
+      },
+      { header: "状态" },
+    ),
+    markUiCopy(
+      {
+        id: "actions",
+        header: "操作",
+        cell: ({ row: { original: order } }) => (
+          <div className="flex items-center gap-2">
+            {checkout && order.status === "pending" && order.checkout_url && (
+              <Button
+                variant="outline"
+                size="sm"
+                render={<a href={order.checkout_url} target="_blank" rel="noopener noreferrer" />}
+              >
+                <LocalizedText text={"前往支付"} />
+              </Button>
+            )}
+            {order.status !== "paid" && (
+              <Button variant="outline" size="sm" disabled={busy} onClick={() => onRefresh(order.id)}>
+                <LocalizedText text={"查单"} />
+              </Button>
+            )}
+          </div>
+        ),
+      },
+      { header: "操作" },
+    ),
   ];
   return (
     <DataTable
@@ -175,7 +226,7 @@ export function OrdersTable({
       getRowId={(row) => row.id}
       paginationMode="none"
       sortingMode="none"
-      noDataMessage="暂无充值订单"
+      noDataMessage={translateMessage("暂无充值订单")}
     />
   );
 }

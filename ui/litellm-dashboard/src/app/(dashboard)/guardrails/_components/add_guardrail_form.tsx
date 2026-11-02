@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import React, { useEffect, useMemo, useState } from "react";
 import { useForm, useWatch, type UseFormReturn } from "react-hook-form";
 import { toast } from "@/lib/toast";
@@ -84,15 +86,26 @@ import ToolPermissionRulesEditor, { ToolPermissionConfig } from "./tool_permissi
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 
 // Define human-friendly descriptions for each mode
-const modeDescriptions = {
-  pre_call: "Before LLM Call - Runs before the LLM call and checks the input (Recommended)",
-  during_call: "During LLM Call - Runs in parallel with the LLM call, with response held until check completes",
-  post_call: "After LLM Call - Runs after the LLM call and checks only the output",
-  logging_only: "Logging Only - Only runs on logging callbacks without affecting the LLM call",
-  pre_mcp_call: "Before MCP Tool Call - Runs before MCP tool execution and validates tool calls",
-  during_mcp_call: "During MCP Tool Call - Runs in parallel with MCP tool execution for monitoring",
-  post_mcp_call: "After MCP Tool Call - Runs after MCP tool execution and checks the tool result",
-};
+const modeDescriptions = markUiCopy(
+  {
+    pre_call: "Before LLM Call - Runs before the LLM call and checks the input (Recommended)",
+    during_call: "During LLM Call - Runs in parallel with the LLM call, with response held until check completes",
+    post_call: "After LLM Call - Runs after the LLM call and checks only the output",
+    logging_only: "Logging Only - Only runs on logging callbacks without affecting the LLM call",
+    pre_mcp_call: "Before MCP Tool Call - Runs before MCP tool execution and validates tool calls",
+    during_mcp_call: "During MCP Tool Call - Runs in parallel with MCP tool execution for monitoring",
+    post_mcp_call: "After MCP Tool Call - Runs after MCP tool execution and checks the tool result",
+  },
+  {
+    pre_call: "Before LLM Call - Runs before the LLM call and checks the input (Recommended)",
+    during_call: "During LLM Call - Runs in parallel with the LLM call, with response held until check completes",
+    post_call: "After LLM Call - Runs after the LLM call and checks only the output",
+    logging_only: "Logging Only - Only runs on logging callbacks without affecting the LLM call",
+    pre_mcp_call: "Before MCP Tool Call - Runs before MCP tool execution and validates tool calls",
+    during_mcp_call: "During MCP Tool Call - Runs in parallel with MCP tool execution for monitoring",
+    post_mcp_call: "After MCP Tool Call - Runs after MCP tool execution and checks the tool result",
+  },
+);
 
 interface GuardrailPreset {
   provider: string;
@@ -198,8 +211,8 @@ const INITIAL_VALUES: GuardrailFormValues = {
 };
 
 const ALWAYS_ON_ITEMS = [
-  { label: "Yes", value: true },
-  { label: "No", value: false },
+  markUiCopy({ label: "Yes", value: true }, { label: "Yes" }),
+  markUiCopy({ label: "No", value: false }, { label: "No" }),
 ];
 
 const DEFAULT_MODES = ["pre_call", "during_call", "post_call", "logging_only"];
@@ -231,6 +244,7 @@ interface ProviderParamsResponse {
 }
 
 const AddGuardrailForm: React.FC<AddGuardrailFormProps> = ({ visible, onClose, accessToken, onSuccess, preset }) => {
+  useUiLocale();
   const form = useForm<GuardrailFormValues>({ defaultValues: INITIAL_VALUES });
   const watchedMode = useWatch({ control: form.control, name: "mode" });
   const [loading, setLoading] = useState(false);
@@ -606,11 +620,16 @@ const AddGuardrailForm: React.FC<AddGuardrailFormProps> = ({ visible, onClose, a
           }));
         }
         if (blockedWords.length > 0) {
-          guardrailData.litellm_params.blocked_words = blockedWords.map((w) => ({
-            keyword: w.keyword,
-            action: w.action,
-            description: w.description,
-          }));
+          guardrailData.litellm_params.blocked_words = blockedWords.map((w) =>
+            markUiCopy(
+              {
+                keyword: w.keyword,
+                action: w.action,
+                description: w.description,
+              },
+              { description: { owner: w, field: "description" } },
+            ),
+          );
         }
         if (selectedContentCategories.length > 0) {
           guardrailData.litellm_params.categories = selectedContentCategories.map((c) => ({
@@ -765,7 +784,7 @@ const AddGuardrailForm: React.FC<AddGuardrailFormProps> = ({ visible, onClose, a
 
       await createGuardrailCall(accessToken, guardrailData);
 
-      toast.success("Guardrail created successfully");
+      toast.success(translateMessage("Guardrail created successfully"));
 
       // Reset form and close modal
       resetForm();
@@ -799,18 +818,23 @@ const AddGuardrailForm: React.FC<AddGuardrailFormProps> = ({ visible, onClose, a
         <GuardrailField
           control={form.control}
           name="guardrail_name"
-          label="Guardrail Name"
+          label={translateMessage("Guardrail Name")}
           rules={requiredRule("Please enter a guardrail name")}
         >
           {({ ref, value, ...field }) => (
-            <Input {...field} ref={ref} value={asText(value)} placeholder="Enter a name for this guardrail" />
+            <Input
+              {...field}
+              ref={ref}
+              value={asText(value)}
+              placeholder={translateMessage("Enter a name for this guardrail")}
+            />
           )}
         </GuardrailField>
 
         <GuardrailField
           control={form.control}
           name="provider"
-          label="Guardrail Provider"
+          label={translateMessage("Guardrail Provider")}
           rules={requiredRule("Please select a provider")}
         >
           {({ id, value, onChange, "aria-invalid": ariaInvalid, "aria-describedby": ariaDescribedBy }) => (
@@ -830,21 +854,23 @@ const AddGuardrailForm: React.FC<AddGuardrailFormProps> = ({ visible, onClose, a
                 id={id}
                 aria-invalid={ariaInvalid}
                 aria-describedby={ariaDescribedBy}
-                placeholder="Select a guardrail provider"
+                placeholder={translateMessage("Select a guardrail provider")}
                 className="w-full"
               />
               <ComboboxContent>
-                <ComboboxEmpty>No matching providers</ComboboxEmpty>
+                <ComboboxEmpty>
+                  <LocalizedText text={"No matching providers"} />
+                </ComboboxEmpty>
                 <ComboboxList>
                   {(key: string) => (
                     <ComboboxItem key={key} value={key}>
                       <span className="flex items-center">
                         <Logo
                           src={getGuardrailLogo(providerLabels[key])}
-                          label={providerLabels[key]}
+                          label={localizedProperty(providerLabels, key, providerLabels[key])}
                           className="mr-2 h-5 w-5 shrink-0 object-contain"
                         />
-                        <span>{providerLabels[key]}</span>
+                        <span>{localizedProperty(providerLabels, key, providerLabels[key])}</span>
                       </span>
                     </ComboboxItem>
                   )}
@@ -889,11 +915,15 @@ const AddGuardrailForm: React.FC<AddGuardrailFormProps> = ({ visible, onClose, a
               onValueChange={(next: boolean | null) => onChange(next)}
             >
               <SelectTrigger id={id} aria-invalid={ariaInvalid} aria-describedby={ariaDescribedBy} className="w-full">
-                <SelectValue placeholder="Select an option" />
+                <SelectValue placeholder={translateMessage("Select an option")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={true}>Yes</SelectItem>
-                <SelectItem value={false}>No</SelectItem>
+                <SelectItem value={true}>
+                  <LocalizedText text={"Yes"} />
+                </SelectItem>
+                <SelectItem value={false}>
+                  <LocalizedText text={"No"} />
+                </SelectItem>
               </SelectContent>
             </Select>
           )}
@@ -1078,14 +1108,18 @@ const AddGuardrailForm: React.FC<AddGuardrailFormProps> = ({ visible, onClose, a
       <div className="space-y-6">
         <div>
           <p className="text-sm text-muted-foreground">
-            Configure settings for a specific call type. Most guardrails don't need this — skip it unless you're using a
-            specific endpoint like <code>/v1/realtime</code>.
+            <LocalizedText
+              text={
+                "Configure settings for a specific call type. Most guardrails don't need this — skip it unless you're using a specific endpoint like "
+              }
+            />
+            <code>/v1/realtime</code>.
           </p>
         </div>
 
         <div>
           <label htmlFor="guardrail-call-type" className="mb-1 block text-sm font-medium text-foreground">
-            Call type
+            <LocalizedText text={"Call type"} />
           </label>
           <Select
             items={CALL_TYPE_ITEMS}
@@ -1096,17 +1130,19 @@ const AddGuardrailForm: React.FC<AddGuardrailFormProps> = ({ visible, onClose, a
             }}
           >
             <SelectTrigger id="guardrail-call-type" className="w-65">
-              <SelectValue placeholder="Select a call type" />
+              <SelectValue placeholder={translateMessage("Select a call type")} />
             </SelectTrigger>
             <SelectContent>
               {CALL_TYPE_ITEMS.map((item) => (
                 <SelectItem key={item.value} value={item.value}>
-                  {item.label}
+                  {localizedProperty(item, "label", item.label)}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
-          <p className="mt-1 text-xs text-muted-foreground">More call types coming soon.</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            <LocalizedText text={"More call types coming soon."} />
+          </p>
         </div>
 
         {selectedEndpointType === "realtime" && (
@@ -1135,17 +1171,20 @@ const AddGuardrailForm: React.FC<AddGuardrailFormProps> = ({ visible, onClose, a
                     htmlFor="guardrail-end-session-after"
                     className="mb-1 block text-sm font-medium text-foreground"
                   >
-                    End session after X violations
+                    <LocalizedText text={"End session after X violations"} />
                   </label>
                   <p className="mb-2 text-xs text-muted-foreground">
-                    Automatically close the session after this many guardrail violations. Leave empty to never
-                    auto-close.
+                    <LocalizedText
+                      text={
+                        "Automatically close the session after this many guardrail violations. Leave empty to never auto-close."
+                      }
+                    />
                   </p>
                   <Input
                     id="guardrail-end-session-after"
                     type="number"
                     min={1}
-                    placeholder="e.g. 3"
+                    placeholder={translateMessage("e.g. 3")}
                     value={endSessionAfterNFails ?? ""}
                     onChange={(e) =>
                       setEndSessionAfterNFails(e.target.value ? parseInt(e.target.value, 10) : undefined)
@@ -1155,7 +1194,9 @@ const AddGuardrailForm: React.FC<AddGuardrailFormProps> = ({ visible, onClose, a
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-foreground">On violation</label>
+                  <label className="mb-2 block text-sm font-medium text-foreground">
+                    <LocalizedText text={"On violation"} />
+                  </label>
                   <div className="space-y-2">
                     {(["warn", "end_session"] as const).map((opt) => (
                       <label key={opt} className="flex items-start gap-2 cursor-pointer">
@@ -1169,12 +1210,12 @@ const AddGuardrailForm: React.FC<AddGuardrailFormProps> = ({ visible, onClose, a
                         />
                         <div>
                           <span className="text-sm font-medium text-foreground">
-                            {opt === "warn" ? "Warn" : "End session"}
+                            {opt === "warn" ? translateMessage("Warn") : translateMessage("End session")}
                           </span>
                           <p className="m-0 text-xs text-muted-foreground">
                             {opt === "warn"
-                              ? "Bot speaks the message, session continues"
-                              : "Bot speaks the message, connection closes immediately"}
+                              ? translateMessage("Bot speaks the message, session continues")
+                              : translateMessage("Bot speaks the message, connection closes immediately")}
                           </p>
                         </div>
                       </label>
@@ -1187,16 +1228,21 @@ const AddGuardrailForm: React.FC<AddGuardrailFormProps> = ({ visible, onClose, a
                     htmlFor="guardrail-realtime-message"
                     className="mb-1 block text-sm font-medium text-foreground"
                   >
-                    Message the user hears
+                    <LocalizedText text={"Message the user hears"} />
                   </label>
                   <p className="mb-2 text-xs text-muted-foreground">
-                    What the bot says aloud when this guardrail fires. Falls back to the default violation message if
-                    empty.
+                    <LocalizedText
+                      text={
+                        "What the bot says aloud when this guardrail fires. Falls back to the default violation message if empty."
+                      }
+                    />
                   </p>
                   <Textarea
                     id="guardrail-realtime-message"
                     rows={3}
-                    placeholder="e.g. I'm not able to continue this conversation. Please contact us at 1-800-774-2678."
+                    placeholder={translateMessage(
+                      "e.g. I'm not able to continue this conversation. Please contact us at 1-800-774-2678.",
+                    )}
                     value={realtimeViolationMessage}
                     onChange={(e) => setRealtimeViolationMessage(e.target.value)}
                     className="w-full resize-none"
@@ -1213,28 +1259,34 @@ const AddGuardrailForm: React.FC<AddGuardrailFormProps> = ({ visible, onClose, a
   const getStepConfigs = () => {
     if (shouldRenderContentFilterConfigSettings(selectedProvider)) {
       return [
-        { title: "Basic Info", optional: false },
-        { title: "Topics", optional: false },
-        { title: "Patterns", optional: false },
-        { title: "Keywords", optional: false },
-        { title: "Endpoint Settings (Optional)", optional: true },
+        markUiCopy({ title: "Basic Info", optional: false }, { title: "Basic Info" }),
+        markUiCopy({ title: "Topics", optional: false }, { title: "Topics" }),
+        markUiCopy({ title: "Patterns", optional: false }, { title: "Patterns" }),
+        markUiCopy({ title: "Keywords", optional: false }, { title: "Keywords" }),
+        markUiCopy(
+          { title: "Endpoint Settings (Optional)", optional: true },
+          { title: "Endpoint Settings (Optional)" },
+        ),
       ];
     }
     if (shouldRenderPIIConfigSettings(selectedProvider)) {
       return [
-        { title: "Basic Info", optional: false },
-        { title: "PII Configuration", optional: false },
+        markUiCopy({ title: "Basic Info", optional: false }, { title: "Basic Info" }),
+        markUiCopy({ title: "PII Configuration", optional: false }, { title: "PII Configuration" }),
       ];
     }
     if (isDecisionModelProvider) {
       return [
-        { title: "Basic Info", optional: false },
-        { title: "Decision Model Configuration", optional: false },
+        markUiCopy({ title: "Basic Info", optional: false }, { title: "Basic Info" }),
+        markUiCopy(
+          { title: "Decision Model Configuration", optional: false },
+          { title: "Decision Model Configuration" },
+        ),
       ];
     }
     return [
-      { title: "Basic Info", optional: false },
-      { title: "Provider Configuration", optional: false },
+      markUiCopy({ title: "Basic Info", optional: false }, { title: "Basic Info" }),
+      markUiCopy({ title: "Provider Configuration", optional: false }, { title: "Provider Configuration" }),
     ];
   };
 
@@ -1250,7 +1302,9 @@ const AddGuardrailForm: React.FC<AddGuardrailFormProps> = ({ visible, onClose, a
           <div className="flex flex-col">
             {/* Header */}
             <div className="flex items-center justify-between border-b border-border px-6 py-4">
-              <DialogTitle className="m-0 text-base font-semibold text-foreground">Create guardrail</DialogTitle>
+              <DialogTitle className="m-0 text-base font-semibold text-foreground">
+                <LocalizedText text={"Create guardrail"} />
+              </DialogTitle>
               <button
                 type="button"
                 onClick={handleClose}
@@ -1288,11 +1342,19 @@ const AddGuardrailForm: React.FC<AddGuardrailFormProps> = ({ visible, onClose, a
                             if (isDone) setCurrentStep(index);
                           }}
                         >
-                          <span className={`text-sm ${getStepTitleClass(isDone, isCurrent)}`}>{step.title}</span>
+                          <span className={`text-sm ${getStepTitleClass(isDone, isCurrent)}`}>
+                            {localizedProperty(step, "title", step.title)}
+                          </span>
                           {step.optional && !isCurrent && (
-                            <span className="text-[11px] text-muted-foreground">optional</span>
+                            <span className="text-[11px] text-muted-foreground">
+                              <LocalizedText text={"optional"} />
+                            </span>
                           )}
-                          {isDone && <span className="text-[11px] text-info hover:underline">Edit</span>}
+                          {isDone && (
+                            <span className="text-[11px] text-info hover:underline">
+                              <LocalizedText text={"Edit"} />
+                            </span>
+                          )}
                         </div>
 
                         {/* Expanded form content for current step */}
@@ -1307,21 +1369,21 @@ const AddGuardrailForm: React.FC<AddGuardrailFormProps> = ({ visible, onClose, a
             {/* Bottom bar */}
             <div className="flex items-center justify-end space-x-3 border-t border-border px-6 py-3">
               <Button type="button" variant="outline" onClick={handleClose}>
-                Cancel
+                <LocalizedText text={"Cancel"} />
               </Button>
               {currentStep > 0 && (
                 <Button type="button" variant="outline" onClick={prevStep}>
-                  Previous
+                  <LocalizedText text={"Previous"} />
                 </Button>
               )}
               {currentStep < stepConfigs.length - 1 ? (
                 <Button type="button" onClick={nextStep}>
-                  Next
+                  <LocalizedText text={"Next"} />
                 </Button>
               ) : (
                 <Button type="button" onClick={handleSubmit} disabled={loading}>
                   {loading && <UiLoadingSpinner className="size-4" />}
-                  Create Guardrail
+                  <LocalizedText text={"Create Guardrail"} />
                 </Button>
               )}
             </div>

@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { useState } from "react";
 import { ChevronRight } from "lucide-react";
@@ -34,6 +35,7 @@ export interface RunsTabProps {
 
 /** The runs a batch reviewed; each opens its original trace or request in the side panel. */
 export function RunsTab({ lens, job }: RunsTabProps) {
+  useUiLocale();
   const { runId, selectRun } = useRunEvidenceRoute();
   const [runOffset, setRunOffset] = useState(0);
   const [runFilter, setRunFilter] = useState("all");
@@ -60,10 +62,13 @@ export function RunsTab({ lens, job }: RunsTabProps) {
       <TabsContent value="runs" className="space-y-4 pt-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="text-sm text-muted-foreground">
-            {runs.length} selected from {job?.sample?.eligible ?? 0} matching runs
+            {runs.length}
+            <LocalizedText text={" selected from "} />
+            {job?.sample?.eligible ?? 0}
+            <LocalizedText text={" matching runs"} />
           </p>
           <select
-            aria-label="Filter reviewed runs"
+            aria-label={translateMessage("Filter reviewed runs")}
             className="h-8 max-w-full rounded-md border bg-background px-2 text-xs sm:max-w-64"
             value={runFilter}
             onChange={(e) => {
@@ -71,10 +76,20 @@ export function RunsTab({ lens, job }: RunsTabProps) {
               setRunOffset(0);
             }}
           >
-            <option value="all">All outcomes</option>
-            <option value="clear">No issue observed</option>
-            <option value="unknown">Insufficient evidence or not reviewed</option>
-            {job?.settings?.context && <option value="expected_behavior">Expected behavior deviation</option>}
+            <option value="all">
+              <LocalizedText text={"All outcomes"} />
+            </option>
+            <option value="clear">
+              <LocalizedText text={"No issue observed"} />
+            </option>
+            <option value="unknown">
+              <LocalizedText text={"Insufficient evidence or not reviewed"} />
+            </option>
+            {job?.settings?.context && (
+              <option value="expected_behavior">
+                <LocalizedText text={"Expected behavior deviation"} />
+              </option>
+            )}
             {job?.settings?.checks.map((check) => (
               <option key={check.id} value={check.id}>
                 {check.instruction}
@@ -111,8 +126,8 @@ export function RunsTab({ lens, job }: RunsTabProps) {
           {!visibleRuns.length && (
             <p className="py-10 text-center text-sm text-muted-foreground">
               {runs.length
-                ? "No runs match this outcome."
-                : "Selected activity appears here when the worker starts reviewing it."}
+                ? translateMessage("No runs match this outcome.")
+                : translateMessage("Selected activity appears here when the worker starts reviewing it.")}
             </p>
           )}
         </div>
@@ -124,10 +139,12 @@ export function RunsTab({ lens, job }: RunsTabProps) {
               disabled={!runOffset}
               onClick={() => setRunOffset(Math.max(0, runOffset - PAGE))}
             >
-              Previous runs
+              <LocalizedText text={"Previous runs"} />
             </Button>
             <span>
-              {runOffset + 1}–{Math.min(runOffset + PAGE, visibleRuns.length)} of {visibleRuns.length}
+              {runOffset + 1}–{Math.min(runOffset + PAGE, visibleRuns.length)}
+              <LocalizedText text={" of "} />
+              {visibleRuns.length}
             </span>
             <Button
               size="sm"
@@ -135,12 +152,12 @@ export function RunsTab({ lens, job }: RunsTabProps) {
               disabled={runOffset + PAGE >= visibleRuns.length}
               onClick={() => setRunOffset(runOffset + PAGE)}
             >
-              Next runs
+              <LocalizedText text={"Next runs"} />
             </Button>
           </div>
         )}
       </TabsContent>
-      <Inspector.Panel label="Run details" testId="run-panel">
+      <Inspector.Panel label={translateMessage("Run details")} testId="run-panel">
         {(run: RunRef) => <EvidenceView lensId={lens.id} evidence={{ id: run.id, span: "" }} />}
       </Inspector.Panel>
     </Inspector.Root>

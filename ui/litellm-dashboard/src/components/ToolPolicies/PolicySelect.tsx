@@ -1,18 +1,19 @@
 "use client";
+import { localizedProperty, markUiCopy, useUiLocale } from "@/lib/i18n";
 
 import React from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/cva.config";
 
 export const INPUT_POLICY_OPTIONS = [
-  { value: "untrusted", label: "untrusted", dot: "bg-warning" },
-  { value: "trusted", label: "trusted", dot: "bg-success" },
-  { value: "blocked", label: "blocked", dot: "bg-destructive" },
+  markUiCopy({ value: "untrusted", label: "untrusted", dot: "bg-warning" }, { label: "untrusted" }),
+  markUiCopy({ value: "trusted", label: "trusted", dot: "bg-success" }, { label: "trusted" }),
+  markUiCopy({ value: "blocked", label: "blocked", dot: "bg-destructive" }, { label: "blocked" }),
 ] as const;
 
 export const OUTPUT_POLICY_OPTIONS = [
-  { value: "untrusted", label: "untrusted", dot: "bg-warning" },
-  { value: "trusted", label: "trusted", dot: "bg-success" },
+  markUiCopy({ value: "untrusted", label: "untrusted", dot: "bg-warning" }, { label: "untrusted" }),
+  markUiCopy({ value: "trusted", label: "trusted", dot: "bg-success" }, { label: "trusted" }),
 ] as const;
 
 export const POLICY_OPTIONS = INPUT_POLICY_OPTIONS;
@@ -39,6 +40,7 @@ export const PolicySelect: React.FC<PolicySelectProps> = ({
   size = "small",
   stopPropagation = true,
 }) => {
+  useUiLocale();
   const options = policyType === "output" ? OUTPUT_POLICY_OPTIONS : INPUT_POLICY_OPTIONS;
   const selected = policyStyle(value);
   return (
@@ -56,7 +58,7 @@ export const PolicySelect: React.FC<PolicySelectProps> = ({
           <SelectItem key={o.value} value={o.value}>
             <span className="inline-flex items-center gap-1.5">
               <span className={cn("size-2 shrink-0 rounded-full", o.dot)} />
-              {o.label}
+              {localizedProperty(o, "label", o.label)}
             </span>
           </SelectItem>
         ))}

@@ -1,3 +1,4 @@
+import { markUiCopy } from "@/lib/i18n";
 export const ALL_PROXY_MODELS = "all-proxy-models";
 export const NO_DEFAULT_MODELS = "no-default-models";
 
@@ -43,18 +44,30 @@ export function computeTeamModelBadges(
     (m) => !directModels.includes(m),
   );
 
-  const allProxyBadge: TeamModelBadge = {
-    label: "All proxy models",
-    kind: "all-proxy",
-    tooltip: models.includes(ALL_PROXY_MODELS)
-      ? "Granted by the All Proxy Models entry in the team's model list"
-      : "The team's model list is empty, so it can access every model on the proxy",
-  };
-  const noDefaultBadge: TeamModelBadge = {
-    label: "No default models",
-    kind: "no-default",
-    tooltip: "No models are granted directly. Access comes only from access groups",
-  };
+  const allProxyBadge: TeamModelBadge = markUiCopy(
+    {
+      label: "All proxy models",
+      kind: "all-proxy" as const,
+      tooltip: models.includes(ALL_PROXY_MODELS)
+        ? "Granted by the All Proxy Models entry in the team's model list"
+        : "The team's model list is empty, so it can access every model on the proxy",
+    },
+    {
+      label: "All proxy models",
+      tooltip: [
+        "Granted by the All Proxy Models entry in the team's model list",
+        "The team's model list is empty, so it can access every model on the proxy",
+      ],
+    },
+  );
+  const noDefaultBadge: TeamModelBadge = markUiCopy(
+    {
+      label: "No default models",
+      kind: "no-default" as const,
+      tooltip: "No models are granted directly. Access comes only from access groups",
+    },
+    { label: "No default models", tooltip: "No models are granted directly. Access comes only from access groups" },
+  );
   const headBadge = (): TeamModelBadge[] => {
     if (allProxy) return [allProxyBadge];
     if (models.includes(NO_DEFAULT_MODELS)) return [noDefaultBadge];

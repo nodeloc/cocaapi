@@ -1,3 +1,5 @@
+"use client";
+import { localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 import React from "react";
 import {
   NUMERIC_CELL_CLASS,
@@ -34,10 +36,11 @@ export function SimpleTable<T>({
   data,
   columns,
   isLoading = false,
-  loadingMessage = "Loading...",
-  emptyMessage = "No data",
+  loadingMessage = translateMessage("Loading..."),
+  emptyMessage = translateMessage("No data"),
   getRowKey,
 }: SimpleTableProps<T>) {
+  useUiLocale();
   return (
     <Table>
       <TableHeader>
@@ -48,7 +51,7 @@ export function SimpleTable<T>({
               style={{ width: column.width }}
               className={column.numeric ? NUMERIC_CELL_CLASS : undefined}
             >
-              {column.header}
+              {localizedProperty(column, "header", column.header)}
             </TableHead>
           ))}
         </TableRow>

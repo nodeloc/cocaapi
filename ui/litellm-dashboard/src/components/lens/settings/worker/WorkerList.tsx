@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, markUiCopy, useUiLocale } from "@/lib/i18n";
 
 import type { ComponentProps } from "react";
 import { Button } from "@/components/ui/button";
@@ -11,8 +12,9 @@ import { AnalysisKeySummary } from "./AnalysisKeyDetails";
 import type { LensList, Worker } from "../../model/types";
 
 function workerStatus(worker: Worker, now: number): { state: StatusDotProps["state"]; label: string } {
-  if (!worker.analysis_key_id) return { state: "warn", label: "Billing key required" };
-  if (workerConnected(worker, now)) return { state: "ok", label: "Connected" };
+  if (!worker.analysis_key_id)
+    return markUiCopy({ state: "warn", label: "Billing key required" }, { label: "Billing key required" });
+  if (workerConnected(worker, now)) return markUiCopy({ state: "ok", label: "Connected" }, { label: "Connected" });
   return { state: "off", label: `Not connected · last seen ${agoLabel(Date.parse(worker.last_seen), now)}` };
 }
 
@@ -23,6 +25,7 @@ export type WorkerListProps = ComponentProps<"ul"> & {
 };
 
 export function WorkerList({ workers, onEditBilling, onRevoke, className, ...props }: WorkerListProps) {
+  useUiLocale();
   const now = useNow(5000);
   return (
     <ul
@@ -40,13 +43,15 @@ export function WorkerList({ workers, onEditBilling, onRevoke, className, ...pro
               <div className="min-w-0 flex-1 space-y-0.5">
                 <div className="flex flex-wrap items-baseline gap-x-2">
                   <h3 className="font-medium">{worker.name}</h3>
-                  <span className="text-xs text-muted-foreground">{status.label}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {localizedProperty(status, "label", status.label)}
+                  </span>
                 </div>
                 {worker.analysis_key_id && <AnalysisKeySummary keyId={worker.analysis_key_id} />}
               </div>
               <div className="flex items-center gap-1">
                 <Button variant="outline" size="sm" onClick={() => onEditBilling(worker)}>
-                  Edit access
+                  <LocalizedText text={"Edit access"} />
                 </Button>
                 <Button
                   variant="ghost"
@@ -54,7 +59,7 @@ export function WorkerList({ workers, onEditBilling, onRevoke, className, ...pro
                   className="text-muted-foreground hover:text-destructive"
                   onClick={() => onRevoke(worker.id)}
                 >
-                  Revoke access
+                  <LocalizedText text={"Revoke access"} />
                 </Button>
               </div>
             </li>

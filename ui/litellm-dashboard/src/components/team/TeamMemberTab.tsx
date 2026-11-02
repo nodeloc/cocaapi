@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import { useResetTeamMemberBudget } from "@/app/(dashboard)/hooks/teams/useResetTeamMemberBudget";
 import { useResetTeamMemberSpend } from "@/app/(dashboard)/hooks/teams/useResetTeamMemberSpend";
 import { useUISettings } from "@/app/(dashboard)/hooks/uiSettings/useUISettings";
@@ -17,10 +19,13 @@ import { CircleHelp } from "lucide-react";
 import { useState, type ComponentProps } from "react";
 import { TeamData, TeamMemberBudgetSource, TeamMembership } from "./TeamInfo";
 
-const BUDGET_SOURCE_LABELS: Record<Exclude<TeamMemberBudgetSource, "none">, string> = {
-  team_default: "Team default",
-  custom: "Custom",
-};
+const BUDGET_SOURCE_LABELS: Record<Exclude<TeamMemberBudgetSource, "none">, string> = markUiCopy(
+  {
+    team_default: "Team default",
+    custom: "Custom",
+  },
+  { team_default: "Team default", custom: "Custom" },
+);
 
 const formatBudget = (value: number | null): string =>
   value === null ? "Unlimited" : `$${formatNumberWithCommas(value, 2)}`;
@@ -60,6 +65,7 @@ export default function TeamMemberTab({
   onMemberSpendReset,
   onMemberBudgetReset,
 }: TeamMemberTabProps) {
+  useUiLocale();
   const [memberToResetSpend, setMemberToResetSpend] = useState<Member | null>(null);
   const [memberToResetBudget, setMemberToResetBudget] = useState<Member | null>(null);
   const { mutate: resetMemberSpend, isPending: isResettingSpend } = useResetTeamMemberSpend();
@@ -146,9 +152,9 @@ export default function TeamMemberTab({
     {
       title: (
         <span className="flex items-center gap-1">
-          Model Scope
+          <LocalizedText text={"Model Scope"} />
           <SimpleTooltip content="Models this member can access. Empty means they inherit all team models.">
-            <CircleHelp className="size-4" aria-label="Model scope information" />
+            <CircleHelp className="size-4" aria-label={translateMessage("Model scope information")} />
           </SimpleTooltip>
         </span>
       ),
@@ -156,7 +162,11 @@ export default function TeamMemberTab({
       render: (record: Member) => {
         const models = getUserAllowedModels(record.user_id);
         if (!models) {
-          return <span className="text-muted-foreground">(all team models)</span>;
+          return (
+            <span className="text-muted-foreground">
+              <LocalizedText text={"(all team models)"} />
+            </span>
+          );
         }
         const displayed = models.slice(0, 2);
         const remaining = models.length - displayed.length;
@@ -169,7 +179,10 @@ export default function TeamMemberTab({
             ))}
             {remaining > 0 && (
               <SimpleTooltip content={models.slice(2).join(", ")}>
-                <span className="text-muted-foreground">+{remaining} more</span>
+                <span className="text-muted-foreground">
+                  +{remaining}
+                  <LocalizedText text={" more"} />
+                </span>
               </SimpleTooltip>
             )}
           </div>
@@ -179,9 +192,9 @@ export default function TeamMemberTab({
     {
       title: (
         <span className="flex items-center gap-1">
-          Current Cycle Spend (USD)
+          <LocalizedText text={"Current Cycle Spend (USD)"} />
           <SimpleTooltip content="Spend for the current budget cycle. Resets to $0 when the member's budget window rolls over. This is the value checked against the member's budget.">
-            <CircleHelp className="size-4" aria-label="Current cycle spend information" />
+            <CircleHelp className="size-4" aria-label={translateMessage("Current cycle spend information")} />
           </SimpleTooltip>
         </span>
       ),
@@ -193,9 +206,9 @@ export default function TeamMemberTab({
     {
       title: (
         <span className="flex items-center gap-1">
-          Total Spend (USD)
+          <LocalizedText text={"Total Spend (USD)"} />
           <SimpleTooltip content="Cumulative spend by this member within this team, across all budget cycles. Tracking began 2026-04-21; spend from before that date is not included.">
-            <CircleHelp className="size-4" aria-label="Total spend information" />
+            <CircleHelp className="size-4" aria-label={translateMessage("Total spend information")} />
           </SimpleTooltip>
         </span>
       ),
@@ -207,9 +220,9 @@ export default function TeamMemberTab({
     {
       title: (
         <span className="flex items-center gap-1">
-          Team Member Budget (USD)
+          <LocalizedText text={"Team Member Budget (USD)"} />
           <SimpleTooltip content="Team default follows the team's member budget, so changing it in team settings updates this member too. Custom is set on this member only and ignores later team changes.">
-            <CircleHelp className="size-4" aria-label="Team member budget information" />
+            <CircleHelp className="size-4" aria-label={translateMessage("Team member budget information")} />
           </SimpleTooltip>
         </span>
       ),
@@ -220,10 +233,15 @@ export default function TeamMemberTab({
         const source = getUserBudgetSource(record.user_id);
         return (
           <span className="flex items-center justify-end gap-2">
-            <MoneyCell value={getUserBudget(record.user_id)} decimals={2} emptyText="Unlimited" showZero />
+            <MoneyCell
+              value={getUserBudget(record.user_id)}
+              decimals={2}
+              emptyText={translateMessage("Unlimited")}
+              showZero
+            />
             {source !== "none" && (
               <Badge variant={source === "custom" ? "outline" : "secondary"} data-testid="member-budget-source">
-                {BUDGET_SOURCE_LABELS[source]}
+                {localizedProperty(BUDGET_SOURCE_LABELS, source, BUDGET_SOURCE_LABELS[source])}
               </Badge>
             )}
             {source === "custom" && canEditTeam && (
@@ -234,25 +252,28 @@ export default function TeamMemberTab({
                 data-testid="reset-member-budget"
                 onClick={() => setMemberToResetBudget(record)}
               >
-                Use team default
+                <LocalizedText text={"Use team default"} />
               </Button>
             )}
           </span>
         );
       },
     },
-    {
-      title: "Budget Reset",
-      key: "budget_reset",
-      sortValue: (record: Member) => getUserBudgetReset(record.user_id),
-      render: (record: Member) => <DateCell value={getUserBudgetReset(record.user_id)} precision="date" />,
-    },
+    markUiCopy(
+      {
+        title: "Budget Reset",
+        key: "budget_reset",
+        sortValue: (record: Member) => getUserBudgetReset(record.user_id),
+        render: (record: Member) => <DateCell value={getUserBudgetReset(record.user_id)} precision="date" />,
+      },
+      { title: "Budget Reset" },
+    ),
     {
       title: (
         <span className="flex items-center gap-1">
-          Team Member Rate Limits
+          <LocalizedText text={"Team Member Rate Limits"} />
           <SimpleTooltip content="Rate limits for this member's usage within this team.">
-            <CircleHelp className="size-4" aria-label="Team member rate limits information" />
+            <CircleHelp className="size-4" aria-label={translateMessage("Team member rate limits information")} />
           </SimpleTooltip>
         </span>
       ),
@@ -267,7 +288,7 @@ export default function TeamMemberTab({
       { teamId: teamData.team_id, userId: memberToResetSpend.user_id },
       {
         onSuccess: () => {
-          toast.success("Team member spend reset to $0");
+          toast.success(translateMessage("Team member spend reset to $0"));
           setMemberToResetSpend(null);
           onMemberSpendReset();
         },
@@ -282,7 +303,7 @@ export default function TeamMemberTab({
       { teamId: teamData.team_id, userId: memberToResetBudget.user_id },
       {
         onSuccess: () => {
-          toast.success("Team member budget reset to the team default");
+          toast.success(translateMessage("Team member budget reset to the team default"));
           setMemberToResetBudget(null);
           onMemberBudgetReset();
         },
@@ -322,24 +343,28 @@ export default function TeamMemberTab({
       <Dialog open={memberToResetSpend !== null} onOpenChange={(open) => !open && setMemberToResetSpend(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Reset Team Member Spend</DialogTitle>
+            <DialogTitle>
+              <LocalizedText text={"Reset Team Member Spend"} />
+            </DialogTitle>
           </DialogHeader>
           <p>
-            Reset current cycle spend for{" "}
-            <strong>{memberToResetSpend?.user_email || memberToResetSpend?.user_id}</strong> in this team to{" "}
-            <strong>$0</strong>?
+            <LocalizedText text={"Reset current cycle spend for"} />{" "}
+            <strong>{memberToResetSpend?.user_email || memberToResetSpend?.user_id}</strong>
+            <LocalizedText text={" in this team to"} /> <strong>$0</strong>?
           </p>
           <p className="text-sm text-muted-foreground">
-            Current cycle spend:{" "}
+            <LocalizedText text={"Current cycle spend:"} />{" "}
             <strong>${formatNumberWithCommas(getUserCurrentCycleSpend(memberToResetSpend?.user_id ?? null), 4)}</strong>
-            . This is the value checked against the member&apos;s budget. Total spend and logs are preserved.
+            <LocalizedText
+              text={". This is the value checked against the member's budget. Total spend and logs are preserved."}
+            />
           </p>
           <DialogFooter>
             <Button variant="outline" onClick={() => setMemberToResetSpend(null)}>
-              Cancel
+              <LocalizedText text={"Cancel"} />
             </Button>
             <Button variant="destructive" onClick={handleResetSpend} disabled={isResettingSpend}>
-              Reset
+              <LocalizedText text={"Reset"} />
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -347,23 +372,29 @@ export default function TeamMemberTab({
       <Dialog open={memberToResetBudget !== null} onOpenChange={(open) => !open && setMemberToResetBudget(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Reset Team Member Budget</DialogTitle>
+            <DialogTitle>
+              <LocalizedText text={"Reset Team Member Budget"} />
+            </DialogTitle>
           </DialogHeader>
           <p>
-            Remove the custom budget for{" "}
-            <strong>{memberToResetBudget?.user_email || memberToResetBudget?.user_id}</strong> and put them back on the
-            team default of <strong>{formatBudget(teamDefaultBudget)}</strong>?
+            <LocalizedText text={"Remove the custom budget for"} />{" "}
+            <strong>{memberToResetBudget?.user_email || memberToResetBudget?.user_id}</strong>
+            <LocalizedText text={" and put them back on the team default of "} />
+            <strong>{formatBudget(teamDefaultBudget)}</strong>?
           </p>
           <p className="text-sm text-muted-foreground">
-            Custom budget: <strong>{formatBudget(getUserBudget(memberToResetBudget?.user_id ?? null))}</strong>. Their
-            spend is kept. Future changes to the team&apos;s member budget will apply to them again.
+            <LocalizedText text={"Custom budget: "} />
+            <strong>{formatBudget(getUserBudget(memberToResetBudget?.user_id ?? null))}</strong>
+            <LocalizedText
+              text={". Their spend is kept. Future changes to the team's member budget will apply to them again."}
+            />
           </p>
           <DialogFooter>
             <Button variant="outline" onClick={() => setMemberToResetBudget(null)}>
-              Cancel
+              <LocalizedText text={"Cancel"} />
             </Button>
             <Button onClick={handleResetBudget} disabled={isResettingBudget}>
-              Use team default
+              <LocalizedText text={"Use team default"} />
             </Button>
           </DialogFooter>
         </DialogContent>

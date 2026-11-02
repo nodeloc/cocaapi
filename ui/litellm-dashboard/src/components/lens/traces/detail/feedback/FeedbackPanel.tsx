@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { useQuery } from "@tanstack/react-query";
 import { MessageSquareQuote, Star } from "lucide-react";
@@ -20,6 +21,7 @@ interface FeedbackPanelProps {
 const isLow = (score: number) => score <= LOW_SCORE;
 
 function Entry({ entry }: { entry: Feedback }) {
+  useUiLocale();
   const low = isLow(entry.score);
   return (
     <li className="flex gap-3 py-2 first:pt-0 last:pb-0" data-testid="feedback-entry" data-low={low || undefined}>
@@ -36,7 +38,9 @@ function Entry({ entry }: { entry: Feedback }) {
         {entry.comment ? (
           <p className="text-sm whitespace-pre-wrap text-foreground">“{entry.comment}”</p>
         ) : (
-          <p className="text-sm text-muted-foreground italic">No comment</p>
+          <p className="text-sm text-muted-foreground italic">
+            <LocalizedText text={"No comment"} />
+          </p>
         )}
         <span className="text-xs text-muted-foreground">
           {entry.author} · <span title={entry.updated_at}>{formatActivityTimestamp(entry.updated_at)}</span>
@@ -47,6 +51,7 @@ function Entry({ entry }: { entry: Feedback }) {
 }
 
 export function FeedbackPanel({ summary, accessToken }: FeedbackPanelProps) {
+  useUiLocale();
   const api = useTracesApi(accessToken);
   const traceRef = summary.trace_ref ?? "";
   const feedback = useQuery({
@@ -59,7 +64,7 @@ export function FeedbackPanel({ summary, accessToken }: FeedbackPanelProps) {
   const low = isLow(view.lowest);
   return (
     <section
-      aria-label="User feedback"
+      aria-label={translateMessage("User feedback")}
       data-low={low || undefined}
       className={cn(
         "flex shrink-0 flex-col gap-2 border-b px-4 py-3",
@@ -68,11 +73,12 @@ export function FeedbackPanel({ summary, accessToken }: FeedbackPanelProps) {
     >
       <header className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
         <MessageSquareQuote className="size-3.5" />
-        User feedback
+        <LocalizedText text={"User feedback"} />
         {view.entries.length > 1 && (
           <span className={cn("inline-flex items-center gap-1 font-mono", low && "text-destructive")}>
             <Star className="size-3" />
-            {formatScore(view.average)}/10 avg from {view.entries.length} users
+            {formatScore(view.average)}/10 avg from {view.entries.length}
+            <LocalizedText text={" users"} />
           </span>
         )}
       </header>

@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import React, { useState, useEffect, useCallback } from "react";
 import {
@@ -26,24 +27,33 @@ import { toast } from "@/lib/toast";
 type MCPStatus = "active" | "pending_review" | "rejected";
 
 const STATUS_CONFIG: Record<MCPStatus, { label: string; bg: string; text: string; dot: string }> = {
-  active: {
-    label: "Active",
-    bg: "bg-success/10",
-    text: "text-success",
-    dot: "bg-success",
-  },
-  pending_review: {
-    label: "Pending Review",
-    bg: "bg-warning/10",
-    text: "text-warning",
-    dot: "bg-warning",
-  },
-  rejected: {
-    label: "Rejected",
-    bg: "bg-destructive/10",
-    text: "text-destructive",
-    dot: "bg-destructive",
-  },
+  active: markUiCopy(
+    {
+      label: "Active",
+      bg: "bg-success/10",
+      text: "text-success",
+      dot: "bg-success",
+    },
+    { label: "Active" },
+  ),
+  pending_review: markUiCopy(
+    {
+      label: "Pending Review",
+      bg: "bg-warning/10",
+      text: "text-warning",
+      dot: "bg-warning",
+    },
+    { label: "Pending Review" },
+  ),
+  rejected: markUiCopy(
+    {
+      label: "Rejected",
+      bg: "bg-destructive/10",
+      text: "text-destructive",
+      dot: "bg-destructive",
+    },
+    { label: "Rejected" },
+  ),
 };
 
 const EMPTY_SUMMARY: MCPSubmissionsSummary = {
@@ -64,11 +74,13 @@ function formatDate(value: string | null | undefined): string {
   }
 }
 
-function StatCard({ label, value, color }: { label: string; value: number; color: string }) {
+function StatCard(cocaCopyProps0: { label: string; value: number; color: string }) {
+  const { label, value, color } = cocaCopyProps0;
+  useUiLocale();
   return (
     <div className="bg-card border border-border rounded-lg px-4 py-3">
       <div className={`text-2xl font-bold ${color}`}>{value}</div>
-      <div className="text-xs text-muted-foreground mt-0.5">{label}</div>
+      <div className="text-xs text-muted-foreground mt-0.5">{localizedProperty(cocaCopyProps0, "label", label)}</div>
     </div>
   );
 }
@@ -82,6 +94,7 @@ type ConfirmDialogProps = {
 };
 
 function ConfirmDialog({ action, serverName, isCurrentlyActive, onConfirm, onCancel }: ConfirmDialogProps) {
+  useUiLocale();
   const [reviewNotes, setReviewNotes] = useState("");
   const isApprove = action === "approve";
   const rejectBody = isCurrentlyActive
@@ -102,18 +115,20 @@ function ConfirmDialog({ action, serverName, isCurrentlyActive, onConfirm, onCan
           )}
         </div>
         <h3 className="text-base font-semibold text-foreground mb-1">
-          {isApprove ? "Approve MCP Server" : "Reject MCP Server"}
+          {isApprove ? translateMessage("Approve MCP Server") : translateMessage("Reject MCP Server")}
         </h3>
         <p className="text-sm text-muted-foreground mb-4">
-          Are you sure you want to {action}{" "}
-          <span className="font-medium text-foreground">&quot;{serverName}&quot;</span>?{" "}
+          <LocalizedText text={"Are you sure you want to "} />
+          {action} <span className="font-medium text-foreground">&quot;{serverName}&quot;</span>?{" "}
           {isApprove
-            ? "This will activate the server. The submitting user will see it in their MCP Servers list once approved."
+            ? translateMessage(
+                "This will activate the server. The submitting user will see it in their MCP Servers list once approved.",
+              )
             : rejectBody}
         </p>
         {!isApprove && (
           <textarea
-            placeholder="Reason for rejection (optional)"
+            placeholder={translateMessage("Reason for rejection (optional)")}
             value={reviewNotes}
             onChange={(e) => setReviewNotes(e.target.value)}
             className="w-full border border-border rounded-md px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:ring-1 focus:ring-ring mb-4 resize-none"
@@ -126,7 +141,7 @@ function ConfirmDialog({ action, serverName, isCurrentlyActive, onConfirm, onCan
             onClick={onCancel}
             className="flex-1 border border-border text-foreground hover:bg-accent text-sm font-medium py-2 rounded-md transition-colors"
           >
-            Cancel
+            <LocalizedText text={"Cancel"} />
           </button>
           <button
             type="button"
@@ -137,7 +152,7 @@ function ConfirmDialog({ action, serverName, isCurrentlyActive, onConfirm, onCan
                 : "bg-destructive text-destructive-foreground hover:bg-destructive/80"
             }`}
           >
-            {isApprove ? "Approve" : "Reject"}
+            {isApprove ? translateMessage("Approve") : translateMessage("Reject")}
           </button>
         </div>
       </div>
@@ -154,6 +169,7 @@ type SubmissionRulesPanelProps = {
 };
 
 function SubmissionRulesPanel({ requiredFields, onChange, onSave, isSaving, disabled }: SubmissionRulesPanelProps) {
+  useUiLocale();
   const [expanded, setExpanded] = useState(false);
   const activeLabels = MCP_REQUIRED_FIELD_DEFS.filter((f) => requiredFields.includes(f.key));
 
@@ -169,13 +185,19 @@ function SubmissionRulesPanel({ requiredFields, onChange, onSave, isSaving, disa
       >
         <div className="flex items-center gap-2">
           <SettingsIcon className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm font-semibold text-foreground">Submission Rules</span>
+          <span className="text-sm font-semibold text-foreground">
+            <LocalizedText text={"Submission Rules"} />
+          </span>
           {activeLabels.length > 0 ? (
             <span className="text-xs text-muted-foreground">
-              ({activeLabels.length} required field{activeLabels.length !== 1 ? "s" : ""})
+              ({activeLabels.length}
+              <LocalizedText text={" required field"} />
+              {activeLabels.length !== 1 ? translateMessage("s") : ""})
             </span>
           ) : (
-            <span className="text-xs text-muted-foreground italic">no rules set</span>
+            <span className="text-xs text-muted-foreground italic">
+              <LocalizedText text={"no rules set"} />
+            </span>
           )}
         </div>
         <div className="flex items-center gap-3">
@@ -187,7 +209,7 @@ function SubmissionRulesPanel({ requiredFields, onChange, onSave, isSaving, disa
                   className="inline-flex items-center gap-1 text-xs bg-info/10 text-info border border-info/20 px-2 py-0.5 rounded-full"
                 >
                   <CheckIcon className="h-3 w-3" />
-                  {f.label}
+                  {localizedProperty(f, "label", f.label)}
                 </span>
               ))}
             </div>
@@ -203,14 +225,17 @@ function SubmissionRulesPanel({ requiredFields, onChange, onSave, isSaving, disa
       {expanded && (
         <div className="border-t border-border px-4 pt-4 pb-4">
           <p className="text-xs text-muted-foreground mb-4">
-            Select which fields must be filled in before a submission is considered compliant. LiteLLM will show ✓ / ✗
-            for each rule on every submission card below.
+            <LocalizedText
+              text={
+                "Select which fields must be filled in before a submission is considered compliant. LiteLLM will show ✓ / ✗ for each rule on every submission card below."
+              }
+            />
           </p>
           <div className="grid grid-cols-2 gap-x-8 gap-y-5">
             {FIELD_GROUPS.map((group) => (
               <div key={group.label}>
                 <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-                  {group.label}
+                  {localizedProperty(group, "label", group.label)}
                 </div>
                 <div className="space-y-2">
                   {group.fields.map((field) => {
@@ -226,9 +251,11 @@ function SubmissionRulesPanel({ requiredFields, onChange, onSave, isSaving, disa
                         />
                         <div>
                           <div className="text-sm font-medium text-foreground group-hover:text-info transition-colors">
-                            {field.label}
+                            {localizedProperty(field, "label", field.label)}
                           </div>
-                          <div className="text-xs text-muted-foreground">{field.description}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {localizedProperty(field, "description", field.description)}
+                          </div>
                         </div>
                       </label>
                     );
@@ -247,14 +274,14 @@ function SubmissionRulesPanel({ requiredFields, onChange, onSave, isSaving, disa
               }}
               className="px-4 py-1.5 text-sm font-medium text-info-foreground bg-info hover:bg-info/80 disabled:opacity-50 rounded-md transition-colors"
             >
-              {isSaving ? "Saving…" : "Save Rules"}
+              {isSaving ? translateMessage("Saving…") : translateMessage("Save Rules")}
             </button>
             <button
               type="button"
               onClick={() => setExpanded(false)}
               className="px-4 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground border border-border rounded-md hover:bg-accent transition-colors"
             >
-              Cancel
+              <LocalizedText text={"Cancel"} />
             </button>
           </div>
         </div>
@@ -284,6 +311,7 @@ type CardReviewActionsProps = {
 };
 
 function CardReviewActions({ approvalStatus, onApprove, onReject }: CardReviewActionsProps) {
+  useUiLocale();
   return (
     <>
       {approvalStatus !== "rejected" && (
@@ -294,7 +322,7 @@ function CardReviewActions({ approvalStatus, onApprove, onReject }: CardReviewAc
               onClick={onApprove}
               className="text-xs bg-success hover:bg-success/80 text-success-foreground px-3 py-1.5 rounded-md transition-colors font-medium"
             >
-              Approve
+              <LocalizedText text={"Approve"} />
             </button>
           )}
           <button
@@ -302,7 +330,7 @@ function CardReviewActions({ approvalStatus, onApprove, onReject }: CardReviewAc
             onClick={onReject}
             className="text-xs border border-destructive/30 text-destructive hover:bg-destructive/10 px-3 py-1.5 rounded-md transition-colors font-medium"
           >
-            Reject
+            <LocalizedText text={"Reject"} />
           </button>
         </div>
       )}
@@ -313,7 +341,7 @@ function CardReviewActions({ approvalStatus, onApprove, onReject }: CardReviewAc
             onClick={onApprove}
             className="text-xs bg-success hover:bg-success/80 text-success-foreground px-3 py-1.5 rounded-md transition-colors font-medium"
           >
-            Re-approve
+            <LocalizedText text={"Re-approve"} />
           </button>
         </div>
       )}
@@ -329,6 +357,7 @@ type ComplianceChecksPanelProps = {
 };
 
 function ComplianceChecksPanel({ checks, approvalStatus, onApprove, onReject }: ComplianceChecksPanelProps) {
+  useUiLocale();
   const passCount = checks.filter((c) => c.passed).length;
   const failCount = checks.length - passCount;
   const allPassed = checks.length > 0 && failCount === 0;
@@ -353,10 +382,15 @@ function ComplianceChecksPanel({ checks, approvalStatus, onApprove, onReject }: 
         </div>
         <div className="flex-1 min-w-0">
           <div className={`text-sm font-semibold leading-tight ${allPassed ? "text-success" : "text-destructive"}`}>
-            {allPassed ? "All checks passed" : `${failCount} check${failCount !== 1 ? "s" : ""} failed`}
+            {allPassed
+              ? translateMessage("All checks passed")
+              : translateMessage("%{0} check%{1} failed", [failCount, failCount !== 1 ? "s" : ""])}
           </div>
           <div className="text-xs text-muted-foreground mt-0.5">
-            {passCount} passing, {failCount} failing
+            {passCount}
+            <LocalizedText text={" passing, "} />
+            {failCount}
+            <LocalizedText text={" failing"} />
           </div>
         </div>
         <div className="flex items-center gap-2 shrink-0">
@@ -366,7 +400,7 @@ function ComplianceChecksPanel({ checks, approvalStatus, onApprove, onReject }: 
               onClick={onApprove}
               className="text-xs bg-success hover:bg-success/80 text-success-foreground px-3 py-1.5 rounded-md transition-colors font-medium"
             >
-              Approve
+              <LocalizedText text={"Approve"} />
             </button>
           )}
           {approvalStatus === "rejected" && (
@@ -375,7 +409,7 @@ function ComplianceChecksPanel({ checks, approvalStatus, onApprove, onReject }: 
               onClick={onApprove}
               className="text-xs bg-success hover:bg-success/80 text-success-foreground px-3 py-1.5 rounded-md transition-colors font-medium"
             >
-              Re-approve
+              <LocalizedText text={"Re-approve"} />
             </button>
           )}
           {approvalStatus !== "rejected" && (
@@ -384,7 +418,7 @@ function ComplianceChecksPanel({ checks, approvalStatus, onApprove, onReject }: 
               onClick={onReject}
               className="text-xs border border-destructive/30 text-destructive hover:bg-destructive/10 bg-card px-3 py-1.5 rounded-md transition-colors font-medium"
             >
-              Reject
+              <LocalizedText text={"Reject"} />
             </button>
           )}
         </div>
@@ -404,9 +438,11 @@ function ComplianceChecksPanel({ checks, approvalStatus, onApprove, onReject }: 
                 <XIcon className="h-3 w-3 text-destructive" />
               )}
             </div>
-            <span className={`text-sm flex-1 ${c.passed ? "text-foreground" : "text-foreground"}`}>{c.label}</span>
+            <span className={`text-sm flex-1 ${c.passed ? "text-foreground" : "text-foreground"}`}>
+              {localizedProperty(c, "label", c.label)}
+            </span>
             <span className={`text-xs ${c.passed ? "text-success" : "text-destructive"}`}>
-              {c.passed ? "Passes" : "Missing"}
+              {c.passed ? translateMessage("Passes") : translateMessage("Missing")}
             </span>
           </div>
         ))}
@@ -416,15 +452,21 @@ function ComplianceChecksPanel({ checks, approvalStatus, onApprove, onReject }: 
 }
 
 function MCPServerCard({ server, onApprove, onReject, requiredFields }: MCPServerCardProps) {
+  useUiLocale();
   const approvalStatus = (server.approval_status ?? "active") as MCPStatus;
   const statusCfg = STATUS_CONFIG[approvalStatus] ?? STATUS_CONFIG["active"];
 
-  const checks: ComplianceCheck[] = MCP_REQUIRED_FIELD_DEFS.filter((f) => requiredFields.includes(f.key)).map((f) => ({
-    key: f.key,
-    label: f.label,
-    description: f.description,
-    passed: f.check(server),
-  }));
+  const checks: ComplianceCheck[] = MCP_REQUIRED_FIELD_DEFS.filter((f) => requiredFields.includes(f.key)).map((f) =>
+    markUiCopy(
+      {
+        key: f.key,
+        label: f.label,
+        description: f.description,
+        passed: f.check(server),
+      },
+      { label: { owner: f, field: "label" }, description: { owner: f, field: "description" } },
+    ),
+  );
 
   return (
     <div className="bg-card border border-border rounded-lg overflow-hidden">
@@ -436,14 +478,16 @@ function MCPServerCard({ server, onApprove, onReject, requiredFields }: MCPServe
                 className={`inline-flex items-center gap-1.5 text-xs font-medium px-2 py-0.5 rounded-full ${statusCfg.bg} ${statusCfg.text}`}
               >
                 <span className={`w-1.5 h-1.5 rounded-full ${statusCfg.dot}`} />
-                {statusCfg.label}
+                {localizedProperty(statusCfg, "label", statusCfg.label)}
               </span>
             </div>
             <h3 className="text-sm font-semibold text-foreground">
               {server.alias ?? server.server_name ?? server.server_id}
             </h3>
             {server.description && (
-              <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{server.description}</p>
+              <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
+                {localizedProperty(server, "description", server.description)}
+              </p>
             )}
             {server.url && (
               <div className="flex items-center gap-1.5 mt-1.5">
@@ -453,17 +497,22 @@ function MCPServerCard({ server, onApprove, onReject, requiredFields }: MCPServe
             )}
             <div className="flex items-center gap-3 mt-1.5 text-xs text-muted-foreground">
               <span>
-                Transport: <span className="text-muted-foreground">{server.transport ?? "sse"}</span>
+                <LocalizedText text={"Transport: "} />
+                <span className="text-muted-foreground">{server.transport ?? translateMessage("sse")}</span>
               </span>
               <span>·</span>
               <span>
-                Submitted by: <span className="text-muted-foreground">{server.submitted_by ?? "—"}</span>
+                <LocalizedText text={"Submitted by: "} />
+                <span className="text-muted-foreground">{server.submitted_by ?? "—"}</span>
               </span>
               <span>·</span>
               <span>{formatDate(server.submitted_at)}</span>
             </div>
             {approvalStatus === "rejected" && server.review_notes && (
-              <p className="text-xs text-destructive mt-1.5">Rejection reason: {server.review_notes}</p>
+              <p className="text-xs text-destructive mt-1.5">
+                <LocalizedText text={"Rejection reason: "} />
+                {server.review_notes}
+              </p>
             )}
           </div>
           {checks.length === 0 && (
@@ -489,6 +538,7 @@ interface MCPSubmissionsTabProps {
 }
 
 export function MCPSubmissionsTab({ accessToken }: MCPSubmissionsTabProps) {
+  useUiLocale();
   const [summary, setSummary] = useState<MCPSubmissionsSummary>(EMPTY_SUMMARY);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | MCPStatus>("all");
@@ -526,7 +576,11 @@ export function MCPSubmissionsTab({ accessToken }: MCPSubmissionsTabProps) {
         }
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load submissions");
+      setError(
+        err instanceof Error
+          ? localizedProperty(err, "message", err.message)
+          : translateMessage("Failed to load submissions"),
+      );
     } finally {
       setIsLoading(false);
     }
@@ -541,7 +595,7 @@ export function MCPSubmissionsTab({ accessToken }: MCPSubmissionsTabProps) {
     setIsSavingRules(true);
     try {
       await updateConfigFieldSetting(accessToken, SETTINGS_KEY, requiredFields);
-      toast.success("Submission rules saved");
+      toast.success(translateMessage("Submission rules saved"));
     } catch {
       toast.fromError("Failed to save submission rules");
     } finally {
@@ -567,7 +621,7 @@ export function MCPSubmissionsTab({ accessToken }: MCPSubmissionsTabProps) {
     try {
       await approveMCPServer(accessToken, serverId);
       await fetchData();
-      toast.success(`MCP server "${serverName}" approved`);
+      toast.success(translateMessage('MCP server "%{0}" approved', [serverName]));
     } catch {
       toast.fromError("Failed to approve MCP server");
     } finally {
@@ -580,7 +634,7 @@ export function MCPSubmissionsTab({ accessToken }: MCPSubmissionsTabProps) {
     try {
       await rejectMCPServer(accessToken, serverId, reviewNotes);
       await fetchData();
-      toast.success(`MCP server "${serverName}" rejected`);
+      toast.success(translateMessage('MCP server "%{0}" rejected', [serverName]));
     } catch {
       toast.fromError("Failed to reject MCP server");
     } finally {
@@ -599,10 +653,10 @@ export function MCPSubmissionsTab({ accessToken }: MCPSubmissionsTabProps) {
       />
 
       <div className="grid grid-cols-4 gap-4 mb-6">
-        <StatCard label="Total Submitted" value={summary.total} color="text-foreground" />
-        <StatCard label="Pending Review" value={summary.pending_review} color="text-warning" />
-        <StatCard label="Active" value={summary.active} color="text-success" />
-        <StatCard label="Rejected" value={summary.rejected} color="text-destructive" />
+        <StatCard label={translateMessage("Total Submitted")} value={summary.total} color="text-foreground" />
+        <StatCard label={translateMessage("Pending Review")} value={summary.pending_review} color="text-warning" />
+        <StatCard label={translateMessage("Active")} value={summary.active} color="text-success" />
+        <StatCard label={translateMessage("Rejected")} value={summary.rejected} color="text-destructive" />
       </div>
 
       <div className="flex items-center gap-3 mb-5">
@@ -610,7 +664,7 @@ export function MCPSubmissionsTab({ accessToken }: MCPSubmissionsTabProps) {
           <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <input
             type="text"
-            placeholder="Search MCP servers..."
+            placeholder={translateMessage("Search MCP servers...")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full pl-9 pr-4 py-2 border border-border rounded-md text-sm text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:ring-1 focus:ring-ring focus:border-info"
@@ -621,19 +675,31 @@ export function MCPSubmissionsTab({ accessToken }: MCPSubmissionsTabProps) {
           onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)}
           className="border border-border rounded-md px-3 py-2 text-sm text-foreground focus:outline-hidden focus:ring-1 focus:ring-ring focus:border-info bg-card"
         >
-          <option value="all">All Status</option>
-          <option value="pending_review">Pending Review</option>
-          <option value="active">Active</option>
-          <option value="rejected">Rejected</option>
+          <option value="all">
+            <LocalizedText text={"All Status"} />
+          </option>
+          <option value="pending_review">
+            <LocalizedText text={"Pending Review"} />
+          </option>
+          <option value="active">
+            <LocalizedText text={"Active"} />
+          </option>
+          <option value="rejected">
+            <LocalizedText text={"Rejected"} />
+          </option>
         </select>
       </div>
 
       <div className="space-y-3">
-        {isLoading && <div className="text-center py-12 text-muted-foreground text-sm">Loading submissions…</div>}
+        {isLoading && (
+          <div className="text-center py-12 text-muted-foreground text-sm">
+            <LocalizedText text={"Loading submissions…"} />
+          </div>
+        )}
         {error && <div className="text-center py-12 text-destructive text-sm">{error}</div>}
         {showEmptyState && (
           <div className="text-center py-12 text-muted-foreground text-sm">
-            No MCP server submissions match your filters.
+            <LocalizedText text={"No MCP server submissions match your filters."} />
           </div>
         )}
         {!isLoading &&

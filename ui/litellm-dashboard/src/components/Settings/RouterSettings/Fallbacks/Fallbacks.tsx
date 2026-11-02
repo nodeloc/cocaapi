@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import { useModelCostMap } from "@/app/(dashboard)/hooks/models/useModelCostMap";
 import { ArrowRight, Pencil, Play, Trash2 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -39,6 +41,7 @@ function renderFallbacksChain(
   if (list.length === 0) return null;
 
   const ChainCard = ({ modelName }: { modelName: string }) => {
+    useUiLocale();
     const provider = getProviderFromModel?.(modelName) ?? modelName;
     return (
       <span className={modelCardClass}>
@@ -87,7 +90,7 @@ async function testFallbackModelResponse(selectedModel: string, accessToken: str
   });
 
   try {
-    toast.info("Testing fallback model response...");
+    toast.info(translateMessage("Testing fallback model response..."));
 
     const response = await client.chat.completions.create({
       model: selectedModel,
@@ -103,14 +106,17 @@ async function testFallbackModelResponse(selectedModel: string, accessToken: str
 
     toast.success(
       <span>
-        Test model=<strong>{selectedModel}</strong>, received model=
-        <strong>{response.model}</strong>. See{" "}
+        <LocalizedText text={"Test model="} />
+        <strong>{selectedModel}</strong>
+        <LocalizedText text={", received model="} />
+        <strong>{response.model}</strong>
+        <LocalizedText text={". See"} />{" "}
         <a
           href="#"
           onClick={() => window.open("https://docs.litellm.ai/docs/proxy/reliability", "_blank")}
           style={{ textDecoration: "underline", color: "blue" }}
         >
-          curl
+          <LocalizedText text={"curl"} />
         </a>
       </span>,
     );
@@ -120,6 +126,7 @@ async function testFallbackModelResponse(selectedModel: string, accessToken: str
 }
 
 const Fallbacks: React.FC<FallbacksProps> = ({ accessToken, userRole, userID }) => {
+  useUiLocale();
   const [routerSettings, setRouterSettings] = useState<{ [key: string]: any }>({});
   const [isDeleting, setIsDeleting] = useState(false);
   const [fallbackToDelete, setFallbackToDelete] = useState<FallbackEntry | null>(null);
@@ -193,7 +200,7 @@ const Fallbacks: React.FC<FallbacksProps> = ({ accessToken, userRole, userID }) 
     try {
       await setCallbacksCall(accessToken, payload);
       setRouterSettings(updatedSettings);
-      toast.success("Router settings updated successfully");
+      toast.success(translateMessage("Router settings updated successfully"));
     } catch (error) {
       toast.fromError("Failed to update router settings: " + error);
     } finally {
@@ -263,16 +270,24 @@ const Fallbacks: React.FC<FallbacksProps> = ({ accessToken, userRole, userID }) 
       {!hasFallbacks ? (
         <div className="rounded-lg border border-border bg-muted px-4 py-6 text-center">
           <span className="text-muted-foreground">
-            No fallbacks configured. Add fallbacks to automatically try another model when the primary fails.
+            <LocalizedText
+              text={"No fallbacks configured. Add fallbacks to automatically try another model when the primary fails."}
+            />
           </span>
         </div>
       ) : (
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Model Name</TableHead>
-              <TableHead>Fallbacks</TableHead>
-              <TableHead>Actions</TableHead>
+              <TableHead>
+                <LocalizedText text={"Model Name"} />
+              </TableHead>
+              <TableHead>
+                <LocalizedText text={"Fallbacks"} />
+              </TableHead>
+              <TableHead>
+                <LocalizedText text={"Actions"} />
+              </TableHead>
             </TableRow>
           </TableHeader>
 
@@ -300,7 +315,9 @@ const Fallbacks: React.FC<FallbacksProps> = ({ accessToken, userRole, userID }) 
                           >
                             <Play className="h-5 w-5 shrink-0" />
                           </TooltipTrigger>
-                          <TooltipContent>Test fallback</TooltipContent>
+                          <TooltipContent>
+                            <LocalizedText text={"Test fallback"} />
+                          </TooltipContent>
                         </Tooltip>
                         <Tooltip>
                           <TooltipTrigger
@@ -317,7 +334,9 @@ const Fallbacks: React.FC<FallbacksProps> = ({ accessToken, userRole, userID }) 
                           >
                             <Pencil className="h-5 w-5 shrink-0" />
                           </TooltipTrigger>
-                          <TooltipContent>Edit fallback</TooltipContent>
+                          <TooltipContent>
+                            <LocalizedText text={"Edit fallback"} />
+                          </TooltipContent>
                         </Tooltip>
                         <Tooltip>
                           <TooltipTrigger
@@ -334,7 +353,9 @@ const Fallbacks: React.FC<FallbacksProps> = ({ accessToken, userRole, userID }) 
                           >
                             <Trash2 className="h-5 w-5 shrink-0" />
                           </TooltipTrigger>
-                          <TooltipContent>Delete fallback</TooltipContent>
+                          <TooltipContent>
+                            <LocalizedText text={"Delete fallback"} />
+                          </TooltipContent>
                         </Tooltip>
                       </>
                     )}
@@ -357,15 +378,18 @@ const Fallbacks: React.FC<FallbacksProps> = ({ accessToken, userRole, userID }) 
       )}
       <DeleteResourceModal
         isOpen={isDeleteModalOpen}
-        title="Delete Fallback?"
-        message="Are you sure you want to delete this fallback? This action cannot be undone."
+        title={translateMessage("Delete Fallback?")}
+        message={translateMessage("Are you sure you want to delete this fallback? This action cannot be undone.")}
         resourceInformationTitle="Fallback Information"
         resourceInformation={[
-          {
-            label: "Model Name",
-            value: fallbackToDelete ? Object.keys(fallbackToDelete)[0] : "",
-            code: true,
-          },
+          markUiCopy(
+            {
+              label: "Model Name",
+              value: fallbackToDelete ? Object.keys(fallbackToDelete)[0] : "",
+              code: true,
+            },
+            { label: "Model Name" },
+          ),
         ]}
         onCancel={handleDeleteCancel}
         onOk={handleDeleteConfirm}

@@ -1,3 +1,4 @@
+import { LocalizedText, markUiCopy, translateMessage } from "@/lib/i18n";
 import { CircleMinus, Plus } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import {
@@ -27,7 +28,12 @@ export const metadataPairsSchema = z
   .superRefine((pairs, ctx) => {
     pairs.forEach((pair, index) => {
       if (pair.key && pairs.filter((other) => other.key === pair.key).length > 1) {
-        ctx.addIssue({ code: "custom", message: "Duplicate key", path: [index, "key"] });
+        ctx.addIssue(
+          markUiCopy(
+            { code: "custom" as const, message: "Duplicate key", path: [index, "key"] },
+            { message: "Duplicate key" },
+          ),
+        );
       }
     });
   });
@@ -100,7 +106,9 @@ const MetadataRow = <TFieldValues extends FieldValues>({
     <div className="mb-2 flex items-start gap-2">
       {schemaLabel === undefined ? (
         <FormField control={control} name={`${name}.${index}.key` as FieldPath<TFieldValues>}>
-          {({ ref, value, ...rest }) => <Input {...rest} ref={ref} value={(value as string) ?? ""} placeholder="Key" />}
+          {({ ref, value, ...rest }) => (
+            <Input {...rest} ref={ref} value={(value as string) ?? ""} placeholder={translateMessage("Key")} />
+          )}
         </FormField>
       ) : (
         <Label
@@ -118,7 +126,7 @@ const MetadataRow = <TFieldValues extends FieldValues>({
             id={schemaLabel === undefined ? id : `${rowId}-value`}
             ref={ref}
             value={(value as string) ?? ""}
-            placeholder="Value"
+            placeholder={translateMessage("Value")}
           />
         )}
       </FormField>
@@ -126,7 +134,7 @@ const MetadataRow = <TFieldValues extends FieldValues>({
         <Button
           variant="ghost"
           size="icon"
-          aria-label="Remove key-value pair"
+          aria-label={translateMessage("Remove key-value pair")}
           className="mt-1 text-destructive"
           onClick={onRemove}
         >
@@ -208,7 +216,7 @@ const MetadataKeyValueFields = <TFieldValues extends FieldValues>({
         onClick={() => append({ key: "", value: "" } as never, { shouldFocus: false })}
       >
         <Plus className="size-4" />
-        Add Key-Value Pair
+        <LocalizedText text={"Add Key-Value Pair"} />
       </Button>
     </>
   );

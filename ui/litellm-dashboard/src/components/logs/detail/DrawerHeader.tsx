@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 import { type ReactNode, useState } from "react";
 import { ArrowLeft, Check, ChevronDown, ChevronUp, Copy, X } from "lucide-react";
 import moment from "moment";
@@ -53,6 +55,7 @@ export function DrawerHeader({
   onToggleSidebar,
   backTo,
 }: DrawerHeaderProps) {
+  useUiLocale();
   const provider = log.custom_llm_provider || "";
   const providerInfo = provider ? getProviderLogoAndName(provider) : null;
   const showToggleWithProvider = isSidebarCollapsed && Boolean(providerInfo || log.model);
@@ -75,7 +78,10 @@ export function DrawerHeader({
         <Button variant="outline" size="sm" onClick={onClose} className="mb-3 max-w-full">
           <ArrowLeft data-icon="inline-start" />
           {backTo.icon}
-          <span className="truncate">Back to {backTo.label}</span>
+          <span className="truncate">
+            <LocalizedText text={"Back to "} />
+            {localizedProperty(backTo, "label", backTo.label)}
+          </span>
         </Button>
       )}
       {/* Row 0: Model + Provider with Logo */}
@@ -102,16 +108,21 @@ export function DrawerHeader({
       >
         {showToggleWithRequestId && <SidebarToggle isCollapsed onToggle={onToggleSidebar} />}
         <div style={{ flex: 1, minWidth: 0 }}>
-          <CopyableId value={log.request_id} label="Request ID" fontSize={FONT_SIZE_HEADER} />
+          <CopyableId value={log.request_id} label={translateMessage("Request ID")} fontSize={FONT_SIZE_HEADER} />
           {callId && (
             <div className="flex items-center gap-1">
               <span
                 className="text-muted-foreground"
                 style={{ fontSize: FONT_SIZE_MEDIUM, fontFamily: FONT_FAMILY_MONO, whiteSpace: "nowrap" }}
               >
-                x-litellm-call-id:
+                <LocalizedText text={"x-litellm-call-id:"} />
               </span>
-              <CopyableId value={callId} label="x-litellm-call-id" fontSize={FONT_SIZE_MEDIUM} muted />
+              <CopyableId
+                value={callId}
+                label={translateMessage("x-litellm-call-id")}
+                fontSize={FONT_SIZE_MEDIUM}
+                muted
+              />
             </div>
           )}
         </div>
@@ -140,12 +151,13 @@ function ModelProviderSection({
   providerLogo?: string;
   providerName?: string;
 }) {
+  useUiLocale();
   return (
     <div className="flex min-w-0 items-center gap-2">
       {providerLogo && (
         <img
           src={providerLogo}
-          alt={providerName || "Provider"}
+          alt={providerName || translateMessage("Provider")}
           style={{ width: 24, height: 24 }}
           onError={(e) => {
             const target = e.target as HTMLImageElement;
@@ -169,17 +181,9 @@ function ModelProviderSection({
   );
 }
 
-function CopyableId({
-  value,
-  label,
-  fontSize,
-  muted,
-}: {
-  value: string;
-  label: string;
-  fontSize: number;
-  muted?: boolean;
-}) {
+function CopyableId(cocaCopyProps0: { value: string; label: string; fontSize: number; muted?: boolean }) {
+  const { value, label, fontSize, muted } = cocaCopyProps0;
+  useUiLocale();
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -213,7 +217,7 @@ function CopyableId({
           {value}
           <button
             type="button"
-            aria-label={copied ? "Copied!" : `Copy ${label}`}
+            aria-label={copied ? translateMessage("Copied!") : translateMessage("Copy %{0}", [label])}
             onClick={handleCopy}
             className="ml-1 align-middle text-muted-foreground hover:text-foreground"
           >
@@ -239,6 +243,7 @@ function NavigationSection({
   onNext: () => void;
   onClose: () => void;
 }) {
+  useUiLocale();
   const keyboardShortcutStyle = {
     border: "1px solid var(--color-border)",
     borderRadius: 4,
@@ -254,12 +259,16 @@ function NavigationSection({
     <div className="flex items-center gap-1">
       <Button variant="ghost" size="sm" onClick={onPrevious}>
         <ChevronUp className="size-4" />
-        <span style={keyboardShortcutStyle}>K</span>
+        <span style={keyboardShortcutStyle}>
+          <LocalizedText text={"K"} />
+        </span>
       </Button>
       <div style={splitStyle} />
       <Button variant="ghost" size="sm" onClick={onNext}>
         <ChevronDown className="size-4" />
-        <span style={keyboardShortcutStyle}>J</span>
+        <span style={keyboardShortcutStyle}>
+          <LocalizedText text={"J"} />
+        </span>
       </Button>
       <div style={splitStyle} />
       <TooltipProvider>
@@ -267,7 +276,9 @@ function NavigationSection({
           <TooltipTrigger render={<Button variant="ghost" size="icon-sm" onClick={onClose} />}>
             <X className="size-4" />
           </TooltipTrigger>
-          <TooltipContent>ESC to close</TooltipContent>
+          <TooltipContent>
+            <LocalizedText text={"ESC to close"} />
+          </TooltipContent>
         </Tooltip>
       </TooltipProvider>
     </div>
@@ -288,10 +299,14 @@ function StatusBar({
   statusColor: "error" | "success";
   environment: string;
 }) {
+  useUiLocale();
   return (
     <div className="flex items-center gap-3">
       <Badge variant={statusColor === "error" ? "destructive" : "secondary"}>{statusLabel}</Badge>
-      <Badge variant="outline">Env: {environment}</Badge>
+      <Badge variant="outline">
+        <LocalizedText text={"Env: "} />
+        {environment}
+      </Badge>
       <div className="flex items-center gap-2">
         <span className="text-muted-foreground" style={{ fontSize: FONT_SIZE_MEDIUM }}>
           {moment(log.startTime).format("MMM D, YYYY h:mm:ss A")}

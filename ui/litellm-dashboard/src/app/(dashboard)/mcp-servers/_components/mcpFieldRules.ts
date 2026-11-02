@@ -1,3 +1,4 @@
+import { markUiCopy } from "@/lib/i18n";
 import type React from "react";
 import type { Validate } from "react-hook-form";
 
@@ -37,14 +38,17 @@ const toTags = (value: unknown): string[] =>
 
 export const tagsControl = (control: MountedFieldControlProps) => {
   const value = toTags(control.value);
-  return {
-    id: control.id,
-    options: [...new Set(value)].map((tag) => ({ label: tag, value: tag })),
-    value,
-    onValueChange: control.onChange,
-    emptyText: "Type to add",
-    allowCustomValues: true,
-  };
+  return markUiCopy(
+    {
+      id: control.id,
+      options: [...new Set(value)].map((tag) => ({ label: tag, value: tag })),
+      value,
+      onValueChange: control.onChange,
+      emptyText: "Type to add",
+      allowCustomValues: true,
+    },
+    { emptyText: "Type to add" },
+  );
 };
 
 const toNumberOrNull = (raw: string, precision: number | undefined): number | null => {

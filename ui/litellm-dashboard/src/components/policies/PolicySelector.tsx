@@ -1,3 +1,5 @@
+"use client";
+import { translateMessage, useUiLocale } from "@/lib/i18n";
 import React, { useEffect, useState } from "react";
 import useCan from "@/app/(dashboard)/hooks/useCan";
 import { Policy } from "./types";
@@ -52,6 +54,7 @@ const PolicySelector: React.FC<PolicySelectorProps> = ({
   disabled,
   onPoliciesLoaded,
 }) => {
+  useUiLocale();
   const canViewPolicies = useCan("viewPolicies");
   const [policies, setPolicies] = useState<Policy[]>([]);
   const [loading, setLoading] = useState(false);
@@ -90,7 +93,9 @@ const PolicySelector: React.FC<PolicySelectorProps> = ({
       <MultiSelect
         disabled={disabled}
         placeholder={
-          disabled ? "Setting policies is a premium feature." : "Select policies (production or published versions)"
+          disabled
+            ? translateMessage("Setting policies is a premium feature.")
+            : translateMessage("Select policies (production or published versions)")
         }
         onValueChange={handlePolicyChange}
         value={value}

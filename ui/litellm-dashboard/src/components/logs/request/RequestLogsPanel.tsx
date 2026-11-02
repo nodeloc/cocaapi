@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { useDebouncedValue } from "@tanstack/react-pacer/debouncer";
 import { useCustomerNative } from "@/components/account/native/CustomerNativeContext";
@@ -48,6 +49,7 @@ interface RequestLogsPanelProps {
 }
 
 export default function RequestLogsPanel({ accessToken, token, userRole, userID, isActive }: RequestLogsPanelProps) {
+  useUiLocale();
   const customer = useCustomerNative();
   const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: PAGE_SIZE });
   const [sorting, setSorting] = useState<SortingState>(DEFAULT_LOGS_SORTING);
@@ -321,19 +323,23 @@ export default function RequestLogsPanel({ accessToken, token, userRole, userID,
         toolbarChildren={
           <LogsToolbar>
             <LogsTimeRangePicker value={timeRange} onValueChange={handleTimeRangeChange} />
-            <LogsToolbarSwitch label="Live Tail" checked={isLiveTail} onCheckedChange={setIsLiveTail} />
+            <LogsToolbarSwitch
+              label={translateMessage("Live Tail")}
+              checked={isLiveTail}
+              onCheckedChange={setIsLiveTail}
+            />
             {isLiveTail && pagination.pageIndex === 0 && (
               <span role="status" className="whitespace-nowrap text-xs text-muted-foreground">
-                Refreshing every 15s
+                <LocalizedText text={"Refreshing every 15s"} />
               </span>
             )}
             <LogsToolbarSwitch
-              label="Hide Health Checks"
+              label={translateMessage("Hide Health Checks")}
               checked={excludeInternalHealthChecks}
               onCheckedChange={handleExcludeInternalHealthChecksChange}
             />
             <Button variant="outline" size="sm" onClick={handleResetFilters}>
-              Reset Filters
+              <LocalizedText text={"Reset Filters"} />
             </Button>
           </LogsToolbar>
         }

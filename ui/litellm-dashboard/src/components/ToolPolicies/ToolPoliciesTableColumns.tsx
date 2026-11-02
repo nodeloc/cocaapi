@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { ColumnDef } from "@tanstack/react-table";
 
@@ -18,6 +19,7 @@ interface ToolPoliciesTableColumnsDeps {
 }
 
 function TruncatedText({ value, className }: { value: string | undefined; className?: string }) {
+  useUiLocale();
   const text = value ?? "-";
   return (
     <TooltipProvider>
@@ -39,7 +41,7 @@ export const getToolPoliciesTableColumns = ({
   {
     id: "created_at",
     accessorFn: (row) => row.created_at ?? "",
-    header: ({ column }) => <DataTableSortHeader column={column} title="Discovered" />,
+    header: ({ column }) => <DataTableSortHeader column={column} title={translateMessage("Discovered")} />,
     size: 170,
     enableGlobalFilter: false,
     cell: ({ row }) => <DateCell value={row.original.created_at} />,
@@ -47,7 +49,7 @@ export const getToolPoliciesTableColumns = ({
   {
     id: "tool_name",
     accessorFn: (row) => row.tool_name,
-    header: ({ column }) => <DataTableSortHeader column={column} title="Tool Name" />,
+    header: ({ column }) => <DataTableSortHeader column={column} title={translateMessage("Tool Name")} />,
     minSize: 200,
     cell: ({ row }) => (
       <IdentityCell
@@ -61,10 +63,10 @@ export const getToolPoliciesTableColumns = ({
   {
     id: "input_policy",
     accessorFn: (row) => row.input_policy,
-    header: ({ column }) => <DataTableSortHeader column={column} title="Input Policy" />,
+    header: ({ column }) => <DataTableSortHeader column={column} title={translateMessage("Input Policy")} />,
     size: 140,
     filterFn: "equalsString",
-    meta: { title: "Input Policy", skeleton: "badge" },
+    meta: markUiCopy({ title: "Input Policy", skeleton: "badge" as const }, { title: "Input Policy" }),
     cell: ({ row }) => (
       <PolicySelect
         value={row.original.input_policy}
@@ -78,10 +80,10 @@ export const getToolPoliciesTableColumns = ({
   {
     id: "output_policy",
     accessorFn: (row) => row.output_policy,
-    header: ({ column }) => <DataTableSortHeader column={column} title="Output Policy" />,
+    header: ({ column }) => <DataTableSortHeader column={column} title={translateMessage("Output Policy")} />,
     size: 140,
     filterFn: "equalsString",
-    meta: { title: "Output Policy", skeleton: "badge" },
+    meta: markUiCopy({ title: "Output Policy", skeleton: "badge" as const }, { title: "Output Policy" }),
     cell: ({ row }) => (
       <PolicySelect
         value={row.original.output_policy}
@@ -95,7 +97,7 @@ export const getToolPoliciesTableColumns = ({
   {
     id: "call_count",
     accessorFn: (row) => row.call_count ?? 0,
-    header: ({ column }) => <DataTableSortHeader column={column} title="# Calls" />,
+    header: ({ column }) => <DataTableSortHeader column={column} title={translateMessage("# Calls")} />,
     size: 100,
     enableGlobalFilter: false,
     meta: { numeric: true },
@@ -104,27 +106,30 @@ export const getToolPoliciesTableColumns = ({
   {
     id: "team_id",
     accessorFn: (row) => row.team_id ?? "",
-    header: ({ column }) => <DataTableSortHeader column={column} title="Team Name" />,
+    header: ({ column }) => <DataTableSortHeader column={column} title={translateMessage("Team Name")} />,
     size: 160,
     filterFn: "equalsString",
-    meta: { title: "Team Name" },
+    meta: markUiCopy({ title: "Team Name" }, { title: "Team Name" }),
     cell: ({ row }) => <IdCell value={row.original.team_id} variant="plain" />,
   },
-  {
-    id: "key_hash",
-    accessorFn: (row) => row.key_hash ?? "",
-    header: "Key Hash",
-    size: 150,
-    enableSorting: false,
-    cell: ({ row }) => <IdCell value={row.original.key_hash} />,
-  },
+  markUiCopy(
+    {
+      id: "key_hash",
+      accessorFn: (row) => row.key_hash ?? "",
+      header: "Key Hash",
+      size: 150,
+      enableSorting: false,
+      cell: ({ row }) => <IdCell value={row.original.key_hash} />,
+    },
+    { header: "Key Hash" },
+  ),
   {
     id: "key_alias",
     accessorFn: (row) => row.key_alias ?? "",
-    header: ({ column }) => <DataTableSortHeader column={column} title="Key Name" />,
+    header: ({ column }) => <DataTableSortHeader column={column} title={translateMessage("Key Name")} />,
     size: 150,
     filterFn: "equalsString",
-    meta: { title: "Key Name" },
+    meta: markUiCopy({ title: "Key Name" }, { title: "Key Name" }),
     cell: ({ row }) => <TruncatedText value={row.original.key_alias} className="block max-w-32 truncate" />,
   },
   {
@@ -133,17 +138,26 @@ export const getToolPoliciesTableColumns = ({
     header: () => (
       <TooltipProvider>
         <Tooltip>
-          <TooltipTrigger render={<span>User</span>} />
+          <TooltipTrigger
+            render={
+              <span>
+                <LocalizedText text={"User"} />
+              </span>
+            }
+          />
           <TooltipContent>
-            The user who owns the key that discovered this tool. Displays the first available value: User Alias, User
-            Email, or User ID.
+            <LocalizedText
+              text={
+                "The user who owns the key that discovered this tool. Displays the first available value: User Alias, User Email, or User ID."
+              }
+            />
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
     ),
     size: 160,
     enableSorting: false,
-    meta: { title: "User" },
+    meta: markUiCopy({ title: "User" }, { title: "User" }),
     cell: ({ row }) => (
       <UserPopoverCell
         userAlias={row.original.user?.user_alias ?? null}
@@ -153,18 +167,21 @@ export const getToolPoliciesTableColumns = ({
       />
     ),
   },
-  {
-    id: "user_agent",
-    accessorFn: (row) => row.user_agent ?? "",
-    header: "User Agent",
-    size: 180,
-    enableSorting: false,
-    enableGlobalFilter: false,
-    cell: ({ row }) => (
-      <TruncatedText
-        value={row.original.user_agent}
-        className="block max-w-40 truncate font-mono text-muted-foreground"
-      />
-    ),
-  },
+  markUiCopy(
+    {
+      id: "user_agent",
+      accessorFn: (row) => row.user_agent ?? "",
+      header: "User Agent",
+      size: 180,
+      enableSorting: false,
+      enableGlobalFilter: false,
+      cell: ({ row }) => (
+        <TruncatedText
+          value={row.original.user_agent}
+          className="block max-w-40 truncate font-mono text-muted-foreground"
+        />
+      ),
+    },
+    { header: "User Agent" },
+  ),
 ];

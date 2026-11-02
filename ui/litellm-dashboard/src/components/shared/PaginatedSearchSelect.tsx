@@ -1,4 +1,5 @@
 "use client";
+import { localizedProperty, useUiLocale } from "@/lib/i18n";
 
 import { Loader2 } from "lucide-react";
 import { useMemo, useRef, useState, type SyntheticEvent } from "react";
@@ -76,6 +77,7 @@ export function PaginatedSearchSelect({
   "aria-invalid": ariaInvalid,
   "aria-describedby": ariaDescribedBy,
 }: PaginatedSearchSelectProps) {
+  useUiLocale();
   const [pickedOption, setPickedOption] = useState<SearchSelectOption | null>(null);
   const wholeSelectionRef = useRef(false);
 
@@ -150,7 +152,7 @@ export function PaginatedSearchSelect({
           {(item: SearchSelectOption) => (
             <ComboboxItem key={item.value} value={item}>
               <span className="flex min-w-0 flex-col">
-                <span className="truncate">{item.label}</span>
+                <span className="truncate">{localizedProperty(item, "label", item.label)}</span>
                 {item.sublabel != null && item.sublabel !== "" && (
                   <span className="truncate text-xs text-muted-foreground">{item.sublabel}</span>
                 )}

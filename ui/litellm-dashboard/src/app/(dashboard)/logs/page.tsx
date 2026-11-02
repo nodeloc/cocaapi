@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { useCustomerNative } from "@/components/account/native/CustomerNativeContext";
 import { useState } from "react";
@@ -14,6 +15,7 @@ import { UiLoadingSpinner } from "@/components/ui/ui-loading-spinner";
 type LogsTab = "request logs" | "audit logs" | "deleted keys" | "deleted teams";
 
 export default function LogsPage() {
+  useUiLocale();
   const { accessToken, userRole, userId, token, premiumUser } = useAuthorized();
   const [activeTab, setActiveTab] = useState<LogsTab>("request logs");
   const customer = useCustomerNative();
@@ -25,7 +27,12 @@ export default function LogsPage() {
 
   if (credentialsPending || identityPending) {
     return (
-      <div role="status" aria-busy="true" aria-label="Loading" className="flex h-64 items-center justify-center">
+      <div
+        role="status"
+        aria-busy="true"
+        aria-label={translateMessage("Loading")}
+        className="flex h-64 items-center justify-center"
+      >
         <UiLoadingSpinner className="size-8 text-primary" />
       </div>
     );
@@ -35,10 +42,24 @@ export default function LogsPage() {
     <Page className="h-full">
       <PageTabs value={activeTab} onValueChange={(value: LogsTab) => setActiveTab(value)}>
         <PageTabsList>
-          <PageTabsTrigger value="request logs">Request Logs</PageTabsTrigger>
-          {canViewAuditLogs && <PageTabsTrigger value="audit logs">Audit Logs</PageTabsTrigger>}
-          {!customer && <PageTabsTrigger value="deleted keys">Deleted Keys</PageTabsTrigger>}
-          {canViewDeletedTeams && <PageTabsTrigger value="deleted teams">Deleted Teams</PageTabsTrigger>}
+          <PageTabsTrigger value="request logs">
+            <LocalizedText text={"Request Logs"} />
+          </PageTabsTrigger>
+          {canViewAuditLogs && (
+            <PageTabsTrigger value="audit logs">
+              <LocalizedText text={"Audit Logs"} />
+            </PageTabsTrigger>
+          )}
+          {!customer && (
+            <PageTabsTrigger value="deleted keys">
+              <LocalizedText text={"Deleted Keys"} />
+            </PageTabsTrigger>
+          )}
+          {canViewDeletedTeams && (
+            <PageTabsTrigger value="deleted teams">
+              <LocalizedText text={"Deleted Teams"} />
+            </PageTabsTrigger>
+          )}
         </PageTabsList>
 
         <PageTabsContent value="request logs" keepMounted>

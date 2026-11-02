@@ -1,4 +1,5 @@
 "use client";
+import { localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { useState } from "react";
 import {
@@ -45,9 +46,9 @@ const matchesQuery = (option: MultiSelectOption, query: string): boolean => {
   const normalizedQuery = query.trim().toLowerCase();
   return (
     !normalizedQuery ||
-    option.label.toLowerCase().includes(normalizedQuery) ||
+    localizedProperty(option, "label", option.label).toLowerCase().includes(normalizedQuery) ||
     option.value.toLowerCase().includes(normalizedQuery) ||
-    (option.description?.toLowerCase().includes(normalizedQuery) ?? false)
+    (localizedProperty(option, "description", option.description)?.toLowerCase().includes(normalizedQuery) ?? false)
   );
 };
 
@@ -56,13 +57,14 @@ export function MultiSelect({
   options,
   value = [],
   onValueChange,
-  placeholder = "Select options",
-  emptyText = "No options found",
+  placeholder = translateMessage("Select options"),
+  emptyText = translateMessage("No options found"),
   disabled = false,
   loading = false,
   allowCustomValues = false,
   className,
 }: MultiSelectProps) {
+  useUiLocale();
   const anchor = useComboboxAnchor();
   const [query, setQuery] = useState("");
   const safeOptions = options.filter(
@@ -104,7 +106,7 @@ export function MultiSelect({
       inputValue={query}
       onInputValueChange={setQuery}
       isItemEqualToValue={(option: MultiSelectOption, selected: MultiSelectOption) => option.value === selected.value}
-      itemToStringLabel={(option: MultiSelectOption) => option.label}
+      itemToStringLabel={(option: MultiSelectOption) => localizedProperty(option, "label", option.label)}
       filter={matchesQuery}
       disabled={disabled || loading}
     >
@@ -113,17 +115,19 @@ export function MultiSelect({
           {(selected: MultiSelectOption[]) => (
             <>
               {selected.map((option) => (
-                <ComboboxChip key={option.value} aria-label={option.label}>
-                  {option.label}
+                <ComboboxChip key={option.value} aria-label={localizedProperty(option, "label", option.label)}>
+                  {localizedProperty(option, "label", option.label)}
                 </ComboboxChip>
               ))}
               <ComboboxChipsInput
                 id={id}
-                placeholder={loading ? "Loading..." : placeholder}
+                placeholder={loading ? translateMessage("Loading...") : placeholder}
                 className="min-w-24"
                 aria-label={placeholder || undefined}
               />
-              {canClear(selected) && <ComboboxClear className="ml-auto self-center" aria-label="Clear all" />}
+              {canClear(selected) && (
+                <ComboboxClear className="ml-auto self-center" aria-label={translateMessage("Clear all")} />
+              )}
             </>
           )}
         </ComboboxValue>
@@ -134,9 +138,11 @@ export function MultiSelect({
           {(option: MultiSelectOption) => (
             <ComboboxItem key={option.value} value={option} disabled={option.disabled}>
               <span className="min-w-0">
-                <span className="block truncate">{option.label}</span>
+                <span className="block truncate">{localizedProperty(option, "label", option.label)}</span>
                 {option.description && (
-                  <span className="block truncate text-xs text-muted-foreground">{option.description}</span>
+                  <span className="block truncate text-xs text-muted-foreground">
+                    {localizedProperty(option, "description", option.description)}
+                  </span>
                 )}
               </span>
             </ComboboxItem>

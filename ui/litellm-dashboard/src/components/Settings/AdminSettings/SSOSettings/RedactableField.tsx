@@ -1,3 +1,5 @@
+"use client";
+import { translateMessage, useUiLocale } from "@/lib/i18n";
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 
@@ -10,6 +12,7 @@ export default function RedactableField({
   defaultHidden?: boolean;
   value: string | null;
 }) {
+  useUiLocale();
   const [isHidden, setIsHidden] = useState(defaultHidden);
 
   return (
@@ -30,7 +33,7 @@ export default function RedactableField({
           type="button"
           variant="ghost"
           size="icon-sm"
-          aria-label={isHidden ? "Show value" : "Hide value"}
+          aria-label={isHidden ? translateMessage("Show value") : translateMessage("Hide value")}
           onClick={() => setIsHidden(!isHidden)}
           className="text-muted-foreground"
         >

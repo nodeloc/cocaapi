@@ -1,3 +1,4 @@
+import { markUiCopy, translateMessage } from "@/lib/i18n";
 // Shared date formatter for daily activity endpoints
 import { getCustomerTransport, dashboardFetch as fetch } from "@/lib/http/customerTransport";
 export const formatDate = (date: Date) => {
@@ -426,7 +427,7 @@ export const handleError = async (errorData: string | any) => {
     // Convert errorData to string if it isn't already
     const errorString = typeof errorData === "string" ? errorData : JSON.stringify(errorData);
     if (errorString.includes("Authentication Error - Expired Key")) {
-      toast.info("UI Session Expired. Logging out.");
+      toast.info(translateMessage("UI Session Expired. Logging out."));
       lastErrorTime = currentTime;
       clearTokenCookies();
       const browserLocation = getWindowLocation();
@@ -708,7 +709,7 @@ export const modelCreateCall = async (accessToken: string, formValues: Model) =>
     toast.dismiss();
 
     // Sequential success messages
-    toast.success(`Model ${formValues.model_name} created successfully`);
+    toast.success(translateMessage("Model %{0} created successfully", [formValues.model_name]));
 
     return data;
   } catch (error) {
@@ -3341,7 +3342,7 @@ export const updateConfigFieldSetting = async (accessToken: string, fieldName: s
       config_type: "general_settings",
     };
     const data = await apiClient.post(`/config/field/update`, { accessToken, body: formData });
-    toast.success("Successfully updated value!");
+    toast.success(translateMessage("Successfully updated value!"));
     return data;
     // Handle success - you might want to update some state or UI based on the created key
   } catch (error) {
@@ -3357,7 +3358,7 @@ export const deleteConfigFieldSetting = async (accessToken: string, fieldName: s
       config_type: "general_settings",
     };
     const data = await apiClient.post(`/config/field/delete`, { accessToken, body: formData });
-    toast.success("Field reset on proxy");
+    toast.success(translateMessage("Field reset on proxy"));
     return data;
     // Handle success - you might want to update some state or UI based on the created key
   } catch (error) {
@@ -5099,14 +5100,17 @@ export const listMCPTools = async (
     data = await response.json();
   } catch (parseError) {
     console.error("Failed to parse MCP tools response:", parseError);
-    return {
-      tools: [],
-      error: "parse_error",
-      message: "Failed to parse MCP tools response",
-      status: response.status,
-      statusText: response.statusText,
-      stack_trace: null,
-    };
+    return markUiCopy(
+      {
+        tools: [],
+        error: "parse_error",
+        message: "Failed to parse MCP tools response",
+        status: response.status,
+        statusText: response.statusText,
+        stack_trace: null,
+      },
+      { message: "Failed to parse MCP tools response" },
+    );
   }
 
   if (!response.ok) {
@@ -6477,7 +6481,7 @@ export const updatePassThroughEndpoint = async (
     }
 
     const data = await response.json();
-    toast.success("Pass through endpoint updated successfully");
+    toast.success(translateMessage("Pass through endpoint updated successfully"));
     return data;
   } catch (error) {
     console.error("Failed to update pass through endpoint:", error);

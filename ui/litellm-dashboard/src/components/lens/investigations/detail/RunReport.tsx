@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, getIntlLocale, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import {
   ChevronRight,
@@ -141,7 +142,8 @@ const TONE_CLASS: Record<Tone, string> = {
   muted: "text-muted-foreground",
 };
 
-const plural = (count: number, noun: string) => `${count.toLocaleString()} ${noun}${count === 1 ? "" : "s"}`;
+const plural = (count: number, noun: string) =>
+  `${count.toLocaleString(getIntlLocale())} ${noun}${count === 1 ? "" : "s"}`;
 
 function facts(job: Job | undefined, findings: readonly Finding[] | null | undefined): Facts {
   const count = (kind: Finding["kind"], noun: string) => {
@@ -156,10 +158,12 @@ function facts(job: Job | undefined, findings: readonly Finding[] | null | undef
   };
 }
 
-function Stat({ label, value, note }: { label: string; value: ReactNode; note?: string }) {
+function Stat(cocaCopyProps0: { label: string; value: ReactNode; note?: string }) {
+  const { label, value, note } = cocaCopyProps0;
+  useUiLocale();
   return (
     <div className="min-w-0">
-      <dt className="text-xs text-muted-foreground">{label}</dt>
+      <dt className="text-xs text-muted-foreground">{localizedProperty(cocaCopyProps0, "label", label)}</dt>
       <dd className="mt-1 truncate text-lg font-semibold tabular-nums">{value}</dd>
       {note && <dd className="truncate text-xs text-muted-foreground">{note}</dd>}
     </div>
@@ -184,33 +188,40 @@ function issueStat(job: Job, findings: readonly Finding[] | null | undefined) {
   if (job.status !== "completed" || findings == null) return { value: "–" };
   const issues = findings.filter((f) => f.kind === "issue");
   const high = issues.filter((f) => f.priority === "high").length;
-  return { value: issues.length.toLocaleString(), note: high ? `${high} high priority` : undefined };
+  return { value: issues.length.toLocaleString(getIntlLocale()), note: high ? `${high} high priority` : undefined };
 }
 
 function RunDuration({ job }: { job: Job }) {
+  useUiLocale();
   const now = useNow(isActive(job) ? 1000 : 60000);
   const end = job.finished_at ? Date.parse(job.finished_at) : now;
   return isActive(job) || job.finished_at ? analysisElapsed(job.created_at, end) : "–";
 }
 
 function RunStats({ job, findings }: { job: Job; findings: readonly Finding[] | null | undefined }) {
+  useUiLocale();
   const calls = (job.steps ?? []).filter((step) => step.kind === "model").length;
   const { screened = 0, selected = 0 } = job.coverage ?? {};
   return (
     <dl className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-4">
-      <Stat label="Cost" value={money(job.cost ?? 0)} note={plural(calls, "model call")} />
-      <Stat label="Duration" value={<RunDuration job={job} />} note={`Started ${shortTime(job.created_at)}`} />
+      <Stat label={translateMessage("Cost")} value={money(job.cost ?? 0)} note={plural(calls, "model call")} />
       <Stat
-        label="Runs reviewed"
-        value={`${screened.toLocaleString()} / ${selected.toLocaleString()}`}
+        label={translateMessage("Duration")}
+        value={<RunDuration job={job} />}
+        note={`Started ${shortTime(job.created_at)}`}
+      />
+      <Stat
+        label={translateMessage("Runs reviewed")}
+        value={`${screened.toLocaleString(getIntlLocale())} / ${selected.toLocaleString(getIntlLocale())}`}
         note={coverageNote(job)}
       />
-      <Stat label="Issues" {...issueStat(job, findings)} />
+      <Stat label={translateMessage("Issues")} {...issueStat(job, findings)} />
     </dl>
   );
 }
 
 function RunFailure({ job, connected }: { job: Job; connected: boolean }) {
+  useUiLocale();
   return (
     <div role="alert" className="space-y-2 rounded-md bg-destructive/5 p-3">
       <RunError job={job} connected={connected} />
@@ -219,6 +230,7 @@ function RunFailure({ job, connected }: { job: Job; connected: boolean }) {
 }
 
 function RunError({ job, connected }: { job: Job; connected: boolean }) {
+  useUiLocale();
   return (
     <>
       <pre
@@ -229,23 +241,34 @@ function RunError({ job, connected }: { job: Job; connected: boolean }) {
       </pre>
       <p className="flex flex-wrap gap-x-3 text-xs text-muted-foreground">
         <span>
-          Run <span className="font-mono">{job.id}</span>
+          <LocalizedText text={"Run "} />
+          <span className="font-mono">{job.id}</span>
         </span>
         <span>
-          Model <span>{job.settings.model}</span>
+          <LocalizedText text={"Model "} />
+          <span>{job.settings.model}</span>
         </span>
-        <span>Worker {connected ? "connected now" : "not connected"}</span>
+        <span>
+          <LocalizedText text={"Worker "} />
+          {connected ? translateMessage("connected now") : translateMessage("not connected")}
+        </span>
       </p>
     </>
   );
 }
 
 function RunPartial({ job, connected }: { job: Job; connected: boolean }) {
+  useUiLocale();
   return (
     <div role="status" className="space-y-2 rounded-md bg-warning/5 p-3 text-sm">
-      <p>{failedTaskSummary(job)}. Valid results are preserved.</p>
+      <p>
+        {failedTaskSummary(job)}
+        <LocalizedText text={". Valid results are preserved."} />
+      </p>
       <details>
-        <summary className="cursor-pointer text-xs text-muted-foreground">Run details</summary>
+        <summary className="cursor-pointer text-xs text-muted-foreground">
+          <LocalizedText text={"Run details"} />
+        </summary>
         <div className="mt-2 space-y-2">
           <RunError job={job} connected={connected} />
         </div>
@@ -255,16 +278,17 @@ function RunPartial({ job, connected }: { job: Job; connected: boolean }) {
 }
 
 function RunLog({ job }: { job: Job }) {
+  useUiLocale();
   const models = modelsUsed(job.steps ?? []);
   return (
     <Collapsible className="border-t pt-3">
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 text-xs text-muted-foreground">
         <CollapsibleTrigger className="group flex items-center gap-1 font-medium text-foreground hover:underline">
           <ChevronRight className="size-3.5 transition-transform group-data-[panel-open]:rotate-90" />
-          Activity log
+          <LocalizedText text={"Activity log"} />
         </CollapsibleTrigger>
         <span className="truncate">
-          {job.trigger === "manual" ? "Manual" : "Scheduled"} · {windowLabel(job)}
+          {job.trigger === "manual" ? translateMessage("Manual") : translateMessage("Scheduled")} · {windowLabel(job)}
           {models.length > 0 && ` · ${models.join(", ")}`}
         </span>
       </div>
@@ -288,6 +312,7 @@ function NextAction({
   busy: boolean;
   onClick: () => void;
 }) {
+  useUiLocale();
   const { label, icon: Icon, variant, needsReady } = ACTIONS[action];
   return (
     <Button variant={variant} disabled={busy || (needsReady && !ready)} onClick={onClick}>
@@ -303,13 +328,14 @@ function nextAction(lens: Lens, job: Job | undefined, situation: RunSituation): 
 }
 
 export function RunReport({ lens, job, findings, connected, ready, busy, picker, actions, queue }: RunReportProps) {
+  useUiLocale();
   const input: SituationInput = { lens, job, findings, connected };
   const situation = runSituation(input);
   const view = SITUATIONS[situation];
   const known = facts(job, findings);
   const action = nextAction(lens, job, situation);
   return (
-    <section aria-label="Run report" className="space-y-4 rounded-lg border p-4">
+    <section aria-label={translateMessage("Run report")} className="space-y-4 rounded-lg border p-4">
       <header className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <p className={cn("text-xs font-medium", TONE_CLASS[view.tone])}>{view.status}</p>

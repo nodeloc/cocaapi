@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 import { Loader2 } from "lucide-react";
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -18,6 +20,7 @@ const EntityUsageExportModal: React.FC<EntityUsageExportModalProps> = ({
   selectedFilters = [],
   customTitle,
 }) => {
+  useUiLocale();
   const [exportFormat, setExportFormat] = useState<ExportFormat>("csv");
   const [exportType, setExportType] = useState<ExportType>("daily");
   const [isExporting, setIsExporting] = useState(false);
@@ -30,7 +33,9 @@ const EntityUsageExportModal: React.FC<EntityUsageExportModalProps> = ({
     try {
       const blob = await onExport(exportType, exportFormat);
       downloadBlob(blob, exportFilename(entityType, exportType, exportFormat, dateRange));
-      toast.success(`${entityLabel} usage data exported successfully as ${exportFormat.toUpperCase()}`);
+      toast.success(
+        translateMessage("%{0} usage data exported successfully as %{1}", [entityLabel, exportFormat.toUpperCase()]),
+      );
       onClose();
     } catch (error) {
       console.error("Error exporting data:", error);
@@ -57,11 +62,13 @@ const EntityUsageExportModal: React.FC<EntityUsageExportModalProps> = ({
           <ExportFormatSelector value={exportFormat} onChange={setExportFormat} />
           <div className="flex items-center justify-end gap-2 pt-4 border-t">
             <Button variant="outline" onClick={onClose} disabled={isExporting}>
-              Cancel
+              <LocalizedText text={"Cancel"} />
             </Button>
             <Button onClick={handleExport} disabled={isExporting}>
               {isExporting && <Loader2 className="animate-spin" />}
-              {isExporting ? "Exporting..." : `Export ${exportFormat.toUpperCase()}`}
+              {isExporting
+                ? translateMessage("Exporting...")
+                : translateMessage("Export %{0}", [exportFormat.toUpperCase()])}
             </Button>
           </div>
         </div>

@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { useMemo, useState, type ReactNode } from "react";
 
@@ -15,11 +16,11 @@ import { TraceList } from "./TraceList";
 import { useStage } from "./useStage";
 
 const STATUS: Record<Job["status"], { label: string; tone: StatusTone }> = {
-  queued: { label: "Queued", tone: "neutral" },
-  running: { label: "Running", tone: "neutral" },
-  completed: { label: "Done", tone: "neutral" },
-  failed: { label: "Failed", tone: "error" },
-  cancelled: { label: "Cancelled", tone: "neutral" },
+  queued: markUiCopy({ label: "Queued", tone: "neutral" }, { label: "Queued" }),
+  running: markUiCopy({ label: "Running", tone: "neutral" }, { label: "Running" }),
+  completed: markUiCopy({ label: "Done", tone: "neutral" }, { label: "Done" }),
+  failed: markUiCopy({ label: "Failed", tone: "error" }, { label: "Failed" }),
+  cancelled: markUiCopy({ label: "Cancelled", tone: "neutral" }, { label: "Cancelled" }),
 };
 const PANE_TITLE = "text-xs font-semibold text-foreground";
 
@@ -46,6 +47,7 @@ function Stage({
   checks: Settings["checks"];
   children: (listed: readonly Review[], groups: ReturnType<typeof conclusions>, nowReading: ReactNode) => ReactNode;
 }) {
+  useUiLocale();
   const legacyReading = running && !activities.length && stageName === "Reading executions";
   const { stage, now, charMs } = useStage(reviews, reading, legacyReading, slots);
   const listed = useMemo(
@@ -61,7 +63,7 @@ function Stage({
     }
     return (
       <p role="status" className="mb-3 px-2 text-xs text-muted-foreground">
-        {stageName || "Starting"}
+        {stageName || translateMessage("Starting")}
       </p>
     );
   }
@@ -103,6 +105,7 @@ export function LiveDrawer({
   scope: string;
   waiting?: ReactNode;
 }) {
+  useUiLocale();
   const [group, setGroup] = useState<string | null>(null);
   const badge = STATUS[status];
   const running = status === "running";
@@ -112,7 +115,7 @@ export function LiveDrawer({
         <SheetHeader className="shrink-0 gap-1.5 border-b px-5">
           <SheetTitle className="pr-10 text-base">{name}</SheetTitle>
           <SheetDescription render={<div />} className="flex flex-wrap items-center gap-2.5 pr-10">
-            <StatusBadge tone={badge.tone} label={badge.label} />
+            <StatusBadge tone={badge.tone} label={localizedProperty(badge, "label", badge.label)} />
             <ModelName model={model} size="md" />
           </SheetDescription>
         </SheetHeader>
@@ -131,20 +134,24 @@ export function LiveDrawer({
             {(listed, groups, nowReading) => (
               <div className="grid min-h-0 flex-1 grid-cols-1 grid-rows-2 md:grid-cols-[minmax(0,55fr)_minmax(0,45fr)] md:grid-rows-1">
                 <section
-                  aria-label="Traces"
+                  aria-label={translateMessage("Traces")}
                   className="min-h-0 overflow-y-auto border-b px-4 py-4 md:border-r md:border-b-0"
                 >
                   <div className="mb-2 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 px-2">
-                    <h2 className={PANE_TITLE}>Traces</h2>
+                    <h2 className={PANE_TITLE}>
+                      <LocalizedText text={"Traces"} />
+                    </h2>
                     <span className="text-xs leading-relaxed tabular-nums text-muted-foreground">
-                      {done ?? `${reviewed} reviewed`}
+                      {done ?? translateMessage("%{0} reviewed", [reviewed])}
                       {done && (
                         <>
                           {" "}
                           <ModelName model={model} />
                         </>
                       )}
-                      {reviewed > reviews.length && reviews.length ? ` · ${reviews.length} displayed` : ""}
+                      {reviewed > reviews.length && reviews.length
+                        ? translateMessage(" · %{0} displayed", [reviews.length])
+                        : ""}
                     </span>
                   </div>
                   {nowReading}
@@ -153,20 +160,27 @@ export function LiveDrawer({
                   ) : (
                     !running && (
                       <div className="flex flex-col gap-1 px-2 py-6 text-xs text-muted-foreground">
-                        <p className="text-sm text-foreground">Waiting for the first trace…</p>
+                        <p className="text-sm text-foreground">
+                          <LocalizedText text={"Waiting for the first trace…"} />
+                        </p>
                         {waiting}
                       </div>
                     )
                   )}
                 </section>
                 <section
-                  aria-label="Preliminary observations"
+                  aria-label={translateMessage("Preliminary observations")}
                   className="flex min-h-0 flex-col gap-3 overflow-y-auto px-5 py-4"
                 >
-                  <h2 className={PANE_TITLE}>Preliminary observations</h2>
+                  <h2 className={PANE_TITLE}>
+                    <LocalizedText text={"Preliminary observations"} />
+                  </h2>
                   <p className="text-xs leading-relaxed text-muted-foreground">
-                    First-pass trace observations, grouped by check. Final findings are shown in Findings after the
-                    investigation finishes.
+                    <LocalizedText
+                      text={
+                        "First-pass trace observations, grouped by check. Final findings are shown in Findings after the investigation finishes."
+                      }
+                    />
                   </p>
                   <ConclusionsPanel
                     groups={groups}

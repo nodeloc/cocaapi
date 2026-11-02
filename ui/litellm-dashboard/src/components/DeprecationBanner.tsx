@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import React, { useState } from "react";
 import Link from "next/link";
@@ -12,6 +13,7 @@ interface DeprecationBannerProps {
 }
 
 export const DeprecationBanner: React.FC<DeprecationBannerProps> = ({ featureName }) => {
+  useUiLocale();
   const [isClosed, setIsClosed] = useState(false);
 
   if (isClosed) {
@@ -25,23 +27,26 @@ export const DeprecationBanner: React.FC<DeprecationBannerProps> = ({ featureNam
     >
       <Info className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
       <div className="min-w-0 flex-1">
-        <p className="font-medium">{`${featureName} is on a draft deprecation list`}</p>
+        <p className="font-medium">{translateMessage("%{0} is on a draft deprecation list", [featureName])}</p>
         <p className="mt-1 break-words text-muted-foreground">
-          {`${featureName} is one of several experimental features we're considering removing, potentially as early as ${DEPRECATION_TARGET_DATE}. This list is a draft and is not final. If you rely on this feature, please share feedback on the `}
+          {translateMessage(
+            "%{0} is one of several experimental features we're considering removing, potentially as early as %{1}. This list is a draft and is not final. If you rely on this feature, please share feedback on the ",
+            [featureName, DEPRECATION_TARGET_DATE],
+          )}
           <Link
             href={DEPRECATION_DISCUSSION_URL}
             target="_blank"
             rel="noopener noreferrer"
             className="underline underline-offset-4"
           >
-            deprecation discussion
+            <LocalizedText text={"deprecation discussion"} />
           </Link>
           .
         </p>
       </div>
       <button
         type="button"
-        aria-label="Close"
+        aria-label={translateMessage("Close")}
         onClick={() => setIsClosed(true)}
         className="shrink-0 rounded-md p-0.5 text-muted-foreground transition-colors hover:text-foreground"
       >

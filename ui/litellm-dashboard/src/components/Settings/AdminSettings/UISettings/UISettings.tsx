@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { useUISettings } from "@/app/(dashboard)/hooks/uiSettings/useUISettings";
 import { useUpdateUISettings } from "@/app/(dashboard)/hooks/uiSettings/useUpdateUISettings";
@@ -34,6 +35,7 @@ function SettingRow({
   muted = false,
   onCheckedChange,
 }: SettingRowProps) {
+  useUiLocale();
   return (
     <div className={indented ? "ml-8 flex items-start gap-3" : "flex items-start gap-3"}>
       <Switch checked={checked} disabled={disabled} onCheckedChange={onCheckedChange} aria-label={ariaLabel} />
@@ -48,6 +50,7 @@ function SettingRow({
 }
 
 export default function UISettings() {
+  useUiLocale();
   const { accessToken } = useAuthorized();
   const { data, isLoading, isError, error } = useUISettings();
   const { mutate: updateSettings, isPending: isUpdating, error: updateError } = useUpdateUISettings(accessToken);
@@ -79,7 +82,7 @@ export default function UISettings() {
       { disable_model_add_for_internal_users: checked },
       {
         onSuccess: () => {
-          toast.success("UI settings updated successfully");
+          toast.success(translateMessage("UI settings updated successfully"));
         },
         onError: (error) => {
           toast.fromError(error);
@@ -93,7 +96,7 @@ export default function UISettings() {
       { disable_team_admin_delete_team_user: checked },
       {
         onSuccess: () => {
-          toast.success("UI settings updated successfully");
+          toast.success(translateMessage("UI settings updated successfully"));
         },
         onError: (error) => {
           toast.fromError(error);
@@ -105,7 +108,7 @@ export default function UISettings() {
   const handleUpdatePageVisibility = (settings: { enabled_ui_pages_internal_users: string[] | null }) => {
     updateSettings(settings, {
       onSuccess: () => {
-        toast.success("Page visibility settings updated successfully");
+        toast.success(translateMessage("Page visibility settings updated successfully"));
       },
       onError: (error) => {
         toast.fromError(error);
@@ -118,7 +121,7 @@ export default function UISettings() {
       { forward_client_headers_to_llm_api: checked },
       {
         onSuccess: () => {
-          toast.success("UI settings updated successfully");
+          toast.success(translateMessage("UI settings updated successfully"));
         },
         onError: (error) => {
           toast.fromError(error);
@@ -132,7 +135,7 @@ export default function UISettings() {
       { forward_llm_provider_auth_headers: checked },
       {
         onSuccess: () => {
-          toast.success("UI settings updated successfully");
+          toast.success(translateMessage("UI settings updated successfully"));
         },
         onError: (error) => {
           toast.fromError(error);
@@ -146,7 +149,7 @@ export default function UISettings() {
       { enable_projects_ui: checked },
       {
         onSuccess: () => {
-          toast.success("UI settings updated successfully. Refreshing page...");
+          toast.success(translateMessage("UI settings updated successfully. Refreshing page..."));
           setTimeout(() => window.location.reload(), 1000);
         },
         onError: (error) => {
@@ -161,7 +164,7 @@ export default function UISettings() {
       { enable_chat_ui: checked },
       {
         onSuccess: () => {
-          toast.success("UI settings updated successfully. Refreshing page...");
+          toast.success(translateMessage("UI settings updated successfully. Refreshing page..."));
           setTimeout(() => window.location.reload(), 1000);
         },
         onError: (error) => {
@@ -176,7 +179,7 @@ export default function UISettings() {
       { require_auth_for_public_ai_hub: checked },
       {
         onSuccess: () => {
-          toast.success("UI settings updated successfully");
+          toast.success(translateMessage("UI settings updated successfully"));
         },
         onError: (error) => {
           toast.fromError(error);
@@ -190,7 +193,7 @@ export default function UISettings() {
       { disable_agents_for_internal_users: checked },
       {
         onSuccess: () => {
-          toast.success("UI settings updated successfully");
+          toast.success(translateMessage("UI settings updated successfully"));
         },
         onError: (error) => {
           toast.fromError(error);
@@ -204,7 +207,7 @@ export default function UISettings() {
       { allow_agents_for_team_admins: checked },
       {
         onSuccess: () => {
-          toast.success("UI settings updated successfully");
+          toast.success(translateMessage("UI settings updated successfully"));
         },
         onError: (error) => {
           toast.fromError(error);
@@ -218,7 +221,7 @@ export default function UISettings() {
       { disable_vector_stores_for_internal_users: checked },
       {
         onSuccess: () => {
-          toast.success("UI settings updated successfully");
+          toast.success(translateMessage("UI settings updated successfully"));
         },
         onError: (error) => {
           toast.fromError(error);
@@ -232,7 +235,7 @@ export default function UISettings() {
       { allow_vector_stores_for_team_admins: checked },
       {
         onSuccess: () => {
-          toast.success("UI settings updated successfully");
+          toast.success(translateMessage("UI settings updated successfully"));
         },
         onError: (error) => {
           toast.fromError(error);
@@ -246,7 +249,7 @@ export default function UISettings() {
       { scope_user_search_to_org: checked },
       {
         onSuccess: () => {
-          toast.success("UI settings updated successfully");
+          toast.success(translateMessage("UI settings updated successfully"));
         },
         onError: (error) => {
           toast.fromError(error);
@@ -260,7 +263,7 @@ export default function UISettings() {
       { moyai_url: null },
       {
         onSuccess: () => {
-          toast.success("UI settings updated successfully");
+          toast.success(translateMessage("UI settings updated successfully"));
         },
         onError: (error) => {
           toast.fromError(error);
@@ -274,7 +277,7 @@ export default function UISettings() {
       { disable_custom_api_keys: checked },
       {
         onSuccess: () => {
-          toast.success("UI settings updated successfully");
+          toast.success(translateMessage("UI settings updated successfully"));
         },
         onError: (error) => {
           toast.fromError(error);
@@ -287,28 +290,40 @@ export default function UISettings() {
     <Card>
       <CardHeader>
         <CardTitle>
-          <h3>UI Settings</h3>
+          <h3>
+            <LocalizedText text={"UI Settings"} />
+          </h3>
         </CardTitle>
       </CardHeader>
       <CardContent>
         {isLoading ? (
-          <div role="status" aria-label="Loading UI settings" className="space-y-3">
+          <div role="status" aria-label={translateMessage("Loading UI settings")} className="space-y-3">
             <Skeleton className="h-5 w-72" />
             <Skeleton className="h-16 w-full" />
             <Skeleton className="h-16 w-full" />
           </div>
         ) : isError ? (
           <Alert variant="error">
-            <AlertTitle>Could not load UI settings</AlertTitle>
-            {error instanceof Error && <AlertDescription>{error.message}</AlertDescription>}
+            <AlertTitle>
+              <LocalizedText text={"Could not load UI settings"} />
+            </AlertTitle>
+            {error instanceof Error && (
+              <AlertDescription>{localizedProperty(error, "message", error.message)}</AlertDescription>
+            )}
           </Alert>
         ) : (
           <div className="space-y-6">
-            {schema?.description && <p className="text-sm text-foreground">{schema.description}</p>}
+            {schema?.description && (
+              <p className="text-sm text-foreground">{localizedProperty(schema, "description", schema.description)}</p>
+            )}
             {updateError && (
               <Alert variant="error">
-                <AlertTitle>Could not update UI settings</AlertTitle>
-                {updateError instanceof Error && <AlertDescription>{updateError.message}</AlertDescription>}
+                <AlertTitle>
+                  <LocalizedText text={"Could not update UI settings"} />
+                </AlertTitle>
+                {updateError instanceof Error && (
+                  <AlertDescription>{localizedProperty(updateError, "message", updateError.message)}</AlertDescription>
+                )}
               </Alert>
             )}
 
@@ -317,34 +332,48 @@ export default function UISettings() {
               disabled={isUpdating}
               onCheckedChange={handleToggle}
               ariaLabel={property?.description ?? "Disable model add for internal users"}
-              label="Disable model add for internal users"
-              description={property?.description}
+              label={translateMessage("Disable model add for internal users")}
+              description={localizedProperty(property, "description", property?.description)}
             />
             <SettingRow
               checked={isDisabledTeamAdminDeleteTeamUser}
               disabled={isUpdating}
               onCheckedChange={handleToggleTeamAdminDelete}
               ariaLabel={disableTeamAdminDeleteProperty?.description ?? "Disable team admin delete team user"}
-              label="Disable team admin delete team user"
-              description={disableTeamAdminDeleteProperty?.description}
+              label={translateMessage("Disable team admin delete team user")}
+              description={localizedProperty(
+                disableTeamAdminDeleteProperty,
+                "description",
+                disableTeamAdminDeleteProperty?.description,
+              )}
             />
             <SettingRow
               checked={Boolean(values.require_auth_for_public_ai_hub)}
               disabled={isUpdating}
               onCheckedChange={handleToggleRequireAuthForPublicAIHub}
               ariaLabel={requireAuthForPublicAIHubProperty?.description ?? "Require authentication for public AI Hub"}
-              label="Require authentication for public AI Hub"
-              description={requireAuthForPublicAIHubProperty?.description}
+              label={translateMessage("Require authentication for public AI Hub")}
+              description={localizedProperty(
+                requireAuthForPublicAIHubProperty,
+                "description",
+                requireAuthForPublicAIHubProperty?.description,
+              )}
             />
             <SettingRow
               checked={Boolean(values.forward_client_headers_to_llm_api)}
               disabled={isUpdating}
               onCheckedChange={handleToggleForwardClientHeaders}
               ariaLabel={forwardClientHeadersProperty?.description ?? "Forward client headers to LLM API"}
-              label="Forward client headers to LLM API"
+              label={translateMessage("Forward client headers to LLM API")}
               description={
-                forwardClientHeadersProperty?.description ??
-                "Forwards client headers (Authorization, anthropic-beta, and x-* custom headers) to the upstream LLM. Enable for Claude Code with a Max subscription (forwards the OAuth token) or to pass custom/tracing headers through to the provider. Independent of the BYOK toggle — enable only the one(s) you need."
+                localizedProperty(
+                  forwardClientHeadersProperty,
+                  "description",
+                  forwardClientHeadersProperty?.description,
+                ) ??
+                translateMessage(
+                  "Forwards client headers (Authorization, anthropic-beta, and x-* custom headers) to the upstream LLM. Enable for Claude Code with a Max subscription (forwards the OAuth token) or to pass custom/tracing headers through to the provider. Independent of the BYOK toggle — enable only the one(s) you need.",
+                )
               }
             />
             <SettingRow
@@ -352,10 +381,16 @@ export default function UISettings() {
               disabled={isUpdating}
               onCheckedChange={handleToggleForwardLLMProviderAuthHeaders}
               ariaLabel={forwardLLMProviderAuthHeadersProperty?.description ?? "Forward LLM provider auth headers"}
-              label="Forward LLM provider auth headers"
+              label={translateMessage("Forward LLM provider auth headers")}
               description={
-                forwardLLMProviderAuthHeadersProperty?.description ??
-                "Forwards provider auth headers (x-api-key, x-goog-api-key, api-key, ocp-apim-subscription-key) to the upstream LLM, overriding any deployment-configured key for that request. Enable for Claude Code BYOK (clients bring their own API key). Independent of the client-headers toggle — enable only the one(s) you need."
+                localizedProperty(
+                  forwardLLMProviderAuthHeadersProperty,
+                  "description",
+                  forwardLLMProviderAuthHeadersProperty?.description,
+                ) ??
+                translateMessage(
+                  "Forwards provider auth headers (x-api-key, x-goog-api-key, api-key, ocp-apim-subscription-key) to the upstream LLM, overriding any deployment-configured key for that request. Enable for Claude Code BYOK (clients bring their own API key). Independent of the client-headers toggle — enable only the one(s) you need.",
+                )
               }
             />
             {enableProjectsUIProperty && (
@@ -366,8 +401,10 @@ export default function UISettings() {
                 ariaLabel={enableProjectsUIProperty.description ?? "Enable Projects UI"}
                 label="[BETA] Enable Projects (page will refresh)"
                 description={
-                  enableProjectsUIProperty.description ??
-                  "If enabled, shows the Projects feature in the UI sidebar and the project field in key management."
+                  localizedProperty(enableProjectsUIProperty, "description", enableProjectsUIProperty.description) ??
+                  translateMessage(
+                    "If enabled, shows the Projects feature in the UI sidebar and the project field in key management.",
+                  )
                 }
               />
             )}
@@ -378,26 +415,30 @@ export default function UISettings() {
               ariaLabel={enableChatUIProperty?.description ?? "Enable Chat page"}
               label="[BETA] Enable Chat page (page will refresh)"
               description={
-                enableChatUIProperty?.description ??
-                "If enabled, shows the Chat page in the UI sidebar, letting users chat with an LLM and connect their own MCP server credentials via OAuth."
+                localizedProperty(enableChatUIProperty, "description", enableChatUIProperty?.description) ??
+                translateMessage(
+                  "If enabled, shows the Chat page in the UI sidebar, letting users chat with an LLM and connect their own MCP server credentials via OAuth.",
+                )
               }
             />
 
             <Separator />
             <div className="flex items-start justify-between gap-3">
               <div className="space-y-1">
-                <p className="text-sm font-medium text-foreground">Moyai</p>
+                <p className="text-sm font-medium text-foreground">
+                  <LocalizedText text={"Moyai"} />
+                </p>
                 <p className="text-sm text-muted-foreground">
-                  {moyaiUrl ? `Connected to ${moyaiUrl}` : "Not connected"}
+                  {moyaiUrl ? translateMessage("Connected to %{0}", [moyaiUrl]) : translateMessage("Not connected")}
                 </p>
               </div>
               {moyaiUrl ? (
                 <Button variant="outline" size="sm" disabled={isUpdating} onClick={handleDisconnectMoyai}>
-                  Disconnect
+                  <LocalizedText text={"Disconnect"} />
                 </Button>
               ) : (
                 <a href={uiHref("moyai")} className="text-sm text-primary underline underline-offset-4">
-                  Connect from the Moyai page
+                  <LocalizedText text={"Connect from the Moyai page"} />
                 </a>
               )}
             </div>
@@ -408,16 +449,20 @@ export default function UISettings() {
               disabled={isUpdating}
               onCheckedChange={handleToggleDisableAgents}
               ariaLabel={disableAgentsProperty?.description ?? "Disable agents for internal users"}
-              label="Disable agents for internal users"
-              description={disableAgentsProperty?.description}
+              label={translateMessage("Disable agents for internal users")}
+              description={localizedProperty(disableAgentsProperty, "description", disableAgentsProperty?.description)}
             />
             <SettingRow
               checked={Boolean(values.allow_agents_for_team_admins)}
               disabled={isUpdating || !isAgentsDisabled}
               onCheckedChange={handleToggleAllowAgentsTeamAdmins}
               ariaLabel={allowAgentsTeamAdminsProperty?.description ?? "Allow agents for team admins"}
-              label="Allow agents for team admins"
-              description={allowAgentsTeamAdminsProperty?.description}
+              label={translateMessage("Allow agents for team admins")}
+              description={localizedProperty(
+                allowAgentsTeamAdminsProperty,
+                "description",
+                allowAgentsTeamAdminsProperty?.description,
+              )}
               indented
               muted={!isAgentsDisabled}
             />
@@ -428,16 +473,24 @@ export default function UISettings() {
               disabled={isUpdating}
               onCheckedChange={handleToggleDisableVectorStores}
               ariaLabel={disableVectorStoresProperty?.description ?? "Disable vector stores for internal users"}
-              label="Disable vector stores for internal users"
-              description={disableVectorStoresProperty?.description}
+              label={translateMessage("Disable vector stores for internal users")}
+              description={localizedProperty(
+                disableVectorStoresProperty,
+                "description",
+                disableVectorStoresProperty?.description,
+              )}
             />
             <SettingRow
               checked={Boolean(values.allow_vector_stores_for_team_admins)}
               disabled={isUpdating || !isVectorStoresDisabled}
               onCheckedChange={handleToggleAllowVectorStoresTeamAdmins}
               ariaLabel={allowVectorStoresTeamAdminsProperty?.description ?? "Allow vector stores for team admins"}
-              label="Allow vector stores for team admins"
-              description={allowVectorStoresTeamAdminsProperty?.description}
+              label={translateMessage("Allow vector stores for team admins")}
+              description={localizedProperty(
+                allowVectorStoresTeamAdminsProperty,
+                "description",
+                allowVectorStoresTeamAdminsProperty?.description,
+              )}
               indented
               muted={!isVectorStoresDisabled}
             />
@@ -448,10 +501,12 @@ export default function UISettings() {
               disabled={isUpdating}
               onCheckedChange={handleToggleScopeUserSearch}
               ariaLabel={scopeUserSearchProperty?.description ?? "Scope user search to organization"}
-              label="Scope user search to organization"
+              label={translateMessage("Scope user search to organization")}
               description={
-                scopeUserSearchProperty?.description ??
-                "If enabled, the user search endpoint restricts results by organization. When off, any authenticated user can search all users."
+                localizedProperty(scopeUserSearchProperty, "description", scopeUserSearchProperty?.description) ??
+                translateMessage(
+                  "If enabled, the user search endpoint restricts results by organization. When off, any authenticated user can search all users.",
+                )
               }
             />
 
@@ -461,10 +516,14 @@ export default function UISettings() {
               disabled={isUpdating}
               onCheckedChange={handleToggleDisableCustomApiKeys}
               ariaLabel={disableCustomApiKeysProperty?.description ?? "Disable custom Virtual key values"}
-              label="Disable custom Virtual key values"
+              label={translateMessage("Disable custom Virtual key values")}
               description={
-                disableCustomApiKeysProperty?.description ??
-                "If true, users cannot specify custom key values. All keys must be auto-generated."
+                localizedProperty(
+                  disableCustomApiKeysProperty,
+                  "description",
+                  disableCustomApiKeysProperty?.description,
+                ) ??
+                translateMessage("If true, users cannot specify custom key values. All keys must be auto-generated.")
               }
             />
 

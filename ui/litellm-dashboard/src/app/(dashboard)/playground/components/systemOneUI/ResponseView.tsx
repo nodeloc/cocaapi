@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -28,6 +30,7 @@ function ProbabilityMeter({
   probability: number;
   selected?: boolean;
 }) {
+  useUiLocale();
   const percentage = Math.round(probability * 100);
   return (
     <div className="grid gap-1.5">
@@ -37,7 +40,7 @@ function ProbabilityMeter({
       </div>
       <div
         role="meter"
-        aria-label={`${label} probability`}
+        aria-label={translateMessage("%{0} probability", [label])}
         aria-valuenow={percentage}
         aria-valuetext={selected ? `${percentage}%, selected` : `${percentage}%`}
         aria-valuemin={0}
@@ -54,12 +57,16 @@ function ProbabilityMeter({
 }
 
 function AnswerDetails({ answer }: { answer: SystemOneAnswer }) {
+  useUiLocale();
   if (answer.type === "noul") {
     const percentage = Math.round(answer.noul * 100);
     return (
       <div className="grid gap-3">
-        <p className="text-sm font-medium">{percentage}% yes</p>
-        <ProbabilityMeter label="Yes" probability={answer.noul} />
+        <p className="text-sm font-medium">
+          {percentage}
+          <LocalizedText text={"% yes"} />
+        </p>
+        <ProbabilityMeter label={translateMessage("Yes")} probability={answer.noul} />
       </div>
     );
   }
@@ -69,10 +76,15 @@ function AnswerDetails({ answer }: { answer: SystemOneAnswer }) {
     return (
       <div className="grid gap-4">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs text-muted-foreground">Selected choice</span>
+          <span className="text-xs text-muted-foreground">
+            <LocalizedText text={"Selected choice"} />
+          </span>
           <Badge>{answer.choice}</Badge>
           {answer.confidence !== undefined && (
-            <Badge variant="outline">{Math.round(answer.confidence * 100)}% confidence</Badge>
+            <Badge variant="outline">
+              {Math.round(answer.confidence * 100)}
+              <LocalizedText text={"% confidence"} />
+            </Badge>
           )}
         </div>
         <div className="grid gap-3">
@@ -88,10 +100,15 @@ function AnswerDetails({ answer }: { answer: SystemOneAnswer }) {
   return (
     <div className="grid gap-4">
       <div className="flex flex-wrap items-center gap-2">
-        <span className="text-xs text-muted-foreground">Score</span>
+        <span className="text-xs text-muted-foreground">
+          <LocalizedText text={"Score"} />
+        </span>
         <Badge>{SCORE_FORMAT.format(answer.score)}</Badge>
         {answer.confidence !== undefined && (
-          <Badge variant="outline">{Math.round(answer.confidence * 100)}% confidence</Badge>
+          <Badge variant="outline">
+            {Math.round(answer.confidence * 100)}
+            <LocalizedText text={"% confidence"} />
+          </Badge>
         )}
       </div>
       <div className="grid gap-3">
@@ -116,9 +133,14 @@ function AnswerDetails({ answer }: { answer: SystemOneAnswer }) {
 }
 
 function OpenAIAnswerDetails({ answer }: { answer: OpenAIDecisionsResponse["answers"][number] }) {
+  useUiLocale();
   switch (answer.type) {
     case "refusal":
-      return <p className="text-sm text-muted-foreground">Model refused to answer</p>;
+      return (
+        <p className="text-sm text-muted-foreground">
+          <LocalizedText text={"Model refused to answer"} />
+        </p>
+      );
     case "predicate":
       return <AnswerDetails answer={{ type: "noul", noul: answer.probability }} />;
     case "choice":
@@ -144,7 +166,12 @@ function OpenAIAnswerDetails({ answer }: { answer: OpenAIDecisionsResponse["answ
             probabilities: Object.fromEntries(
               answer.probabilities.map(({ value, probability }) => [String(value), probability]),
             ),
-            legend: Object.fromEntries(answer.probabilities.map(({ value, label }) => [String(value), label])),
+            legend: Object.fromEntries(
+              answer.probabilities.map((cocaCopyProps0) => {
+                const { value, label } = cocaCopyProps0;
+                return [String(value), label];
+              }),
+            ),
           }}
         />
       );
@@ -152,8 +179,9 @@ function OpenAIAnswerDetails({ answer }: { answer: OpenAIDecisionsResponse["answ
 }
 
 function RawResponse({ response }: { response: NonNullable<ResponseViewProps["response"]> }) {
+  useUiLocale();
   return (
-    <section aria-label="Decisions response JSON">
+    <section aria-label={translateMessage("Decisions response JSON")}>
       <pre className="whitespace-pre-wrap wrap-anywhere rounded-md bg-muted p-3 font-mono text-xs">
         {JSON.stringify(response, null, 2)}
       </pre>
@@ -162,6 +190,7 @@ function RawResponse({ response }: { response: NonNullable<ResponseViewProps["re
 }
 
 function AnswerCards({ answers }: { answers: SystemOneResponse["answers"] | OpenAIDecisionsResponse["answers"] }) {
+  useUiLocale();
   const cards = Array.isArray(answers)
     ? answers.map((answer, index) => ({
         id: index,
@@ -196,6 +225,7 @@ export default function ResponseView({
   error,
   isLoading,
 }: ResponseViewProps) {
+  useUiLocale();
   const [showRaw, setShowRaw] = useState(false);
 
   if (isLoading) {
@@ -203,7 +233,7 @@ export default function ResponseView({
       <Card>
         <CardContent className="flex items-center justify-center gap-2 py-10 text-sm text-muted-foreground">
           <LoaderCircle className="size-4 animate-spin" />
-          Calculating calibrated probabilities
+          <LocalizedText text={"Calculating calibrated probabilities"} />
         </CardContent>
       </Card>
     );
@@ -212,7 +242,9 @@ export default function ResponseView({
   if (error) {
     return (
       <Alert variant="destructive">
-        <AlertTitle>Decisions request failed</AlertTitle>
+        <AlertTitle>
+          <LocalizedText text={"Decisions request failed"} />
+        </AlertTitle>
         <AlertDescription>{error}</AlertDescription>
       </Alert>
     );
@@ -222,8 +254,12 @@ export default function ResponseView({
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Calibrated probabilities</CardTitle>
-          <CardDescription>Send a request to see decision answers and probabilities.</CardDescription>
+          <CardTitle>
+            <LocalizedText text={"Calibrated probabilities"} />
+          </CardTitle>
+          <CardDescription>
+            <LocalizedText text={"Send a request to see decision answers and probabilities."} />
+          </CardDescription>
         </CardHeader>
       </Card>
     );
@@ -236,14 +272,24 @@ export default function ResponseView({
       <CardHeader>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="grid gap-1">
-            <CardTitle>{view === "curl" ? "Response JSON" : "Calibrated probabilities"}</CardTitle>
+            <CardTitle>
+              {view === "curl" ? translateMessage("Response JSON") : translateMessage("Calibrated probabilities")}
+            </CardTitle>
             {model && <CardDescription>{model}</CardDescription>}
           </div>
           <div className="flex flex-wrap items-center gap-2 text-xs">
-            {latencyMs !== undefined && <Badge variant="outline">{Math.round(latencyMs)} ms</Badge>}
+            {latencyMs !== undefined && (
+              <Badge variant="outline">
+                {Math.round(latencyMs)}
+                <LocalizedText text={" ms"} />
+              </Badge>
+            )}
             {response.usage && (
               <Badge variant="outline">
-                {response.usage.input_tokens} input / {response.usage.output_tokens} output tokens
+                {response.usage.input_tokens}
+                <LocalizedText text={" input / "} />
+                {response.usage.output_tokens}
+                <LocalizedText text={" output tokens"} />
               </Badge>
             )}
           </div>
@@ -257,7 +303,7 @@ export default function ResponseView({
               render={
                 <Button variant="ghost" size="sm">
                   <ChevronDown className="size-4" />
-                  Raw response
+                  <LocalizedText text={"Raw response"} />
                 </Button>
               }
             />

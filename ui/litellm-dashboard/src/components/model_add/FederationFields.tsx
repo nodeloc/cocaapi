@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { labelWithHint } from "@/components/shared/form/LabelWithHint";
@@ -51,13 +53,15 @@ const renderControl = (field: FederationField, control: MountedFieldControlProps
         onValueChange={(value) => control.onChange(value ?? "")}
       >
         <SelectTrigger id={control.id} onBlur={control.onBlur} className="w-full">
-          <SelectValue placeholder="Proxy default" />
+          <SelectValue placeholder={translateMessage("Proxy default")} />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value={null}>Proxy default</SelectItem>
+          <SelectItem value={null}>
+            <LocalizedText text={"Proxy default"} />
+          </SelectItem>
           {items.map((item) => (
             <SelectItem key={item.value} value={item.value}>
-              {item.label}
+              {localizedProperty(item, "label", item.label)}
             </SelectItem>
           ))}
         </SelectContent>
@@ -70,7 +74,7 @@ const renderControl = (field: FederationField, control: MountedFieldControlProps
       value={control.value === undefined || control.value === null ? "" : String(control.value)}
       onChange={control.onChange}
       onBlur={control.onBlur}
-      placeholder={field.placeholder}
+      placeholder={localizedProperty(field, "placeholder", field.placeholder)}
       inputMode={field.control === "integer" ? "numeric" : undefined}
       aria-invalid={control["aria-invalid"]}
     />
@@ -84,6 +88,7 @@ interface FederationFieldInputProps {
 }
 
 function FederationFieldInput({ field, storedValue, validators }: FederationFieldInputProps) {
+  useUiLocale();
   return (
     <MountedFormField
       label={labelWithHint(field.label, field.tooltip)}
@@ -114,6 +119,7 @@ function AnthropicFederationFields({
   onIdentitySourceChange,
   storedValues,
 }: AnthropicFederationFieldsProps) {
+  useUiLocale();
   const identitySourceItems = identitySourceOptions(storedValues);
   const renderField = (field: FederationField) => (
     <FederationFieldInput
@@ -145,20 +151,27 @@ function AnthropicFederationFields({
           <SelectContent>
             {identitySourceItems.map((item) => (
               <SelectItem key={item.value} value={item.value}>
-                {item.label}
+                {localizedProperty(item, "label", item.label)}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
         {identitySource === "unrecognized" && (
           <p className="text-sm text-muted-foreground">
-            This form does not offer the stored identity source. Saving keeps it and its settings as stored. Pick
-            another source to replace it.
+            <LocalizedText
+              text={
+                "This form does not offer the stored identity source. Saving keeps it and its settings as stored. Pick another source to replace it."
+              }
+            />
           </p>
         )}
         {identitySource === "environment" && (
           <p className="text-sm text-muted-foreground">
-            The proxy reads ANTHROPIC_IDENTITY_TOKEN_FILE or ANTHROPIC_IDENTITY_TOKEN from its own environment.
+            <LocalizedText
+              text={
+                "The proxy reads ANTHROPIC_IDENTITY_TOKEN_FILE or ANTHROPIC_IDENTITY_TOKEN from its own environment."
+              }
+            />
           </p>
         )}
       </div>
@@ -168,11 +181,15 @@ function AnthropicFederationFields({
 }
 
 function OpenAIFederationFields({ storedValues }: { storedValues: Record<string, unknown> }) {
+  useUiLocale();
   return (
     <>
       <p className="mb-4 text-sm text-muted-foreground">
-        The proxy exchanges the identity token for an OpenAI access token only when OPENAI_API_KEY is unset in its
-        environment. Otherwise it sends that key instead.
+        <LocalizedText
+          text={
+            "The proxy exchanges the identity token for an OpenAI access token only when OPENAI_API_KEY is unset in its environment. Otherwise it sends that key instead."
+          }
+        />
       </p>
       {OPENAI_FEDERATION_FIELDS.map((field) => (
         <FederationFieldInput key={field.key} field={field} storedValue={storedValues[field.key]} />
@@ -182,6 +199,7 @@ function OpenAIFederationFields({ storedValues }: { storedValues: Record<string,
 }
 
 export default function FederationFields({ selection, onIdentitySourceChange, storedValues }: FederationFieldsProps) {
+  useUiLocale();
   switch (selection.provider) {
     case "anthropic":
       return (

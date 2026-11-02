@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { BotIcon, InfoIcon, LayersIcon, ServerIcon } from "lucide-react";
 import type { UseFormReturn } from "react-hook-form";
@@ -42,6 +43,7 @@ export function AccessGroupBaseForm({
   activeTab,
   onTabChange,
 }: AccessGroupBaseFormProps) {
+  useUiLocale();
   const { data: agentsData } = useAgents();
   const { data: mcpServersData } = useMCPServers();
 
@@ -59,66 +61,76 @@ export function AccessGroupBaseForm({
       <TabsList className="w-full">
         <TabsTrigger value={GENERAL_TAB}>
           <InfoIcon size={16} />
-          General Info
+          <LocalizedText text={"General Info"} />
         </TabsTrigger>
         <TabsTrigger value={MODELS_TAB}>
           <LayersIcon size={16} />
-          Models
+          <LocalizedText text={"Models"} />
         </TabsTrigger>
         <TabsTrigger value={MCP_SERVERS_TAB}>
           <ServerIcon size={16} />
-          MCP Servers
+          <LocalizedText text={"MCP Servers"} />
         </TabsTrigger>
         <TabsTrigger value={AGENTS_TAB}>
           <BotIcon size={16} />
-          Agents
+          <LocalizedText text={"Agents"} />
         </TabsTrigger>
       </TabsList>
 
       <TabsContent value={GENERAL_TAB} className="pt-4">
         <FieldGroup>
-          <FormField control={form.control} name="name" label="Group Name">
+          <FormField control={form.control} name="name" label={translateMessage("Group Name")}>
             {({ ref, ...field }) => (
-              <Input {...field} ref={ref} placeholder="e.g. Engineering Team" disabled={isNameDisabled} />
+              <Input
+                {...field}
+                ref={ref}
+                placeholder={translateMessage("e.g. Engineering Team")}
+                disabled={isNameDisabled}
+              />
             )}
           </FormField>
-          <FormField control={form.control} name="description" label="Description">
+          <FormField control={form.control} name="description" label={translateMessage("Description")}>
             {({ ref, ...field }) => (
-              <Textarea {...field} ref={ref} rows={4} placeholder="Describe the purpose of this access group..." />
+              <Textarea
+                {...field}
+                ref={ref}
+                rows={4}
+                placeholder={translateMessage("Describe the purpose of this access group...")}
+              />
             )}
           </FormField>
         </FieldGroup>
       </TabsContent>
 
       <TabsContent value={MODELS_TAB} className="pt-4">
-        <FormField control={form.control} name="modelIds" label="Allowed Models">
+        <FormField control={form.control} name="modelIds" label={translateMessage("Allowed Models")}>
           {(field) => <ModelSelect context="global" value={field.value} onChange={field.onChange} />}
         </FormField>
       </TabsContent>
 
       <TabsContent value={MCP_SERVERS_TAB} className="pt-4">
-        <FormField control={form.control} name="mcpServerIds" label="Allowed MCP Servers">
+        <FormField control={form.control} name="mcpServerIds" label={translateMessage("Allowed MCP Servers")}>
           {({ id, value, onChange }) => (
             <MultiSelect
               id={id}
               value={value}
               onValueChange={onChange}
               options={mcpServerOptions}
-              placeholder="Select MCP servers"
+              placeholder={translateMessage("Select MCP servers")}
             />
           )}
         </FormField>
       </TabsContent>
 
       <TabsContent value={AGENTS_TAB} className="pt-4">
-        <FormField control={form.control} name="agentIds" label="Allowed Agents">
+        <FormField control={form.control} name="agentIds" label={translateMessage("Allowed Agents")}>
           {({ id, value, onChange }) => (
             <MultiSelect
               id={id}
               value={value}
               onValueChange={onChange}
               options={agentOptions}
-              placeholder="Select agents"
+              placeholder={translateMessage("Select agents")}
             />
           )}
         </FormField>

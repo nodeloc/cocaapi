@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { ArrowRight, PanelRight, X } from "lucide-react";
 import type { ReactNode } from "react";
@@ -28,6 +29,7 @@ const MARK = { issue: "●", clear: "✓", unknown: "–" } as const;
 const LOGO = { sm: "size-3.5", md: "size-[18px]" } as const;
 
 export function ModelName({ model, size = "sm" }: { model: string; size?: keyof typeof LOGO }) {
+  useUiLocale();
   const api = useLensApi();
   const { data: catalog } = useModelCostMap(api.scope !== "demo");
   if (!model) return null;
@@ -41,6 +43,7 @@ export function ModelName({ model, size = "sm" }: { model: string; size?: keyof 
 }
 
 function RecentLine({ review, now, onOpen }: { review: Review; now: number; onOpen: () => void }) {
+  useUiLocale();
   const result = outcome(review);
   const issue = result === "issue";
   return (
@@ -98,12 +101,13 @@ export function LiveStrip({
   onOpen: () => void;
   onClose: () => void;
 }) {
+  useUiLocale();
   const now = useNow(5000);
   const recent = newestFirst(reviews, RECENT);
   const finished = state.kind === "done" || state.kind === "failed";
   return (
     <section
-      aria-label="Live trace results"
+      aria-label={translateMessage("Live trace results")}
       onClick={onOpen}
       className="flex cursor-pointer flex-wrap items-start gap-x-6 gap-y-2 rounded-md bg-muted/30 px-3 py-2 text-xs text-muted-foreground transition-colors hover:bg-muted/50"
     >
@@ -111,13 +115,23 @@ export function LiveStrip({
         <div className="flex flex-col gap-1">
           <ModelName model={model} />
           <span className="tabular-nums">
-            {reviewed} of {selected} traces · {issueLabel(issues)} · {money(cost)}
+            {reviewed}
+            <LocalizedText text={" of "} />
+            {selected}
+            <LocalizedText text={" traces · "} />
+            {issueLabel(issues)} · {money(cost)}
           </span>
           {(reused > 0 || reusable > 0) && (
             <span>
               {finished
-                ? `${reused} reused without review cost · ${Math.max(0, reviewed - reused)} newly reviewed`
-                : `${reusable} eligible for reuse · ${Math.max(0, selected - reusable)} need review`}
+                ? translateMessage("%{0} reused without review cost · %{1} newly reviewed", [
+                    reused,
+                    Math.max(0, reviewed - reused),
+                  ])
+                : translateMessage("%{0} eligible for reuse · %{1} need review", [
+                    reusable,
+                    Math.max(0, selected - reusable),
+                  ])}
             </span>
           )}
         </div>
@@ -131,28 +145,28 @@ export function LiveStrip({
           }}
         >
           <PanelRight />
-          View run
+          <LocalizedText text={"View run"} />
           <ArrowRight />
         </Button>
       </div>
       <div className="min-w-0 flex-1">
         {state.kind === "failed" && (
           <p role="alert" className="py-0.5 text-destructive">
-            {state.message}
+            {localizedProperty(state, "message", state.message)}
           </p>
         )}
         {state.kind === "waiting" && (
           <div role="status" className="flex flex-col gap-0.5 py-0.5" onClick={(event) => event.stopPropagation()}>
-            {waiting ?? state.message}
+            {waiting ?? localizedProperty(state, "message", state.message)}
           </div>
         )}
         {state.kind === "reviewing" && (
           <p role="status" className="py-0.5">
-            {state.message}
+            {localizedProperty(state, "message", state.message)}
           </p>
         )}
         {recent.length > 0 && state.kind !== "waiting" && (
-          <ol aria-label="Recently reviewed traces" className="flex flex-col">
+          <ol aria-label={translateMessage("Recently reviewed traces")} className="flex flex-col">
             {recent.map((review) => (
               <RecentLine key={reviewKey(review)} review={review} now={now} onOpen={onOpen} />
             ))}
@@ -162,7 +176,7 @@ export function LiveStrip({
       <Button
         variant="ghost"
         size="icon-xs"
-        aria-label="Hide live trace results"
+        aria-label={translateMessage("Hide live trace results")}
         className="shrink-0"
         onClick={(event) => {
           event.stopPropagation();

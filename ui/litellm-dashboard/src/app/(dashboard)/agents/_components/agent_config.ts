@@ -1,3 +1,4 @@
+import { markUiCopy } from "@/lib/i18n";
 import { parseIdentityForForm } from "./agent_identity";
 /**
  * Shared configuration for agent form fields
@@ -42,200 +43,294 @@ export const AGENT_FORM_CONFIG: {
   cost: SectionConfig;
   tracing: SectionConfig;
 } = {
-  basic: {
-    key: "basic",
-    title: "Basic Information",
-    defaultExpanded: true,
-    fields: [
-      {
-        name: "name",
-        label: "Display Name",
-        type: "text",
-        required: true,
-        placeholder: "e.g., Customer Support Agent",
-      },
-      {
-        name: "description",
-        label: "Description",
-        type: "textarea",
-        required: false,
-        placeholder: "Describe what this agent does...",
-        rows: 3,
-      },
-      {
-        name: "url",
-        label: "URL",
-        type: "url",
-        required: false,
-        placeholder: "http://localhost:9999/",
-        tooltip: "Base URL where the agent is hosted (optional)",
-      },
-      {
-        name: "version",
-        label: "Version",
-        type: "text",
-        placeholder: "1.0.0",
-        defaultValue: "1.0.0",
-      },
-      {
-        name: "protocolVersion",
-        label: "Protocol Version",
-        type: "select",
-        options: ["1.0", "0.3"],
-        defaultValue: "1.0",
-        tooltip:
-          "The A2A protocol version LiteLLM serves to clients for this agent. LiteLLM converts the upstream agent's responses to this version, so clients always see the version you pick here regardless of the original agent's version.",
-        helpText:
-          "LiteLLM serves this version to clients and converts the upstream agent's responses to match it, regardless of the original agent's version.",
-      },
-    ],
-  },
-  skills: {
-    key: "skills",
-    title: "Skills",
-    fields: [
-      {
-        name: "skills",
-        label: "Skills",
-        type: "list",
-        defaultValue: [],
-      },
-    ],
-  },
-  capabilities: {
-    key: "capabilities",
-    title: "Capabilities",
-    fields: [
-      {
-        name: "streaming",
-        label: "Streaming",
-        type: "switch",
-        defaultValue: false,
-      },
-      {
-        name: "pushNotifications",
-        label: "Push Notifications",
-        type: "switch",
-      },
-      {
-        name: "stateTransitionHistory",
-        label: "State Transition History",
-        type: "switch",
-      },
-    ],
-  },
-  optional: {
-    key: "optional",
-    title: "Optional Settings",
-    fields: [
-      {
-        name: "iconUrl",
-        label: "Icon URL",
-        type: "url",
-        placeholder: "https://example.com/icon.png",
-      },
-      {
-        name: "documentationUrl",
-        label: "Documentation URL",
-        type: "url",
-        placeholder: "https://docs.example.com",
-      },
-      {
-        name: "supportsAuthenticatedExtendedCard",
-        label: "Supports Authenticated Extended Card",
-        type: "switch",
-      },
-    ],
-  },
-  litellm: {
-    key: "litellm",
-    title: "LiteLLM Parameters",
-    fields: [
-      {
-        name: "model",
-        label: "Model (Optional)",
-        type: "text",
-      },
-      {
-        name: "make_public",
-        label: "Make Public",
-        type: "switch",
-      },
-    ],
-  },
-  cost: {
-    key: "cost",
-    title: "Cost Configuration",
-    fields: [
-      {
-        name: "cost_per_query",
-        label: "Cost Per Query ($)",
-        type: "text",
-        placeholder: "0.0",
-        tooltip: "Fixed cost per query",
-      },
-      {
-        name: "input_cost_per_token",
-        label: "Input Cost Per Token ($)",
-        type: "text",
-        placeholder: "0.000001",
-        tooltip: "Cost per input token",
-      },
-      {
-        name: "output_cost_per_token",
-        label: "Output Cost Per Token ($)",
-        type: "text",
-        placeholder: "0.000002",
-        tooltip: "Cost per output token",
-      },
-    ],
-  },
-  tracing: {
-    key: "tracing",
-    title: "Tracing",
-    fields: [
-      {
-        name: "enable_tracing",
-        label: "Enable Tracing",
-        type: "switch",
-        defaultValue: false,
-        tooltip: "Enable request tracing for this agent",
-      },
-    ],
-  },
+  basic: markUiCopy(
+    {
+      key: "basic",
+      title: "Basic Information",
+      defaultExpanded: true,
+      fields: [
+        markUiCopy(
+          {
+            name: "name",
+            label: "Display Name",
+            type: "text" as const,
+            required: true,
+            placeholder: "e.g., Customer Support Agent",
+          },
+          { label: "Display Name", placeholder: "e.g., Customer Support Agent" },
+        ),
+        markUiCopy(
+          {
+            name: "description",
+            label: "Description",
+            type: "textarea" as const,
+            required: false,
+            placeholder: "Describe what this agent does...",
+            rows: 3,
+          },
+          { label: "Description", placeholder: "Describe what this agent does..." },
+        ),
+        markUiCopy(
+          {
+            name: "url",
+            label: "URL",
+            type: "url" as const,
+            required: false,
+            placeholder: "http://localhost:9999/",
+            tooltip: "Base URL where the agent is hosted (optional)",
+          },
+          { label: "URL", tooltip: "Base URL where the agent is hosted (optional)" },
+        ),
+        markUiCopy(
+          {
+            name: "version",
+            label: "Version",
+            type: "text" as const,
+            placeholder: "1.0.0",
+            defaultValue: "1.0.0",
+          },
+          { label: "Version" },
+        ),
+        markUiCopy(
+          {
+            name: "protocolVersion",
+            label: "Protocol Version",
+            type: "select" as const,
+            options: ["1.0", "0.3"],
+            defaultValue: "1.0",
+            tooltip:
+              "The A2A protocol version LiteLLM serves to clients for this agent. LiteLLM converts the upstream agent's responses to this version, so clients always see the version you pick here regardless of the original agent's version.",
+            helpText:
+              "LiteLLM serves this version to clients and converts the upstream agent's responses to match it, regardless of the original agent's version.",
+          },
+          {
+            label: "Protocol Version",
+            tooltip:
+              "The A2A protocol version LiteLLM serves to clients for this agent. LiteLLM converts the upstream agent's responses to this version, so clients always see the version you pick here regardless of the original agent's version.",
+          },
+        ),
+      ],
+    },
+    { title: "Basic Information" },
+  ),
+  skills: markUiCopy(
+    {
+      key: "skills",
+      title: "Skills",
+      fields: [
+        markUiCopy(
+          {
+            name: "skills",
+            label: "Skills",
+            type: "list" as const,
+            defaultValue: [],
+          },
+          { label: "Skills" },
+        ),
+      ],
+    },
+    { title: "Skills" },
+  ),
+  capabilities: markUiCopy(
+    {
+      key: "capabilities",
+      title: "Capabilities",
+      fields: [
+        markUiCopy(
+          {
+            name: "streaming",
+            label: "Streaming",
+            type: "switch" as const,
+            defaultValue: false,
+          },
+          { label: "Streaming" },
+        ),
+        markUiCopy(
+          {
+            name: "pushNotifications",
+            label: "Push Notifications",
+            type: "switch" as const,
+          },
+          { label: "Push Notifications" },
+        ),
+        markUiCopy(
+          {
+            name: "stateTransitionHistory",
+            label: "State Transition History",
+            type: "switch" as const,
+          },
+          { label: "State Transition History" },
+        ),
+      ],
+    },
+    { title: "Capabilities" },
+  ),
+  optional: markUiCopy(
+    {
+      key: "optional",
+      title: "Optional Settings",
+      fields: [
+        markUiCopy(
+          {
+            name: "iconUrl",
+            label: "Icon URL",
+            type: "url" as const,
+            placeholder: "https://example.com/icon.png",
+          },
+          { label: "Icon URL" },
+        ),
+        markUiCopy(
+          {
+            name: "documentationUrl",
+            label: "Documentation URL",
+            type: "url" as const,
+            placeholder: "https://docs.example.com",
+          },
+          { label: "Documentation URL" },
+        ),
+        markUiCopy(
+          {
+            name: "supportsAuthenticatedExtendedCard",
+            label: "Supports Authenticated Extended Card",
+            type: "switch" as const,
+          },
+          { label: "Supports Authenticated Extended Card" },
+        ),
+      ],
+    },
+    { title: "Optional Settings" },
+  ),
+  litellm: markUiCopy(
+    {
+      key: "litellm",
+      title: "LiteLLM Parameters",
+      fields: [
+        markUiCopy(
+          {
+            name: "model",
+            label: "Model (Optional)",
+            type: "text" as const,
+          },
+          { label: "Model (Optional)" },
+        ),
+        markUiCopy(
+          {
+            name: "make_public",
+            label: "Make Public",
+            type: "switch" as const,
+          },
+          { label: "Make Public" },
+        ),
+      ],
+    },
+    { title: "LiteLLM Parameters" },
+  ),
+  cost: markUiCopy(
+    {
+      key: "cost",
+      title: "Cost Configuration",
+      fields: [
+        markUiCopy(
+          {
+            name: "cost_per_query",
+            label: "Cost Per Query ($)",
+            type: "text" as const,
+            placeholder: "0.0",
+            tooltip: "Fixed cost per query",
+          },
+          { label: "Cost Per Query ($)", tooltip: "Fixed cost per query" },
+        ),
+        markUiCopy(
+          {
+            name: "input_cost_per_token",
+            label: "Input Cost Per Token ($)",
+            type: "text" as const,
+            placeholder: "0.000001",
+            tooltip: "Cost per input token",
+          },
+          { label: "Input Cost Per Token ($)", tooltip: "Cost per input token" },
+        ),
+        markUiCopy(
+          {
+            name: "output_cost_per_token",
+            label: "Output Cost Per Token ($)",
+            type: "text" as const,
+            placeholder: "0.000002",
+            tooltip: "Cost per output token",
+          },
+          { label: "Output Cost Per Token ($)", tooltip: "Cost per output token" },
+        ),
+      ],
+    },
+    { title: "Cost Configuration" },
+  ),
+  tracing: markUiCopy(
+    {
+      key: "tracing",
+      title: "Tracing",
+      fields: [
+        markUiCopy(
+          {
+            name: "enable_tracing",
+            label: "Enable Tracing",
+            type: "switch" as const,
+            defaultValue: false,
+            tooltip: "Enable request tracing for this agent",
+          },
+          { label: "Enable Tracing", tooltip: "Enable request tracing for this agent" },
+        ),
+      ],
+    },
+    { title: "Tracing" },
+  ),
 };
 
 export const SKILL_FIELD_CONFIG = {
-  id: {
-    name: "id",
-    label: "Skill ID",
-    required: true,
-    placeholder: "e.g., hello_world",
-  },
-  name: {
-    name: "name",
-    label: "Skill Name",
-    required: true,
-    placeholder: "e.g., Returns hello world",
-  },
-  description: {
-    name: "description",
-    label: "Description",
-    required: true,
-    placeholder: "What this skill does",
-    rows: 2,
-  },
-  tags: {
-    name: "tags",
-    label: "Tags",
-    required: true,
-    placeholder: "Type a tag and press Enter",
-  },
-  examples: {
-    name: "examples",
-    label: "Examples",
-    placeholder: "Type an example and press Enter",
-  },
+  id: markUiCopy(
+    {
+      name: "id",
+      label: "Skill ID",
+      required: true,
+      placeholder: "e.g., hello_world",
+    },
+    { label: "Skill ID", placeholder: "e.g., hello_world" },
+  ),
+  name: markUiCopy(
+    {
+      name: "name",
+      label: "Skill Name",
+      required: true,
+      placeholder: "e.g., Returns hello world",
+    },
+    { label: "Skill Name", placeholder: "e.g., Returns hello world" },
+  ),
+  description: markUiCopy(
+    {
+      name: "description",
+      label: "Description",
+      required: true,
+      placeholder: "What this skill does",
+      rows: 2,
+    },
+    { label: "Description", placeholder: "What this skill does" },
+  ),
+  tags: markUiCopy(
+    {
+      name: "tags",
+      label: "Tags",
+      required: true,
+      placeholder: "Type a tag and press Enter",
+    },
+    { label: "Tags", placeholder: "Type a tag and press Enter" },
+  ),
+  examples: markUiCopy(
+    {
+      name: "examples",
+      label: "Examples",
+      placeholder: "Type an example and press Enter",
+    },
+    { label: "Examples", placeholder: "Type an example and press Enter" },
+  ),
 };
 
 /**
@@ -373,40 +468,43 @@ export const parseAgentForForm = (agent: any) => {
       examples: skill.examples || [],
     })) || [];
 
-  return {
-    agent_name: agent.agent_name,
-    name: card.name || agent.agent_name,
-    description: card.description,
-    url: card.url,
-    version: card.version,
-    protocolVersion: card.protocolVersion,
-    streaming: card.capabilities?.streaming,
-    pushNotifications: card.capabilities?.pushNotifications,
-    stateTransitionHistory: card.capabilities?.stateTransitionHistory,
-    skills: skills,
-    iconUrl: card.iconUrl,
-    documentationUrl: card.documentationUrl,
-    supportsAuthenticatedExtendedCard: card.supportsAuthenticatedExtendedCard,
-    model: agent.litellm_params?.model,
-    make_public: agent.litellm_params?.make_public,
-    cost_per_query: agent.litellm_params?.cost_per_query,
-    input_cost_per_token: agent.litellm_params?.input_cost_per_token,
-    output_cost_per_token: agent.litellm_params?.output_cost_per_token,
-    tpm_limit: agent.tpm_limit,
-    rpm_limit: agent.rpm_limit,
-    session_tpm_limit: agent.session_tpm_limit,
-    session_rpm_limit: agent.session_rpm_limit,
-    // static_headers: {key: value} → [{header, value}, ...]
-    static_headers: agent.static_headers
-      ? Object.entries(agent.static_headers as Record<string, string>).map(([header, value]) => ({
-          header,
-          value,
-        }))
-      : [],
-    // extra_headers: already an array of strings
-    extra_headers: agent.extra_headers ?? [],
-    kill_switch: parseKillSwitchForForm(agent.kill_switch),
-    ...parseMcpPermissionsForForm(agent),
-    ...parseAccessGroupIdsForForm(agent),
-  };
+  return markUiCopy(
+    {
+      agent_name: agent.agent_name,
+      name: card.name || agent.agent_name,
+      description: card.description,
+      url: card.url,
+      version: card.version,
+      protocolVersion: card.protocolVersion,
+      streaming: card.capabilities?.streaming,
+      pushNotifications: card.capabilities?.pushNotifications,
+      stateTransitionHistory: card.capabilities?.stateTransitionHistory,
+      skills: skills,
+      iconUrl: card.iconUrl,
+      documentationUrl: card.documentationUrl,
+      supportsAuthenticatedExtendedCard: card.supportsAuthenticatedExtendedCard,
+      model: agent.litellm_params?.model,
+      make_public: agent.litellm_params?.make_public,
+      cost_per_query: agent.litellm_params?.cost_per_query,
+      input_cost_per_token: agent.litellm_params?.input_cost_per_token,
+      output_cost_per_token: agent.litellm_params?.output_cost_per_token,
+      tpm_limit: agent.tpm_limit,
+      rpm_limit: agent.rpm_limit,
+      session_tpm_limit: agent.session_tpm_limit,
+      session_rpm_limit: agent.session_rpm_limit,
+      // static_headers: {key: value} → [{header, value}, ...]
+      static_headers: agent.static_headers
+        ? Object.entries(agent.static_headers as Record<string, string>).map(([header, value]) => ({
+            header,
+            value,
+          }))
+        : [],
+      // extra_headers: already an array of strings
+      extra_headers: agent.extra_headers ?? [],
+      kill_switch: parseKillSwitchForForm(agent.kill_switch),
+      ...parseMcpPermissionsForForm(agent),
+      ...parseAccessGroupIdsForForm(agent),
+    },
+    { description: { owner: card, field: "description" } },
+  );
 };

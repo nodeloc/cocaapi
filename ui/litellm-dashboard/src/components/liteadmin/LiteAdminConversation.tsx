@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 import { useEffect, type RefObject } from "react";
 import { ArrowDown, Check, ChevronDown } from "lucide-react";
 import { MessageScroller, useMessageScroller } from "@shadcn/react/message-scroller";
@@ -29,19 +31,20 @@ interface ConversationProps {
 }
 
 export function LiteAdminConversation({ entries, thinking, open, reviewRef, onAnswer }: ConversationProps) {
+  useUiLocale();
   return (
     <MessageScroller.Provider autoScroll>
       <MessageScroller.Root className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
         <MessageScroller.Viewport
           className="min-h-0 flex-1 overflow-y-auto overscroll-contain data-pending-scroll:invisible"
-          aria-label="LiteAdmin conversation"
+          aria-label={translateMessage("LiteAdmin conversation")}
         >
           <MessageScroller.Content className="flex flex-col gap-4 p-4" aria-busy={thinking}>
             {entries.map((entry) => (
               <MessageScroller.Item key={entry.id} messageId={entry.id}>
                 {entry.kind === "message" && (
                   <ChatMessageContent
-                    message={entry.message}
+                    message={localizedProperty(entry, "message", entry.message)}
                     allowImages={false}
                     isLastMessage={false}
                     isStreaming={false}
@@ -59,10 +62,12 @@ export function LiteAdminConversation({ entries, thinking, open, reviewRef, onAn
             ))}
             {thinking && (
               <MessageScroller.Item messageId="thinking">
-                <div role="status" aria-label="LiteAdmin is working" className="space-y-2">
+                <div role="status" aria-label={translateMessage("LiteAdmin is working")} className="space-y-2">
                   <Skeleton className="h-3 w-3/4" />
                   <Skeleton className="h-3 w-1/2" />
-                  <span className="sr-only">Working…</span>
+                  <span className="sr-only">
+                    <LocalizedText text={"Working…"} />
+                  </span>
                 </div>
               </MessageScroller.Item>
             )}
@@ -70,14 +75,18 @@ export function LiteAdminConversation({ entries, thinking, open, reviewRef, onAn
         </MessageScroller.Viewport>
         {entries.length === 0 && (
           <div className="pointer-events-none absolute inset-0 flex flex-col justify-center gap-2 p-6">
-            <p className="font-medium">How can I help?</p>
+            <p className="font-medium">
+              <LocalizedText text={"How can I help?"} />
+            </p>
             <p className="text-sm text-muted-foreground">
-              Check budgets, inspect usage, or manage keys and teams. You review every change before it runs.
+              <LocalizedText
+                text={"Check budgets, inspect usage, or manage keys and teams. You review every change before it runs."}
+              />
             </p>
           </div>
         )}
         <MessageScroller.Button
-          aria-label="Jump to latest"
+          aria-label={translateMessage("Jump to latest")}
           className="absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full shadow-sm data-[active=false]:pointer-events-none data-[active=false]:opacity-0"
           render={<Button variant="outline" size="icon-sm" />}
         >
@@ -94,6 +103,7 @@ function ActionCard({
   reviewRef,
   onAnswer,
 }: Pick<ConversationProps, "open" | "reviewRef" | "onAnswer"> & { entry: ActionEntry }) {
+  useUiLocale();
   const { scrollToEnd } = useMessageScroller();
   const review = entry.status === "review";
   useEffect(() => {
@@ -128,11 +138,11 @@ function ActionCard({
       ref={review ? reviewRef : undefined}
       tabIndex={review ? -1 : undefined}
       role="region"
-      aria-label={entry.action.title}
+      aria-label={localizedProperty(entry.action, "title")}
       size="sm"
     >
       <CardHeader className="gap-2">
-        <CardTitle>{entry.action.title}</CardTitle>
+        <CardTitle>{localizedProperty(entry.action, "title")}</CardTitle>
         <Badge variant={entry.status === "unknown" ? "destructive" : "secondary"} role="status">
           {entry.status === "completed" && <Check className="size-3" />}
           {ACTION_STATUS[entry.status]}
@@ -145,33 +155,35 @@ function ActionCard({
           <Collapsible>
             <CollapsibleTrigger render={<Button variant="ghost" size="xs" />}>
               <ChevronDown className="size-3" />
-              Details
+              <LocalizedText text={"Details"} />
             </CollapsibleTrigger>
             <CollapsibleContent>{fields}</CollapsibleContent>
           </Collapsible>
         )}
         {entry.status === "unknown" && (
           <Alert variant="destructive">
-            <AlertDescription>{entry.message}</AlertDescription>
+            <AlertDescription>{localizedProperty(entry, "message", entry.message)}</AlertDescription>
           </Alert>
         )}
         {entry.status === "completed" && entry.key && (
           <div className="space-y-2">
             <div className="flex items-start gap-2">
               <code className="min-w-0 flex-1 break-all text-xs">{entry.key}</code>
-              <CopyButton value={entry.key} label="Copy generated key" />
+              <CopyButton value={entry.key} label={translateMessage("Copy generated key")} />
             </div>
-            <p className="text-xs text-muted-foreground">Copy this key now. It stays only in this chat session.</p>
+            <p className="text-xs text-muted-foreground">
+              <LocalizedText text={"Copy this key now. It stays only in this chat session."} />
+            </p>
           </div>
         )}
       </CardContent>
       {review && (
         <CardFooter className="justify-end gap-2">
           <Button variant="outline" onClick={() => answer(false)}>
-            Cancel
+            <LocalizedText text={"Cancel"} />
           </Button>
           <Button variant={entry.action.destructive ? "destructive" : "default"} onClick={() => answer(true)}>
-            Confirm change
+            <LocalizedText text={"Confirm change"} />
           </Button>
         </CardFooter>
       )}

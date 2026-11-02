@@ -1,3 +1,5 @@
+"use client";
+import { translateMessage, useUiLocale } from "@/lib/i18n";
 /**
  * Individual tool item component with expandable details
  */
@@ -14,6 +16,7 @@ interface ToolItemProps {
 }
 
 export function ToolItem({ tool }: ToolItemProps) {
+  useUiLocale();
   const [expanded, setExpanded] = useState(false);
 
   return (
@@ -34,7 +37,9 @@ export function ToolItem({ tool }: ToolItemProps) {
         </div>
 
         <div className="flex items-center gap-2">
-          <Badge variant={tool.called ? "default" : "secondary"}>{tool.called ? "called" : "not called"}</Badge>
+          <Badge variant={tool.called ? "default" : "secondary"}>
+            {tool.called ? translateMessage("called") : translateMessage("not called")}
+          </Badge>
           {expanded ? (
             <ChevronDown className="size-3 text-muted-foreground" />
           ) : (

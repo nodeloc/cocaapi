@@ -1,9 +1,11 @@
 /* @vitest-environment jsdom */
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import ModelsAndEndpointsPage from "./page";
+import { LanguageProvider } from "@/lib/i18n/LanguageProvider";
+import { setUiLocale } from "@/lib/i18n/locale";
 
 vi.mock("./panels/AllModelsPanel", () => ({ default: () => <div data-testid="panel-all-models" /> }));
 vi.mock("./panels/AddModelPanel", () => ({ default: () => <div data-testid="panel-add" /> }));
@@ -61,16 +63,32 @@ const NON_ADMIN = {
 // A proxy_admin_viewer session: effectiveSessionRole masquerades the role as "Admin".
 const VIEW_ONLY_ADMIN = { ...ADMIN, isViewOnly: true };
 
-const renderPage = () => {
+const renderPage = (localized = false) => {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
   return render(
     <QueryClientProvider client={queryClient}>
-      <ModelsAndEndpointsPage />
+      {localized ? (
+        <LanguageProvider>
+          <ModelsAndEndpointsPage />
+        </LanguageProvider>
+      ) : (
+        <ModelsAndEndpointsPage />
+      )}
     </QueryClientProvider>,
   );
 };
 
 describe("ModelsAndEndpointsPage", () => {
+  it("translates model tabs and preserves the active panel when switching language", async () => {
+    const user = userEvent.setup();
+    renderPage(true);
+    act(() => setUiLocale("zh"));
+    expect(screen.getByRole("tab", { name: "已部署模型" })).toBeInTheDocument();
+    await user.click(screen.getByRole("tab", { name: "添加模型" }));
+    act(() => setUiLocale("en"));
+    expect(screen.getByRole("tab", { name: "Add Model" })).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByTestId("panel-add")).toBeInTheDocument();
+  });
   beforeEach(() => {
     detailState.modelId = null;
     detailState.teamId = null;

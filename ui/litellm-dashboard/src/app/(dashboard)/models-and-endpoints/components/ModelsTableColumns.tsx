@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { ColumnDef } from "@tanstack/react-table";
 import { CredentialIdentity } from "@/components/shared/CredentialIdentity";
@@ -56,6 +57,7 @@ const formatShortDate = (value: string | null | undefined): string | null => {
 };
 
 function ModelInformationCell({ model, displayName }: { model: ModelData; displayName: string }) {
+  useUiLocale();
   const litellmModelName = model.litellm_model_name || "-";
 
   return (
@@ -85,23 +87,29 @@ function ModelInformationCell({ model, displayName }: { model: ModelData; displa
         <div className="flex flex-col gap-3">
           <div className="flex items-center gap-2">
             {model.provider ? <ProviderLogo provider={model.provider} className="size-4 shrink-0" /> : null}
-            <span className="truncate text-xs text-muted-foreground">{model.provider || "Unknown provider"}</span>
+            <span className="truncate text-xs text-muted-foreground">
+              {model.provider || translateMessage("Unknown provider")}
+            </span>
           </div>
           <div className="flex flex-col gap-0.5">
-            <span className="text-xs text-muted-foreground">Public Model Name</span>
+            <span className="text-xs text-muted-foreground">
+              <LocalizedText text={"Public Model Name"} />
+            </span>
             <span className="truncate text-sm font-medium text-foreground" title={displayName}>
               {displayName}
             </span>
           </div>
           <div className="flex flex-col gap-0.5">
-            <span className="text-xs text-muted-foreground">LiteLLM Model Name</span>
+            <span className="text-xs text-muted-foreground">
+              <LocalizedText text={"LiteLLM Model Name"} />
+            </span>
             <span className="flex min-w-0 items-center gap-1.5">
               <span className="truncate font-mono text-sm text-foreground" title={litellmModelName}>
                 {litellmModelName}
               </span>
               <button
                 type="button"
-                aria-label="Copy LiteLLM model name"
+                aria-label={translateMessage("Copy LiteLLM model name")}
                 data-testid={`copy-litellm-model-name-${model.model_info.id}`}
                 className="shrink-0 cursor-pointer text-muted-foreground hover:text-foreground"
                 onClick={() => void copyToClipboard(litellmModelName, "LiteLLM model name copied")}
@@ -117,15 +125,16 @@ function ModelInformationCell({ model, displayName }: { model: ModelData; displa
 }
 
 function CredentialsHeader() {
+  useUiLocale();
   return (
     <span className="flex items-center gap-1">
-      Credentials
+      <LocalizedText text={"Credentials"} />
       <HoverCard>
         <HoverCardTrigger
           render={
             <button
               type="button"
-              aria-label="About credential types"
+              aria-label={translateMessage("About credential types")}
               data-testid="credentials-header-info"
               className="cursor-pointer text-muted-foreground hover:text-foreground"
             />
@@ -135,23 +144,27 @@ function CredentialsHeader() {
         </HoverCardTrigger>
         <HoverCardContent align="start" className="w-80">
           <div className="flex flex-col gap-3">
-            <span className="text-sm font-medium text-foreground">Credential types</span>
+            <span className="text-sm font-medium text-foreground">
+              <LocalizedText text={"Credential types"} />
+            </span>
             <div className="flex flex-col gap-1">
               <span className="flex items-center gap-1.5 text-sm font-medium text-info">
                 <RefreshCw className="size-3.5" />
-                Reusable
+                <LocalizedText text={"Reusable"} />
               </span>
               <span className="text-xs text-muted-foreground">
-                Credentials saved in LiteLLM that can be added to models repeatedly.
+                <LocalizedText text={"Credentials saved in LiteLLM that can be added to models repeatedly."} />
               </span>
             </div>
             <div className="flex flex-col gap-1">
               <span className="flex items-center gap-1.5 text-sm font-medium text-foreground">
                 <Pencil className="size-3.5" />
-                Manual
+                <LocalizedText text={"Manual"} />
               </span>
               <span className="text-xs text-muted-foreground">
-                Credentials added directly during model creation or defined in the config file.
+                <LocalizedText
+                  text={"Credentials added directly during model creation or defined in the config file."}
+                />
               </span>
             </div>
           </div>
@@ -161,12 +174,14 @@ function CredentialsHeader() {
   );
 }
 
-function CredentialsCell({ credentialName, label }: { credentialName: string | undefined; label: string | undefined }) {
+function CredentialsCell(cocaCopyProps0: { credentialName: string | undefined; label: string | undefined }) {
+  const { credentialName, label } = cocaCopyProps0;
+  useUiLocale();
   if (!credentialName) {
     return (
       <Badge variant="outline" className="gap-1 font-normal text-muted-foreground">
         <Pencil className="size-3" />
-        Manual
+        <LocalizedText text={"Manual"} />
       </Badge>
     );
   }
@@ -174,7 +189,7 @@ function CredentialsCell({ credentialName, label }: { credentialName: string | u
   return (
     <CredentialIdentity
       credentialName={credentialName}
-      label={label}
+      label={localizedProperty(cocaCopyProps0, "label", label)}
       icon={<RefreshCw className="size-3 shrink-0" />}
       className="text-xs font-medium text-info"
     />
@@ -182,6 +197,7 @@ function CredentialsCell({ credentialName, label }: { credentialName: string | u
 }
 
 function CreatedByCell({ model }: { model: ModelData }) {
+  useUiLocale();
   const isConfigModel = !model.model_info?.db_model;
   const createdAt = formatShortDate(model.model_info.created_at);
   const primary = isConfigModel ? "Defined in config" : model.model_info.created_by || "Unknown";
@@ -197,16 +213,21 @@ function CreatedByCell({ model }: { model: ModelData }) {
   );
 }
 
-function CostRow({ label, value }: { label: string; value: string }) {
+function CostRow(cocaCopyProps1: { label: string; value: string }) {
+  const { label, value } = cocaCopyProps1;
+  useUiLocale();
   return (
     <span className="flex items-baseline gap-1.5">
-      <span className="text-[10px] font-semibold tracking-wider text-muted-foreground">{label}</span>
+      <span className="text-[10px] font-semibold tracking-wider text-muted-foreground">
+        {localizedProperty(cocaCopyProps1, "label", label)}
+      </span>
       <span className="text-xs font-medium tabular-nums text-foreground">{value}</span>
     </span>
   );
 }
 
 function CostsCell({ model }: { model: ModelData }) {
+  useUiLocale();
   const { input_cost: inputCost, output_cost: outputCost, output_cost_per_second: perSecond } = model;
   const hasPerSecond = perSecond != null;
   const showInput = inputCost != null && (!hasPerSecond || Number(inputCost) > 0);
@@ -221,9 +242,9 @@ function CostsCell({ model }: { model: ModelData }) {
       content={hasPerSecond ? "Cost per 1M tokens; /s is cost per second of output" : "Cost per 1M tokens"}
       trigger={
         <div className="flex flex-col gap-0.5 whitespace-nowrap">
-          {showInput && <CostRow label="IN" value={`$${inputCost}`} />}
-          {showOutput && <CostRow label="OUT" value={`$${outputCost}`} />}
-          {hasPerSecond && <CostRow label="OUT" value={formatPerSecondCost(perSecond)} />}
+          {showInput && <CostRow label={translateMessage("IN")} value={`$${inputCost}`} />}
+          {showOutput && <CostRow label={translateMessage("OUT")} value={`$${outputCost}`} />}
+          {hasPerSecond && <CostRow label={translateMessage("OUT")} value={formatPerSecondCost(perSecond)} />}
         </div>
       }
     />
@@ -231,6 +252,7 @@ function CostsCell({ model }: { model: ModelData }) {
 }
 
 function AccessGroupsCell({ accessGroups }: { accessGroups: string[] | null }) {
+  useUiLocale();
   if (!accessGroups || accessGroups.length === 0) {
     return <span className="text-sm text-muted-foreground">-</span>;
   }
@@ -253,7 +275,8 @@ function AccessGroupsCell({ accessGroups }: { accessGroups: string[] | null }) {
           }
           trigger={
             <Badge variant="outline" className="shrink-0 cursor-default font-normal">
-              +{overflow.length} more
+              +{overflow.length}
+              <LocalizedText text={" more"} />
             </Badge>
           }
         />
@@ -281,6 +304,7 @@ function ModelRowActions({
   onDeleteClick,
   onTogglePauseClick,
 }: ModelRowActionsProps) {
+  useUiLocale();
   const modelId = model.model_info?.id;
   const isConfigModel = !model.model_info?.db_model;
   const isAdmin = userRole === "Admin" && !isViewOnly;
@@ -319,7 +343,7 @@ function ModelRowActions({
                   size="sm"
                   checked={!isBlocked}
                   disabled={!isPauseToggleable}
-                  aria-label={isBlocked ? "Resume model" : "Pause model"}
+                  aria-label={isBlocked ? translateMessage("Resume model") : translateMessage("Pause model")}
                   data-testid={`model-pause-toggle-${modelId}`}
                   onCheckedChange={(nextChecked) => {
                     if (isPauseToggleable && onTogglePauseClick && modelId) {
@@ -339,7 +363,7 @@ function ModelRowActions({
             <Button
               variant="ghost"
               size="icon-sm"
-              aria-label="Delete model"
+              aria-label={translateMessage("Delete model")}
               data-testid={`model-delete-${modelId}`}
               disabled={isConfigModel || !canEditModel}
               className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
@@ -381,27 +405,30 @@ export const getModelsTableColumns = ({
   pausingModelId,
   credentialLabels,
 }: ModelsTableColumnDeps): ColumnDef<ModelData>[] => [
-  {
-    id: MODEL_ID_COLUMN_ID,
-    accessorFn: (row) => row.model_info.id,
-    meta: { title: "Model ID" },
-    header: "Model ID",
-    enableSorting: false,
-    size: 140,
-    minSize: 90,
-    cell: ({ row }) => (
-      <IdCell
-        value={row.original.model_info.id}
-        onClick={onModelIdClick}
-        dataTestId={`model-id-${row.original.model_info.id}`}
-      />
-    ),
-  },
+  markUiCopy(
+    {
+      id: MODEL_ID_COLUMN_ID,
+      accessorFn: (row) => row.model_info.id,
+      meta: markUiCopy({ title: "Model ID" }, { title: "Model ID" }),
+      header: "Model ID",
+      enableSorting: false,
+      size: 140,
+      minSize: 90,
+      cell: ({ row }) => (
+        <IdCell
+          value={row.original.model_info.id}
+          onClick={onModelIdClick}
+          dataTestId={`model-id-${row.original.model_info.id}`}
+        />
+      ),
+    },
+    { header: "Model ID" },
+  ),
   {
     id: MODEL_NAME_COLUMN_ID,
     accessorFn: (row) => row.model_name ?? "",
-    meta: { title: "Model Information", skeleton: "twoLine" },
-    header: ({ column }) => <DataTableSortHeader column={column} title="Model Information" />,
+    meta: markUiCopy({ title: "Model Information", skeleton: "twoLine" as const }, { title: "Model Information" }),
+    header: ({ column }) => <DataTableSortHeader column={column} title={translateMessage("Model Information")} />,
     enableSorting: true,
     size: 280,
     minSize: 160,
@@ -412,7 +439,7 @@ export const getModelsTableColumns = ({
   {
     id: CREDENTIALS_COLUMN_ID,
     accessorFn: (row) => row.litellm_params?.litellm_credential_name ?? "",
-    meta: { title: "Credentials" },
+    meta: markUiCopy({ title: "Credentials" }, { title: "Credentials" }),
     header: () => <CredentialsHeader />,
     enableSorting: false,
     size: 180,
@@ -430,8 +457,8 @@ export const getModelsTableColumns = ({
   {
     id: CREATED_BY_COLUMN_ID,
     accessorFn: (row) => row.model_info.created_by ?? "",
-    meta: { title: "Created By", skeleton: "twoLine" },
-    header: ({ column }) => <DataTableSortHeader column={column} title="Created By" />,
+    meta: markUiCopy({ title: "Created By", skeleton: "twoLine" as const }, { title: "Created By" }),
+    header: ({ column }) => <DataTableSortHeader column={column} title={translateMessage("Created By")} />,
     enableSorting: true,
     size: 180,
     minSize: 110,
@@ -440,8 +467,8 @@ export const getModelsTableColumns = ({
   {
     id: UPDATED_AT_COLUMN_ID,
     accessorFn: (row) => row.model_info.updated_at ?? "",
-    meta: { title: "Updated At" },
-    header: ({ column }) => <DataTableSortHeader column={column} title="Updated At" />,
+    meta: markUiCopy({ title: "Updated At" }, { title: "Updated At" }),
+    header: ({ column }) => <DataTableSortHeader column={column} title={translateMessage("Updated At")} />,
     enableSorting: true,
     size: 140,
     minSize: 100,
@@ -450,73 +477,85 @@ export const getModelsTableColumns = ({
   {
     id: COSTS_COLUMN_ID,
     accessorFn: (row) => row.input_cost,
-    meta: { title: "Costs", numeric: true },
-    header: ({ column }) => <DataTableSortHeader column={column} title="Costs" />,
+    meta: markUiCopy({ title: "Costs", numeric: true }, { title: "Costs" }),
+    header: ({ column }) => <DataTableSortHeader column={column} title={translateMessage("Costs")} />,
     enableSorting: true,
     size: 130,
     minSize: 90,
     cell: ({ row }) => <CostsCell model={row.original} />,
   },
-  {
-    id: TEAM_ID_COLUMN_ID,
-    accessorFn: (row) => row.model_info.team_id ?? "",
-    meta: { title: "Team ID" },
-    header: "Team ID",
-    enableSorting: false,
-    size: 140,
-    minSize: 90,
-    cell: ({ row }) => (
-      <IdCell
-        value={row.original.model_info.team_id}
-        onClick={onTeamIdClick}
-        dataTestId={`model-team-id-${row.original.model_info.id}`}
-      />
-    ),
-  },
-  {
-    id: ACCESS_GROUPS_COLUMN_ID,
-    accessorFn: (row) => row.model_info.access_groups ?? [],
-    meta: { title: "Model Access Group", skeleton: "chips" },
-    header: "Model Access Group",
-    enableSorting: false,
-    size: 200,
-    minSize: 120,
-    cell: ({ row }) => <AccessGroupsCell accessGroups={row.original.model_info.access_groups} />,
-  },
+  markUiCopy(
+    {
+      id: TEAM_ID_COLUMN_ID,
+      accessorFn: (row) => row.model_info.team_id ?? "",
+      meta: markUiCopy({ title: "Team ID" }, { title: "Team ID" }),
+      header: "Team ID",
+      enableSorting: false,
+      size: 140,
+      minSize: 90,
+      cell: ({ row }) => (
+        <IdCell
+          value={row.original.model_info.team_id}
+          onClick={onTeamIdClick}
+          dataTestId={`model-team-id-${row.original.model_info.id}`}
+        />
+      ),
+    },
+    { header: "Team ID" },
+  ),
+  markUiCopy(
+    {
+      id: ACCESS_GROUPS_COLUMN_ID,
+      accessorFn: (row) => row.model_info.access_groups ?? [],
+      meta: markUiCopy({ title: "Model Access Group", skeleton: "chips" as const }, { title: "Model Access Group" }),
+      header: "Model Access Group",
+      enableSorting: false,
+      size: 200,
+      minSize: 120,
+      cell: ({ row }) => <AccessGroupsCell accessGroups={row.original.model_info.access_groups} />,
+    },
+    { header: "Model Access Group" },
+  ),
   {
     id: STATUS_COLUMN_ID,
     accessorFn: (row) => row.model_info.db_model,
-    meta: { title: "Source", skeleton: "badge" },
-    header: ({ column }) => <DataTableSortHeader column={column} title="Source" />,
+    meta: markUiCopy({ title: "Source", skeleton: "badge" as const }, { title: "Source" }),
+    header: ({ column }) => <DataTableSortHeader column={column} title={translateMessage("Source")} />,
     enableSorting: true,
     size: 140,
     minSize: 100,
     cell: ({ row }) =>
       row.original.model_info.db_model ? (
-        <StatusBadge tone="info" label="DB Model" />
+        <StatusBadge tone="info" label={translateMessage("DB Model")} />
       ) : (
-        <StatusBadge tone="neutral" label="Config Model" />
+        <StatusBadge tone="neutral" label={translateMessage("Config Model")} />
       ),
   },
-  {
-    id: "actions",
-    meta: { title: "Actions", className: "text-right", headerClassName: "text-right" },
-    header: "Actions",
-    enableSorting: false,
-    enableHiding: false,
-    enableResizing: false,
-    size: 110,
-    minSize: 110,
-    cell: ({ row }) => (
-      <ModelRowActions
-        model={row.original}
-        userRole={userRole}
-        userID={userID}
-        isViewOnly={isViewOnly}
-        isPausing={pausingModelId === row.original.model_info?.id}
-        onDeleteClick={onDeleteClick}
-        onTogglePauseClick={onTogglePauseClick}
-      />
-    ),
-  },
+  markUiCopy(
+    {
+      id: "actions",
+      meta: markUiCopy(
+        { title: "Actions", className: "text-right", headerClassName: "text-right" },
+        { title: "Actions" },
+      ),
+      header: "Actions",
+      enableSorting: false,
+      enableHiding: false,
+      enableResizing: false,
+      size: 110,
+      minSize: 110,
+      cell: ({ row }) => (
+        <ModelRowActions
+          model={row.original}
+          userRole={userRole}
+          userID={userID}
+          isViewOnly={isViewOnly}
+          isPausing={pausingModelId === row.original.model_info?.id}
+          onDeleteClick={onDeleteClick}
+          onTogglePauseClick={onTogglePauseClick}
+        />
+      ),
+    },
+    { header: "Actions" },
+  ),
 ];

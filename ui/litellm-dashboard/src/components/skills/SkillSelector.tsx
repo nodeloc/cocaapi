@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 import React, { useEffect, useState } from "react";
 import {
   Combobox,
@@ -48,6 +50,7 @@ const SkillSelector: React.FC<SkillSelectorProps> = ({
   placeholder = "Select skills (optional)",
   disabled = false,
 }) => {
+  useUiLocale();
   const anchor = useComboboxAnchor();
   const [options, setOptions] = useState<SkillOption[]>([]);
   const [loading, setLoading] = useState(false);
@@ -86,17 +89,29 @@ const SkillSelector: React.FC<SkillSelectorProps> = ({
           }
         </ComboboxValue>
         <ComboboxChipsInput placeholder={placeholder} aria-label={placeholder} disabled={disabled} />
-        {value && value.length > 0 && <ComboboxClear aria-label="Clear all skills" disabled={disabled} />}
+        {value && value.length > 0 && (
+          <ComboboxClear aria-label={translateMessage("Clear all skills")} disabled={disabled} />
+        )}
       </ComboboxChips>
       <ComboboxContent anchor={anchor}>
-        <ComboboxEmpty>{loading ? "Loading skills…" : "No skills found"}</ComboboxEmpty>
+        <ComboboxEmpty>
+          {loading ? translateMessage("Loading skills…") : translateMessage("No skills found")}
+        </ComboboxEmpty>
         <ComboboxList>
           {(skill: string) => {
             const isPrivate = options.some((option) => option.name === skill && !option.enabled);
             return (
-              <ComboboxItem key={skill} value={skill} aria-label={isPrivate ? `${skill} (private)` : skill}>
+              <ComboboxItem
+                key={skill}
+                value={skill}
+                aria-label={isPrivate ? translateMessage("%{0} (private)", [skill]) : skill}
+              >
                 {skill}
-                {isPrivate && <span className="ml-2 text-xs text-muted-foreground">private</span>}
+                {isPrivate && (
+                  <span className="ml-2 text-xs text-muted-foreground">
+                    <LocalizedText text={"private"} />
+                  </span>
+                )}
               </ComboboxItem>
             );
           }}

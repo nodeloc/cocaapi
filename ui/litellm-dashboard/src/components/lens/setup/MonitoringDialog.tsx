@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 import { useState } from "react";
 import { z } from "zod";
 import { Controller } from "react-hook-form";
@@ -29,6 +31,7 @@ export function MonitoringDialog({
   onSave: (settings: Settings) => Promise<void>;
   onClose: () => void;
 }) {
+  useUiLocale();
   const [error, setError] = useState("");
   const form = useZodForm(monitoringSchema, {
     defaultValues: { interval_minutes: settings.interval_minutes ?? 30 },
@@ -41,7 +44,11 @@ export function MonitoringDialog({
       await onSave({ ...settings, enabled: true, interval_minutes });
       onClose();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Could not enable monitoring");
+      setError(
+        cause instanceof Error
+          ? localizedProperty(cause, "message", cause.message)
+          : translateMessage("Could not enable monitoring"),
+      );
     }
   });
   return (
@@ -53,29 +60,40 @@ export function MonitoringDialog({
     >
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-xl">Keep monitoring</DialogTitle>
+          <DialogTitle className="text-xl">
+            <LocalizedText text={"Keep monitoring"} />
+          </DialogTitle>
           <DialogDescription>
-            Repeat this investigation with the saved scope, sample, model, and budget.
+            <LocalizedText text={"Repeat this investigation with the saved scope, sample, model, and budget."} />
           </DialogDescription>
         </DialogHeader>
         <Controller
           control={control}
           name="interval_minutes"
           render={({ field }) => (
-            <DurationInput label="Check every" value={field.value} onChange={field.onChange} base="minutes" />
+            <DurationInput
+              label={translateMessage("Check every")}
+              value={field.value}
+              onChange={field.onChange}
+              base="minutes"
+            />
           )}
         />
         {formState.errors.interval_minutes?.message && (
           <p role="alert" className="text-sm text-destructive">
-            {formState.errors.interval_minutes.message}
+            {localizedProperty(formState.errors.interval_minutes, "message")}
           </p>
         )}
         <p className="text-xs leading-5 text-muted-foreground">
-          Each investigation looks back over the saved time range. The interval starts after the previous run finishes.
+          <LocalizedText
+            text={
+              "Each investigation looks back over the saved time range. The interval starts after the previous run finishes."
+            }
+          />
         </p>
         {!ready && (
           <p role="status" className="text-sm text-warning">
-            Reconnect the worker before enabling monitoring.
+            <LocalizedText text={"Reconnect the worker before enabling monitoring."} />
           </p>
         )}
         {error && (
@@ -85,10 +103,10 @@ export function MonitoringDialog({
         )}
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>
-            Cancel
+            <LocalizedText text={"Cancel"} />
           </Button>
           <Button disabled={!formState.isValid || formState.isSubmitting || !ready} onClick={() => void save()}>
-            {formState.isSubmitting ? "Saving…" : "Enable monitoring"}
+            {formState.isSubmitting ? translateMessage("Saving…") : translateMessage("Enable monitoring")}
           </Button>
         </DialogFooter>
       </DialogContent>

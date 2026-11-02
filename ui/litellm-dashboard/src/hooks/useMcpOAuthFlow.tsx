@@ -1,4 +1,5 @@
 "use client";
+import { translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "@/lib/toast";
@@ -82,6 +83,7 @@ export const useMcpOAuthFlow = ({
   onBeforeRedirect,
   flowSource,
 }: UseMcpOAuthFlowOptions): UseMcpOAuthFlowResult => {
+  useUiLocale();
   const [status, setStatus] = useState<McpOAuthStatus>("idle");
   const [error, setError] = useState<string | null>(null);
   const [tokenResponse, setTokenResponse] = useState<Record<string, any> | null>(null);
@@ -155,8 +157,8 @@ export const useMcpOAuthFlow = ({
     const credentials = getCredentials() || {};
 
     if (!accessToken) {
-      setError("Missing admin token");
-      toast.error("Access token missing. Please re-authenticate and try again.");
+      setError(translateMessage("Missing admin token"));
+      toast.error(translateMessage("Access token missing. Please re-authenticate and try again."));
       return;
     }
 
@@ -288,9 +290,9 @@ export const useMcpOAuthFlow = ({
     } catch (err) {
       clearStoredFlow();
       processingRef.current = false;
-      setError("Failed to resume OAuth flow. Please retry.");
+      setError(translateMessage("Failed to resume OAuth flow. Please retry."));
       setStatus("error");
-      toast.error("Failed to resume OAuth flow. Please retry.");
+      toast.error(translateMessage("Failed to resume OAuth flow. Please retry."));
       return;
     }
 
@@ -360,7 +362,7 @@ export const useMcpOAuthFlow = ({
       setTokenResponse(token);
       setStatus("success");
       setError(null);
-      toast.success("OAuth token retrieved successfully");
+      toast.success(translateMessage("OAuth token retrieved successfully"));
     } catch (err) {
       if (resetVersion !== resetVersionRef.current) {
         return;

@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { ChevronDown } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -22,6 +23,7 @@ export default function PageVisibilitySettings({
   isUpdating,
   onUpdate,
 }: PageVisibilitySettingsProps) {
+  useUiLocale();
   const isPageVisibilitySet = enabledPagesInternalUsers !== null && enabledPagesInternalUsers !== undefined;
   const availablePages = useMemo(() => getAvailablePages(), []);
   const pagesByGroup = useMemo(() => {
@@ -57,28 +59,38 @@ export default function PageVisibilitySettings({
     <div className="space-y-4">
       <div className="space-y-1">
         <div className="flex items-center gap-2">
-          <p className="text-sm font-medium text-foreground">Internal User Page Visibility</p>
+          <p className="text-sm font-medium text-foreground">
+            <LocalizedText text={"Internal User Page Visibility"} />
+          </p>
           <Badge variant={isPageVisibilitySet ? "secondary" : "outline"}>
             {isPageVisibilitySet
-              ? `${selectedPages.length} page${selectedPages.length !== 1 ? "s" : ""} selected`
-              : "Not set (all pages visible)"}
+              ? translateMessage("%{0} page%{1} selected", [
+                  selectedPages.length,
+                  selectedPages.length !== 1 ? "s" : "",
+                ])
+              : translateMessage("Not set (all pages visible)")}
           </Badge>
         </div>
         {enabledPagesPropertyDescription && (
           <p className="text-sm text-muted-foreground">{enabledPagesPropertyDescription}</p>
         )}
         <p className="text-xs italic text-muted-foreground">
-          By default, all pages are visible to internal users. Select specific pages to restrict visibility.
+          <LocalizedText
+            text={"By default, all pages are visible to internal users. Select specific pages to restrict visibility."}
+          />
         </p>
         <p className="text-xs text-primary">
-          Note: Only pages accessible to internal user roles are shown here. Admin-only pages are excluded as they
-          cannot be made visible to internal users regardless of this setting.
+          <LocalizedText
+            text={
+              "Note: Only pages accessible to internal user roles are shown here. Admin-only pages are excluded as they cannot be made visible to internal users regardless of this setting."
+            }
+          />
         </p>
       </div>
 
       <Collapsible className="rounded-lg border border-border">
         <CollapsibleTrigger className="group flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-medium hover:bg-muted">
-          Configure Page Visibility
+          <LocalizedText text={"Configure Page Visibility"} />
           <ChevronDown className="size-4 transition-transform group-data-[panel-open]:rotate-180" />
         </CollapsibleTrigger>
         <CollapsibleContent className="border-t border-border p-4">
@@ -99,8 +111,12 @@ export default function PageVisibilitySettings({
                           onCheckedChange={(checked) => togglePage(page.page, checked === true)}
                         />
                         <span className="space-y-0.5">
-                          <span className="block text-sm text-foreground">{page.label}</span>
-                          <span className="block text-xs text-muted-foreground">{page.description}</span>
+                          <span className="block text-sm text-foreground">
+                            {localizedProperty(page, "label", page.label)}
+                          </span>
+                          <span className="block text-xs text-muted-foreground">
+                            {localizedProperty(page, "description", page.description)}
+                          </span>
                         </span>
                       </label>
                     );
@@ -111,11 +127,11 @@ export default function PageVisibilitySettings({
 
             <div className="flex flex-wrap gap-2">
               <Button type="button" onClick={handleSavePageVisibility} disabled={isUpdating}>
-                Save Page Visibility Settings
+                <LocalizedText text={"Save Page Visibility Settings"} />
               </Button>
               {isPageVisibilitySet && (
                 <Button type="button" variant="outline" onClick={handleResetToDefault} disabled={isUpdating}>
-                  Reset to Default (All Pages)
+                  <LocalizedText text={"Reset to Default (All Pages)"} />
                 </Button>
               )}
             </div>

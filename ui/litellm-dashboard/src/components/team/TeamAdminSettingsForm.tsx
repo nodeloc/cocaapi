@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, useUiLocale } from "@/lib/i18n";
 
 import { Save } from "lucide-react";
 import { useWatch } from "react-hook-form";
@@ -45,6 +46,7 @@ export default function TeamAdminSettingsForm({
   onCancel,
   onSave,
 }: TeamAdminSettingsFormProps) {
+  useUiLocale();
   const form = useZodForm(teamAdminSettingsSchema, { defaultValues: initialValues });
   const draft = useWatch({ control: form.control });
   const hasChanges = Object.keys(teamAdminSettingsChanges(draft, initialValues, editableFields)).length > 0;
@@ -54,7 +56,11 @@ export default function TeamAdminSettingsForm({
     <form onSubmit={(event) => void submit(event)}>
       <FieldGroup>
         <p className="text-sm text-muted-foreground">
-          A proxy admin chose which settings team admins can change. Ask a proxy admin to change anything else.
+          <LocalizedText
+            text={
+              "A proxy admin chose which settings team admins can change. Ask a proxy admin to change anything else."
+            }
+          />
         </p>
         {TEAM_ADMIN_SETTINGS_FIELDS.filter((name) => editableFields.has(name)).map((name) => (
           <FormField key={name} control={form.control} name={name} label={teamAdminFieldLabel(name)}>
@@ -67,11 +73,11 @@ export default function TeamAdminSettingsForm({
 
       <div className="mt-6 flex items-center justify-end gap-2">
         <Button type="button" variant="outline" onClick={onCancel} disabled={isSaving}>
-          Cancel
+          <LocalizedText text={"Cancel"} />
         </Button>
         <Button type="submit" disabled={isSaving || !hasChanges}>
           {isSaving ? <UiLoadingSpinner className="size-4" /> : <Save className="size-4" />}
-          Save Changes
+          <LocalizedText text={"Save Changes"} />
         </Button>
       </div>
     </form>

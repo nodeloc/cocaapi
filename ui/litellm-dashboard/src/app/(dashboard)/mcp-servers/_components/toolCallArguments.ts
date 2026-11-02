@@ -1,3 +1,4 @@
+import { markUiCopy } from "@/lib/i18n";
 import type { Resolver, ResolverResult } from "react-hook-form";
 
 import { InputSchema, InputSchemaProperty } from "@/components/mcp_tools/types";
@@ -128,7 +129,18 @@ export const toolArgumentsResolver =
     return {
       values: {},
       errors: {
-        args: Object.fromEntries(issues.map(({ index, message }) => [index, { type: "validate", message }])),
+        args: Object.fromEntries(
+          issues.map((cocaCopyProps0) => {
+            const { index, message } = cocaCopyProps0;
+            return [
+              index,
+              markUiCopy(
+                { type: "validate" as const, message },
+                { message: { owner: cocaCopyProps0, field: "message" } },
+              ),
+            ];
+          }),
+        ),
       },
     };
   };

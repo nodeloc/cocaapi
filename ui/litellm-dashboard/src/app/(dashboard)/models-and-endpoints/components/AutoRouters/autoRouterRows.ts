@@ -1,3 +1,4 @@
+import { markUiCopy } from "@/lib/i18n";
 import { AutoRouterDeployment } from "@/app/(dashboard)/hooks/models/useModels";
 import {
   AutoRouterKind,
@@ -55,16 +56,28 @@ const asStringArray = (value: unknown): string[] =>
 
 const dedupe = (models: string[]): string[] => Array.from(new Set(models));
 
-const COMPLEXITY_TYPE_LABELS: Record<string, string> = {
-  llm: "LLM Classifier",
-  jev: "OSS Classifier",
-  oss_classifier: "OSS Classifier",
-  capability: "Capability",
-  llm_v2: "Fuse v2",
-  heuristic_first: "Heuristic first",
-  hybrid: "Hybrid",
-  custom: "Custom classifier",
-};
+const COMPLEXITY_TYPE_LABELS: Record<string, string> = markUiCopy(
+  {
+    llm: "LLM Classifier",
+    jev: "OSS Classifier",
+    oss_classifier: "OSS Classifier",
+    capability: "Capability",
+    llm_v2: "Fuse v2",
+    heuristic_first: "Heuristic first",
+    hybrid: "Hybrid",
+    custom: "Custom classifier",
+  },
+  {
+    llm: "LLM Classifier",
+    jev: "OSS Classifier",
+    oss_classifier: "OSS Classifier",
+    capability: "Capability",
+    llm_v2: "Fuse v2",
+    heuristic_first: "Heuristic first",
+    hybrid: "Hybrid",
+    custom: "Custom classifier",
+  },
+);
 
 export const complexityTypeLabel = (config: Record<string, unknown>): string =>
   (typeof config.classifier_type === "string" && COMPLEXITY_TYPE_LABELS[config.classifier_type]) || "Heuristic";

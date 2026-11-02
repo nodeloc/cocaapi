@@ -1,3 +1,4 @@
+import { markUiCopy } from "@/lib/i18n";
 import { z } from "zod";
 
 export const ALL_TEAM_MODELS = "all-team-models";
@@ -39,14 +40,24 @@ export const projectFormSchema = z
     const models = (values.modelLimits ?? []).map((entry) => entry.model);
     models.forEach((_, index) => {
       if (repeatsEarlierValue(models, index)) {
-        ctx.addIssue({ code: "custom", message: "Duplicate model", path: ["modelLimits", index, "model"] });
+        ctx.addIssue(
+          markUiCopy(
+            { code: "custom" as const, message: "Duplicate model", path: ["modelLimits", index, "model"] },
+            { message: "Duplicate model" },
+          ),
+        );
       }
     });
 
     const keys = (values.metadata ?? []).map((entry) => entry.key);
     keys.forEach((_, index) => {
       if (repeatsEarlierValue(keys, index)) {
-        ctx.addIssue({ code: "custom", message: "Duplicate key", path: ["metadata", index, "key"] });
+        ctx.addIssue(
+          markUiCopy(
+            { code: "custom" as const, message: "Duplicate key", path: ["metadata", index, "key"] },
+            { message: "Duplicate key" },
+          ),
+        );
       }
     });
   });

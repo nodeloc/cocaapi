@@ -1,4 +1,5 @@
 "use client";
+import { translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { X } from "lucide-react";
 import moment from "moment";
@@ -56,10 +57,12 @@ interface TimelineProps {
 }
 
 function BucketBar({ bucket }: { bucket: TimeBucket }) {
+  useUiLocale();
   return <div className="pointer-events-none h-full flex-1" data-testid="timeline-bucket" data-total={bucket.total} />;
 }
 
 function NowEdge() {
+  useUiLocale();
   return (
     <>
       <div
@@ -85,6 +88,7 @@ function BucketTooltip({
   bucketCount: number;
   noun: ItemNoun;
 }) {
+  useUiLocale();
   return (
     <div
       className="pointer-events-none absolute top-full z-floating mt-1 rounded-md border border-border bg-popover px-2.5 py-1.5 font-mono text-xs text-popover-foreground shadow-md"
@@ -153,6 +157,7 @@ function SelectionBracket({
   bucketCount: number;
   onHandleDown: (mode: DragMode) => (e: React.PointerEvent) => void;
 }) {
+  useUiLocale();
   const leftFrac = band.lo / bucketCount;
   const rightFrac = (band.hi + 1) / bucketCount;
   const widthPx = (rightFrac - leftFrac) * stripWidth;
@@ -201,6 +206,7 @@ export function timelineTicks(range: TimeWindow, width: number): number[] {
 }
 
 function TickAxis({ range, width }: { range: TimeWindow; width: number }) {
+  useUiLocale();
   const format = tickFormat(range);
   const ticks = timelineTicks(range, width);
   return (
@@ -228,6 +234,7 @@ function TickAxis({ range, width }: { range: TimeWindow; width: number }) {
 
 /** Histogram over the window covered by `buckets`. Drag to select; drag the bracket or its edges to adjust; Esc clears. */
 export function Timeline({ buckets, selection, onSelect, noun }: TimelineProps) {
+  useUiLocale();
   const bucketCount = buckets.length;
   const [hover, setHover] = useState<number | null>(null);
   const [drag, setDrag] = useState<DragState | null>(null);
@@ -340,7 +347,7 @@ export function Timeline({ buckets, selection, onSelect, noun }: TimelineProps) 
         <button
           type="button"
           onClick={() => onSelect(null)}
-          aria-label="Clear time zoom"
+          aria-label={translateMessage("Clear time zoom")}
           className="absolute top-1 right-3 inline-flex size-5 items-center justify-center rounded text-muted-foreground hover:bg-muted hover:text-foreground"
         >
           <X className="size-3" />

@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import React, { useMemo, useState } from "react";
 import { ArrowRight, Bot } from "lucide-react";
@@ -23,9 +24,9 @@ const CHART_SERIES = 6;
 /** Below this share of tokens carrying a User-Agent, say so rather than imply the list is the whole picture. */
 const COVERAGE_NOTE_BELOW = 0.5;
 const METRICS = [
-  { value: "tokens", label: "Tokens" },
-  { value: "spend", label: "Spend" },
-  { value: "requests", label: "Requests" },
+  markUiCopy({ value: "tokens", label: "Tokens" }, { label: "Tokens" }),
+  markUiCopy({ value: "spend", label: "Spend" }, { label: "Spend" }),
+  markUiCopy({ value: "requests", label: "Requests" }, { label: "Requests" }),
 ] as const satisfies readonly { value: UsageMetric; label: string }[];
 
 /** Brand-tinted monograms for runtimes that have no logo file, so a top spender never shows a blank tile. */
@@ -37,6 +38,7 @@ const MONOGRAMS: Readonly<Record<string, { text: string; className: string }>> =
 
 /** Claude Code's mark: a white spark on Claude terracotta. Drawn here since no Claude asset ships in the repo. */
 function ClaudeSpark() {
+  useUiLocale();
   const rays = Array.from({ length: 12 }, (_, i) => i * 30);
   return (
     <span className="flex size-full items-center justify-center bg-[#d97757]">
@@ -59,8 +61,10 @@ function ClaudeSpark() {
 }
 
 function AgentGlyph({ agent }: { agent: AgentRow }) {
+  useUiLocale();
   if (agent.id === "claude-code") return <ClaudeSpark />;
-  if (agent.logo) return <Logo src={agent.logo} label={agent.label} className="size-5" />;
+  if (agent.logo)
+    return <Logo src={agent.logo} label={localizedProperty(agent, "label", agent.label)} className="size-5" />;
   const monogram = MONOGRAMS[agent.id];
   if (monogram) {
     return (
@@ -78,6 +82,7 @@ function AgentGlyph({ agent }: { agent: AgentRow }) {
 }
 
 function AgentMark({ agent }: { agent: AgentRow }) {
+  useUiLocale();
   return (
     <span className="inline-flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border bg-background">
       <AgentGlyph agent={agent} />
@@ -98,6 +103,7 @@ function AgentItem({
   color: string | undefined;
   onOpen?: (agent: AgentRow) => void;
 }) {
+  useUiLocale();
   return (
     <li className="group grid grid-cols-[1.5rem_auto_minmax(0,1fr)_auto] items-center gap-3 py-2.5">
       <span className="text-sm tabular-nums text-muted-foreground">{rank}.</span>
@@ -112,22 +118,29 @@ function AgentItem({
         )}
       </span>
       <span className="min-w-0">
-        <span className="block truncate text-sm font-medium text-foreground">{agent.label}</span>
+        <span className="block truncate text-sm font-medium text-foreground">
+          {localizedProperty(agent, "label", agent.label)}
+        </span>
         {onOpen ? (
           <button
             type="button"
             onClick={() => onOpen(agent)}
             className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
           >
-            View activity
+            <LocalizedText text={"View activity"} />
             <ArrowRight aria-hidden="true" className="size-3 transition-transform group-hover:translate-x-0.5" />
           </button>
         ) : (
-          <span className="block truncate text-xs text-muted-foreground">{agent.description}</span>
+          <span className="block truncate text-xs text-muted-foreground">
+            {localizedProperty(agent, "description", agent.description)}
+          </span>
         )}
       </span>
       <span className="text-right">
-        <span className="block text-sm tabular-nums text-foreground">{formatCompact(agent.tokens)} tokens</span>
+        <span className="block text-sm tabular-nums text-foreground">
+          {formatCompact(agent.tokens)}
+          <LocalizedText text={" tokens"} />
+        </span>
         <span className="block text-xs tabular-nums text-muted-foreground">
           {formatCompactUsd(agent.spend)} · {share.toFixed(1)}%
         </span>
@@ -137,8 +150,14 @@ function AgentItem({
 }
 
 function TopAgentsBody({ loading, empty, children }: { loading: boolean; empty: boolean; children: React.ReactNode }) {
+  useUiLocale();
   if (loading) return <ChartSkeleton className="mx-5 h-64 w-auto" />;
-  if (empty) return <p className="py-10 text-center text-xs text-muted-foreground">No agent traffic in this range</p>;
+  if (empty)
+    return (
+      <p className="py-10 text-center text-xs text-muted-foreground">
+        <LocalizedText text={"No agent traffic in this range"} />
+      </p>
+    );
   return <>{children}</>;
 }
 
@@ -163,6 +182,7 @@ export default function TopAgents({
   totalTokens: number;
   onOpenAgent?: (agent: AgentRow) => void;
 }) {
+  useUiLocale();
   const [metric, setMetric] = useState<UsageMetric>("tokens");
   const allAgents = useMemo(() => topAgents(rows ?? []), [rows]);
   const agents = useMemo(
@@ -192,10 +212,12 @@ export default function TopAgents({
   return (
     <Panel
       icon={Bot}
-      title="Top agents"
+      title={translateMessage("Top agents")}
       subtitle={subtitle}
       testId="top-agents"
-      action={<Segmented label="Agent metric" value={metric} options={METRICS} onChange={setMetric} />}
+      action={
+        <Segmented label={translateMessage("Agent metric")} value={metric} options={METRICS} onChange={setMetric} />
+      }
       bodyClassName="px-0 pt-4 pb-0"
     >
       <TopAgentsBody loading={loading} empty={agents.length === 0}>

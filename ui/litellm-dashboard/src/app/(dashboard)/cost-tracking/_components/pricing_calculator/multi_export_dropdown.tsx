@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, useUiLocale } from "@/lib/i18n";
 import React from "react";
 import { Download, FileSpreadsheet, FileText } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
@@ -15,6 +17,7 @@ interface MultiExportDropdownProps {
 }
 
 const MultiExportDropdown: React.FC<MultiExportDropdownProps> = ({ multiResult }) => {
+  useUiLocale();
   const hasResults = multiResult.entries.some((e) => e.result !== null);
 
   if (!hasResults) {
@@ -25,16 +28,16 @@ const MultiExportDropdown: React.FC<MultiExportDropdownProps> = ({ multiResult }
     <DropdownMenu>
       <DropdownMenuTrigger className={buttonVariants({ variant: "secondary", size: "xs" })}>
         <Download />
-        Export
+        <LocalizedText text={"Export"} />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-44">
         <DropdownMenuItem onClick={() => exportMultiToPDF(multiResult)}>
           <FileText />
-          Export as PDF
+          <LocalizedText text={"Export as PDF"} />
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => exportMultiToCSV(multiResult)}>
           <FileSpreadsheet />
-          Export as CSV
+          <LocalizedText text={"Export as CSV"} />
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

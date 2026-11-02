@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, getIntlLocale, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { ExternalLinkIcon, SearchIcon } from "@heroicons/react/outline";
 import { SortingState } from "@tanstack/react-table";
@@ -56,19 +58,22 @@ interface PublicModelHubProps {
   isEmbedded?: boolean; // When true, hides navbar and adjusts layout for embedding in dashboard
 }
 
-function PublicHubEmptyState({ title, body }: { title: string; body: string }) {
+function PublicHubEmptyState(cocaCopyProps0: { title: string; body: string }) {
+  const { title, body } = cocaCopyProps0;
+  useUiLocale();
   return (
     <div className="flex flex-col items-center gap-1 py-6">
       <div className="mb-1 flex size-10 items-center justify-center rounded-lg bg-muted">
         <Inbox className="size-5 text-muted-foreground" />
       </div>
-      <div className="text-sm font-medium text-foreground">{title}</div>
+      <div className="text-sm font-medium text-foreground">{localizedProperty(cocaCopyProps0, "title", title)}</div>
       <div className="text-sm text-muted-foreground">{body}</div>
     </div>
   );
 }
 
 const PublicModelHub: React.FC<PublicModelHubProps> = ({ accessToken, isEmbedded = false }) => {
+  useUiLocale();
   const anchor = useComboboxAnchor();
   const [proxyConfigured, setProxyConfigured] = useState<boolean>(false);
   const [agentHubData, setAgentHubData] = useState<AgentCard[] | null>(null);
@@ -244,7 +249,7 @@ const PublicModelHub: React.FC<PublicModelHubProps> = ({ accessToken, isEmbedded
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    toast.success("Copied to clipboard!");
+    toast.success(translateMessage("Copied to clipboard!"));
   };
 
   const formatCapabilityName = (key: string) => {
@@ -310,8 +315,11 @@ const PublicModelHub: React.FC<PublicModelHubProps> = ({ accessToken, isEmbedded
             {isEmbedded && (
               <div className="mb-6 p-4 bg-info/10 border border-info/20 rounded-lg">
                 <p className="text-sm text-foreground">
-                  These are models, agents, and MCP servers your proxy admin has indicated are available in your
-                  company.
+                  <LocalizedText
+                    text={
+                      "These are models, agents, and MCP servers your proxy admin has indicated are available in your company."
+                    }
+                  />
                 </p>
               </div>
             )}
@@ -319,16 +327,19 @@ const PublicModelHub: React.FC<PublicModelHubProps> = ({ accessToken, isEmbedded
             {/* About Section - only shown when not embedded */}
             {!isEmbedded && (
               <Card className="mb-10 p-8 bg-card border border-border rounded-lg shadow-xs">
-                <h2 className="text-2xl font-semibold mb-6 text-foreground">About</h2>
+                <h2 className="text-2xl font-semibold mb-6 text-foreground">
+                  <LocalizedText text={"About"} />
+                </h2>
                 <p className="text-foreground mb-6 text-base leading-relaxed">
                   {customDocsDescription
                     ? customDocsDescription
-                    : "Proxy Server to call 100+ LLMs in the OpenAI format."}
+                    : translateMessage("Proxy Server to call 100+ LLMs in the OpenAI format.")}
                 </p>
                 <div className="flex items-center space-x-3 text-sm text-muted-foreground">
                   <span className="flex items-center">
                     <span className="w-4 h-4 mr-2">🔧</span>
-                    Built with litellm: v{litellmVersion}
+                    <LocalizedText text={"Built with litellm: v"} />
+                    {litellmVersion}
                   </span>
                 </div>
               </Card>
@@ -337,7 +348,9 @@ const PublicModelHub: React.FC<PublicModelHubProps> = ({ accessToken, isEmbedded
             {/* Useful Links - only shown when not embedded */}
             {usefulLinks && Object.keys(usefulLinks).length > 0 && (
               <Card className="mb-10 p-8 bg-card border border-border rounded-lg shadow-xs">
-                <h2 className="text-2xl font-semibold mb-6 text-foreground">Useful Links</h2>
+                <h2 className="text-2xl font-semibold mb-6 text-foreground">
+                  <LocalizedText text={"Useful Links"} />
+                </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {Object.entries(usefulLinks || {})
                     .map(([title, value]) => {
@@ -347,16 +360,21 @@ const PublicModelHub: React.FC<PublicModelHubProps> = ({ accessToken, isEmbedded
                       return { title, url, index };
                     })
                     .sort((a, b) => a.index - b.index)
-                    .map(({ title, url }) => (
-                      <button
-                        key={title}
-                        onClick={() => window.open(url, "_blank")}
-                        className="flex min-w-0 items-center space-x-3 text-info transition-colors p-3 rounded-lg hover:bg-info/10 border border-border"
-                      >
-                        <ExternalLinkIcon className="w-4 h-4 shrink-0" />
-                        <p className="text-sm font-medium break-words">{title}</p>
-                      </button>
-                    ))}
+                    .map((cocaCopyProps1) => {
+                      const { title, url } = cocaCopyProps1;
+                      return (
+                        <button
+                          key={title}
+                          onClick={() => window.open(url, "_blank")}
+                          className="flex min-w-0 items-center space-x-3 text-info transition-colors p-3 rounded-lg hover:bg-info/10 border border-border"
+                        >
+                          <ExternalLinkIcon className="w-4 h-4 shrink-0" />
+                          <p className="text-sm font-medium break-words">
+                            {localizedProperty(cocaCopyProps1, "title", title)}
+                          </p>
+                        </button>
+                      );
+                    })}
                 </div>
               </Card>
             )}
@@ -364,9 +382,14 @@ const PublicModelHub: React.FC<PublicModelHubProps> = ({ accessToken, isEmbedded
             {/* Health and Endpoint Status - only shown when not embedded */}
             {!isEmbedded && (
               <Card className="mb-10 p-8 bg-card border border-border rounded-lg shadow-xs">
-                <h2 className="text-2xl font-semibold mb-6 text-foreground">Health and Endpoint Status</h2>
+                <h2 className="text-2xl font-semibold mb-6 text-foreground">
+                  <LocalizedText text={"Health and Endpoint Status"} />
+                </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <p className="text-success font-medium text-sm">Service status: {serviceStatus}</p>
+                  <p className="text-success font-medium text-sm">
+                    <LocalizedText text={"Service status: "} />
+                    {serviceStatus}
+                  </p>
                 </div>
               </Card>
             )}
@@ -375,28 +398,47 @@ const PublicModelHub: React.FC<PublicModelHubProps> = ({ accessToken, isEmbedded
             <Card className="p-8 bg-card border border-border rounded-lg shadow-xs">
               <Tabs value={activeTab} onValueChange={setActiveTab} className="public-hub-tabs">
                 <TabsList>
-                  <TabsTrigger value="models">Model Hub</TabsTrigger>
-                  {hasAgents && <TabsTrigger value="agents">Agent Hub</TabsTrigger>}
-                  {hasMcpServers && <TabsTrigger value="mcp">MCP Hub</TabsTrigger>}
-                  <TabsTrigger value="skills">Skill Hub</TabsTrigger>
+                  <TabsTrigger value="models">
+                    <LocalizedText text={"Model Hub"} />
+                  </TabsTrigger>
+                  {hasAgents && (
+                    <TabsTrigger value="agents">
+                      <LocalizedText text={"Agent Hub"} />
+                    </TabsTrigger>
+                  )}
+                  {hasMcpServers && (
+                    <TabsTrigger value="mcp">
+                      <LocalizedText text={"MCP Hub"} />
+                    </TabsTrigger>
+                  )}
+                  <TabsTrigger value="skills">
+                    <LocalizedText text={"Skill Hub"} />
+                  </TabsTrigger>
                 </TabsList>
 
                 {/* Models Tab */}
                 <TabsContent value="models">
                   <div className="flex justify-between items-center mb-8">
-                    <h2 className="text-2xl font-semibold text-foreground">Available Models</h2>
+                    <h2 className="text-2xl font-semibold text-foreground">
+                      <LocalizedText text={"Available Models"} />
+                    </h2>
                   </div>
 
                   {/* Filters */}
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 p-6 bg-muted rounded-lg border border-border">
                     <div>
                       <div className="flex items-center space-x-2 mb-3">
-                        <p className="text-sm font-medium text-foreground">Search Models:</p>
+                        <p className="text-sm font-medium text-foreground">
+                          <LocalizedText text={"Search Models:"} />
+                        </p>
                         <Tooltip>
                           <TooltipTrigger render={<Info className="w-4 h-4 text-muted-foreground cursor-help" />} />
                           <TooltipContent side="top">
-                            Finds every published model whose name contains what you type, across all pages. Try
-                            &apos;grok&apos;, &apos;claude&apos;, &apos;gpt-4&apos;, or &apos;sonnet&apos;
+                            <LocalizedText
+                              text={
+                                "Finds every published model whose name contains what you type, across all pages. Try 'grok', 'claude', 'gpt-4', or 'sonnet'"
+                              }
+                            />
                           </TooltipContent>
                         </Tooltip>
                       </div>
@@ -404,8 +446,8 @@ const PublicModelHub: React.FC<PublicModelHubProps> = ({ accessToken, isEmbedded
                         <SearchIcon className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 transform -translate-y-1/2" />
                         <input
                           type="text"
-                          placeholder="Search model names..."
-                          aria-label="Search model names"
+                          placeholder={translateMessage("Search model names...")}
+                          aria-label={translateMessage("Search model names")}
                           value={models.searchValue}
                           onChange={(e) => models.onSearchChange(e.target.value)}
                           className="border border-border rounded-lg pl-10 pr-4 py-2 w-full text-sm focus:outline-hidden focus:ring-2 focus:ring-ring focus:border-transparent bg-card"
@@ -413,7 +455,9 @@ const PublicModelHub: React.FC<PublicModelHubProps> = ({ accessToken, isEmbedded
                       </div>
                     </div>
                     <div className="min-w-0">
-                      <p className="text-sm font-medium mb-3 text-foreground">Provider:</p>
+                      <p className="text-sm font-medium mb-3 text-foreground">
+                        <LocalizedText text={"Provider:"} />
+                      </p>
                       <Combobox
                         multiple
                         items={modelFacets.providers}
@@ -431,13 +475,15 @@ const PublicModelHub: React.FC<PublicModelHubProps> = ({ accessToken, isEmbedded
                             }
                           </ComboboxValue>
                           <ComboboxChipsInput
-                            placeholder="Select providers"
-                            aria-label="Select providers"
+                            placeholder={translateMessage("Select providers")}
+                            aria-label={translateMessage("Select providers")}
                             className="min-w-24"
                           />
                         </ComboboxChips>
                         <ComboboxContent anchor={anchor}>
-                          <ComboboxEmpty>No providers found</ComboboxEmpty>
+                          <ComboboxEmpty>
+                            <LocalizedText text={"No providers found"} />
+                          </ComboboxEmpty>
                           <ComboboxList>
                             {(provider: string) => {
                               const { logo } = getProviderLogoAndName(provider);
@@ -464,22 +510,26 @@ const PublicModelHub: React.FC<PublicModelHubProps> = ({ accessToken, isEmbedded
                       </Combobox>
                     </div>
                     <div className="min-w-0">
-                      <p className="text-sm font-medium mb-3 text-foreground">Mode:</p>
+                      <p className="text-sm font-medium mb-3 text-foreground">
+                        <LocalizedText text={"Mode:"} />
+                      </p>
                       <MultiSelect
                         options={modeOptions}
                         value={models.modeValues}
                         onValueChange={models.onModesChange}
-                        placeholder="Select modes"
+                        placeholder={translateMessage("Select modes")}
                         className="w-full"
                       />
                     </div>
                     <div className="min-w-0">
-                      <p className="text-sm font-medium mb-3 text-foreground">Features:</p>
+                      <p className="text-sm font-medium mb-3 text-foreground">
+                        <LocalizedText text={"Features:"} />
+                      </p>
                       <MultiSelect
                         options={featureOptions}
                         value={models.featureValues}
                         onValueChange={models.onFeaturesChange}
-                        placeholder="Select features"
+                        placeholder={translateMessage("Select features")}
                         className="w-full"
                       />
                     </div>
@@ -497,10 +547,14 @@ const PublicModelHub: React.FC<PublicModelHubProps> = ({ accessToken, isEmbedded
                     onPaginationChange={models.onPaginationChange}
                     rowCount={models.rowCount}
                     isLoading={models.isLoading}
-                    loadingMessage="Loading models…"
+                    loadingMessage={translateMessage("Loading models…")}
                     noDataMessage={
                       <PublicHubEmptyState
-                        title={models.hasActiveQuery ? "No matching models" : "No models available"}
+                        title={
+                          models.hasActiveQuery
+                            ? translateMessage("No matching models")
+                            : translateMessage("No models available")
+                        }
                         body={
                           models.hasActiveQuery
                             ? "Adjust the search or filters to see more models."
@@ -516,24 +570,30 @@ const PublicModelHub: React.FC<PublicModelHubProps> = ({ accessToken, isEmbedded
                 {hasAgents && (
                   <TabsContent value="agents">
                     <div className="flex justify-between items-center mb-8">
-                      <h2 className="text-2xl font-semibold text-foreground">Available Agents</h2>
+                      <h2 className="text-2xl font-semibold text-foreground">
+                        <LocalizedText text={"Available Agents"} />
+                      </h2>
                     </div>
 
                     {/* Filters */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 p-6 bg-muted rounded-lg border border-border">
                       <div>
                         <div className="flex items-center space-x-2 mb-3">
-                          <p className="text-sm font-medium text-foreground">Search Agents:</p>
+                          <p className="text-sm font-medium text-foreground">
+                            <LocalizedText text={"Search Agents:"} />
+                          </p>
                           <Tooltip>
                             <TooltipTrigger render={<Info className="w-4 h-4 text-muted-foreground cursor-help" />} />
-                            <TooltipContent side="top">Search agents by name or description</TooltipContent>
+                            <TooltipContent side="top">
+                              <LocalizedText text={"Search agents by name or description"} />
+                            </TooltipContent>
                           </Tooltip>
                         </div>
                         <div className="relative">
                           <SearchIcon className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 transform -translate-y-1/2" />
                           <input
                             type="text"
-                            placeholder="Search agent names or descriptions..."
+                            placeholder={translateMessage("Search agent names or descriptions...")}
                             value={agentSearchTerm}
                             onChange={(e) => setAgentSearchTerm(e.target.value)}
                             className="border border-border rounded-lg pl-10 pr-4 py-2 w-full text-sm focus:outline-hidden focus:ring-2 focus:ring-ring focus:border-transparent bg-card"
@@ -541,12 +601,14 @@ const PublicModelHub: React.FC<PublicModelHubProps> = ({ accessToken, isEmbedded
                         </div>
                       </div>
                       <div className="min-w-0">
-                        <p className="text-sm font-medium mb-3 text-foreground">Skills:</p>
+                        <p className="text-sm font-medium mb-3 text-foreground">
+                          <LocalizedText text={"Skills:"} />
+                        </p>
                         <MultiSelect
                           options={agentSkillOptions}
                           value={selectedAgentSkills}
                           onValueChange={setSelectedAgentSkills}
-                          placeholder="Select skills"
+                          placeholder={translateMessage("Select skills")}
                           className="w-full"
                         />
                       </div>
@@ -561,10 +623,10 @@ const PublicModelHub: React.FC<PublicModelHubProps> = ({ accessToken, isEmbedded
                       sorting={agentSorting}
                       onSortingChange={setAgentSorting}
                       isLoading={agentLoading}
-                      loadingMessage="Loading agents…"
+                      loadingMessage={translateMessage("Loading agents…")}
                       noDataMessage={
                         <PublicHubEmptyState
-                          title="No matching agents"
+                          title={translateMessage("No matching agents")}
                           body="Adjust the search or skill filter to see more agents."
                         />
                       }
@@ -573,7 +635,11 @@ const PublicModelHub: React.FC<PublicModelHubProps> = ({ accessToken, isEmbedded
 
                     <div className="mt-8 text-center">
                       <p className="text-sm text-muted-foreground">
-                        Showing {filteredAgentData.length} of {agentHubData?.length || 0} agents
+                        <LocalizedText text={"Showing "} />
+                        {filteredAgentData.length}
+                        <LocalizedText text={" of "} />
+                        {agentHubData?.length || 0}
+                        <LocalizedText text={" agents"} />
                       </p>
                     </div>
                   </TabsContent>
@@ -583,24 +649,30 @@ const PublicModelHub: React.FC<PublicModelHubProps> = ({ accessToken, isEmbedded
                 {hasMcpServers && (
                   <TabsContent value="mcp">
                     <div className="flex justify-between items-center mb-8">
-                      <h2 className="text-2xl font-semibold text-foreground">Available MCP Servers</h2>
+                      <h2 className="text-2xl font-semibold text-foreground">
+                        <LocalizedText text={"Available MCP Servers"} />
+                      </h2>
                     </div>
 
                     {/* Filters */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 p-6 bg-muted rounded-lg border border-border">
                       <div>
                         <div className="flex items-center space-x-2 mb-3">
-                          <p className="text-sm font-medium text-foreground">Search MCP Servers:</p>
+                          <p className="text-sm font-medium text-foreground">
+                            <LocalizedText text={"Search MCP Servers:"} />
+                          </p>
                           <Tooltip>
                             <TooltipTrigger render={<Info className="w-4 h-4 text-muted-foreground cursor-help" />} />
-                            <TooltipContent side="top">Search MCP servers by name or description</TooltipContent>
+                            <TooltipContent side="top">
+                              <LocalizedText text={"Search MCP servers by name or description"} />
+                            </TooltipContent>
                           </Tooltip>
                         </div>
                         <div className="relative">
                           <SearchIcon className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 transform -translate-y-1/2" />
                           <input
                             type="text"
-                            placeholder="Search MCP server names or descriptions..."
+                            placeholder={translateMessage("Search MCP server names or descriptions...")}
                             value={mcpSearchTerm}
                             onChange={(e) => setMcpSearchTerm(e.target.value)}
                             className="border border-border rounded-lg pl-10 pr-4 py-2 w-full text-sm focus:outline-hidden focus:ring-2 focus:ring-ring focus:border-transparent bg-card"
@@ -608,12 +680,14 @@ const PublicModelHub: React.FC<PublicModelHubProps> = ({ accessToken, isEmbedded
                         </div>
                       </div>
                       <div className="min-w-0">
-                        <p className="text-sm font-medium mb-3 text-foreground">Transport:</p>
+                        <p className="text-sm font-medium mb-3 text-foreground">
+                          <LocalizedText text={"Transport:"} />
+                        </p>
                         <MultiSelect
                           options={mcpTransportOptions}
                           value={selectedMcpTransports}
                           onValueChange={setSelectedMcpTransports}
-                          placeholder="Select transport types"
+                          placeholder={translateMessage("Select transport types")}
                           className="w-full"
                         />
                       </div>
@@ -628,10 +702,10 @@ const PublicModelHub: React.FC<PublicModelHubProps> = ({ accessToken, isEmbedded
                       sorting={mcpSorting}
                       onSortingChange={setMcpSorting}
                       isLoading={mcpLoading}
-                      loadingMessage="Loading MCP servers…"
+                      loadingMessage={translateMessage("Loading MCP servers…")}
                       noDataMessage={
                         <PublicHubEmptyState
-                          title="No matching MCP servers"
+                          title={translateMessage("No matching MCP servers")}
                           body="Adjust the search or transport filter to see more servers."
                         />
                       }
@@ -640,7 +714,11 @@ const PublicModelHub: React.FC<PublicModelHubProps> = ({ accessToken, isEmbedded
 
                     <div className="mt-8 text-center">
                       <p className="text-sm text-muted-foreground">
-                        Showing {filteredMcpData.length} of {mcpHubData?.length || 0} MCP servers
+                        <LocalizedText text={"Showing "} />
+                        {filteredMcpData.length}
+                        <LocalizedText text={" of "} />
+                        {mcpHubData?.length || 0}
+                        <LocalizedText text={" MCP servers"} />
                       </p>
                     </div>
                   </TabsContent>
@@ -659,7 +737,7 @@ const PublicModelHub: React.FC<PublicModelHubProps> = ({ accessToken, isEmbedded
             <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-[1000px]">
               <DialogHeader>
                 <DialogTitle className="flex min-w-0 items-center space-x-2">
-                  <span className="break-words">{selectedModel?.model_group || "Model Details"}</span>
+                  <span className="break-words">{selectedModel?.model_group || translateMessage("Model Details")}</span>
                   {selectedModel && (
                     <Tooltip>
                       <TooltipTrigger
@@ -670,7 +748,9 @@ const PublicModelHub: React.FC<PublicModelHubProps> = ({ accessToken, isEmbedded
                           />
                         }
                       />
-                      <TooltipContent>Copy model name</TooltipContent>
+                      <TooltipContent>
+                        <LocalizedText text={"Copy model name"} />
+                      </TooltipContent>
                     </Tooltip>
                   )}
                 </DialogTitle>
@@ -679,18 +759,26 @@ const PublicModelHub: React.FC<PublicModelHubProps> = ({ accessToken, isEmbedded
                 <div className="space-y-6">
                   {/* Model Overview */}
                   <div>
-                    <p className="text-lg font-semibold mb-4">Model Overview</p>
+                    <p className="text-lg font-semibold mb-4">
+                      <LocalizedText text={"Model Overview"} />
+                    </p>
                     <div className="grid grid-cols-2 gap-4 mb-4">
                       <div>
-                        <p className="font-medium">Model Name:</p>
+                        <p className="font-medium">
+                          <LocalizedText text={"Model Name:"} />
+                        </p>
                         <p>{selectedModel.model_group}</p>
                       </div>
                       <div>
-                        <p className="font-medium">Mode:</p>
-                        <p>{selectedModel.mode || "Not specified"}</p>
+                        <p className="font-medium">
+                          <LocalizedText text={"Mode:"} />
+                        </p>
+                        <p>{selectedModel.mode || translateMessage("Not specified")}</p>
                       </div>
                       <div>
-                        <p className="font-medium">Providers:</p>
+                        <p className="font-medium">
+                          <LocalizedText text={"Providers:"} />
+                        </p>
                         <div className="flex flex-wrap gap-1 mt-1">
                           {(selectedModel.providers ?? []).map((provider) => {
                             const { logo } = getProviderLogoAndName(provider);
@@ -722,21 +810,26 @@ const PublicModelHub: React.FC<PublicModelHubProps> = ({ accessToken, isEmbedded
                         <div className="flex items-start space-x-2">
                           <Info className="w-4 h-4 text-info mt-0.5 shrink-0" />
                           <div>
-                            <p className="font-medium text-info mb-2">Wildcard Routing</p>
+                            <p className="font-medium text-info mb-2">
+                              <LocalizedText text={"Wildcard Routing"} />
+                            </p>
                             <p className="text-sm text-info mb-2">
-                              This model uses wildcard routing. You can pass any value where you see the{" "}
-                              <code className="bg-info/15 px-1 py-0.5 rounded-sm text-xs">*</code> symbol.
+                              <LocalizedText
+                                text={"This model uses wildcard routing. You can pass any value where you see the"}
+                              />{" "}
+                              <code className="bg-info/15 px-1 py-0.5 rounded-sm text-xs">*</code>
+                              <LocalizedText text={" symbol."} />
                             </p>
                             <p className="text-sm text-info">
-                              For example, with{" "}
+                              <LocalizedText text={"For example, with"} />{" "}
                               <code className="bg-info/15 px-1 py-0.5 rounded-sm text-xs">
                                 {selectedModel.model_group}
                               </code>
-                              , you can use any string (
+                              <LocalizedText text={", you can use any string ("} />
                               <code className="bg-info/15 px-1 py-0.5 rounded-sm text-xs">
                                 {selectedModel.model_group.replaceAll("*", "my-custom-value")}
                               </code>
-                              ) that matches this pattern.
+                              <LocalizedText text={") that matches this pattern."} />
                             </p>
                           </div>
                         </div>
@@ -746,30 +839,46 @@ const PublicModelHub: React.FC<PublicModelHubProps> = ({ accessToken, isEmbedded
 
                   {/* Token and Cost Information */}
                   <div>
-                    <p className="text-lg font-semibold mb-4">Token & Cost Information</p>
+                    <p className="text-lg font-semibold mb-4">
+                      <LocalizedText text={"Token & Cost Information"} />
+                    </p>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <p className="font-medium">Max Input Tokens:</p>
-                        <p>{selectedModel.max_input_tokens?.toLocaleString() || "Not specified"}</p>
-                      </div>
-                      <div>
-                        <p className="font-medium">Max Output Tokens:</p>
-                        <p>{selectedModel.max_output_tokens?.toLocaleString() || "Not specified"}</p>
-                      </div>
-                      <div>
-                        <p className="font-medium">Input Cost per 1M Tokens:</p>
+                        <p className="font-medium">
+                          <LocalizedText text={"Max Input Tokens:"} />
+                        </p>
                         <p>
-                          {selectedModel.input_cost_per_token
-                            ? formatCost(selectedModel.input_cost_per_token)
-                            : "Not specified"}
+                          {selectedModel.max_input_tokens?.toLocaleString(getIntlLocale()) ||
+                            translateMessage("Not specified")}
                         </p>
                       </div>
                       <div>
-                        <p className="font-medium">Output Cost per 1M Tokens:</p>
+                        <p className="font-medium">
+                          <LocalizedText text={"Max Output Tokens:"} />
+                        </p>
+                        <p>
+                          {selectedModel.max_output_tokens?.toLocaleString(getIntlLocale()) ||
+                            translateMessage("Not specified")}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="font-medium">
+                          <LocalizedText text={"Input Cost per 1M Tokens:"} />
+                        </p>
+                        <p>
+                          {selectedModel.input_cost_per_token
+                            ? formatCost(selectedModel.input_cost_per_token)
+                            : translateMessage("Not specified")}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="font-medium">
+                          <LocalizedText text={"Output Cost per 1M Tokens:"} />
+                        </p>
                         <p>
                           {selectedModel.output_cost_per_token
                             ? formatCost(selectedModel.output_cost_per_token)
-                            : "Not specified"}
+                            : translateMessage("Not specified")}
                         </p>
                       </div>
                     </div>
@@ -777,13 +886,19 @@ const PublicModelHub: React.FC<PublicModelHubProps> = ({ accessToken, isEmbedded
 
                   {/* Capabilities */}
                   <div>
-                    <p className="text-lg font-semibold mb-4">Capabilities</p>
+                    <p className="text-lg font-semibold mb-4">
+                      <LocalizedText text={"Capabilities"} />
+                    </p>
                     <div className="flex flex-wrap gap-2">
                       {(() => {
                         const capabilities = getModelCapabilities(selectedModel);
 
                         if (capabilities.length === 0) {
-                          return <p className="text-muted-foreground">No special capabilities listed</p>;
+                          return (
+                            <p className="text-muted-foreground">
+                              <LocalizedText text={"No special capabilities listed"} />
+                            </p>
+                          );
                         }
 
                         return capabilities.map((capability) => (
@@ -798,18 +913,24 @@ const PublicModelHub: React.FC<PublicModelHubProps> = ({ accessToken, isEmbedded
                   {/* Rate Limits */}
                   {(selectedModel.tpm || selectedModel.rpm) && (
                     <div>
-                      <p className="text-lg font-semibold mb-4">Rate Limits</p>
+                      <p className="text-lg font-semibold mb-4">
+                        <LocalizedText text={"Rate Limits"} />
+                      </p>
                       <div className="grid grid-cols-2 gap-4">
                         {selectedModel.tpm && (
                           <div>
-                            <p className="font-medium">Tokens per Minute:</p>
-                            <p>{selectedModel.tpm.toLocaleString()}</p>
+                            <p className="font-medium">
+                              <LocalizedText text={"Tokens per Minute:"} />
+                            </p>
+                            <p>{selectedModel.tpm.toLocaleString(getIntlLocale())}</p>
                           </div>
                         )}
                         {selectedModel.rpm && (
                           <div>
-                            <p className="font-medium">Requests per Minute:</p>
-                            <p>{selectedModel.rpm.toLocaleString()}</p>
+                            <p className="font-medium">
+                              <LocalizedText text={"Requests per Minute:"} />
+                            </p>
+                            <p>{selectedModel.rpm.toLocaleString(getIntlLocale())}</p>
                           </div>
                         )}
                       </div>
@@ -819,7 +940,9 @@ const PublicModelHub: React.FC<PublicModelHubProps> = ({ accessToken, isEmbedded
                   {/* Supported OpenAI Parameters */}
                   {selectedModel.supported_openai_params && selectedModel.supported_openai_params.length > 0 && (
                     <div>
-                      <p className="text-lg font-semibold mb-4">Supported OpenAI Parameters</p>
+                      <p className="text-lg font-semibold mb-4">
+                        <LocalizedText text={"Supported OpenAI Parameters"} />
+                      </p>
                       <div className="flex flex-wrap gap-2">
                         {selectedModel.supported_openai_params.map((param) => (
                           <Badge key={param} variant="secondary">
@@ -832,7 +955,9 @@ const PublicModelHub: React.FC<PublicModelHubProps> = ({ accessToken, isEmbedded
 
                   {/* Usage Example */}
                   <div>
-                    <p className="text-lg font-semibold mb-4">Usage Example</p>
+                    <p className="text-lg font-semibold mb-4">
+                      <LocalizedText text={"Usage Example"} />
+                    </p>
                     <div className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto">
                       <pre className="text-sm">
                         {(() => {
@@ -881,7 +1006,7 @@ const PublicModelHub: React.FC<PublicModelHubProps> = ({ accessToken, isEmbedded
                         }}
                         className="text-sm text-info hover:text-info/80 cursor-pointer"
                       >
-                        Copy to clipboard
+                        <LocalizedText text={"Copy to clipboard"} />
                       </button>
                     </div>
                   </div>
@@ -895,7 +1020,7 @@ const PublicModelHub: React.FC<PublicModelHubProps> = ({ accessToken, isEmbedded
             <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-[1000px]">
               <DialogHeader>
                 <DialogTitle className="flex min-w-0 items-center space-x-2">
-                  <span className="break-words">{selectedAgent?.name || "Agent Details"}</span>
+                  <span className="break-words">{selectedAgent?.name || translateMessage("Agent Details")}</span>
                   {selectedAgent && (
                     <Tooltip>
                       <TooltipTrigger
@@ -906,7 +1031,9 @@ const PublicModelHub: React.FC<PublicModelHubProps> = ({ accessToken, isEmbedded
                           />
                         }
                       />
-                      <TooltipContent>Copy agent name</TooltipContent>
+                      <TooltipContent>
+                        <LocalizedText text={"Copy agent name"} />
+                      </TooltipContent>
                     </Tooltip>
                   )}
                 </DialogTitle>
@@ -915,23 +1042,33 @@ const PublicModelHub: React.FC<PublicModelHubProps> = ({ accessToken, isEmbedded
                 <div className="space-y-6">
                   {/* Agent Overview */}
                   <div>
-                    <p className="text-lg font-semibold mb-4">Agent Overview</p>
+                    <p className="text-lg font-semibold mb-4">
+                      <LocalizedText text={"Agent Overview"} />
+                    </p>
                     <div className="grid grid-cols-2 gap-4 mb-4">
                       <div>
-                        <p className="font-medium">Name:</p>
+                        <p className="font-medium">
+                          <LocalizedText text={"Name:"} />
+                        </p>
                         <p>{selectedAgent.name}</p>
                       </div>
                       <div>
-                        <p className="font-medium">Version:</p>
+                        <p className="font-medium">
+                          <LocalizedText text={"Version:"} />
+                        </p>
                         <p>{selectedAgent.version}</p>
                       </div>
                       <div className="col-span-2">
-                        <p className="font-medium">Description:</p>
-                        <p>{selectedAgent.description}</p>
+                        <p className="font-medium">
+                          <LocalizedText text={"Description:"} />
+                        </p>
+                        <p>{localizedProperty(selectedAgent, "description", selectedAgent.description)}</p>
                       </div>
                       {selectedAgent.url && (
                         <div>
-                          <p className="font-medium">URL:</p>
+                          <p className="font-medium">
+                            <LocalizedText text={"URL:"} />
+                          </p>
                           <a
                             href={selectedAgent.url}
                             target="_blank"
@@ -948,7 +1085,9 @@ const PublicModelHub: React.FC<PublicModelHubProps> = ({ accessToken, isEmbedded
                   {/* Capabilities */}
                   {selectedAgent.capabilities && (
                     <div>
-                      <p className="text-lg font-semibold mb-4">Capabilities</p>
+                      <p className="text-lg font-semibold mb-4">
+                        <LocalizedText text={"Capabilities"} />
+                      </p>
                       <div className="flex flex-wrap gap-2">
                         {Object.entries(selectedAgent.capabilities)
                           .filter(([_, value]) => value === true)
@@ -964,14 +1103,18 @@ const PublicModelHub: React.FC<PublicModelHubProps> = ({ accessToken, isEmbedded
                   {/* Skills */}
                   {selectedAgent.skills && selectedAgent.skills.length > 0 && (
                     <div>
-                      <p className="text-lg font-semibold mb-4">Skills</p>
+                      <p className="text-lg font-semibold mb-4">
+                        <LocalizedText text={"Skills"} />
+                      </p>
                       <div className="space-y-4">
                         {selectedAgent.skills.map((skill, index) => (
                           <div key={index} className="border border-border rounded-lg p-4">
                             <div className="flex items-start justify-between mb-2">
                               <div>
                                 <p className="font-medium text-base">{skill.name}</p>
-                                <p className="text-sm text-muted-foreground">{skill.description}</p>
+                                <p className="text-sm text-muted-foreground">
+                                  {localizedProperty(skill, "description", skill.description)}
+                                </p>
                               </div>
                             </div>
                             {skill.tags && skill.tags.length > 0 && (
@@ -991,10 +1134,14 @@ const PublicModelHub: React.FC<PublicModelHubProps> = ({ accessToken, isEmbedded
 
                   {/* Input/Output Modes */}
                   <div>
-                    <p className="text-lg font-semibold mb-4">Input/Output Modes</p>
+                    <p className="text-lg font-semibold mb-4">
+                      <LocalizedText text={"Input/Output Modes"} />
+                    </p>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <p className="font-medium">Input Modes:</p>
+                        <p className="font-medium">
+                          <LocalizedText text={"Input Modes:"} />
+                        </p>
                         <div className="flex flex-wrap gap-1 mt-1">
                           {(selectedAgent.defaultInputModes ?? []).map((mode) => (
                             <Badge key={mode} variant="secondary">
@@ -1004,7 +1151,9 @@ const PublicModelHub: React.FC<PublicModelHubProps> = ({ accessToken, isEmbedded
                         </div>
                       </div>
                       <div>
-                        <p className="font-medium">Output Modes:</p>
+                        <p className="font-medium">
+                          <LocalizedText text={"Output Modes:"} />
+                        </p>
                         <div className="flex flex-wrap gap-1 mt-1">
                           {(selectedAgent.defaultOutputModes ?? []).map((mode) => (
                             <Badge key={mode} variant="secondary">
@@ -1019,7 +1168,9 @@ const PublicModelHub: React.FC<PublicModelHubProps> = ({ accessToken, isEmbedded
                   {/* Documentation */}
                   {selectedAgent.documentationUrl && (
                     <div>
-                      <p className="text-lg font-semibold mb-4">Documentation</p>
+                      <p className="text-lg font-semibold mb-4">
+                        <LocalizedText text={"Documentation"} />
+                      </p>
                       <a
                         href={selectedAgent.documentationUrl}
                         target="_blank"
@@ -1027,18 +1178,24 @@ const PublicModelHub: React.FC<PublicModelHubProps> = ({ accessToken, isEmbedded
                         className="text-info hover:text-info/80 flex items-center space-x-2"
                       >
                         <ExternalLinkIcon className="w-4 h-4" />
-                        <span>View Documentation</span>
+                        <span>
+                          <LocalizedText text={"View Documentation"} />
+                        </span>
                       </a>
                     </div>
                   )}
 
                   {/* A2A Usage Example */}
                   <div>
-                    <p className="text-lg font-semibold mb-4">Usage Example (A2A Protocol)</p>
+                    <p className="text-lg font-semibold mb-4">
+                      <LocalizedText text={"Usage Example (A2A Protocol)"} />
+                    </p>
 
                     {/* Step 1: Retrieve Agent Card */}
                     <div className="mb-4">
-                      <p className="text-sm font-medium mb-2 text-foreground">Step 1: Retrieve Agent Card</p>
+                      <p className="text-sm font-medium mb-2 text-foreground">
+                        <LocalizedText text={"Step 1: Retrieve Agent Card"} />
+                      </p>
                       <div className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto">
                         <pre className="text-xs">
                           {`base_url = '${selectedAgent.url}'
@@ -1126,14 +1283,16 @@ if _public_card.supports_authenticated_extended_card:
                           }}
                           className="text-sm text-info hover:text-info/80 cursor-pointer"
                         >
-                          Copy to clipboard
+                          <LocalizedText text={"Copy to clipboard"} />
                         </button>
                       </div>
                     </div>
 
                     {/* Step 2: Call the Agent */}
                     <div>
-                      <p className="text-sm font-medium mb-2 text-foreground">Step 2: Call the Agent</p>
+                      <p className="text-sm font-medium mb-2 text-foreground">
+                        <LocalizedText text={"Step 2: Call the Agent"} />
+                      </p>
                       <div className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto">
                         <pre className="text-xs">
                           {`client = A2AClient(
@@ -1183,7 +1342,7 @@ print(response.model_dump(mode='json', exclude_none=True))`;
                           }}
                           className="text-sm text-info hover:text-info/80 cursor-pointer"
                         >
-                          Copy to clipboard
+                          <LocalizedText text={"Copy to clipboard"} />
                         </button>
                       </div>
                     </div>
@@ -1198,7 +1357,9 @@ print(response.model_dump(mode='json', exclude_none=True))`;
             <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-[1000px]">
               <DialogHeader>
                 <DialogTitle className="flex min-w-0 items-center space-x-2">
-                  <span className="break-words">{selectedMcpServer?.server_name || "MCP Server Details"}</span>
+                  <span className="break-words">
+                    {selectedMcpServer?.server_name || translateMessage("MCP Server Details")}
+                  </span>
                   {selectedMcpServer && (
                     <Tooltip>
                       <TooltipTrigger
@@ -1209,7 +1370,9 @@ print(response.model_dump(mode='json', exclude_none=True))`;
                           />
                         }
                       />
-                      <TooltipContent>Copy server name</TooltipContent>
+                      <TooltipContent>
+                        <LocalizedText text={"Copy server name"} />
+                      </TooltipContent>
                     </Tooltip>
                   )}
                 </DialogTitle>
@@ -1218,31 +1381,43 @@ print(response.model_dump(mode='json', exclude_none=True))`;
                 <div className="space-y-6">
                   {/* Server Overview */}
                   <div>
-                    <p className="text-lg font-semibold mb-4">Server Overview</p>
+                    <p className="text-lg font-semibold mb-4">
+                      <LocalizedText text={"Server Overview"} />
+                    </p>
                     <div className="grid grid-cols-2 gap-4 mb-4">
                       <div>
-                        <p className="font-medium">Server Name:</p>
+                        <p className="font-medium">
+                          <LocalizedText text={"Server Name:"} />
+                        </p>
                         <p>{selectedMcpServer.server_name}</p>
                       </div>
                       <div>
-                        <p className="font-medium">Transport:</p>
+                        <p className="font-medium">
+                          <LocalizedText text={"Transport:"} />
+                        </p>
                         <Badge variant="secondary">{selectedMcpServer.transport}</Badge>
                       </div>
                       {selectedMcpServer.alias && (
                         <div>
-                          <p className="font-medium">Alias:</p>
+                          <p className="font-medium">
+                            <LocalizedText text={"Alias:"} />
+                          </p>
                           <p>{selectedMcpServer.alias}</p>
                         </div>
                       )}
                       <div>
-                        <p className="font-medium">Auth Type:</p>
+                        <p className="font-medium">
+                          <LocalizedText text={"Auth Type:"} />
+                        </p>
                         <Badge variant={selectedMcpServer.auth_type === "none" ? "outline" : "secondary"}>
                           {selectedMcpServer.auth_type}
                         </Badge>
                       </div>
                       <div className="col-span-2">
-                        <p className="font-medium">Description:</p>
-                        <p>{selectedMcpServer.mcp_info?.description || "-"}</p>
+                        <p className="font-medium">
+                          <LocalizedText text={"Description:"} />
+                        </p>
+                        <p>{localizedProperty(selectedMcpServer.mcp_info, "description") || "-"}</p>
                       </div>
                     </div>
                   </div>
@@ -1250,7 +1425,9 @@ print(response.model_dump(mode='json', exclude_none=True))`;
                   {/* Additional Info */}
                   {selectedMcpServer.mcp_info && Object.keys(selectedMcpServer.mcp_info).length > 0 && (
                     <div>
-                      <p className="text-lg font-semibold mb-4">Additional Information</p>
+                      <p className="text-lg font-semibold mb-4">
+                        <LocalizedText text={"Additional Information"} />
+                      </p>
                       <div className="bg-muted p-4 rounded-lg">
                         <pre className="text-xs overflow-x-auto">
                           {JSON.stringify(selectedMcpServer.mcp_info, null, 2)}
@@ -1261,7 +1438,9 @@ print(response.model_dump(mode='json', exclude_none=True))`;
 
                   {/* Usage Example */}
                   <div>
-                    <p className="text-lg font-semibold mb-4">Usage Example</p>
+                    <p className="text-lg font-semibold mb-4">
+                      <LocalizedText text={"Usage Example"} />
+                    </p>
                     <div className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto">
                       <pre className="text-sm">
                         {`# Using MCP Server with Python FastMCP
@@ -1343,7 +1522,7 @@ if __name__ == "__main__":
                         }}
                         className="text-sm text-info hover:text-info/80 cursor-pointer"
                       >
-                        Copy to clipboard
+                        <LocalizedText text={"Copy to clipboard"} />
                       </button>
                     </div>
                   </div>

@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, useUiLocale } from "@/lib/i18n";
 
 import React from "react";
 import { CheckCircle } from "lucide-react";
@@ -52,6 +53,7 @@ const copyFor = (flow: ConnectFlowStatus | undefined, failed: boolean): readonly
 };
 
 const ConnectFlowBanner: React.FC<Props> = ({ flowHandle, flow, accessToken, onConnected, failed }) => {
+  useUiLocale();
   const action = `${getProxyBaseUrl()}/authorize/complete`;
   const state = failed || flow === undefined ? "stale" : flow.state;
   const canFinish = state === "unscoped" || (state !== "stale" && flow?.connected === true);
@@ -90,7 +92,7 @@ const ConnectFlowBanner: React.FC<Props> = ({ flowHandle, flow, accessToken, onC
                 type="submit"
                 className="h-[38px] rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
               >
-                Finish connecting
+                <LocalizedText text={"Finish connecting"} />
               </button>
             )}
             {canCancel && (
@@ -100,13 +102,13 @@ const ConnectFlowBanner: React.FC<Props> = ({ flowHandle, flow, accessToken, onC
                 value="deny"
                 className="ml-2 h-[38px] rounded-md border px-4 text-sm font-semibold text-foreground hover:bg-accent/40"
               >
-                Cancel
+                <LocalizedText text={"Cancel"} />
               </button>
             )}
             {loopbackClient && (
               <label className="mt-2 flex items-center gap-2 text-[13px] text-muted-foreground">
                 <input type="checkbox" name="delivery" value="manual" />
-                My client is on a remote or SSH machine
+                <LocalizedText text={"My client is on a remote or SSH machine"} />
               </label>
             )}
           </form>

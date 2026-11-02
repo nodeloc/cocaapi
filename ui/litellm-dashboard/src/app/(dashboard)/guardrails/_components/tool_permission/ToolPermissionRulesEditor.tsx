@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import React from "react";
 import { Info, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -34,13 +36,13 @@ interface ToolPermissionRulesEditorProps {
 }
 
 const DECISION_ITEMS = [
-  { value: "allow", label: "Allow" },
-  { value: "deny", label: "Deny" },
+  markUiCopy({ value: "allow", label: "Allow" }, { label: "Allow" }),
+  markUiCopy({ value: "deny", label: "Deny" }, { label: "Deny" }),
 ] as const;
 
 const ON_DISALLOWED_ITEMS = [
-  { value: "block", label: "Block" },
-  { value: "rewrite", label: "Rewrite" },
+  markUiCopy({ value: "block", label: "Block" }, { label: "Block" }),
+  markUiCopy({ value: "rewrite", label: "Rewrite" }, { label: "Rewrite" }),
 ] as const;
 
 const DEFAULT_CONFIG: ToolPermissionConfig = {
@@ -57,6 +59,7 @@ const ensureConfig = (config?: ToolPermissionConfig): ToolPermissionConfig => ({
 });
 
 const ToolPermissionRulesEditor: React.FC<ToolPermissionRulesEditorProps> = ({ value, onChange, disabled = false }) => {
+  useUiLocale();
   const config = ensureConfig(value);
 
   const updateConfig = (partial: Partial<ToolPermissionConfig>) => {
@@ -135,32 +138,34 @@ const ToolPermissionRulesEditor: React.FC<ToolPermissionRulesEditorProps> = ({ v
           size="sm"
           onClick={() => updateRule(index, { allowed_param_patterns: { "": "" } })}
         >
-          + Restrict tool arguments (optional)
+          <LocalizedText text={"+ Restrict tool arguments (optional)"} />
         </Button>
       );
     }
 
     return (
       <div className="space-y-2">
-        <p className="text-sm text-muted-foreground">Argument constraints (dot or array paths)</p>
+        <p className="text-sm text-muted-foreground">
+          <LocalizedText text={"Argument constraints (dot or array paths)"} />
+        </p>
         {entries.map(([path, pattern], patternIndex) => (
           <div key={`${rule.id || index}-${patternIndex}`} className="flex items-start gap-2">
             <Input
               disabled={disabled}
-              placeholder="messages[0].content"
+              placeholder={translateMessage("messages[0].content")}
               value={path}
               onChange={(e) => updateAllowedParamPath(index, patternIndex, e.target.value)}
             />
             <Input
               disabled={disabled}
-              placeholder="^email@.*$"
+              placeholder={translateMessage("^email@.*$")}
               value={pattern}
               onChange={(e) => updateAllowedParamPattern(index, patternIndex, e.target.value)}
             />
             <Button
               variant="outline"
               size="icon"
-              aria-label="Remove constraint"
+              aria-label={translateMessage("Remove constraint")}
               disabled={disabled}
               onClick={() =>
                 updateAllowedParamEntries(index, (entries) => {
@@ -185,7 +190,7 @@ const ToolPermissionRulesEditor: React.FC<ToolPermissionRulesEditorProps> = ({ v
             })
           }
         >
-          + Add another constraint
+          <LocalizedText text={"+ Add another constraint"} />
         </Button>
       </div>
     );
@@ -196,16 +201,21 @@ const ToolPermissionRulesEditor: React.FC<ToolPermissionRulesEditorProps> = ({ v
       <CardContent>
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-lg font-semibold">LiteLLM Tool Permission Guardrail</p>
+            <p className="text-lg font-semibold">
+              <LocalizedText text={"LiteLLM Tool Permission Guardrail"} />
+            </p>
             <p className="text-sm text-muted-foreground">
-              Provide regex patterns (e.g., ^mcp__github_.*$) for tool names or types and optionally constrain payload
-              fields.
+              <LocalizedText
+                text={
+                  "Provide regex patterns (e.g., ^mcp__github_.*$) for tool names or types and optionally constrain payload fields."
+                }
+              />
             </p>
           </div>
           {!disabled && (
             <Button onClick={addRule}>
               <Plus />
-              Add Rule
+              <LocalizedText text={"Add Rule"} />
             </Button>
           )}
         </div>
@@ -213,22 +223,29 @@ const ToolPermissionRulesEditor: React.FC<ToolPermissionRulesEditorProps> = ({ v
         <Separator className="my-4" />
 
         {config.rules.length === 0 ? (
-          <div className="py-10 text-center text-muted-foreground">No tool rules added yet</div>
+          <div className="py-10 text-center text-muted-foreground">
+            <LocalizedText text={"No tool rules added yet"} />
+          </div>
         ) : (
           <div className="space-y-4">
             {config.rules.map((rule, index) => (
               <Card key={rule.id || index} className="bg-muted/40">
                 <CardContent>
                   <div className="mb-3 flex items-center justify-between">
-                    <p className="font-semibold">Rule {index + 1}</p>
+                    <p className="font-semibold">
+                      <LocalizedText text={"Rule "} />
+                      {index + 1}
+                    </p>
                     <Button variant="ghost" disabled={disabled} onClick={() => removeRule(index)}>
                       <Trash2 />
-                      Remove
+                      <LocalizedText text={"Remove"} />
                     </Button>
                   </div>
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div>
-                      <p className="text-sm font-medium">Rule ID</p>
+                      <p className="text-sm font-medium">
+                        <LocalizedText text={"Rule ID"} />
+                      </p>
                       <Input
                         disabled={disabled}
                         placeholder="unique_rule_id"
@@ -237,10 +254,12 @@ const ToolPermissionRulesEditor: React.FC<ToolPermissionRulesEditorProps> = ({ v
                       />
                     </div>
                     <div>
-                      <p className="text-sm font-medium">Tool Name (optional)</p>
+                      <p className="text-sm font-medium">
+                        <LocalizedText text={"Tool Name (optional)"} />
+                      </p>
                       <Input
                         disabled={disabled}
-                        placeholder="^mcp__github_.*$"
+                        placeholder={translateMessage("^mcp__github_.*$")}
                         value={rule.tool_name ?? ""}
                         onChange={(e) =>
                           updateRule(index, {
@@ -253,10 +272,12 @@ const ToolPermissionRulesEditor: React.FC<ToolPermissionRulesEditorProps> = ({ v
 
                   <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div>
-                      <p className="text-sm font-medium">Tool Type (optional)</p>
+                      <p className="text-sm font-medium">
+                        <LocalizedText text={"Tool Type (optional)"} />
+                      </p>
                       <Input
                         disabled={disabled}
-                        placeholder="^function$"
+                        placeholder={translateMessage("^function$")}
                         value={rule.tool_type ?? ""}
                         onChange={(e) =>
                           updateRule(index, {
@@ -268,7 +289,9 @@ const ToolPermissionRulesEditor: React.FC<ToolPermissionRulesEditorProps> = ({ v
                   </div>
 
                   <div className="mt-4 flex flex-col gap-2">
-                    <p className="text-sm font-medium">Decision</p>
+                    <p className="text-sm font-medium">
+                      <LocalizedText text={"Decision"} />
+                    </p>
                     <Select
                       items={DECISION_ITEMS}
                       disabled={disabled}
@@ -277,13 +300,13 @@ const ToolPermissionRulesEditor: React.FC<ToolPermissionRulesEditorProps> = ({ v
                         value && updateRule(index, { decision: value as ToolPermissionDecision })
                       }
                     >
-                      <SelectTrigger className="w-[200px]" aria-label="Decision">
+                      <SelectTrigger className="w-[200px]" aria-label={translateMessage("Decision")}>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
                         {DECISION_ITEMS.map((item) => (
                           <SelectItem key={item.value} value={item.value}>
-                            {item.label}
+                            {localizedProperty(item, "label", item.label)}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -301,7 +324,9 @@ const ToolPermissionRulesEditor: React.FC<ToolPermissionRulesEditorProps> = ({ v
 
         <div className="grid gap-4 md:grid-cols-2">
           <div>
-            <p className="text-sm font-medium">Default action</p>
+            <p className="text-sm font-medium">
+              <LocalizedText text={"Default action"} />
+            </p>
             <Select
               items={DECISION_ITEMS}
               disabled={disabled}
@@ -310,13 +335,13 @@ const ToolPermissionRulesEditor: React.FC<ToolPermissionRulesEditorProps> = ({ v
                 value && updateConfig({ default_action: value as ToolPermissionDefaultAction })
               }
             >
-              <SelectTrigger className="w-full" aria-label="Default action">
+              <SelectTrigger className="w-full" aria-label={translateMessage("Default action")}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 {DECISION_ITEMS.map((item) => (
                   <SelectItem key={item.value} value={item.value}>
-                    {item.label}
+                    {localizedProperty(item, "label", item.label)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -324,7 +349,7 @@ const ToolPermissionRulesEditor: React.FC<ToolPermissionRulesEditorProps> = ({ v
           </div>
           <div>
             <p className="flex items-center gap-1 text-sm font-medium">
-              On disallowed action
+              <LocalizedText text={"On disallowed action"} />
               <Tooltip>
                 <TooltipTrigger
                   render={
@@ -334,8 +359,11 @@ const ToolPermissionRulesEditor: React.FC<ToolPermissionRulesEditorProps> = ({ v
                   }
                 />
                 <TooltipContent>
-                  Block returns an error when a forbidden tool is invoked. Rewrite strips the tool call but lets the
-                  rest of the response continue.
+                  <LocalizedText
+                    text={
+                      "Block returns an error when a forbidden tool is invoked. Rewrite strips the tool call but lets the rest of the response continue."
+                    }
+                  />
                 </TooltipContent>
               </Tooltip>
             </p>
@@ -347,13 +375,13 @@ const ToolPermissionRulesEditor: React.FC<ToolPermissionRulesEditorProps> = ({ v
                 value && updateConfig({ on_disallowed_action: value as ToolPermissionOnDisallowedAction })
               }
             >
-              <SelectTrigger className="w-full" aria-label="On disallowed action">
+              <SelectTrigger className="w-full" aria-label={translateMessage("On disallowed action")}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 {ON_DISALLOWED_ITEMS.map((item) => (
                   <SelectItem key={item.value} value={item.value}>
-                    {item.label}
+                    {localizedProperty(item, "label", item.label)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -362,12 +390,14 @@ const ToolPermissionRulesEditor: React.FC<ToolPermissionRulesEditorProps> = ({ v
         </div>
 
         <div className="mt-4">
-          <p className="text-sm font-medium">Violation message (optional)</p>
+          <p className="text-sm font-medium">
+            <LocalizedText text={"Violation message (optional)"} />
+          </p>
           <Textarea
             className="field-sizing-fixed"
             disabled={disabled}
             rows={3}
-            placeholder="This violates our org policy..."
+            placeholder={translateMessage("This violates our org policy...")}
             value={config.violation_message_template}
             onChange={(e) => updateConfig({ violation_message_template: e.target.value })}
           />

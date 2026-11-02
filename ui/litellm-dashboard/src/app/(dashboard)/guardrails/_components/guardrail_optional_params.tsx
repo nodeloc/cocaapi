@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import React from "react";
 import { MultiSelect } from "@/components/shared/MultiSelect";
 import { PasswordInput } from "@/components/shared/PasswordInput";
@@ -42,8 +44,8 @@ interface DictFieldProps {
 }
 
 const BOOLEAN_ITEMS = [
-  { label: "True", value: true },
-  { label: "False", value: false },
+  markUiCopy({ label: "True", value: true }, { label: "True" }),
+  markUiCopy({ label: "False", value: false }, { label: "False" }),
 ];
 
 const isSecretKey = (fieldKey: string): boolean =>
@@ -55,10 +57,9 @@ const toNumberValue = (raw: unknown): unknown => {
   return isNaN(num) ? raw : num;
 };
 
-const BooleanSelect: React.FC<{ control: GuardrailFieldControlProps; placeholder: string }> = ({
-  control,
-  placeholder,
-}) => {
+const BooleanSelect: React.FC<{ control: GuardrailFieldControlProps; placeholder: string }> = (cocaCopyProps0) => {
+  const { control, placeholder } = cocaCopyProps0;
+  useUiLocale();
   const { id, value, onChange, "aria-invalid": ariaInvalid, "aria-describedby": ariaDescribedBy } = control;
 
   return (
@@ -68,17 +69,22 @@ const BooleanSelect: React.FC<{ control: GuardrailFieldControlProps; placeholder
       onValueChange={(next: boolean | null) => onChange(next)}
     >
       <SelectTrigger id={id} aria-invalid={ariaInvalid} aria-describedby={ariaDescribedBy} className="w-full">
-        <SelectValue placeholder={placeholder} />
+        <SelectValue placeholder={localizedProperty(cocaCopyProps0, "placeholder", placeholder)} />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value={true}>True</SelectItem>
-        <SelectItem value={false}>False</SelectItem>
+        <SelectItem value={true}>
+          <LocalizedText text={"True"} />
+        </SelectItem>
+        <SelectItem value={false}>
+          <LocalizedText text={"False"} />
+        </SelectItem>
       </SelectContent>
     </Select>
   );
 };
 
 const DictField: React.FC<DictFieldProps> = ({ field, fullFieldKey, control, value }) => {
+  useUiLocale();
   const [selectedEntries, setSelectedEntries] = React.useState<Array<{ key: string; id: string }>>([]);
   const [availableKeys, setAvailableKeys] = React.useState<string[]>(field.dict_key_options || []);
 
@@ -133,7 +139,7 @@ const DictField: React.FC<DictFieldProps> = ({ field, fullFieldKey, control, val
                     id={fieldControl.id}
                     name={fieldControl.name}
                     step={1}
-                    placeholder={`Enter ${entry.key} value`}
+                    placeholder={translateMessage("Enter %{0} value", [entry.key])}
                     value={asText(fieldControl.value)}
                     onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                       fieldControl.onChange(toNumberValue(event.target.value))
@@ -146,7 +152,12 @@ const DictField: React.FC<DictFieldProps> = ({ field, fullFieldKey, control, val
               }
 
               if (field.dict_value_type === "boolean") {
-                return <BooleanSelect control={fieldControl} placeholder={`Select ${entry.key} value`} />;
+                return (
+                  <BooleanSelect
+                    control={fieldControl}
+                    placeholder={translateMessage("Select %{0} value", [entry.key])}
+                  />
+                );
               }
 
               return (
@@ -154,7 +165,7 @@ const DictField: React.FC<DictFieldProps> = ({ field, fullFieldKey, control, val
                   id={fieldControl.id}
                   name={fieldControl.name}
                   ref={fieldControl.ref}
-                  placeholder={`Enter ${entry.key} value`}
+                  placeholder={translateMessage("Enter %{0} value", [entry.key])}
                   value={asText(fieldControl.value)}
                   onChange={fieldControl.onChange}
                   onBlur={fieldControl.onBlur}
@@ -170,7 +181,7 @@ const DictField: React.FC<DictFieldProps> = ({ field, fullFieldKey, control, val
             className="text-destructive hover:text-destructive/80"
             onClick={() => removeEntry(entry.id, entry.key)}
           >
-            Remove
+            <LocalizedText text={"Remove"} />
           </Button>
         </div>
       ))}
@@ -184,7 +195,7 @@ const DictField: React.FC<DictFieldProps> = ({ field, fullFieldKey, control, val
             onValueChange={(next: string | null) => next && addEntry(next)}
           >
             <SelectTrigger className="w-50">
-              <SelectValue placeholder="Select category to configure" />
+              <SelectValue placeholder={translateMessage("Select category to configure")} />
             </SelectTrigger>
             <SelectContent>
               {availableKeys.map((key) => (
@@ -194,7 +205,9 @@ const DictField: React.FC<DictFieldProps> = ({ field, fullFieldKey, control, val
               ))}
             </SelectContent>
           </Select>
-          <span className="text-sm text-muted-foreground">Select a category to add threshold configuration</span>
+          <span className="text-sm text-muted-foreground">
+            <LocalizedText text={"Select a category to add threshold configuration"} />
+          </span>
         </div>
       )}
     </div>
@@ -208,6 +221,7 @@ interface OptionalParamInputProps {
 }
 
 const OptionalParamInput: React.FC<OptionalParamInputProps> = ({ descriptor, fieldKey, control }) => {
+  useUiLocale();
   const { id, value, onChange, onBlur, ref, name, ...aria } = control;
 
   if (descriptor.type === "select" && descriptor.options) {
@@ -218,7 +232,7 @@ const OptionalParamInput: React.FC<OptionalParamInputProps> = ({ descriptor, fie
         onValueChange={(next: string | null) => onChange(next)}
       >
         <SelectTrigger id={id} className="w-full" {...aria}>
-          <SelectValue placeholder={descriptor.description} />
+          <SelectValue placeholder={localizedProperty(descriptor, "description", descriptor.description)} />
         </SelectTrigger>
         <SelectContent>
           {descriptor.options.map((option) => (
@@ -238,13 +252,18 @@ const OptionalParamInput: React.FC<OptionalParamInputProps> = ({ descriptor, fie
         options={descriptor.options.map((option) => ({ label: option, value: option }))}
         value={asStringArray(value)}
         onValueChange={onChange}
-        placeholder={descriptor.description}
+        placeholder={localizedProperty(descriptor, "description", descriptor.description)}
       />
     );
   }
 
   if (descriptor.type === "bool" || descriptor.type === "boolean") {
-    return <BooleanSelect control={control} placeholder={descriptor.description} />;
+    return (
+      <BooleanSelect
+        control={control}
+        placeholder={localizedProperty(descriptor, "description", descriptor.description)}
+      />
+    );
   }
 
   if (descriptor.type === "number") {
@@ -253,7 +272,7 @@ const OptionalParamInput: React.FC<OptionalParamInputProps> = ({ descriptor, fie
         id={id}
         name={name}
         step={1}
-        placeholder={descriptor.description}
+        placeholder={localizedProperty(descriptor, "description", descriptor.description)}
         value={asText(value)}
         onChange={(event: React.ChangeEvent<HTMLInputElement>) => onChange(toNumberValue(event.target.value))}
         onBlur={onBlur}
@@ -268,7 +287,7 @@ const OptionalParamInput: React.FC<OptionalParamInputProps> = ({ descriptor, fie
         id={id}
         name={name}
         ref={ref}
-        placeholder={descriptor.description}
+        placeholder={localizedProperty(descriptor, "description", descriptor.description)}
         value={asText(value)}
         onChange={onChange}
         onBlur={onBlur}
@@ -282,7 +301,7 @@ const OptionalParamInput: React.FC<OptionalParamInputProps> = ({ descriptor, fie
       id={id}
       name={name}
       ref={ref}
-      placeholder={descriptor.description}
+      placeholder={localizedProperty(descriptor, "description", descriptor.description)}
       value={asText(value)}
       onChange={onChange}
       onBlur={onBlur}
@@ -297,6 +316,7 @@ const GuardrailOptionalParams: React.FC<GuardrailOptionalParamsProps> = ({
   control,
   values,
 }) => {
+  useUiLocale();
   const renderField = (fieldKey: string, field: ProviderParam) => {
     const fullFieldKey = `${parentFieldKey}.${fieldKey}`;
     const value = values?.[fieldKey];
@@ -305,7 +325,9 @@ const GuardrailOptionalParams: React.FC<GuardrailOptionalParamsProps> = ({
       return (
         <div key={fullFieldKey} className="mb-8 rounded-lg border border-border bg-muted/40 p-6">
           <div className="mb-4 text-base font-medium text-foreground">{fieldKey}</div>
-          <p className="mb-4 text-sm text-muted-foreground">{field.description}</p>
+          <p className="mb-4 text-sm text-muted-foreground">
+            {localizedProperty(field, "description", field.description)}
+          </p>
           <DictField field={field} fullFieldKey={fullFieldKey} control={control} value={value} />
         </div>
       );
@@ -317,7 +339,7 @@ const GuardrailOptionalParams: React.FC<GuardrailOptionalParamsProps> = ({
           control={control}
           name={fullFieldKey}
           label={<span className="text-base">{fieldKey}</span>}
-          description={field.description}
+          description={localizedProperty(field, "description", field.description)}
           rules={field.required ? requiredRule(`${fieldKey} is required`) : undefined}
           defaultValue={value !== undefined ? value : field.default_value}
         >
@@ -334,9 +356,12 @@ const GuardrailOptionalParams: React.FC<GuardrailOptionalParamsProps> = ({
   return (
     <div className="guardrail-optional-params">
       <div className="mb-8 border-b border-border pb-4">
-        <h3 className="mb-2 text-lg font-semibold text-foreground">Optional Parameters</h3>
+        <h3 className="mb-2 text-lg font-semibold text-foreground">
+          <LocalizedText text={"Optional Parameters"} />
+        </h3>
         <p className="text-sm text-muted-foreground">
-          {optionalParams.description || "Configure additional settings for this guardrail provider"}
+          {localizedProperty(optionalParams, "description", optionalParams.description) ||
+            translateMessage("Configure additional settings for this guardrail provider")}
         </p>
       </div>
 

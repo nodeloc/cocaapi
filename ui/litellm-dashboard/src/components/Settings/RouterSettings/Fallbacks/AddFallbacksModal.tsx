@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, useUiLocale } from "@/lib/i18n";
 /**
  * Modal wrapper for the fallback selection form
  * Handles modal visibility and layout, but delegates content to children
@@ -14,6 +16,7 @@ interface AddFallbacksModalProps {
 }
 
 export function AddFallbacksModal({ open, onCancel, children }: AddFallbacksModalProps) {
+  useUiLocale();
   return (
     <Dialog open={open} onOpenChange={(open) => !open && onCancel()} disablePointerDismissal>
       <DialogContent className="top-8 max-h-[calc(100dvh-4rem)] translate-y-0 overflow-y-auto sm:max-w-[900px]">
@@ -24,9 +27,13 @@ export function AddFallbacksModal({ open, onCancel, children }: AddFallbacksModa
                 <ArrowRight className="w-5 h-5 text-indigo-600 dark:text-indigo-300" />
               </div>
               <div>
-                <DialogTitle className="text-lg font-bold m-0">Configure Model Fallbacks</DialogTitle>
+                <DialogTitle className="text-lg font-bold m-0">
+                  <LocalizedText text={"Configure Model Fallbacks"} />
+                </DialogTitle>
                 <p className="text-sm text-muted-foreground font-normal m-0">
-                  Manage multiple fallback chains for different models (up to 5 groups at a time)
+                  <LocalizedText
+                    text={"Manage multiple fallback chains for different models (up to 5 groups at a time)"}
+                  />
                 </p>
               </div>
             </div>

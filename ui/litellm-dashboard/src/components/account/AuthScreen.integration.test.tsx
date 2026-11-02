@@ -1,13 +1,31 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import AuthScreen from "./AuthScreen";
+import { LanguageProvider } from "@/lib/i18n/LanguageProvider";
+import { setUiLocale } from "@/lib/i18n/locale";
 
-vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }), usePathname: () => "/account/register/" }));
 
 const methods = { registration_enabled: true, email_enabled: true, providers: [], csrf_token: "browser-csrf" };
 const fetchMock = vi.fn<typeof fetch>();
 
 describe("customer account forms", () => {
+  it("translates the account heading and submit label without clearing registration credentials", async () => {
+    fetchMock.mockResolvedValue(Response.json(methods));
+    render(
+      <LanguageProvider>
+        <AuthScreen mode="register" />
+      </LanguageProvider>,
+    );
+    act(() => setUiLocale("zh"));
+    const email = await screen.findByLabelText("邮箱");
+    fireEvent.change(email, { target: { value: "person@example.com" } });
+    act(() => setUiLocale("en"));
+    expect(screen.getByRole("heading", { name: "Create account" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Register and send verification email" })).toBeInTheDocument();
+    expect(screen.getByLabelText("Email")).toBe(email);
+    expect(email).toHaveValue("person@example.com");
+  });
   it("shows an actionable message for rejected OAuth app credentials", async () => {
     window.history.replaceState(null, "", "/account/login/?error=provider_credentials_invalid");
     fetchMock.mockResolvedValue(Response.json(methods));

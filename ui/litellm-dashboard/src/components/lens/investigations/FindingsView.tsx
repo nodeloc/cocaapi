@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { useQuery } from "@tanstack/react-query";
 import { Inspector, useInspector } from "@/components/shared/Inspector";
@@ -30,36 +31,33 @@ import { InvestigationError, InvestigationsLoading } from "./InvestigationStates
 import { PRIORITY_LABEL, PRIORITY_ORDER, PriorityDot } from "./PriorityMark";
 
 const PRIORITIES: { value: Priority | "all"; label: string }[] = [
-  { value: "all", label: "All priorities" },
-  { value: "high", label: "High" },
-  { value: "medium", label: "Medium" },
-  { value: "low", label: "Low" },
+  markUiCopy({ value: "all", label: "All priorities" }, { label: "All priorities" }),
+  markUiCopy({ value: "high", label: "High" }, { label: "High" }),
+  markUiCopy({ value: "medium", label: "Medium" }, { label: "Medium" }),
+  markUiCopy({ value: "low", label: "Low" }, { label: "Low" }),
 ];
 
-function FilterSelect<T extends string>({
-  label,
-  value,
-  items,
-  onChange,
-}: {
+function FilterSelect<T extends string>(cocaCopyProps0: {
   label: string;
   value: T;
   items: { value: T; label: string }[];
   onChange: (value: T) => void;
 }) {
+  const { label, value, items, onChange } = cocaCopyProps0;
+  useUiLocale();
   return (
     <Select items={items} value={value} onValueChange={(next: T | null) => next !== null && onChange(next)}>
       <SelectTrigger
         size="sm"
         className="h-7 min-w-0 flex-1 border-transparent bg-muted/60 text-xs shadow-none hover:bg-muted"
-        aria-label={label}
+        aria-label={localizedProperty(cocaCopyProps0, "label", label)}
       >
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
         {items.map((item) => (
           <SelectItem key={item.value} value={item.value}>
-            {item.label}
+            {localizedProperty(item, "label", item.label)}
           </SelectItem>
         ))}
       </SelectContent>
@@ -68,6 +66,7 @@ function FilterSelect<T extends string>({
 }
 
 function FindingRow({ row, now }: { row: InboxRow; now: number }) {
+  useUiLocale();
   const frequency = findingFrequency(inboxFinding(row).occurrences, inboxSampledRuns(row));
   const percent = percentLabel(frequency.affected, frequency.total);
   return (
@@ -77,13 +76,13 @@ function FindingRow({ row, now }: { row: InboxRow; now: number }) {
         <div
           role="row"
           tabIndex={0}
-          aria-label={row.title}
+          aria-label={localizedProperty(row, "title", row.title)}
           className="mx-2 block cursor-pointer space-y-1 rounded-md px-2 py-2 transition-[background-color] duration-150 outline-none hover:bg-muted/60 focus-visible:ring-2 focus-visible:ring-ring/50 data-[state=selected]:bg-muted"
         />
       }
     >
       <div role="gridcell" className="line-clamp-2 text-xs leading-snug text-pretty text-foreground">
-        {row.title}
+        {localizedProperty(row, "title", row.title)}
       </div>
       <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 text-xs text-muted-foreground">
         <span className="tabular-nums" title={formatActivityTimestamp(row.lastSeen)}>
@@ -91,9 +90,15 @@ function FindingRow({ row, now }: { row: InboxRow; now: number }) {
         </span>
         <span
           className="whitespace-nowrap text-foreground/75 tabular-nums"
-          title={`${row.runs} affected ${row.runs === 1 ? "trace" : "traces"} across ${row.sources.map(({ lens }) => lens.settings.name).join(", ")}`}
+          title={translateMessage("%{0} affected %{1} across %{2}", [
+            row.runs,
+            row.runs === 1 ? "trace" : "traces",
+            row.sources.map(({ lens }) => lens.settings.name).join(", "),
+          ])}
         >
-          {percent ? `${percent} affected` : `${row.runs} ${row.runs === 1 ? "trace" : "traces"}`}
+          {percent
+            ? translateMessage("%{0} affected", [percent])
+            : `${row.runs} ${row.runs === 1 ? translateMessage("trace") : translateMessage("traces")}`}
         </span>
       </div>
     </Inspector.Row>
@@ -101,20 +106,32 @@ function FindingRow({ row, now }: { row: InboxRow; now: number }) {
 }
 
 function FindingList({ rows, now }: { rows: readonly InboxRow[]; now: number }) {
+  useUiLocale();
   const groups = PRIORITY_ORDER.map((priority) => ({
     priority,
     rows: rows.filter((row) => row.priority === priority),
   })).filter((group) => group.rows.length > 0);
   return (
-    <div role="grid" aria-label="Findings" className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-2">
+    <div
+      role="grid"
+      aria-label={translateMessage("Findings")}
+      className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-2"
+    >
       {groups.map((group) => (
-        <div role="rowgroup" key={group.priority} aria-label={`${PRIORITY_LABEL[group.priority]} priority findings`}>
+        <div
+          role="rowgroup"
+          key={group.priority}
+          aria-label={translateMessage("%{0} priority findings", [PRIORITY_LABEL[group.priority]])}
+        >
           <div
             role="row"
             className="sticky top-0 z-raised flex items-center gap-2 bg-background/95 px-4 pt-3 pb-1.5 text-xs font-medium text-muted-foreground backdrop-blur"
           >
             <PriorityDot priority={group.priority} />
-            <span role="columnheader">{PRIORITY_LABEL[group.priority]} priority</span>
+            <span role="columnheader">
+              {PRIORITY_LABEL[group.priority]}
+              <LocalizedText text={" priority"} />
+            </span>
             <span className="ml-auto tabular-nums">{group.rows.length}</span>
           </div>
           <div className="space-y-0.5">
@@ -139,6 +156,7 @@ function InboxDetail({
   busy: boolean;
   onReview: (row: InboxRow, status: Finding["status"], reason: string) => void;
 }) {
+  useUiLocale();
   const { close } = useInspector<InboxRow>();
   const { evidence, setEvidence } = useEvidenceRoute();
   const owner =
@@ -172,6 +190,7 @@ function InboxDetail({
 }
 
 export function FindingsView({ readOnly = false }: { readOnly?: boolean }) {
+  useUiLocale();
   const api = useLensApi();
   const list = useQuery(lensQueries.list(api));
   const update = useLensUpdate();
@@ -183,7 +202,7 @@ export function FindingsView({ readOnly = false }: { readOnly?: boolean }) {
   const selected =
     all.find((row) => row.sources.some(({ lens, finding }) => findingKey(lens, finding) === issueKey)) ?? null;
   const agents = [
-    { value: ALL_AGENTS, label: "All agents" },
+    markUiCopy({ value: ALL_AGENTS, label: "All agents" }, { label: "All agents" }),
     ...inboxAgents(all).map((agent) => ({ value: agent, label: agent })),
   ];
   const review = (row: InboxRow, status: Finding["status"], reason: string) => {
@@ -211,7 +230,7 @@ export function FindingsView({ readOnly = false }: { readOnly?: boolean }) {
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border bg-background">
         {(list.error || update.error) && (
           <InvestigationError
-            message={(list.error ?? update.error)!.message}
+            message={localizedProperty((list.error ?? update.error)!, "message")}
             refresh={() => {
               update.reset();
               void list.refetch();
@@ -220,13 +239,18 @@ export function FindingsView({ readOnly = false }: { readOnly?: boolean }) {
         )}
         <div className="flex min-h-0 flex-1">
           <section
-            aria-label="Findings list"
+            aria-label={translateMessage("Findings list")}
             className={`flex min-h-0 w-full flex-col border-r md:w-[22rem] md:shrink-0 lg:w-[28rem] ${selected ? "hidden md:flex" : "flex"}`}
           >
             <div className="flex shrink-0 items-center gap-2 px-3 py-2">
-              <FilterSelect label="Filter by agent" value={filters.agent} items={agents} onChange={filters.setAgent} />
               <FilterSelect
-                label="Filter by priority"
+                label={translateMessage("Filter by agent")}
+                value={filters.agent}
+                items={agents}
+                onChange={filters.setAgent}
+              />
+              <FilterSelect
+                label={translateMessage("Filter by priority")}
                 value={filters.priority}
                 items={PRIORITIES}
                 onChange={filters.setPriority}
@@ -236,18 +260,20 @@ export function FindingsView({ readOnly = false }: { readOnly?: boolean }) {
             {!rows.length && !list.error && (
               <p className="px-4 py-16 text-center text-xs text-muted-foreground">
                 {all.length
-                  ? "No findings match these filters."
-                  : "No open findings yet. New problems show up here as soon as an investigation spots them."}
+                  ? translateMessage("No findings match these filters.")
+                  : translateMessage(
+                      "No open findings yet. New problems show up here as soon as an investigation spots them.",
+                    )}
               </p>
             )}
             <footer className="flex h-8 shrink-0 items-center border-t px-3 text-xs text-muted-foreground">
-              {rows.length} {rows.length === 1 ? "finding" : "findings"}
-              {rows.length !== all.length && ` of ${all.length}`}
+              {rows.length} {rows.length === 1 ? translateMessage("finding") : translateMessage("findings")}
+              {rows.length !== all.length && translateMessage(" of %{0}", [all.length])}
             </footer>
           </section>
           {selected ? (
             <aside
-              aria-label="Finding details"
+              aria-label={translateMessage("Finding details")}
               data-testid="finding-panel"
               className="flex min-h-0 min-w-0 flex-1 flex-col"
             >
@@ -255,7 +281,7 @@ export function FindingsView({ readOnly = false }: { readOnly?: boolean }) {
             </aside>
           ) : (
             <div className="hidden min-w-0 flex-1 items-center justify-center p-8 text-sm text-muted-foreground md:flex">
-              {rows.length ? "Select a finding to see how often it happens and where." : null}
+              {rows.length ? translateMessage("Select a finding to see how often it happens and where.") : null}
             </div>
           )}
         </div>

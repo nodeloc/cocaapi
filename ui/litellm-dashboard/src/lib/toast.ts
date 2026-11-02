@@ -1,3 +1,4 @@
+import { markUiCopy } from "@/lib/i18n";
 import type { ReactNode } from "react";
 import { toast as sonner } from "sonner";
 import { ApiError, deriveErrorMessage, unwrapProxyErrorMessage } from "@/lib/http/client";
@@ -22,28 +23,53 @@ const DEFAULT_DURATION_MS: Readonly<Record<ToastKind, number>> = {
   error: 6000,
 };
 
-const PROXY_TYPE_TITLES: Readonly<Record<string, string>> = {
-  budget_exceeded: "Budget Exceeded",
-  no_db_connection: "Service Unavailable",
-  expired_key: "Authentication Error",
-  token_not_found_in_db: "Authentication Error",
-  team_member_permission_error: "Access Denied",
-  not_found_error: "Not Found",
-  validation_error: "Validation Error",
-  bad_request_error: "Request Error",
-  team_member_already_in_team: "Already Exists",
-};
+const PROXY_TYPE_TITLES: Readonly<Record<string, string>> = markUiCopy(
+  {
+    budget_exceeded: "Budget Exceeded",
+    no_db_connection: "Service Unavailable",
+    expired_key: "Authentication Error",
+    token_not_found_in_db: "Authentication Error",
+    team_member_permission_error: "Access Denied",
+    not_found_error: "Not Found",
+    validation_error: "Validation Error",
+    bad_request_error: "Request Error",
+    team_member_already_in_team: "Already Exists",
+  },
+  {
+    budget_exceeded: "Budget Exceeded",
+    no_db_connection: "Service Unavailable",
+    expired_key: "Authentication Error",
+    token_not_found_in_db: "Authentication Error",
+    team_member_permission_error: "Access Denied",
+    not_found_error: "Not Found",
+    validation_error: "Validation Error",
+    bad_request_error: "Request Error",
+    team_member_already_in_team: "Already Exists",
+  },
+);
 
-const STATUS_TITLES: Readonly<Record<number, string>> = {
-  400: "Request Error",
-  401: "Authentication Error",
-  403: "Access Denied",
-  404: "Not Found",
-  409: "Already Exists",
-  422: "Validation Error",
-  429: "Rate Limit Exceeded",
-  503: "Service Unavailable",
-};
+const STATUS_TITLES: Readonly<Record<number, string>> = markUiCopy(
+  {
+    400: "Request Error",
+    401: "Authentication Error",
+    403: "Access Denied",
+    404: "Not Found",
+    409: "Already Exists",
+    422: "Validation Error",
+    429: "Rate Limit Exceeded",
+    503: "Service Unavailable",
+  },
+  {
+    "400": "Request Error",
+    "401": "Authentication Error",
+    "403": "Access Denied",
+    "404": "Not Found",
+    "409": "Already Exists",
+    "422": "Validation Error",
+    "429": "Rate Limit Exceeded",
+    "503": "Service Unavailable",
+  },
+);
 
 const WARNING_TITLES: ReadonlySet<string> = new Set(["Budget Exceeded", "Rate Limit Exceeded"]);
 
@@ -126,10 +152,16 @@ const titleFor = ({ status, proxyType }: ErrorFacts): string => {
 };
 
 const show = (kind: ToastKind, message: ReactNode, options?: ToastOptions): void => {
-  sonner[kind](message, {
-    description: options?.description,
-    duration: options?.durationMs ?? DEFAULT_DURATION_MS[kind],
-  });
+  sonner[kind](
+    message,
+    markUiCopy(
+      {
+        description: options?.description,
+        duration: options?.durationMs ?? DEFAULT_DURATION_MS[kind],
+      },
+      { description: { owner: options, field: "description" } },
+    ),
+  );
 };
 
 export const toast = {

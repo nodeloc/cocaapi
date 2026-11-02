@@ -1,4 +1,5 @@
 "use client";
+import { localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { Check } from "lucide-react";
 
@@ -88,25 +89,30 @@ export const groupFacts = (row: GroupRowData): HoverFacts => {
   };
 };
 
-function Fact({ label, value }: { label: string; value: string }) {
+function Fact(cocaCopyProps0: { label: string; value: string }) {
+  const { label, value } = cocaCopyProps0;
+  useUiLocale();
   return (
     <div className="flex justify-between gap-4">
-      <dt className="text-trace-duration">{label}</dt>
+      <dt className="text-trace-duration">{localizedProperty(cocaCopyProps0, "label", label)}</dt>
       <dd className="font-mono text-trace-text tabular-nums">{value}</dd>
     </div>
   );
 }
 
-function FactSection({ title, children }: { title: string; children: React.ReactNode }) {
+function FactSection(cocaCopyProps1: { title: string; children: React.ReactNode }) {
+  const { title, children } = cocaCopyProps1;
+  useUiLocale();
   return (
-    <section aria-label={title} className="flex flex-col gap-1.5">
-      <h4 className="font-semibold text-trace-text">{title}</h4>
+    <section aria-label={localizedProperty(cocaCopyProps1, "title", title)} className="flex flex-col gap-1.5">
+      <h4 className="font-semibold text-trace-text">{localizedProperty(cocaCopyProps1, "title", title)}</h4>
       {children}
     </section>
   );
 }
 
 function HoverCardBody({ facts, traceStartMs }: { facts: HoverFacts; traceStartMs: number }) {
+  useUiLocale();
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-start gap-2">
@@ -119,7 +125,7 @@ function HoverCardBody({ facts, traceStartMs }: { facts: HoverFacts; traceStartM
             {!facts.failed && (
               <span
                 className="grid size-4 shrink-0 place-items-center rounded-full bg-trace-ok p-0.5"
-                aria-label="Success"
+                aria-label={translateMessage("Success")}
               >
                 <Check className="size-3 text-trace-ok-glyph" strokeWidth={2.5} />
               </span>
@@ -131,23 +137,23 @@ function HoverCardBody({ facts, traceStartMs }: { facts: HoverFacts; traceStartM
           </span>
         </div>
       </div>
-      <FactSection title="Time">
+      <FactSection title={translateMessage("Time")}>
         <dl className="flex flex-col gap-1.5">
-          <Fact label="Start" value={absoluteTime(traceStartMs, facts.startMs)} />
-          <Fact label="End" value={absoluteTime(traceStartMs, facts.startMs + facts.durationMs)} />
-          <Fact label="Duration" value={fmtMs(facts.durationMs)} />
+          <Fact label={translateMessage("Start")} value={absoluteTime(traceStartMs, facts.startMs)} />
+          <Fact label={translateMessage("End")} value={absoluteTime(traceStartMs, facts.startMs + facts.durationMs)} />
+          <Fact label={translateMessage("Duration")} value={fmtMs(facts.durationMs)} />
         </dl>
       </FactSection>
       {(facts.tokens > 0 || facts.spend != null) && (
-        <FactSection title="Usage">
+        <FactSection title={translateMessage("Usage")}>
           <dl className="flex flex-col gap-1.5">
-            {facts.tokens > 0 && <Fact label="Tokens" value={fmtTok(facts.tokens)} />}
-            {facts.spend != null && <Fact label="Cost" value={formatCost(facts.spend)} />}
+            {facts.tokens > 0 && <Fact label={translateMessage("Tokens")} value={fmtTok(facts.tokens)} />}
+            {facts.spend != null && <Fact label={translateMessage("Cost")} value={formatCost(facts.spend)} />}
           </dl>
         </FactSection>
       )}
       {facts.tags.length > 0 && (
-        <FactSection title="Tags">
+        <FactSection title={translateMessage("Tags")}>
           <ul className="flex flex-wrap gap-1">
             {facts.tags.map((tag) => (
               <li key={tag} className="rounded-sm bg-trace-tag px-1 py-0.5 text-trace-duration">
@@ -174,6 +180,7 @@ interface SpanHoverCardProps {
 
 /** Wraps a tree row: after a hover delay, shows timing, usage, tags and the failure headline beside the drawer. */
 export function SpanHoverCard({ facts, traceStartMs, children }: SpanHoverCardProps) {
+  useUiLocale();
   return (
     <HoverCard>
       <HoverCardTrigger delay={HOVER_OPEN_DELAY_MS} closeDelay={HOVER_CLOSE_DELAY_MS} render={children} />

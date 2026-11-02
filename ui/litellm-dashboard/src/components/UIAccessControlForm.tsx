@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import { CircleHelp } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useWatch } from "react-hook-form";
@@ -30,18 +32,26 @@ const uiAccessControlSchema = z
     if (values.ui_access_mode_type !== "restricted_sso_group" || values.restricted_sso_group) {
       return;
     }
-    ctx.addIssue({
-      code: "custom",
-      path: ["restricted_sso_group"],
-      message: "Please enter the restricted SSO group",
-    });
+    ctx.addIssue(
+      markUiCopy(
+        {
+          code: "custom" as const,
+          path: ["restricted_sso_group"],
+          message: "Please enter the restricted SSO group",
+        },
+        { message: "Please enter the restricted SSO group" },
+      ),
+    );
   });
 
 type UIAccessControlFormValues = z.output<typeof uiAccessControlSchema>;
 
 const UI_ACCESS_MODE_OPTIONS = [
-  { value: "all_authenticated_users", label: "All Authenticated Users" },
-  { value: "restricted_sso_group", label: "Restricted SSO Group" },
+  markUiCopy(
+    { value: "all_authenticated_users", label: "All Authenticated Users" },
+    { label: "All Authenticated Users" },
+  ),
+  markUiCopy({ value: "restricted_sso_group", label: "Restricted SSO Group" }, { label: "Restricted SSO Group" }),
 ] as const;
 
 const asRecord = (value: unknown): Record<string, unknown> | null =>
@@ -87,6 +97,7 @@ const labelWithHint = (label: string, hint: string): React.ReactNode => (
 );
 
 const UIAccessControlForm: React.FC<UIAccessControlFormProps> = ({ accessToken, onSuccess }) => {
+  useUiLocale();
   const form = useZodForm(uiAccessControlSchema, { defaultValues: {} });
   const [loading, setLoading] = useState(false);
   const uiAccessModeType = useWatch({ control: form.control, name: "ui_access_mode_type" });
@@ -151,7 +162,9 @@ const UIAccessControlForm: React.FC<UIAccessControlFormProps> = ({ accessToken, 
       <div className="p-4">
         <div className="mb-4">
           <p className="text-sm text-muted-foreground">
-            Configure who can access the UI interface and how group information is extracted from JWT tokens.
+            <LocalizedText
+              text={"Configure who can access the UI interface and how group information is extracted from JWT tokens."}
+            />
           </p>
         </div>
 
@@ -174,12 +187,12 @@ const UIAccessControlForm: React.FC<UIAccessControlFormProps> = ({ accessToken, 
                     aria-invalid={ariaInvalid}
                     aria-describedby={ariaDescribedBy}
                   >
-                    <SelectValue placeholder="Select access mode" />
+                    <SelectValue placeholder={translateMessage("Select access mode")} />
                   </SelectTrigger>
                   <SelectContent>
                     {UI_ACCESS_MODE_OPTIONS.map((option) => (
                       <SelectItem key={option.value} value={option.value}>
-                        {option.label}
+                        {localizedProperty(option, "label", option.label)}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -188,9 +201,13 @@ const UIAccessControlForm: React.FC<UIAccessControlFormProps> = ({ accessToken, 
             </FormField>
 
             {uiAccessModeType === "restricted_sso_group" && (
-              <FormField control={form.control} name="restricted_sso_group" label="Restricted SSO Group">
+              <FormField
+                control={form.control}
+                name="restricted_sso_group"
+                label={translateMessage("Restricted SSO Group")}
+              >
                 {({ ref, value, ...field }) => (
-                  <Input {...field} ref={ref} value={value ?? ""} placeholder="ui-access-group" />
+                  <Input {...field} ref={ref} value={value ?? ""} placeholder={translateMessage("ui-access-group")} />
                 )}
               </FormField>
             )}
@@ -203,14 +220,16 @@ const UIAccessControlForm: React.FC<UIAccessControlFormProps> = ({ accessToken, 
                 "JWT field name that contains team/group information. Use dot notation to access nested fields.",
               )}
             >
-              {({ ref, value, ...field }) => <Input {...field} ref={ref} value={value ?? ""} placeholder="groups" />}
+              {({ ref, value, ...field }) => (
+                <Input {...field} ref={ref} value={value ?? ""} placeholder={translateMessage("groups")} />
+              )}
             </FormField>
           </FieldGroup>
 
           <div className="mt-4 text-right">
             <Button type="submit" disabled={loading}>
               {loading && <UiLoadingSpinner className="size-4" />}
-              Update UI Access Control
+              <LocalizedText text={"Update UI Access Control"} />
             </Button>
           </div>
         </form>

@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 import React from "react";
 import { LoaderCircleIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -28,36 +30,41 @@ const PublishModal: React.FC<PublishModalProps> = ({
   onPublish,
   onCancel,
 }) => {
+  useUiLocale();
   return (
     <Dialog open={visible} onOpenChange={(open) => !open && onCancel()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Publish Prompt</DialogTitle>
-          <DialogDescription>Published prompts are versioned and can be used in API calls.</DialogDescription>
+          <DialogTitle>
+            <LocalizedText text={"Publish Prompt"} />
+          </DialogTitle>
+          <DialogDescription>
+            <LocalizedText text={"Published prompts are versioned and can be used in API calls."} />
+          </DialogDescription>
         </DialogHeader>
         <div className="py-4">
           <label htmlFor="publish-prompt-name" className="mb-2 block">
-            Name
+            <LocalizedText text={"Name"} />
           </label>
           <Input
             id="publish-prompt-name"
             value={promptName}
             onChange={(e) => onNameChange(e.target.value)}
-            placeholder="Enter prompt name"
+            placeholder={translateMessage("Enter prompt name")}
             onKeyDown={(event) => event.key === "Enter" && onPublish()}
             autoFocus
           />
           <p className="text-muted-foreground text-xs mt-2">
-            Published prompts can be used in API calls and are versioned for easy tracking.
+            <LocalizedText text={"Published prompts can be used in API calls and are versioned for easy tracking."} />
           </p>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onCancel}>
-            Cancel
+            <LocalizedText text={"Cancel"} />
           </Button>
           <Button onClick={onPublish} disabled={isSaving}>
             {isSaving && <LoaderCircleIcon className="animate-spin" />}
-            Publish
+            <LocalizedText text={"Publish"} />
           </Button>
         </DialogFooter>
       </DialogContent>

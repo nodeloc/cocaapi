@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 import React, { useState } from "react";
 import ToolModal from "../tool_modal";
 import { toast } from "@/lib/toast";
@@ -15,6 +17,7 @@ import DotpromptViewTab from "./DotpromptViewTab";
 import VersionHistorySidePanel from "./VersionHistorySidePanel";
 
 const PromptEditorView: React.FC<PromptEditorViewProps> = ({ onClose, onSuccess, accessToken, initialPromptData }) => {
+  useUiLocale();
   const getInitialPrompt = (): PromptType => {
     if (initialPromptData) {
       try {
@@ -214,10 +217,10 @@ const PromptEditorView: React.FC<PromptEditorViewProps> = ({ onClose, onSuccess,
 
       if (editMode && initialPromptData?.prompt_spec?.prompt_id) {
         await updatePromptCall(accessToken, initialPromptData.prompt_spec.prompt_id, promptData);
-        toast.success("Prompt updated successfully!");
+        toast.success(translateMessage("Prompt updated successfully!"));
       } else {
         await createPromptCall(accessToken, promptData);
-        toast.success("Prompt created successfully!");
+        toast.success(translateMessage("Prompt created successfully!"));
       }
       onSuccess();
       onClose();
@@ -320,7 +323,7 @@ const PromptEditorView: React.FC<PromptEditorViewProps> = ({ onClose, onSuccess,
                   }`}
                   onClick={() => setViewMode("pretty")}
                 >
-                  PRETTY
+                  <LocalizedText text={"PRETTY"} />
                 </button>
                 <button
                   className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
@@ -328,7 +331,7 @@ const PromptEditorView: React.FC<PromptEditorViewProps> = ({ onClose, onSuccess,
                   }`}
                   onClick={() => setViewMode("dotprompt")}
                 >
-                  DOTPROMPT
+                  <LocalizedText text={"DOTPROMPT"} />
                 </button>
               </div>
             </div>

@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import React from "react";
 import { Label } from "@/components/ui/label";
 import { SearchSelect } from "@/components/shared/SearchSelect";
@@ -26,6 +28,7 @@ export default function ClassifierPrimarySettings({
   showValidationErrors?: boolean;
   section?: "all" | "judge" | "frequency";
 }) {
+  useUiLocale();
   const id = React.useId();
   const restriction = restrictedBy(value, "sessionAffinity");
   const frequency = classificationFrequency(value);
@@ -48,12 +51,14 @@ export default function ClassifierPrimarySettings({
     >
       {section !== "judge" && (
         <div className="space-y-2">
-          <Label htmlFor={`${id}-frequency`}>How often to classify</Label>
+          <Label htmlFor={`${id}-frequency`}>
+            <LocalizedText text={"How often to classify"} />
+          </Label>
           <Select
             items={[
-              { value: "every_request", label: "Every request" },
-              { value: "user_turn", label: "Every new user message" },
-              { value: "session", label: "Once per session" },
+              markUiCopy({ value: "every_request", label: "Every request" }, { label: "Every request" }),
+              markUiCopy({ value: "user_turn", label: "Every new user message" }, { label: "Every new user message" }),
+              markUiCopy({ value: "session", label: "Once per session" }, { label: "Once per session" }),
             ]}
             value={frequency}
             onValueChange={(frequency) => {
@@ -64,10 +69,14 @@ export default function ClassifierPrimarySettings({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="every_request">Every request</SelectItem>
-              <SelectItem value="user_turn">Every new user message</SelectItem>
+              <SelectItem value="every_request">
+                <LocalizedText text={"Every request"} />
+              </SelectItem>
+              <SelectItem value="user_turn">
+                <LocalizedText text={"Every new user message"} />
+              </SelectItem>
               <SelectItem value="session" disabled={Boolean(restriction)}>
-                Once per session
+                <LocalizedText text={"Once per session"} />
               </SelectItem>
             </SelectContent>
           </Select>
@@ -76,13 +85,15 @@ export default function ClassifierPrimarySettings({
       )}
       {section !== "frequency" && usesJudge && (
         <div className="space-y-2">
-          <Label htmlFor={`${id}-judge`}>Judge model</Label>
+          <Label htmlFor={`${id}-judge`}>
+            <LocalizedText text={"Judge model"} />
+          </Label>
           <SearchSelect
             inputId={`${id}-judge`}
-            aria-label="Judge model"
+            aria-label={translateMessage("Judge model")}
             options={modelOptions}
             value={value.classifier_llm_config?.model ?? ""}
-            placeholder="Select the judge model"
+            placeholder={translateMessage("Select the judge model")}
             allowClear={false}
             className={missingJudge ? "border-destructive" : undefined}
             onValueChange={(model) => {
@@ -100,7 +111,7 @@ export default function ClassifierPrimarySettings({
           />
           {missingJudge && (
             <p role="alert" className="text-xs text-destructive">
-              A judge model is required
+              <LocalizedText text={"A judge model is required"} />
             </p>
           )}
         </div>

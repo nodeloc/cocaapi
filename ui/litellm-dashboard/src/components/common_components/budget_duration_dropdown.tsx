@@ -1,15 +1,20 @@
+"use client";
+import { LocalizedText, markUiCopy, useUiLocale } from "@/lib/i18n";
 import React from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export const NEVER_RESETS_BUDGET_DURATION = "none";
 
-const DURATION_LABELS: Record<string, string> = {
-  [NEVER_RESETS_BUDGET_DURATION]: "Never resets",
-  "1h": "hourly",
-  "24h": "daily",
-  "7d": "weekly",
-  "30d": "monthly",
-};
+const DURATION_LABELS: Record<string, string> = markUiCopy(
+  {
+    [NEVER_RESETS_BUDGET_DURATION]: "Never resets",
+    "1h": "hourly",
+    "24h": "daily",
+    "7d": "weekly",
+    "30d": "monthly",
+  },
+  { [NEVER_RESETS_BUDGET_DURATION]: "Never resets", "1h": "hourly", "24h": "daily", "7d": "weekly", "30d": "monthly" },
+);
 
 interface BudgetDurationDropdownProps {
   id?: string;
@@ -30,6 +35,7 @@ const BudgetDurationDropdown: React.FC<BudgetDurationDropdownProps> = ({
   placeholder = "n/a",
   showNeverResets = false,
 }) => {
+  useUiLocale();
   return (
     <Select items={DURATION_LABELS} value={value || null} onValueChange={onChange}>
       <SelectTrigger id={id} className={`w-full ${className}`} style={style}>
@@ -37,11 +43,23 @@ const BudgetDurationDropdown: React.FC<BudgetDurationDropdownProps> = ({
       </SelectTrigger>
       <SelectContent>
         <SelectItem value={null}>{placeholder}</SelectItem>
-        {showNeverResets ? <SelectItem value={NEVER_RESETS_BUDGET_DURATION}>Never resets</SelectItem> : null}
-        <SelectItem value="1h">hourly</SelectItem>
-        <SelectItem value="24h">daily</SelectItem>
-        <SelectItem value="7d">weekly</SelectItem>
-        <SelectItem value="30d">monthly</SelectItem>
+        {showNeverResets ? (
+          <SelectItem value={NEVER_RESETS_BUDGET_DURATION}>
+            <LocalizedText text={"Never resets"} />
+          </SelectItem>
+        ) : null}
+        <SelectItem value="1h">
+          <LocalizedText text={"hourly"} />
+        </SelectItem>
+        <SelectItem value="24h">
+          <LocalizedText text={"daily"} />
+        </SelectItem>
+        <SelectItem value="7d">
+          <LocalizedText text={"weekly"} />
+        </SelectItem>
+        <SelectItem value="30d">
+          <LocalizedText text={"monthly"} />
+        </SelectItem>
       </SelectContent>
     </Select>
   );

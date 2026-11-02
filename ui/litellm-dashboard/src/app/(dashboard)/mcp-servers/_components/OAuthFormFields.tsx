@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import { Info } from "lucide-react";
 import React from "react";
 import { MultiSelect } from "@/components/shared/MultiSelect";
@@ -40,8 +42,8 @@ interface OAuthFormFieldsProps {
 const fieldClassName = "rounded-lg border-border focus:border-info focus:ring-ring";
 
 const OAUTH_FLOW_ITEMS = [
-  { value: OAUTH_FLOW.M2M, label: "Machine-to-Machine (M2M)" },
-  { value: OAUTH_FLOW.INTERACTIVE, label: "Interactive (PKCE)" },
+  markUiCopy({ value: OAUTH_FLOW.M2M, label: "Machine-to-Machine (M2M)" }, { label: "Machine-to-Machine (M2M)" }),
+  markUiCopy({ value: OAUTH_FLOW.INTERACTIVE, label: "Interactive (PKCE)" }, { label: "Interactive (PKCE)" }),
 ];
 
 const UPSTREAM_RESOURCE_TOOLTIP =
@@ -51,25 +53,38 @@ const UPSTREAM_RESOURCE_TOOLTIP =
   "parameter and take the audience from scopes instead; if you see AADSTS901002, leave it blank. If you see " +
   "invalid_target, the authorization server needs it set.";
 
-const FieldLabel: React.FC<{ label: string; tooltip: string }> = ({ label, tooltip }) => (
-  <span className="text-sm font-medium text-foreground flex items-center">
-    {label}
-    <SimpleTooltip content={tooltip}>
-      <Info className="ml-2 size-4 text-info hover:text-info/80 cursor-help" />
-    </SimpleTooltip>
-  </span>
-);
+const FieldLabel: React.FC<{ label: string; tooltip: string }> = (cocaCopyProps0) => {
+  const { label, tooltip } = cocaCopyProps0;
+  useUiLocale();
+  return (
+    <span className="text-sm font-medium text-foreground flex items-center">
+      {localizedProperty(cocaCopyProps0, "label", label)}
+      <SimpleTooltip content={tooltip}>
+        <Info className="ml-2 size-4 text-info hover:text-info/80 cursor-help" />
+      </SimpleTooltip>
+    </span>
+  );
+};
 
-const UpstreamResourceField: React.FC = () => (
-  <MountedFormField
-    label={<FieldLabel label="Resource Indicator (optional)" tooltip={UPSTREAM_RESOURCE_TOOLTIP} />}
-    name={["credentials", "upstream_resource"]}
-  >
-    {(control) => (
-      <Input {...textControl(control)} placeholder="auto, or https://mcp.example.com/mcp" className={fieldClassName} />
-    )}
-  </MountedFormField>
-);
+const UpstreamResourceField: React.FC = () => {
+  useUiLocale();
+  return (
+    <MountedFormField
+      label={
+        <FieldLabel label={translateMessage("Resource Indicator (optional)")} tooltip={UPSTREAM_RESOURCE_TOOLTIP} />
+      }
+      name={["credentials", "upstream_resource"]}
+    >
+      {(control) => (
+        <Input
+          {...textControl(control)}
+          placeholder={translateMessage("auto, or https://mcp.example.com/mcp")}
+          className={fieldClassName}
+        />
+      )}
+    </MountedFormField>
+  );
+};
 
 const OAuthFormFields: React.FC<OAuthFormFieldsProps> = ({
   isM2M,
@@ -78,6 +93,7 @@ const OAuthFormFields: React.FC<OAuthFormFieldsProps> = ({
   initialFlowType,
   docsUrl,
 }) => {
+  useUiLocale();
   const placeholderSuffix = isEditing ? " (leave blank to keep existing)" : "";
   const requiredWhenCreating = (message: string) =>
     isEditing ? undefined : { validate: { required: requiredRule(message) } };
@@ -87,8 +103,10 @@ const OAuthFormFields: React.FC<OAuthFormFieldsProps> = ({
       <MountedFormField
         label={
           <FieldLabel
-            label="OAuth Flow Type"
-            tooltip="Choose how the proxy authenticates with this MCP server. M2M is for server-to-server communication using client credentials. Interactive (PKCE) is for user-facing flows that require browser-based authorization."
+            label={translateMessage("OAuth Flow Type")}
+            tooltip={translateMessage(
+              "Choose how the proxy authenticates with this MCP server. M2M is for server-to-server communication using client credentials. Interactive (PKCE) is for user-facing flows that require browser-based authorization.",
+            )}
           />
         }
         name="oauth_flow_type"
@@ -97,19 +115,27 @@ const OAuthFormFields: React.FC<OAuthFormFieldsProps> = ({
         {(control) => (
           <Select {...selectControl<string>(control)} items={OAUTH_FLOW_ITEMS}>
             <SelectTrigger {...selectTriggerControl(control)} className="w-full rounded-lg">
-              <SelectValue placeholder="Select OAuth flow" />
+              <SelectValue placeholder={translateMessage("Select OAuth flow")} />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value={OAUTH_FLOW.M2M}>
                 <div>
-                  <span className="font-medium">Machine-to-Machine (M2M)</span>
-                  <span className="ml-2 text-xs text-muted-foreground">server-to-server, no user interaction</span>
+                  <span className="font-medium">
+                    <LocalizedText text={"Machine-to-Machine (M2M)"} />
+                  </span>
+                  <span className="ml-2 text-xs text-muted-foreground">
+                    <LocalizedText text={"server-to-server, no user interaction"} />
+                  </span>
                 </div>
               </SelectItem>
               <SelectItem value={OAUTH_FLOW.INTERACTIVE}>
                 <div>
-                  <span className="font-medium">Interactive (PKCE)</span>
-                  <span className="ml-2 text-xs text-muted-foreground">browser-based user authorization</span>
+                  <span className="font-medium">
+                    <LocalizedText text={"Interactive (PKCE)"} />
+                  </span>
+                  <span className="ml-2 text-xs text-muted-foreground">
+                    <LocalizedText text={"browser-based user authorization"} />
+                  </span>
                 </div>
               </SelectItem>
             </SelectContent>
@@ -120,7 +146,12 @@ const OAuthFormFields: React.FC<OAuthFormFieldsProps> = ({
       {isM2M ? (
         <>
           <MountedFormField
-            label={<FieldLabel label="Client ID" tooltip="OAuth2 client ID for the client_credentials grant." />}
+            label={
+              <FieldLabel
+                label={translateMessage("Client ID")}
+                tooltip={translateMessage("OAuth2 client ID for the client_credentials grant.")}
+              />
+            }
             name={["credentials", "client_id"]}
             required={!isEditing}
             rules={requiredWhenCreating("Client ID is required for M2M OAuth")}
@@ -128,14 +159,17 @@ const OAuthFormFields: React.FC<OAuthFormFieldsProps> = ({
             {(control) => (
               <PasswordInput
                 {...textControl(control)}
-                placeholder={`Enter OAuth client ID${placeholderSuffix}`}
+                placeholder={translateMessage("Enter OAuth client ID%{0}", [placeholderSuffix])}
                 groupClassName={fieldClassName}
               />
             )}
           </MountedFormField>
           <MountedFormField
             label={
-              <FieldLabel label="Client Secret" tooltip="OAuth2 client secret for the client_credentials grant." />
+              <FieldLabel
+                label={translateMessage("Client Secret")}
+                tooltip={translateMessage("OAuth2 client secret for the client_credentials grant.")}
+              />
             }
             name={["credentials", "client_secret"]}
             required={!isEditing}
@@ -144,13 +178,18 @@ const OAuthFormFields: React.FC<OAuthFormFieldsProps> = ({
             {(control) => (
               <PasswordInput
                 {...textControl(control)}
-                placeholder={`Enter OAuth client secret${placeholderSuffix}`}
+                placeholder={translateMessage("Enter OAuth client secret%{0}", [placeholderSuffix])}
                 groupClassName={fieldClassName}
               />
             )}
           </MountedFormField>
           <MountedFormField
-            label={<FieldLabel label="Token URL" tooltip="Token endpoint URL for the client_credentials grant." />}
+            label={
+              <FieldLabel
+                label={translateMessage("Token URL")}
+                tooltip={translateMessage("Token endpoint URL for the client_credentials grant.")}
+              />
+            }
             name="token_url"
             required={!isEditing}
             rules={requiredWhenCreating("Token URL is required for M2M OAuth")}
@@ -167,13 +206,19 @@ const OAuthFormFields: React.FC<OAuthFormFieldsProps> = ({
           <MountedFormField
             label={
               <FieldLabel
-                label="Scopes (optional)"
-                tooltip="Optional scopes to request with the client_credentials grant."
+                label={translateMessage("Scopes (optional)")}
+                tooltip={translateMessage("Optional scopes to request with the client_credentials grant.")}
               />
             }
             name={["credentials", "scopes"]}
           >
-            {(control) => <MultiSelect {...tagsControl(control)} placeholder="Add scopes" className="rounded-lg" />}
+            {(control) => (
+              <MultiSelect
+                {...tagsControl(control)}
+                placeholder={translateMessage("Add scopes")}
+                className="rounded-lg"
+              />
+            )}
           </MountedFormField>
           <UpstreamResourceField />
           <UpstreamTokenHeaderField />
@@ -184,8 +229,10 @@ const OAuthFormFields: React.FC<OAuthFormFieldsProps> = ({
             label={
               <span className="flex items-center justify-between w-full">
                 <FieldLabel
-                  label="Client ID (optional)"
-                  tooltip="Provide only if your MCP server cannot handle dynamic client registration."
+                  label={translateMessage("Client ID (optional)")}
+                  tooltip={translateMessage(
+                    "Provide only if your MCP server cannot handle dynamic client registration.",
+                  )}
                 />
                 {docsUrl && (
                   <a
@@ -195,7 +242,7 @@ const OAuthFormFields: React.FC<OAuthFormFieldsProps> = ({
                     className="text-xs text-info hover:text-info/80 ml-2 font-normal"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    Create OAuth App →
+                    <LocalizedText text={"Create OAuth App →"} />
                   </a>
                 )}
               </span>
@@ -205,7 +252,7 @@ const OAuthFormFields: React.FC<OAuthFormFieldsProps> = ({
             {(control) => (
               <PasswordInput
                 {...textControl(control)}
-                placeholder={`Enter client ID${placeholderSuffix}`}
+                placeholder={translateMessage("Enter client ID%{0}", [placeholderSuffix])}
                 groupClassName={fieldClassName}
               />
             )}
@@ -213,8 +260,8 @@ const OAuthFormFields: React.FC<OAuthFormFieldsProps> = ({
           <MountedFormField
             label={
               <FieldLabel
-                label="Client Secret (optional)"
-                tooltip="Provide only if your MCP server cannot handle dynamic client registration."
+                label={translateMessage("Client Secret (optional)")}
+                tooltip={translateMessage("Provide only if your MCP server cannot handle dynamic client registration.")}
               />
             }
             name={["credentials", "client_secret"]}
@@ -222,7 +269,7 @@ const OAuthFormFields: React.FC<OAuthFormFieldsProps> = ({
             {(control) => (
               <PasswordInput
                 {...textControl(control)}
-                placeholder={`Enter client secret${placeholderSuffix}`}
+                placeholder={translateMessage("Enter client secret%{0}", [placeholderSuffix])}
                 groupClassName={fieldClassName}
               />
             )}
@@ -230,21 +277,31 @@ const OAuthFormFields: React.FC<OAuthFormFieldsProps> = ({
           <MountedFormField
             label={
               <FieldLabel
-                label="Scopes (optional)"
-                tooltip="Optional scopes requested during token exchange. Separate multiple scopes with enter or commas."
+                label={translateMessage("Scopes (optional)")}
+                tooltip={translateMessage(
+                  "Optional scopes requested during token exchange. Separate multiple scopes with enter or commas.",
+                )}
               />
             }
             name={["credentials", "scopes"]}
           >
-            {(control) => <MultiSelect {...tagsControl(control)} placeholder="Add scopes" className="rounded-lg" />}
+            {(control) => (
+              <MultiSelect
+                {...tagsControl(control)}
+                placeholder={translateMessage("Add scopes")}
+                className="rounded-lg"
+              />
+            )}
           </MountedFormField>
           <UpstreamResourceField />
           <UpstreamTokenHeaderField />
           <MountedFormField
             label={
               <FieldLabel
-                label="Issuer (optional)"
-                tooltip="OAuth 2.0 authorization server issuer (RFC 8414). Leave empty to discover endpoints from the upstream resource; set it to pin the trust anchor, which makes this issuer's document the only endpoint source (RFC 8414 §3.3), overriding the Authorization/Token/Registration URLs above and failing closed if its metadata cannot be fetched."
+                label={translateMessage("Issuer (optional)")}
+                tooltip={translateMessage(
+                  "OAuth 2.0 authorization server issuer (RFC 8414). Leave empty to discover endpoints from the upstream resource; set it to pin the trust anchor, which makes this issuer's document the only endpoint source (RFC 8414 §3.3), overriding the Authorization/Token/Registration URLs above and failing closed if its metadata cannot be fetched.",
+                )}
               />
             }
             name="issuer"
@@ -256,8 +313,8 @@ const OAuthFormFields: React.FC<OAuthFormFieldsProps> = ({
           <MountedFormField
             label={
               <FieldLabel
-                label="Authorization URL (optional)"
-                tooltip="Optional override for the authorization endpoint."
+                label={translateMessage("Authorization URL (optional)")}
+                tooltip={translateMessage("Optional override for the authorization endpoint.")}
               />
             }
             name="authorization_url"
@@ -271,7 +328,12 @@ const OAuthFormFields: React.FC<OAuthFormFieldsProps> = ({
             )}
           </MountedFormField>
           <MountedFormField
-            label={<FieldLabel label="Token URL (optional)" tooltip="Optional override for the token endpoint." />}
+            label={
+              <FieldLabel
+                label={translateMessage("Token URL (optional)")}
+                tooltip={translateMessage("Optional override for the token endpoint.")}
+              />
+            }
             name="token_url"
           >
             {(control) => (
@@ -286,8 +348,8 @@ const OAuthFormFields: React.FC<OAuthFormFieldsProps> = ({
           <MountedFormField
             label={
               <FieldLabel
-                label="Registration URL (optional)"
-                tooltip="Optional override for the dynamic client registration endpoint."
+                label={translateMessage("Registration URL (optional)")}
+                tooltip={translateMessage("Optional override for the dynamic client registration endpoint.")}
               />
             }
             name="registration_url"
@@ -303,8 +365,10 @@ const OAuthFormFields: React.FC<OAuthFormFieldsProps> = ({
           <MountedFormField
             label={
               <FieldLabel
-                label="Token Validation Rules (optional)"
-                tooltip='JSON object of key-value rules checked against the OAuth token response before storing. Supports dot-notation for nested fields (e.g. {"organization": "my-org", "team.id": "123"}). Tokens that fail validation are rejected with HTTP 403.'
+                label={translateMessage("Token Validation Rules (optional)")}
+                tooltip={translateMessage(
+                  'JSON object of key-value rules checked against the OAuth token response before storing. Supports dot-notation for nested fields (e.g. {"organization": "my-org", "team.id": "123"}). Tokens that fail validation are rejected with HTTP 403.',
+                )}
               />
             }
             name="token_validation_json"
@@ -322,21 +386,31 @@ const OAuthFormFields: React.FC<OAuthFormFieldsProps> = ({
           <MountedFormField
             label={
               <FieldLabel
-                label="Token Storage TTL (seconds, optional)"
-                tooltip="How long to cache each user's OAuth access token in Redis before evicting it (never longer than the token's own expires_in). Leave blank to derive the TTL from the token's expires_in, or fall back to the 12-hour default."
+                label={translateMessage("Token Storage TTL (seconds, optional)")}
+                tooltip={translateMessage(
+                  "How long to cache each user's OAuth access token in Redis before evicting it (never longer than the token's own expires_in). Leave blank to derive the TTL from the token's expires_in, or fall back to the 12-hour default.",
+                )}
               />
             }
             name="token_storage_ttl_seconds"
           >
             {(control) => (
-              <Input {...numberControl(control)} min={1} placeholder="e.g. 3600" className="w-full rounded-lg" />
+              <Input
+                {...numberControl(control)}
+                min={1}
+                placeholder={translateMessage("e.g. 3600")}
+                className="w-full rounded-lg"
+              />
             )}
           </MountedFormField>
           {oauthFlow && (
             <div className="rounded-lg border border-dashed border-border p-4 space-y-2">
               <p className="text-sm text-muted-foreground">
-                Use OAuth to fetch a fresh access token and temporarily save it in the session as the authentication
-                value.
+                <LocalizedText
+                  text={
+                    "Use OAuth to fetch a fresh access token and temporarily save it in the session as the authentication value."
+                  }
+                />
               </p>
               <Button
                 variant="secondary"
@@ -344,15 +418,17 @@ const OAuthFormFields: React.FC<OAuthFormFieldsProps> = ({
                 disabled={oauthFlow.status === "authorizing" || oauthFlow.status === "exchanging"}
               >
                 {oauthFlow.status === "authorizing"
-                  ? "Waiting for authorization..."
+                  ? translateMessage("Waiting for authorization...")
                   : oauthFlow.status === "exchanging"
-                    ? "Exchanging authorization code..."
-                    : "Authorize & Fetch Token"}
+                    ? translateMessage("Exchanging authorization code...")
+                    : translateMessage("Authorize & Fetch Token")}
               </Button>
               {oauthFlow.error && <p className="text-sm text-destructive">{oauthFlow.error}</p>}
               {oauthFlow.status === "success" && oauthFlow.tokenResponse?.access_token && (
                 <p className="text-sm text-success">
-                  Token fetched. Expires in {oauthFlow.tokenResponse.expires_in ?? "?"} seconds.
+                  <LocalizedText text={"Token fetched. Expires in "} />
+                  {oauthFlow.tokenResponse.expires_in ?? "?"}
+                  <LocalizedText text={" seconds."} />
                 </p>
               )}
             </div>

@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { ConfigType, useProxyConfig } from "@/app/(dashboard)/hooks/proxyConfig/useProxyConfig";
 import { StoreModelInDBParams, useStoreModelInDB } from "@/app/(dashboard)/hooks/storeModelInDB/useStoreModelInDB";
@@ -32,6 +33,7 @@ const labelWithHint = (label: string, hint: string): React.ReactNode => (
 );
 
 const ModelSettingsModal: React.FC<ModelSettingsModalProps> = ({ isVisible, onCancel, onSuccess }) => {
+  useUiLocale();
   const { mutateAsync, isPending } = useStoreModelInDB();
   const { data: proxyConfigData, isLoading: isLoadingConfig, refetch } = useProxyConfig(ConfigType.GENERAL_SETTINGS);
 
@@ -63,7 +65,7 @@ const ModelSettingsModal: React.FC<ModelSettingsModalProps> = ({ isVisible, onCa
     try {
       await mutateAsync(formValues, {
         onSuccess: () => {
-          toast.success("Model storage settings updated successfully");
+          toast.success(translateMessage("Model storage settings updated successfully"));
           refetch();
           onSuccess?.();
         },
@@ -85,7 +87,9 @@ const ModelSettingsModal: React.FC<ModelSettingsModalProps> = ({ isVisible, onCa
     <Dialog open={isVisible} onOpenChange={(open) => !open && handleCancel()}>
       <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-base">Model Settings</DialogTitle>
+          <DialogTitle className="text-base">
+            <LocalizedText text={"Model Settings"} />
+          </DialogTitle>
         </DialogHeader>
         <TooltipProvider>
           <form onSubmit={(event) => event.preventDefault()}>
@@ -103,7 +107,7 @@ const ModelSettingsModal: React.FC<ModelSettingsModalProps> = ({ isVisible, onCa
                   isLoadingConfig ? (
                     <Skeleton
                       role="status"
-                      aria-label="Loading model settings"
+                      aria-label={translateMessage("Loading model settings")}
                       className="h-[18.4px] w-8 rounded-full"
                     />
                   ) : (
@@ -122,14 +126,14 @@ const ModelSettingsModal: React.FC<ModelSettingsModalProps> = ({ isVisible, onCa
         </TooltipProvider>
         <DialogFooter>
           <Button variant="outline" onClick={handleCancel} disabled={isPending || isLoadingConfig}>
-            Cancel
+            <LocalizedText text={"Cancel"} />
           </Button>
           <Button
             disabled={isPending || isLoadingConfig}
             aria-busy={isPending}
             onClick={() => void form.handleSubmit(handleFormSubmit)()}
           >
-            {isPending ? "Saving..." : "Save Settings"}
+            {isPending ? translateMessage("Saving...") : translateMessage("Save Settings")}
           </Button>
         </DialogFooter>
       </DialogContent>

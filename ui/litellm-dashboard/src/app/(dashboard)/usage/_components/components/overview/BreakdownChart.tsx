@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import React, { useMemo } from "react";
 import { ArrowDownRight, ArrowUpRight } from "lucide-react";
@@ -20,15 +21,15 @@ import { Segmented } from "./Primitives";
 import { providerForModel } from "./modelProvider";
 
 const METRIC_OPTIONS = [
-  { value: "spend", label: "Spend" },
-  { value: "tokens", label: "Tokens" },
-  { value: "requests", label: "Requests" },
+  markUiCopy({ value: "spend", label: "Spend" }, { label: "Spend" }),
+  markUiCopy({ value: "tokens", label: "Tokens" }, { label: "Tokens" }),
+  markUiCopy({ value: "requests", label: "Requests" }, { label: "Requests" }),
 ] as const satisfies readonly { value: UsageMetric; label: string }[];
 
 const DIMENSION_OPTIONS = [
-  { value: "model_groups", label: "Model" },
-  { value: "models", label: "Deployment" },
-  { value: "providers", label: "Provider" },
+  markUiCopy({ value: "model_groups", label: "Model" }, { label: "Model" }),
+  markUiCopy({ value: "models", label: "Deployment" }, { label: "Deployment" }),
+  markUiCopy({ value: "providers", label: "Provider" }, { label: "Provider" }),
 ] as const satisfies readonly { value: BreakdownDimension; label: string }[];
 
 export interface BreakdownState {
@@ -37,6 +38,7 @@ export interface BreakdownState {
 }
 
 export const useBreakdown = (results: readonly DailyData[], { metric, dimension }: BreakdownState, top = 6) => {
+  useUiLocale();
   const series = useMemo(() => seriesBy(results, dimension, metric, top), [results, dimension, metric, top]);
   const ranking = useMemo(() => leaderboard(results, dimension, metric), [results, dimension, metric]);
   return { series, ranking };
@@ -51,17 +53,18 @@ export function BreakdownControls({
   onChange: (next: BreakdownState) => void;
   showDimension?: boolean;
 }) {
+  useUiLocale();
   return (
     <div className="flex flex-wrap items-center gap-2">
       <Segmented
-        label="Metric"
+        label={translateMessage("Metric")}
         value={state.metric}
         options={METRIC_OPTIONS}
         onChange={(metric) => onChange({ ...state, metric })}
       />
       {showDimension && (
         <Segmented
-          label="Group by"
+          label={translateMessage("Group by")}
           value={state.dimension}
           options={DIMENSION_OPTIONS}
           onChange={(dimension) => onChange({ ...state, dimension })}
@@ -73,6 +76,7 @@ export function BreakdownControls({
 
 /** Provider logo on a soft tile with a series-colored dot, so mixed logo styles still read as a set. */
 function ModelMark({ model, color }: { model: string; color: string }) {
+  useUiLocale();
   const provider = providerForModel(model);
   return (
     <span className="relative inline-flex size-7 shrink-0 items-center justify-center rounded-md border bg-background">
@@ -93,6 +97,7 @@ function ModelMark({ model, color }: { model: string; color: string }) {
 const DELTA_FLOOR = 0.05;
 
 function Delta({ value }: { value: number | null }) {
+  useUiLocale();
   if (value === null || Math.abs(value) < DELTA_FLOOR) {
     return <span className="text-xs tabular-nums text-muted-foreground">—</span>;
   }
@@ -123,6 +128,7 @@ export function Leaderboard({
   columns?: 1 | 2;
   dense?: boolean;
 }) {
+  useUiLocale();
   const colorOf = (name: string) => {
     const index = series.labels.indexOf(name);
     return index === -1 ? OTHER_COLOR : series.colors[index];
@@ -130,7 +136,11 @@ export function Leaderboard({
   const value = (row: LeaderRow) => rankValue(row, metric);
   const rows = ranking.slice(0, limit);
   if (rows.length === 0) {
-    return <p className="py-8 text-center text-xs text-muted-foreground">No usage in this range</p>;
+    return (
+      <p className="py-8 text-center text-xs text-muted-foreground">
+        <LocalizedText text={"No usage in this range"} />
+      </p>
+    );
   }
   const half = columns === 2 ? Math.ceil(rows.length / 2) : rows.length;
   const groups = columns === 2 ? [rows.slice(0, half), rows.slice(half)] : [rows];
@@ -156,7 +166,10 @@ export function Leaderboard({
                 <span className="min-w-0">
                   <span className="block truncate text-sm font-medium text-foreground">{row.key}</span>
                   {providerForModel(row.key) && (
-                    <span className="block truncate text-xs text-muted-foreground">by {providerForModel(row.key)}</span>
+                    <span className="block truncate text-xs text-muted-foreground">
+                      <LocalizedText text={"by "} />
+                      {providerForModel(row.key)}
+                    </span>
                   )}
                 </span>
               </span>

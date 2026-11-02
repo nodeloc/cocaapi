@@ -1,4 +1,5 @@
 "use client";
+import { localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { Fragment, type ReactNode } from "react";
 import { useHotkeysContext } from "react-hotkeys-hook";
@@ -12,13 +13,16 @@ export interface ShortcutHint {
   readonly description: string;
 }
 
-const KEY_LABELS: Readonly<Record<string, string>> = {
-  arrowup: "↑",
-  arrowdown: "↓",
-  arrowleft: "←",
-  arrowright: "→",
-  escape: "Esc",
-};
+const KEY_LABELS: Readonly<Record<string, string>> = markUiCopy(
+  {
+    arrowup: "↑",
+    arrowdown: "↓",
+    arrowleft: "←",
+    arrowright: "→",
+    escape: "Esc",
+  },
+  { escape: "Esc" },
+);
 const ARROWS: readonly string[] = ["arrowup", "arrowdown", "arrowleft", "arrowright"];
 
 export const keyLabel = (key: string): string => KEY_LABELS[key] ?? key.toUpperCase();
@@ -60,6 +64,7 @@ export function shortcutHints(shortcuts: readonly BoundShortcut[]): readonly Sho
 }
 
 function Kbd({ children }: { children: ReactNode }) {
+  useUiLocale();
   return (
     <kbd className="rounded-sm border border-border border-b-2 bg-muted px-[3px] font-mono text-muted-foreground">
       {children}
@@ -69,12 +74,13 @@ function Kbd({ children }: { children: ReactNode }) {
 
 /** The shortcuts active right now, read from what is bound rather than typed by hand. */
 export function ShortcutHints({ className }: { className?: string }) {
+  useUiLocale();
   const { hotkeys } = useHotkeysContext();
   const hints = shortcutHints(hotkeys);
   if (hints.length === 0) return null;
   return (
     <div
-      aria-label="Keyboard shortcuts"
+      aria-label={translateMessage("Keyboard shortcuts")}
       data-slot="shortcut-hints"
       className={cn("flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground", className)}
     >
@@ -86,7 +92,7 @@ export function ShortcutHints({ className }: { className?: string }) {
               <Kbd>{keyLabel(key)}</Kbd>
             </Fragment>
           ))}{" "}
-          {hint.description}
+          {localizedProperty(hint, "description", hint.description)}
         </span>
       ))}
     </div>

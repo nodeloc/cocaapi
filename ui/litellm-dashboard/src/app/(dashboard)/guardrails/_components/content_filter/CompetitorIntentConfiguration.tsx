@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import React, { useEffect, useId, useState } from "react";
 
 import { getMajorAirlines } from "@/components/networking";
@@ -50,24 +52,36 @@ const DEFAULT_CONFIG: CompetitorIntentConfig = {
 };
 
 const INTENT_TYPES = [
-  { value: "airline", label: "Airline (auto-load competitors from IATA)" },
-  { value: "generic", label: "Generic (specify competitors manually)" },
+  markUiCopy(
+    { value: "airline", label: "Airline (auto-load competitors from IATA)" },
+    { label: "Airline (auto-load competitors from IATA)" },
+  ),
+  markUiCopy(
+    { value: "generic", label: "Generic (specify competitors manually)" },
+    { label: "Generic (specify competitors manually)" },
+  ),
 ] as const;
 
 const COMPETITOR_COMPARISON_POLICIES = [
-  { value: "refuse", label: "Refuse (block request)" },
-  { value: "reframe", label: "Reframe (suggest alternative)" },
+  markUiCopy({ value: "refuse", label: "Refuse (block request)" }, { label: "Refuse (block request)" }),
+  markUiCopy({ value: "reframe", label: "Reframe (suggest alternative)" }, { label: "Reframe (suggest alternative)" }),
 ] as const;
 
 const POSSIBLE_COMPETITOR_COMPARISON_POLICIES = [
-  { value: "refuse", label: "Refuse (block request)" },
-  { value: "reframe", label: "Reframe (suggest alternative to backend LLM)" },
+  markUiCopy({ value: "refuse", label: "Refuse (block request)" }, { label: "Refuse (block request)" }),
+  markUiCopy(
+    { value: "reframe", label: "Reframe (suggest alternative to backend LLM)" },
+    { label: "Reframe (suggest alternative to backend LLM)" },
+  ),
 ] as const;
 
 const THRESHOLDS = [
-  { field: "threshold_high", label: "High", hint: "e.g. 0.7", fallback: 0.7 },
-  { field: "threshold_medium", label: "Medium", hint: "e.g. 0.45", fallback: 0.45 },
-  { field: "threshold_low", label: "Low", hint: "e.g. 0.3", fallback: 0.3 },
+  markUiCopy({ field: "threshold_high" as const, label: "High", hint: "e.g. 0.7", fallback: 0.7 }, { label: "High" }),
+  markUiCopy(
+    { field: "threshold_medium" as const, label: "Medium", hint: "e.g. 0.45", fallback: 0.45 },
+    { label: "Medium" },
+  ),
+  markUiCopy({ field: "threshold_low" as const, label: "Low", hint: "e.g. 0.3", fallback: 0.3 }, { label: "Low" }),
 ] as const;
 
 const CompetitorIntentConfiguration: React.FC<CompetitorIntentConfigurationProps> = ({
@@ -76,6 +90,7 @@ const CompetitorIntentConfiguration: React.FC<CompetitorIntentConfigurationProps
   onChange,
   accessToken,
 }) => {
+  useUiLocale();
   const effectiveConfig = config ?? DEFAULT_CONFIG;
   const [airlineOptions, setAirlineOptions] = useState<MajorAirline[]>([]);
   const [loadingAirlines, setLoadingAirlines] = useState(false);
@@ -139,7 +154,9 @@ const CompetitorIntentConfiguration: React.FC<CompetitorIntentConfigurationProps
 
   const header = (
     <CardHeader className="gap-0">
-      <CardTitle className="text-base">Competitor Intent Filter</CardTitle>
+      <CardTitle className="text-base">
+        <LocalizedText text={"Competitor Intent Filter"} />
+      </CardTitle>
       <CardAction>
         <Switch checked={enabled} onCheckedChange={handleEnabledChange} />
       </CardAction>
@@ -152,8 +169,11 @@ const CompetitorIntentConfiguration: React.FC<CompetitorIntentConfigurationProps
         {header}
         <CardContent>
           <p className="text-sm text-muted-foreground">
-            Block or reframe competitor comparison questions. When enabled, airline type auto-loads competitors from
-            IATA; generic type requires manual competitor list.
+            <LocalizedText
+              text={
+                "Block or reframe competitor comparison questions. When enabled, airline type auto-loads competitors from IATA; generic type requires manual competitor list."
+              }
+            />
           </p>
         </CardContent>
       </Card>
@@ -180,12 +200,17 @@ const CompetitorIntentConfiguration: React.FC<CompetitorIntentConfigurationProps
       {header}
       <CardContent>
         <p className="mb-4 text-sm text-muted-foreground">
-          Block or reframe competitor comparison questions. Airline type uses major airlines (excluding your brand);
-          generic requires manual competitor list.
+          <LocalizedText
+            text={
+              "Block or reframe competitor comparison questions. Airline type uses major airlines (excluding your brand); generic requires manual competitor list."
+            }
+          />
         </p>
         <FieldGroup>
           <Field>
-            <FieldLabel htmlFor={`${fieldId}-type`}>Type</FieldLabel>
+            <FieldLabel htmlFor={`${fieldId}-type`}>
+              <LocalizedText text={"Type"} />
+            </FieldLabel>
             <Select
               items={INTENT_TYPES}
               value={effectiveConfig.competitor_intent_type}
@@ -196,8 +221,8 @@ const CompetitorIntentConfiguration: React.FC<CompetitorIntentConfigurationProps
               </SelectTrigger>
               <SelectContent>
                 {INTENT_TYPES.map((type) => (
-                  <SelectItem key={type.value} value={type.value} title={type.label}>
-                    {type.label}
+                  <SelectItem key={type.value} value={type.value} title={localizedProperty(type, "label", type.label)}>
+                    {localizedProperty(type, "label", type.label)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -205,7 +230,9 @@ const CompetitorIntentConfiguration: React.FC<CompetitorIntentConfigurationProps
           </Field>
 
           <Field>
-            <FieldLabel htmlFor={`${fieldId}-brand-self`}>Your Brand (brand_self)</FieldLabel>
+            <FieldLabel htmlFor={`${fieldId}-brand-self`}>
+              <LocalizedText text={"Your Brand (brand_self)"} />
+            </FieldLabel>
             <TagsInput
               id={`${fieldId}-brand-self`}
               value={effectiveConfig.brand_self}
@@ -219,47 +246,59 @@ const CompetitorIntentConfiguration: React.FC<CompetitorIntentConfigurationProps
               loading={loadingAirlines}
               placeholder={
                 effectiveConfig.competitor_intent_type === "airline"
-                  ? "Search or select airline, or type to add custom"
-                  : "Type and press Enter to add"
+                  ? translateMessage("Search or select airline, or type to add custom")
+                  : translateMessage("Type and press Enter to add")
               }
             />
             <FieldDescription>
               {effectiveConfig.competitor_intent_type === "airline"
-                ? "Select your airline from the list (excluded from competitors) or type to add a custom term"
-                : "Names/codes users use for your brand"}
+                ? translateMessage(
+                    "Select your airline from the list (excluded from competitors) or type to add a custom term",
+                  )
+                : translateMessage("Names/codes users use for your brand")}
             </FieldDescription>
           </Field>
 
           {effectiveConfig.competitor_intent_type === "airline" && (
             <Field>
-              <FieldLabel htmlFor={`${fieldId}-locations`}>Locations (optional)</FieldLabel>
+              <FieldLabel htmlFor={`${fieldId}-locations`}>
+                <LocalizedText text={"Locations (optional)"} />
+              </FieldLabel>
               <TagsInput
                 id={`${fieldId}-locations`}
                 value={effectiveConfig.locations ?? []}
                 onValueChange={(v) => handleNestedArrayChange("locations", v)}
                 tokenSeparators={[","]}
-                placeholder="Type and press Enter to add"
+                placeholder={translateMessage("Type and press Enter to add")}
               />
-              <FieldDescription>Countries, cities, airports for disambiguation (e.g. qatar, doha)</FieldDescription>
+              <FieldDescription>
+                <LocalizedText text={"Countries, cities, airports for disambiguation (e.g. qatar, doha)"} />
+              </FieldDescription>
             </Field>
           )}
 
           {effectiveConfig.competitor_intent_type === "generic" && (
             <Field>
-              <FieldLabel htmlFor={`${fieldId}-competitors`}>Competitors</FieldLabel>
+              <FieldLabel htmlFor={`${fieldId}-competitors`}>
+                <LocalizedText text={"Competitors"} />
+              </FieldLabel>
               <TagsInput
                 id={`${fieldId}-competitors`}
                 value={effectiveConfig.competitors ?? []}
                 onValueChange={(v) => handleNestedArrayChange("competitors", v)}
                 tokenSeparators={[","]}
-                placeholder="Type and press Enter to add"
+                placeholder={translateMessage("Type and press Enter to add")}
               />
-              <FieldDescription>Competitor names to detect (required for generic type)</FieldDescription>
+              <FieldDescription>
+                <LocalizedText text={"Competitor names to detect (required for generic type)"} />
+              </FieldDescription>
             </Field>
           )}
 
           <Field>
-            <FieldLabel htmlFor={`${fieldId}-competitor-comparison`}>Policy: Competitor comparison</FieldLabel>
+            <FieldLabel htmlFor={`${fieldId}-competitor-comparison`}>
+              <LocalizedText text={"Policy: Competitor comparison"} />
+            </FieldLabel>
             <Select
               items={COMPETITOR_COMPARISON_POLICIES}
               value={effectiveConfig.policy?.competitor_comparison ?? "refuse"}
@@ -270,8 +309,12 @@ const CompetitorIntentConfiguration: React.FC<CompetitorIntentConfigurationProps
               </SelectTrigger>
               <SelectContent>
                 {COMPETITOR_COMPARISON_POLICIES.map((policy) => (
-                  <SelectItem key={policy.value} value={policy.value} title={policy.label}>
-                    {policy.label}
+                  <SelectItem
+                    key={policy.value}
+                    value={policy.value}
+                    title={localizedProperty(policy, "label", policy.label)}
+                  >
+                    {localizedProperty(policy, "label", policy.label)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -280,7 +323,7 @@ const CompetitorIntentConfiguration: React.FC<CompetitorIntentConfigurationProps
 
           <Field>
             <FieldLabel htmlFor={`${fieldId}-possible-competitor-comparison`}>
-              Policy: Possible competitor comparison
+              <LocalizedText text={"Policy: Possible competitor comparison"} />
             </FieldLabel>
             <Select
               items={POSSIBLE_COMPETITOR_COMPARISON_POLICIES}
@@ -294,8 +337,12 @@ const CompetitorIntentConfiguration: React.FC<CompetitorIntentConfigurationProps
               </SelectTrigger>
               <SelectContent>
                 {POSSIBLE_COMPETITOR_COMPARISON_POLICIES.map((policy) => (
-                  <SelectItem key={policy.value} value={policy.value} title={policy.label}>
-                    {policy.label}
+                  <SelectItem
+                    key={policy.value}
+                    value={policy.value}
+                    title={localizedProperty(policy, "label", policy.label)}
+                  >
+                    {localizedProperty(policy, "label", policy.label)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -303,11 +350,15 @@ const CompetitorIntentConfiguration: React.FC<CompetitorIntentConfigurationProps
           </Field>
 
           <Field>
-            <FieldLabel>Confidence thresholds</FieldLabel>
+            <FieldLabel>
+              <LocalizedText text={"Confidence thresholds"} />
+            </FieldLabel>
             <div className="flex flex-wrap gap-4">
               {THRESHOLDS.map((threshold) => (
                 <Field key={threshold.field} className="w-20">
-                  <FieldLabel htmlFor={`${fieldId}-${threshold.field}`}>{threshold.label}</FieldLabel>
+                  <FieldLabel htmlFor={`${fieldId}-${threshold.field}`}>
+                    {localizedProperty(threshold, "label", threshold.label)}
+                  </FieldLabel>
                   <ThresholdInput
                     id={`${fieldId}-${threshold.field}`}
                     value={effectiveConfig[threshold.field] ?? threshold.fallback}
@@ -321,21 +372,34 @@ const CompetitorIntentConfiguration: React.FC<CompetitorIntentConfigurationProps
               ))}
             </div>
             <FieldDescription>
-              Classify competitor intent by confidence (0–1). Higher confidence -&gt; stronger intent.
+              <LocalizedText
+                text={"Classify competitor intent by confidence (0–1). Higher confidence -> stronger intent."}
+              />
               <ul className="mt-1 mb-0 list-disc pl-5">
                 <li>
-                  <strong>High (≥)</strong>: Treat as full competitor comparison -&gt; uses &quot;Competitor
-                  comparison&quot; policy
+                  <strong>
+                    <LocalizedText text={"High (≥)"} />
+                  </strong>
+                  <LocalizedText
+                    text={': Treat as full competitor comparison -> uses "Competitor comparison" policy'}
+                  />
                 </li>
                 <li>
-                  <strong>Medium (≥)</strong>: Treat as possible comparison -&gt; uses &quot;Possible competitor
-                  comparison&quot; policy
+                  <strong>
+                    <LocalizedText text={"Medium (≥)"} />
+                  </strong>
+                  <LocalizedText
+                    text={': Treat as possible comparison -> uses "Possible competitor comparison" policy'}
+                  />
                 </li>
                 <li>
-                  <strong>Low (≥)</strong>: Log only; allow request. Below Low -&gt; allow with no action
+                  <strong>
+                    <LocalizedText text={"Low (≥)"} />
+                  </strong>
+                  <LocalizedText text={": Log only; allow request. Below Low -> allow with no action"} />
                 </li>
               </ul>
-              Raise thresholds to be more permissive; lower them to be stricter.
+              <LocalizedText text={"Raise thresholds to be more permissive; lower them to be stricter."} />
             </FieldDescription>
           </Field>
         </FieldGroup>

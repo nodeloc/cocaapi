@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { useState, type ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
@@ -54,36 +55,58 @@ import { Page } from "@/components/shared/Page";
 import { PageHeader, PageHeaderDescription, PageHeaderTitle } from "@/components/shared/PageHeader";
 import { AccountNotice } from "./AccountShell";
 import { accountApi, type Profile } from "./accountApi";
+import { LanguageSwitcher } from "@/lib/i18n/LanguageSwitcher";
 import { CocaApiLogo } from "@/components/common_components/CocaApiLogo";
 
 const groups = [
-  {
-    label: "AI 网关",
-    items: [
-      { label: "概览", href: "/account/home/", icon: Gauge },
-      { label: "API 密钥", href: "/account/keys/", icon: KeyRound },
-      { label: "模型目录", href: "/account/models/", icon: Boxes },
-      { label: "Playground", href: "/account/playground/", icon: FlaskConical },
-    ],
-  },
-  {
-    label: "用量与记录",
-    items: [
-      { label: "用量统计", href: "/account/usage/", icon: ChartColumn },
-      { label: "请求日志", href: "/account/logs/", icon: ScrollText },
-      { label: "调用限额", href: "/account/limits/", icon: Gauge },
-    ],
-  },
-  {
-    label: "用户中心",
-    items: [
-      { label: "我的账号", href: "/account/profile/", icon: House },
-      { label: "余额与充值", href: "/account/wallet/", icon: Wallet },
-      { label: "充值订单", href: "/account/orders/", icon: ReceiptText },
-    ],
-  },
-  { label: "账号管理", items: [{ label: "安全设置", href: "/account/security/", icon: ShieldCheck }] },
-  { label: "开发者工具", items: [{ label: "接入文档", href: "/account/docs/", icon: BookOpen }] },
+  markUiCopy(
+    {
+      label: "AI 网关",
+      items: [
+        markUiCopy({ label: "概览", href: "/account/home/", icon: Gauge }, { label: "概览" }),
+        markUiCopy({ label: "API 密钥", href: "/account/keys/", icon: KeyRound }, { label: "API 密钥" }),
+        markUiCopy({ label: "模型目录", href: "/account/models/", icon: Boxes }, { label: "模型目录" }),
+        markUiCopy({ label: "Playground", href: "/account/playground/", icon: FlaskConical }, { label: "Playground" }),
+      ],
+    },
+    { label: "AI 网关" },
+  ),
+  markUiCopy(
+    {
+      label: "用量与记录",
+      items: [
+        markUiCopy({ label: "用量统计", href: "/account/usage/", icon: ChartColumn }, { label: "用量统计" }),
+        markUiCopy({ label: "请求日志", href: "/account/logs/", icon: ScrollText }, { label: "请求日志" }),
+        markUiCopy({ label: "调用限额", href: "/account/limits/", icon: Gauge }, { label: "调用限额" }),
+      ],
+    },
+    { label: "用量与记录" },
+  ),
+  markUiCopy(
+    {
+      label: "用户中心",
+      items: [
+        markUiCopy({ label: "我的账号", href: "/account/profile/", icon: House }, { label: "我的账号" }),
+        markUiCopy({ label: "余额与充值", href: "/account/wallet/", icon: Wallet }, { label: "余额与充值" }),
+        markUiCopy({ label: "充值订单", href: "/account/orders/", icon: ReceiptText }, { label: "充值订单" }),
+      ],
+    },
+    { label: "用户中心" },
+  ),
+  markUiCopy(
+    {
+      label: "账号管理",
+      items: [markUiCopy({ label: "安全设置", href: "/account/security/", icon: ShieldCheck }, { label: "安全设置" })],
+    },
+    { label: "账号管理" },
+  ),
+  markUiCopy(
+    {
+      label: "开发者工具",
+      items: [markUiCopy({ label: "接入文档", href: "/account/docs/", icon: BookOpen }, { label: "接入文档" })],
+    },
+    { label: "开发者工具" },
+  ),
 ] as const;
 
 function AccountNavigation({
@@ -99,6 +122,7 @@ function AccountNavigation({
   onLogout: () => void;
   busy: boolean;
 }) {
+  useUiLocale();
   const pathname = usePathname()?.replace(/\/?$/, "/");
   const identity = profile?.email ?? "个人账号";
   return (
@@ -107,35 +131,45 @@ function AccountNavigation({
         <div className="flex items-center justify-between gap-2 group-data-[collapsed=true]/sidebar:flex-col">
           <a
             href="/account/home/"
-            aria-label="CocaAPI 用户中心"
+            aria-label={translateMessage("CocaAPI 用户中心")}
             className="min-w-0 text-xl font-semibold tracking-tight"
           >
             <CocaApiLogo compact={collapsed} className={collapsed ? undefined : "w-[120px]"} />
           </a>
-          <Button variant="ghost" size="icon-sm" aria-label={collapsed ? "展开侧栏" : "收起侧栏"} onClick={onToggle}>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            aria-label={collapsed ? translateMessage("展开侧栏") : translateMessage("收起侧栏")}
+            onClick={onToggle}
+          >
             {collapsed ? <PanelLeftOpen /> : <PanelLeftClose />}
           </Button>
         </div>
       </SidebarHeader>
-      <SidebarContent aria-label="用户中心导航">
+      <SidebarContent aria-label={translateMessage("用户中心导航")}>
         {groups.map((group) => (
           <SidebarGroup key={group.label}>
-            <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
+            <SidebarGroupLabel>{localizedProperty(group, "label", group.label)}</SidebarGroupLabel>
             <SidebarMenu>
-              {group.items.map(({ label, href, icon: Icon }) => (
-                <SidebarMenuItem key={href}>
-                  <a
-                    href={href}
-                    aria-label={label}
-                    aria-current={pathname === href ? "page" : undefined}
-                    title={collapsed ? label : undefined}
-                    className={sidebarMenuButtonVariants({ isActive: pathname === href })}
-                  >
-                    <Icon strokeWidth={1.75} />
-                    <span className="truncate group-data-[collapsed=true]/sidebar:hidden">{label}</span>
-                  </a>
-                </SidebarMenuItem>
-              ))}
+              {group.items.map((cocaCopyProps0) => {
+                const { label, href, icon: Icon } = cocaCopyProps0;
+                return (
+                  <SidebarMenuItem key={href}>
+                    <a
+                      href={href}
+                      aria-label={localizedProperty(cocaCopyProps0, "label", label)}
+                      aria-current={pathname === href ? "page" : undefined}
+                      title={collapsed ? localizedProperty(cocaCopyProps0, "label", label) : undefined}
+                      className={sidebarMenuButtonVariants({ isActive: pathname === href })}
+                    >
+                      <Icon strokeWidth={1.75} />
+                      <span className="truncate group-data-[collapsed=true]/sidebar:hidden">
+                        {localizedProperty(cocaCopyProps0, "label", label)}
+                      </span>
+                    </a>
+                  </SidebarMenuItem>
+                );
+              })}
             </SidebarMenu>
           </SidebarGroup>
         ))}
@@ -147,7 +181,7 @@ function AccountNavigation({
               <Button
                 variant="ghost"
                 className="h-auto w-full justify-start gap-2 p-1.5"
-                aria-label="账号菜单"
+                aria-label={translateMessage("账号菜单")}
                 disabled={!profile || busy}
               />
             }
@@ -156,15 +190,19 @@ function AccountNavigation({
               <AvatarFallback>{identity.slice(0, 2).toUpperCase()}</AvatarFallback>
             </Avatar>
             <span className="min-w-0 flex-1 text-left group-data-[collapsed=true]/sidebar:hidden">
-              <span className="block truncate text-[13px] font-medium">{profile ? identity : "正在加载账号…"}</span>
-              <span className="block text-xs text-muted-foreground">个人账户</span>
+              <span className="block truncate text-[13px] font-medium">
+                {profile ? identity : translateMessage("正在加载账号…")}
+              </span>
+              <span className="block text-xs text-muted-foreground">
+                <LocalizedText text={"个人账户"} />
+              </span>
             </span>
             <ChevronsUpDown className="size-4 shrink-0 group-data-[collapsed=true]/sidebar:hidden" />
           </DropdownMenuTrigger>
           <DropdownMenuContent side="top" align="start" className="min-w-52">
             <DropdownMenuItem onClick={onLogout} disabled={busy}>
               <LogOut />
-              退出登录
+              <LocalizedText text={"退出登录"} />
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -186,6 +224,7 @@ export function AccountDashboardShell({
   children: ReactNode;
   nativeContent?: boolean;
 }) {
+  useUiLocale();
   const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -202,19 +241,23 @@ export function AccountDashboardShell({
       await accountApi.logout(profile.csrf_token);
       router.replace("/account/login/");
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "退出失败，请稍后重试。");
+      setError(
+        cause instanceof Error
+          ? localizedProperty(cause, "message", cause.message)
+          : translateMessage("退出失败，请稍后重试。"),
+      );
     } finally {
       setBusy(false);
     }
   };
   return (
     <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-      <div lang="zh-CN" className="flex h-screen overflow-hidden bg-background text-foreground max-md:h-dvh">
+      <div className="flex h-screen overflow-hidden bg-background text-foreground max-md:h-dvh">
         <a
           href="#account-main"
           className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-floating focus:rounded-md focus:bg-background focus:p-3 focus:ring-2"
         >
-          跳至主要内容
+          <LocalizedText text={"跳至主要内容"} />
         </a>
         <div className="hidden h-full md:flex">
           <AccountNavigation
@@ -233,7 +276,9 @@ export function AccountDashboardShell({
             if (event.target instanceof Element && event.target.closest("a[href]")) setMobileOpen(false);
           }}
         >
-          <SheetTitle className="sr-only">用户中心菜单</SheetTitle>
+          <SheetTitle className="sr-only">
+            <LocalizedText text={"用户中心菜单"} />
+          </SheetTitle>
           <AccountNavigation
             profile={profile}
             collapsed={false}
@@ -245,14 +290,23 @@ export function AccountDashboardShell({
         <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
           <header className="flex h-14 flex-none items-center justify-between gap-4 border-b border-border bg-background px-4 max-md:gap-2 max-md:px-2">
             <SheetTrigger
-              render={<Button variant="ghost" size="icon" className="size-11 md:hidden" aria-label="打开用户导航" />}
+              render={
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="size-11 md:hidden"
+                  aria-label={translateMessage("打开用户导航")}
+                />
+              }
             >
               <Menu />
             </SheetTrigger>
             <Breadcrumb className="min-w-0 flex-1">
               <BreadcrumbList className="flex-nowrap">
                 <BreadcrumbItem className="hidden md:inline-flex">
-                  <BreadcrumbLink href="/account/home/">用户中心</BreadcrumbLink>
+                  <BreadcrumbLink href="/account/home/">
+                    <LocalizedText text={"用户中心"} />
+                  </BreadcrumbLink>
                 </BreadcrumbItem>
                 <BreadcrumbSeparator className="hidden md:flex" />
                 <BreadcrumbItem className="min-w-0">
@@ -260,6 +314,7 @@ export function AccountDashboardShell({
                 </BreadcrumbItem>
               </BreadcrumbList>
             </Breadcrumb>
+            <LanguageSwitcher />
             <ThemeToggle />
           </header>
           <main id="account-main" tabIndex={-1} className="min-h-0 min-w-0 flex-1 overflow-y-auto">

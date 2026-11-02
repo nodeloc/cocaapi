@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, useUiLocale } from "@/lib/i18n";
 import type { ReactNode } from "react";
 
 import type { CredentialItem } from "@/components/networking";
@@ -11,7 +13,9 @@ interface CredentialIdentityProps {
   className?: string;
 }
 
-export function CredentialIdentity({ credentialName, label, icon, className }: CredentialIdentityProps) {
+export function CredentialIdentity(cocaCopyProps0: CredentialIdentityProps) {
+  const { credentialName, label, icon, className } = cocaCopyProps0;
+  useUiLocale();
   const shown = label ?? credentialName;
   return (
     <span className={cn("flex min-w-0 flex-col gap-0.5", className)} title={credentialName}>
@@ -32,8 +36,13 @@ interface AttachedCredentialProps {
 }
 
 export function AttachedCredential({ credentialName, credentials }: AttachedCredentialProps) {
+  useUiLocale();
   if (!credentialName) {
-    return <>Manual</>;
+    return (
+      <>
+        <LocalizedText text={"Manual"} />
+      </>
+    );
   }
   return (
     <CredentialIdentity
@@ -44,6 +53,7 @@ export function AttachedCredential({ credentialName, credentials }: AttachedCred
 }
 
 export function CredentialNameHint({ credentialName, credentials }: AttachedCredentialProps) {
+  useUiLocale();
   const label = credentialName ? credentialLabelsByName(credentials).get(credentialName) : undefined;
   if (!credentialName || label === undefined || label === credentialName) {
     return null;

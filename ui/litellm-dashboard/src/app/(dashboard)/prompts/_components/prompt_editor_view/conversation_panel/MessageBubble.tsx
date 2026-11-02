@@ -1,3 +1,5 @@
+"use client";
+import { localizedProperty, useUiLocale } from "@/lib/i18n";
 import React from "react";
 import { Bot, User } from "lucide-react";
 import ReactMarkdown from "react-markdown";
@@ -12,7 +14,9 @@ interface MessageBubbleProps {
   message: Message;
 }
 
-const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
+const MessageBubble: React.FC<MessageBubbleProps> = (cocaCopyProps0) => {
+  const { message } = cocaCopyProps0;
+  useUiLocale();
   const syntaxTheme = useSyntaxTheme(coy);
   return (
     <div className={`mb-4 flex ${message.role === "user" ? "justify-end" : "justify-start"}`}>
@@ -33,10 +37,10 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
               <Bot className="size-3 text-muted-foreground" aria-hidden="true" />
             )}
           </div>
-          <strong className="text-sm capitalize">{message.role}</strong>
+          <strong className="text-sm capitalize">{localizedProperty(cocaCopyProps0, "message", message).role}</strong>
           {message.role === "assistant" && message.model && (
             <span className="text-xs px-2 py-0.5 rounded-sm bg-muted text-muted-foreground font-normal">
-              {message.model}
+              {localizedProperty(cocaCopyProps0, "message", message).model}
             </span>
           )}
         </div>
@@ -92,7 +96,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
               {message.content}
             </ReactMarkdown>
           ) : (
-            <div className="whitespace-pre-wrap">{message.content}</div>
+            <div className="whitespace-pre-wrap">{localizedProperty(cocaCopyProps0, "message", message).content}</div>
           )}
 
           {message.role === "assistant" && (message.timeToFirstToken || message.totalLatency || message.usage) && (

@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { Button } from "@/components/ui/button";
 
@@ -35,6 +36,7 @@ function pageFailureMessage(failure: TraceReadFailure): string {
  * same way every time.
  */
 export function PagingBanner({ loaded, total, failure, busy, onLoadMore, onRefresh }: PagingBannerProps) {
+  useUiLocale();
   const retryable = failure !== null && isRetryableTraceRead(failure);
   const nextLabel = failure ? "Retry" : "Load more steps";
   return (
@@ -45,17 +47,17 @@ export function PagingBanner({ loaded, total, failure, busy, onLoadMore, onRefre
       <span>
         {failure
           ? pageFailureMessage(failure)
-          : `Showing ${loaded.toLocaleString()} of ${total.toLocaleString()} steps`}
+          : translateMessage("Showing %{0} of %{1} steps", [loaded.toLocaleString(), total.toLocaleString()])}
       </span>
       <span className="flex items-center gap-2">
         {failure && (
           <Button size="xs" variant={retryable ? "ghost" : "outline"} disabled={busy} onClick={onRefresh}>
-            Refresh trace
+            <LocalizedText text={"Refresh trace"} />
           </Button>
         )}
         {(!failure || retryable) && (
           <Button size="xs" variant="outline" disabled={busy} onClick={onLoadMore}>
-            {busy ? "Loading…" : nextLabel}
+            {busy ? translateMessage("Loading…") : nextLabel}
           </Button>
         )}
       </span>

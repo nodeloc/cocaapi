@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import React, { useState } from "react";
 import { Check, SquarePen, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -26,6 +28,7 @@ const ProviderMarginTable: React.FC<ProviderMarginTableProps> = ({
   onMarginChange,
   onRemoveProvider,
 }) => {
+  useUiLocale();
   const [editingProvider, setEditingProvider] = useState<string | null>(null);
   const [editPercentage, setEditPercentage] = useState<string>("");
   const [editFixedAmount, setEditFixedAmount] = useState<string>("");
@@ -99,114 +102,125 @@ const ProviderMarginTable: React.FC<ProviderMarginTableProps> = ({
     });
 
   return (
-    <SimpleTable
+    <SimpleTable<ProviderMarginRow>
       data={data}
       columns={[
-        {
-          header: "Provider",
-          cell: (row) => {
-            if (row.provider === "global") {
+        markUiCopy(
+          {
+            header: "Provider",
+            cell: (row) => {
+              if (row.provider === "global") {
+                return (
+                  <div className="flex items-center space-x-2">
+                    <span className="font-medium">
+                      <LocalizedText text={"Global (All Providers)"} />
+                    </span>
+                  </div>
+                );
+              }
+              const { displayName } = getProviderLogoAndName(row.provider);
               return (
                 <div className="flex items-center space-x-2">
-                  <span className="font-medium">Global (All Providers)</span>
+                  <Logo provider={row.provider} label={displayName} className="w-5 h-5" />
+                  <span className="font-medium">{displayName}</span>
                 </div>
               );
-            }
-            const { displayName } = getProviderLogoAndName(row.provider);
-            return (
-              <div className="flex items-center space-x-2">
-                <Logo provider={row.provider} label={displayName} className="w-5 h-5" />
-                <span className="font-medium">{displayName}</span>
-              </div>
-            );
+            },
           },
-        },
-        {
-          header: "Margin",
-          numeric: true,
-          cell: (row) => {
-            const displayName = marginRowDisplayName(row.provider);
-            return (
-              <div className="flex items-center justify-end gap-2">
-                {editingProvider === row.provider ? (
-                  <>
-                    <div className="flex items-center gap-2">
-                      <Input
-                        value={editPercentage}
-                        onChange={(e) => setEditPercentage(e.target.value)}
-                        placeholder="10"
-                        className="w-20"
-                        autoFocus
-                      />
-                      <span className="text-muted-foreground">%</span>
-                      <span className="text-muted-foreground">+</span>
-                      <span className="text-muted-foreground">$</span>
-                      <Input
-                        value={editFixedAmount}
-                        onChange={(e) => setEditFixedAmount(e.target.value)}
-                        placeholder="0.001"
-                        className="w-24"
-                      />
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      aria-label={`Save margin for ${displayName}`}
-                      onClick={() => handleSaveEdit(row.provider)}
-                      className="cursor-pointer text-success hover:text-success/80"
-                    >
-                      <Check className="size-5" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      aria-label={`Cancel editing margin for ${displayName}`}
-                      onClick={handleCancelEdit}
-                      className="cursor-pointer text-muted-foreground hover:text-foreground"
-                    >
-                      <X className="size-5" />
-                    </Button>
-                  </>
-                ) : (
-                  <>
-                    <p className="font-medium">{formatMargin(row.margin)}</p>
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      aria-label={`Edit margin for ${displayName}`}
-                      onClick={() => handleStartEdit(row.provider, row.margin)}
-                      className="cursor-pointer text-info hover:text-info/80"
-                    >
-                      <SquarePen className="size-5" />
-                    </Button>
-                  </>
-                )}
-              </div>
-            );
+          { header: "Provider" },
+        ),
+        markUiCopy(
+          {
+            header: "Margin",
+            numeric: true,
+            cell: (row) => {
+              const displayName = marginRowDisplayName(row.provider);
+              return (
+                <div className="flex items-center justify-end gap-2">
+                  {editingProvider === row.provider ? (
+                    <>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          value={editPercentage}
+                          onChange={(e) => setEditPercentage(e.target.value)}
+                          placeholder="10"
+                          className="w-20"
+                          autoFocus
+                        />
+                        <span className="text-muted-foreground">%</span>
+                        <span className="text-muted-foreground">+</span>
+                        <span className="text-muted-foreground">$</span>
+                        <Input
+                          value={editFixedAmount}
+                          onChange={(e) => setEditFixedAmount(e.target.value)}
+                          placeholder="0.001"
+                          className="w-24"
+                        />
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        aria-label={translateMessage("Save margin for %{0}", [displayName])}
+                        onClick={() => handleSaveEdit(row.provider)}
+                        className="cursor-pointer text-success hover:text-success/80"
+                      >
+                        <Check className="size-5" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        aria-label={translateMessage("Cancel editing margin for %{0}", [displayName])}
+                        onClick={handleCancelEdit}
+                        className="cursor-pointer text-muted-foreground hover:text-foreground"
+                      >
+                        <X className="size-5" />
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <p className="font-medium">{formatMargin(row.margin)}</p>
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        aria-label={translateMessage("Edit margin for %{0}", [displayName])}
+                        onClick={() => handleStartEdit(row.provider, row.margin)}
+                        className="cursor-pointer text-info hover:text-info/80"
+                      >
+                        <SquarePen className="size-5" />
+                      </Button>
+                    </>
+                  )}
+                </div>
+              );
+            },
+            width: "350px",
           },
-          width: "350px",
-        },
-        {
-          header: "Actions",
-          cell: (row) => {
-            const displayName = marginRowDisplayName(row.provider);
-            return (
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                aria-label={`Remove margin for ${displayName}`}
-                onClick={() => onRemoveProvider(row.provider, displayName)}
-                className="cursor-pointer hover:text-destructive"
-              >
-                <Trash2 className="size-5" />
-              </Button>
-            );
+          { header: "Margin" },
+        ),
+        markUiCopy(
+          {
+            header: "Actions",
+            cell: (row) => {
+              const displayName = marginRowDisplayName(row.provider);
+              return (
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  aria-label={translateMessage("Remove margin for %{0}", [displayName])}
+                  onClick={() => onRemoveProvider(row.provider, displayName)}
+                  className="cursor-pointer hover:text-destructive"
+                >
+                  <Trash2 className="size-5" />
+                </Button>
+              );
+            },
+            width: "80px",
           },
-          width: "80px",
-        },
+          { header: "Actions" },
+        ),
       ]}
       getRowKey={(row) => row.provider}
-      emptyMessage="No provider margins configured"
+      emptyMessage={translateMessage("No provider margins configured")}
     />
   );
 };

@@ -1,14 +1,17 @@
 "use client";
+import { translateMessage, useUiLocale } from "@/lib/i18n";
 
 import type { ComponentProps } from "react";
 
 import { cn } from "@/lib/cva.config";
 
 export function PageHeader({ className, ...props }: ComponentProps<"div">) {
+  useUiLocale();
   return <div className={cn("shrink-0", className)} {...props} />;
 }
 
 export function PageHeaderTitle({ className, ...props }: ComponentProps<"h1">) {
+  useUiLocale();
   return (
     <h1
       className={cn(
@@ -21,14 +24,16 @@ export function PageHeaderTitle({ className, ...props }: ComponentProps<"h1">) {
 }
 
 export function PageHeaderDescription({ className, ...props }: ComponentProps<"p">) {
+  useUiLocale();
   return <p className={cn("mt-1.5 text-sm text-muted-foreground", className)} {...props} />;
 }
 
 export function PageHeaderControls({ className, ...props }: ComponentProps<"div">) {
+  useUiLocale();
   return (
     <div
       role="group"
-      aria-label="Page controls"
+      aria-label={translateMessage("Page controls")}
       className={cn("mt-5 flex min-h-9 items-center gap-2", className)}
       {...props}
     />

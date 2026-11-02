@@ -1,4 +1,5 @@
 "use client";
+import { localizedProperty, useUiLocale } from "@/lib/i18n";
 
 import * as React from "react";
 import { CartesianGrid, Line, LineChart as RechartsLineChart, XAxis, YAxis } from "recharts";
@@ -46,6 +47,7 @@ export function LineChart<TDatum extends Record<string, unknown>>({
   className,
   style,
 }: LineChartProps<TDatum>) {
+  useUiLocale();
   const fills = categoryFills(categories.length, colors);
   const config: ChartConfig = Object.fromEntries(categories.map((category) => [category, { label: category }]));
   const TooltipContent = customTooltip ?? ValueTooltip;
@@ -65,14 +67,17 @@ export function LineChart<TDatum extends Record<string, unknown>>({
         <YAxis width={yAxisWidth} tickLine={false} axisLine={false} tickFormatter={valueFormatter} />
         {showTooltip && (
           <ChartTooltip
-            content={({ active, payload, label }) => (
-              <TooltipContent
-                active={active}
-                payload={payload}
-                label={label}
-                {...(customTooltip ? {} : { valueFormatter })}
-              />
-            )}
+            content={(cocaCopyProps0) => {
+              const { active, payload, label } = cocaCopyProps0;
+              return (
+                <TooltipContent
+                  active={active}
+                  payload={payload}
+                  label={localizedProperty(cocaCopyProps0, "label", label)}
+                  {...(customTooltip ? {} : { valueFormatter })}
+                />
+              );
+            }}
           />
         )}
         {showLegend && (

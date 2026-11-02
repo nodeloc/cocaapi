@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 /**
  * HistoryTree - Collapsible tree view for message history
  * Shows arrow indicator and message count
@@ -14,6 +16,7 @@ interface HistoryTreeProps {
 }
 
 export function HistoryTree({ messages }: HistoryTreeProps) {
+  useUiLocale();
   const [isExpanded, setIsExpanded] = useState(false);
 
   if (messages.length === 0) {
@@ -29,7 +32,10 @@ export function HistoryTree({ messages }: HistoryTreeProps) {
           <ChevronRight className="size-3 shrink-0 text-muted-foreground" />
         )}
         <span className="text-[10px] uppercase tracking-[0.5px] text-muted-foreground">
-          HISTORY ({messages.length} message{messages.length !== 1 ? "s" : ""})
+          <LocalizedText text={"HISTORY ("} />
+          {messages.length}
+          <LocalizedText text={" message"} />
+          {messages.length !== 1 ? translateMessage("s") : ""})
         </span>
       </CollapsibleTrigger>
 

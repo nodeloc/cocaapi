@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import React, { useMemo, useState } from "react";
 import { ArrowDown, ArrowUp, ArrowUpDown, Info } from "lucide-react";
@@ -45,28 +46,27 @@ const compareRows = (a: CacheLeakageRow, b: CacheLeakageRow, sort: SortState): n
   return sort.dir === "asc" ? av - bv : bv - av;
 };
 
-const InfoTooltip = ({ info }: { info: string }) => (
-  <Tooltip>
-    <TooltipTrigger render={<span className="inline-flex" aria-label={info} />}>
-      <Info className="h-3 w-3 text-muted-foreground" />
-    </TooltipTrigger>
-    <TooltipContent className="max-w-xs">{info}</TooltipContent>
-  </Tooltip>
-);
+const InfoTooltip = ({ info }: { info: string }) => {
+  useUiLocale();
+  return (
+    <Tooltip>
+      <TooltipTrigger render={<span className="inline-flex" aria-label={info} />}>
+        <Info className="h-3 w-3 text-muted-foreground" />
+      </TooltipTrigger>
+      <TooltipContent className="max-w-xs">{info}</TooltipContent>
+    </Tooltip>
+  );
+};
 
-const SortableHead = ({
-  column,
-  label,
-  info,
-  sort,
-  onSort,
-}: {
+const SortableHead = (cocaCopyProps0: {
   column: SortColumn;
   label: string;
   info: string;
   sort: SortState;
   onSort: (column: SortColumn) => void;
 }) => {
+  const { column, label, info, sort, onSort } = cocaCopyProps0;
+  useUiLocale();
   const active = sort.column === column;
   const ActiveArrow = sort.dir === "asc" ? ArrowUp : ArrowDown;
   const Arrow = active ? ActiveArrow : ArrowUpDown;
@@ -76,10 +76,10 @@ const SortableHead = ({
         <button
           type="button"
           onClick={() => onSort(column)}
-          aria-label={`Sort by ${label}`}
+          aria-label={translateMessage("Sort by %{0}", [label])}
           className="inline-flex items-center gap-1 font-medium hover:text-foreground"
         >
-          {label}
+          {localizedProperty(cocaCopyProps0, "label", label)}
           <Arrow className={`h-3 w-3 ${active ? "text-foreground" : "text-muted-foreground"}`} />
         </button>
         <InfoTooltip info={info} />
@@ -89,6 +89,7 @@ const SortableHead = ({
 };
 
 const CacheLeakageCard: React.FC<CacheLeakageCardProps> = ({ activity }) => {
+  useUiLocale();
   const { results, loading } = activity;
   const [dimension, setDimension] = useState<CacheLeakageDimension>("key");
   const [sort, setSort] = useState<SortState>({ column: "potentialSavings", dir: "desc" });
@@ -125,25 +126,35 @@ const CacheLeakageCard: React.FC<CacheLeakageCardProps> = ({ activity }) => {
         <CardHeader>
           <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
             <div className="min-w-0">
-              <CardTitle>Cache leakage by {dimension === "model" ? "model" : "virtual key"}</CardTitle>
+              <CardTitle>
+                <LocalizedText text={"Cache leakage by "} />
+                {dimension === "model" ? translateMessage("model") : translateMessage("virtual key")}
+              </CardTitle>
               <p className="mt-1 text-sm text-muted-foreground line-clamp-2">
-                {subject} sending large volumes of uncached input with a low cache hit rate are likely missing prompt
-                caching. Potential savings is approximate: uncached input priced at what your cached traffic nets per
-                cached token, after cache-write premiums.
+                {subject}
+                <LocalizedText
+                  text={
+                    " sending large volumes of uncached input with a low cache hit rate are likely missing prompt caching. Potential savings is approximate: uncached input priced at what your cached traffic nets per cached token, after cache-write premiums."
+                  }
+                />
               </p>
             </div>
           </div>
           <Tabs value={dimension} onValueChange={(value) => setDimension(value === "model" ? "model" : "key")}>
             <TabsList>
-              <TabsTrigger value="key">By virtual key</TabsTrigger>
-              <TabsTrigger value="model">By model</TabsTrigger>
+              <TabsTrigger value="key">
+                <LocalizedText text={"By virtual key"} />
+              </TabsTrigger>
+              <TabsTrigger value="model">
+                <LocalizedText text={"By model"} />
+              </TabsTrigger>
             </TabsList>
           </Tabs>
         </CardHeader>
         <CardContent>
           {rows.length === 0 ? (
             <p className="py-8 text-center text-sm text-muted-foreground">
-              {rowsLoading ? "Loading..." : emptyMessage}
+              {rowsLoading ? translateMessage("Loading...") : emptyMessage}
             </p>
           ) : (
             <Table>
@@ -152,21 +163,21 @@ const CacheLeakageCard: React.FC<CacheLeakageCardProps> = ({ activity }) => {
                   <TableHead>{firstColumn}</TableHead>
                   <SortableHead
                     column="uncachedPromptTokens"
-                    label="Uncached input tokens"
+                    label={translateMessage("Uncached input tokens")}
                     info="Input tokens you sent in this range that weren't served from or written to the cache"
                     sort={sort}
                     onSort={onSort}
                   />
                   <SortableHead
                     column="cacheHitRatio"
-                    label="Cache hit rate"
+                    label={translateMessage("Cache hit rate")}
                     info="Share of your input tokens that were served from the cache"
                     sort={sort}
                     onSort={onSort}
                   />
                   <SortableHead
                     column="potentialSavings"
-                    label="Potential savings"
+                    label={translateMessage("Potential savings")}
                     info="About how much you'd save if this uncached input used prompt caching. Estimated as uncached input tokens times what your cached traffic already nets per cached token (realized cache savings, after write premiums, ÷ cache read and write tokens). Blank when caching is not currently saving anything overall."
                     sort={sort}
                     onSort={onSort}
@@ -177,7 +188,7 @@ const CacheLeakageCard: React.FC<CacheLeakageCardProps> = ({ activity }) => {
                 {rows.map((row) => (
                   <TableRow key={row.id}>
                     <TableCell className="font-medium">
-                      {row.label}
+                      {localizedProperty(row, "label", row.label)}
                       {row.sublabel && <span className="ml-1 text-xs text-muted-foreground">({row.sublabel})</span>}
                     </TableCell>
                     <TableCell className="text-right">{formatNumberWithCommas(row.uncachedPromptTokens)}</TableCell>

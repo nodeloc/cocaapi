@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -18,52 +20,60 @@ interface KeywordModalProps {
   onCancel: () => void;
 }
 
-const KeywordModal: React.FC<KeywordModalProps> = ({
-  visible,
-  keyword,
-  action,
-  description,
-  onKeywordChange,
-  onActionChange,
-  onDescriptionChange,
-  onAdd,
-  onCancel,
-}) => {
+const KeywordModal: React.FC<KeywordModalProps> = (cocaCopyProps0) => {
+  const {
+    visible,
+    keyword,
+    action,
+    description,
+    onKeywordChange,
+    onActionChange,
+    onDescriptionChange,
+    onAdd,
+    onCancel,
+  } = cocaCopyProps0;
+  useUiLocale();
   return (
     <Dialog open={visible} onOpenChange={(open) => !open && onCancel()}>
       <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-[800px]">
         <DialogHeader>
-          <DialogTitle>Add blocked keyword</DialogTitle>
+          <DialogTitle>
+            <LocalizedText text={"Add blocked keyword"} />
+          </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
           <div>
-            <p className="font-semibold">Keyword</p>
+            <p className="font-semibold">
+              <LocalizedText text={"Keyword"} />
+            </p>
             <Input
               className="mt-2"
-              placeholder="Enter sensitive keyword or phrase"
+              placeholder={translateMessage("Enter sensitive keyword or phrase")}
               value={keyword}
               onChange={(e) => onKeywordChange(e.target.value)}
             />
           </div>
 
           <div>
-            <p className="font-semibold">Action</p>
+            <p className="font-semibold">
+              <LocalizedText text={"Action"} />
+            </p>
             <p className="mt-1 mb-2 text-muted-foreground">
-              Choose what action the guardrail should take when this keyword is detected
+              <LocalizedText text={"Choose what action the guardrail should take when this keyword is detected"} />
             </p>
             <Select
               items={ACTION_ITEMS}
               value={action}
               onValueChange={(value: string | null) => value && onActionChange(value as "BLOCK" | "MASK")}
             >
-              <SelectTrigger className="w-full" aria-label="Action">
+              <SelectTrigger className="w-full" aria-label={translateMessage("Action")}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 {ACTION_ITEMS.map((item) => (
                   <SelectItem key={item.value} value={item.value}>
-                    {item.label}
+                    {localizedProperty(item, "label", item.label)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -71,10 +81,12 @@ const KeywordModal: React.FC<KeywordModalProps> = ({
           </div>
 
           <div>
-            <p className="font-semibold">Description (optional)</p>
+            <p className="font-semibold">
+              <LocalizedText text={"Description (optional)"} />
+            </p>
             <Textarea
               className="mt-2 field-sizing-fixed"
-              placeholder="Explain why this keyword is sensitive"
+              placeholder={translateMessage("Explain why this keyword is sensitive")}
               value={description}
               onChange={(e) => onDescriptionChange(e.target.value)}
               rows={3}
@@ -84,9 +96,11 @@ const KeywordModal: React.FC<KeywordModalProps> = ({
 
         <DialogFooter>
           <Button variant="outline" onClick={onCancel}>
-            Cancel
+            <LocalizedText text={"Cancel"} />
           </Button>
-          <Button onClick={onAdd}>Add</Button>
+          <Button onClick={onAdd}>
+            <LocalizedText text={"Add"} />
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

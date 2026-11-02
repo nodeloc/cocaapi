@@ -1,3 +1,4 @@
+import { markUiCopy } from "@/lib/i18n";
 export const CODE_TEMPLATES = {
   empty: {
     name: "Empty Template",
@@ -115,13 +116,22 @@ export const PRIMITIVES = {
 };
 
 export const MODE_OPTIONS = [
-  { value: "pre_call", label: "pre_call (Request)" },
-  { value: "post_call", label: "post_call (Response)" },
-  { value: "during_call", label: "during_call (Parallel)" },
+  markUiCopy({ value: "pre_call", label: "pre_call (Request)" }, { label: "pre_call (Request)" }),
+  markUiCopy({ value: "post_call", label: "post_call (Response)" }, { label: "post_call (Response)" }),
+  markUiCopy({ value: "during_call", label: "during_call (Parallel)" }, { label: "during_call (Parallel)" }),
   { value: "logging_only", label: "logging_only" },
-  { value: "pre_mcp_call", label: "pre_mcp_call (Before MCP Tool Call)" },
-  { value: "post_mcp_call", label: "post_mcp_call (After MCP Tool Call)" },
-  { value: "during_mcp_call", label: "during_mcp_call (During MCP Tool Call)" },
+  markUiCopy(
+    { value: "pre_mcp_call", label: "pre_mcp_call (Before MCP Tool Call)" },
+    { label: "pre_mcp_call (Before MCP Tool Call)" },
+  ),
+  markUiCopy(
+    { value: "post_mcp_call", label: "post_mcp_call (After MCP Tool Call)" },
+    { label: "post_mcp_call (After MCP Tool Call)" },
+  ),
+  markUiCopy(
+    { value: "during_mcp_call", label: "during_mcp_call (During MCP Tool Call)" },
+    { label: "during_mcp_call (During MCP Tool Call)" },
+  ),
 ];
 
 export const TEMPLATE_ITEMS = Object.entries(CODE_TEMPLATES).map(([key, template]) => ({

@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import type { Table } from "@tanstack/react-table";
 import { RefreshCw, Search, SlidersHorizontal, X } from "lucide-react";
@@ -47,6 +48,7 @@ export function DataTableToolbar<TData>({
   children,
   className,
 }: DataTableToolbarProps<TData>) {
+  useUiLocale();
   const filters = table.getState().columnFilters;
 
   const labelFor = (columnId: string): string =>
@@ -75,7 +77,7 @@ export function DataTableToolbar<TData>({
             {valueFor(filter.id, filter.value)}
             <button
               type="button"
-              aria-label={`Remove ${labelFor(filter.id)} filter`}
+              aria-label={translateMessage("Remove %{0} filter", [labelFor(filter.id)])}
               data-testid={`filter-chip-remove-${filter.id}`}
               onClick={() => table.setColumnFilters((previous) => previous.filter((entry) => entry.id !== filter.id))}
               className="ml-0.5 rounded-full text-muted-foreground hover:text-foreground"
@@ -91,7 +93,7 @@ export function DataTableToolbar<TData>({
             onClick={() => table.setColumnFilters([])}
             data-testid="datatable-clear-filters"
           >
-            Clear all
+            <LocalizedText text={"Clear all"} />
           </Button>
         )}
       </div>
@@ -103,18 +105,18 @@ export function DataTableToolbar<TData>({
             size="icon-sm"
             onClick={onRefresh}
             disabled={isRefreshing}
-            aria-label="Refresh"
-            title="Refresh"
+            aria-label={translateMessage("Refresh")}
+            title={translateMessage("Refresh")}
             data-testid="datatable-refresh"
           >
             <RefreshCw className={isRefreshing ? "animate-spin" : ""} />
           </Button>
         )}
-        {showViewOptions && <DataTableViewOptions table={table} label="Columns" />}
+        {showViewOptions && <DataTableViewOptions table={table} label={translateMessage("Columns")} />}
         {onOpenFilters !== undefined && (
           <Button variant="outline" size="sm" onClick={onOpenFilters} data-testid="datatable-filters-trigger">
             <SlidersHorizontal />
-            Filters
+            <LocalizedText text={"Filters"} />
             {filters.length > 0 && (
               <Badge className="ml-1 h-5 min-w-5 justify-center rounded-full px-1" data-testid="datatable-filter-count">
                 {filters.length}

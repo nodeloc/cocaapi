@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 import { Info } from "lucide-react";
 import { useFormContext, useWatch } from "react-hook-form";
 import { Alert, AlertDescription, AlertTitle } from "@/components/shared/Alert";
@@ -23,6 +25,7 @@ const selectedModelNames = (value: unknown): string[] => {
 };
 
 export default function DecisionModelNote({ catalog, litellmProvider }: DecisionModelNoteProps) {
+  useUiLocale();
   const { control } = useFormContext<MountedFormValues>();
   const model = useWatch({ control, name: "model" });
 
@@ -31,21 +34,26 @@ export default function DecisionModelNote({ catalog, litellmProvider }: Decision
   }
 
   return (
-    <Alert variant="info" role="note" aria-label="Decision model notice" className="mb-4">
+    <Alert variant="info" role="note" aria-label={translateMessage("Decision model notice")} className="mb-4">
       <Info />
-      <AlertTitle>Decision model</AlertTitle>
+      <AlertTitle>
+        <LocalizedText text={"Decision model"} />
+      </AlertTitle>
       <AlertDescription>
         <p>
-          For decision requests, call <code>/v1/decisions</code> (OpenAI format) or <code>/v1/systemone</code> (System
-          One format).{" "}
+          <LocalizedText text={"For decision requests, call "} />
+          <code>/v1/decisions</code>
+          <LocalizedText text={" (OpenAI format) or "} />
+          <code>/v1/systemone</code>
+          <LocalizedText text={" (System One format)."} />{" "}
           <a href={DECISIONS_DOCS_URL} target="_blank" rel="noopener noreferrer" className="underline">
-            How to call decision models
+            <LocalizedText text={"How to call decision models"} />
           </a>
         </p>
         <p>
-          After you add it,{" "}
+          <LocalizedText text={"After you add it,"} />{" "}
           <a href={uiHref(SYSTEM_ONE_PLAYGROUND_ROUTE)} className="underline">
-            test it in the Decisions playground
+            <LocalizedText text={"test it in the Decisions playground"} />
           </a>
         </p>
       </AlertDescription>

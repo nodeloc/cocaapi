@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 import type { Organization, Team } from "@/components/networking";
 import { isOrgAdminForAnyOrg, isProxyAdminRole } from "@/utils/roles";
 import { useId } from "react";
@@ -15,23 +17,30 @@ type KeyProjectFieldProps = {
 };
 
 export function KeyProjectField({ projectId, canDetach, pending, disabled, onToggle }: KeyProjectFieldProps) {
+  useUiLocale();
   const id = useId();
   const { data: projects } = useProjects();
   const alias = projects?.find((project) => project.project_id === projectId)?.project_alias;
   const display = alias ? `${alias} (${projectId})` : projectId;
   return (
     <Field>
-      <FieldLabel htmlFor={id}>Project</FieldLabel>
+      <FieldLabel htmlFor={id}>
+        <LocalizedText text={"Project"} />
+      </FieldLabel>
       <Input id={id} value={display ?? ""} disabled readOnly />
       {canDetach && (
         <>
           {pending && (
             <p className="text-sm text-muted-foreground">
-              The project will be removed when you save. Team, organization, and key limits will stay the same.
+              <LocalizedText
+                text={
+                  "The project will be removed when you save. Team, organization, and key limits will stay the same."
+                }
+              />
             </p>
           )}
           <Button type="button" variant="outline" disabled={disabled} onClick={onToggle}>
-            {pending ? "Keep project" : "Detach from project"}
+            {pending ? translateMessage("Keep project") : translateMessage("Detach from project")}
           </Button>
         </>
       )}

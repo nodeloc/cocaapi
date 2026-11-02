@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import React, { useState, useEffect } from "react";
 import {
   guardrail_provider_map,
@@ -56,8 +58,8 @@ interface ProviderParamsResponse {
 }
 
 const BOOLEAN_ITEMS = [
-  { label: "True", value: true },
-  { label: "False", value: false },
+  markUiCopy({ label: "True", value: true }, { label: "True" }),
+  markUiCopy({ label: "False", value: false }, { label: "False" }),
 ];
 
 const isSecretKey = (fieldKey: string): boolean =>
@@ -90,7 +92,7 @@ const commitObjectField = (raw: string, onChange: (value: unknown) => void): voi
   if (isPlainObject(parsed)) {
     onChange(parsed);
   } else {
-    toast.error("Enter a valid JSON object for this configuration");
+    toast.error(translateMessage("Enter a valid JSON object for this configuration"));
   }
 };
 
@@ -108,6 +110,7 @@ interface ProviderFieldInputProps {
 }
 
 const ProviderFieldInput: React.FC<ProviderFieldInputProps> = ({ descriptor, fieldKey, control }) => {
+  useUiLocale();
   const { id, value, onChange, onBlur, ref, name, ...aria } = control;
 
   if (descriptor.type === "select" && descriptor.options) {
@@ -118,7 +121,7 @@ const ProviderFieldInput: React.FC<ProviderFieldInputProps> = ({ descriptor, fie
         onValueChange={(next: string | null) => onChange(next)}
       >
         <SelectTrigger id={id} className="w-full" {...aria}>
-          <SelectValue placeholder={descriptor.description} />
+          <SelectValue placeholder={localizedProperty(descriptor, "description", descriptor.description)} />
         </SelectTrigger>
         <SelectContent>
           {descriptor.options.map((option) => (
@@ -138,7 +141,7 @@ const ProviderFieldInput: React.FC<ProviderFieldInputProps> = ({ descriptor, fie
         options={descriptor.options.map((option) => ({ label: option, value: option }))}
         value={asStringArray(value)}
         onValueChange={onChange}
-        placeholder={descriptor.description}
+        placeholder={localizedProperty(descriptor, "description", descriptor.description)}
       />
     );
   }
@@ -151,11 +154,15 @@ const ProviderFieldInput: React.FC<ProviderFieldInputProps> = ({ descriptor, fie
         onValueChange={(next: boolean | null) => onChange(next)}
       >
         <SelectTrigger id={id} className="w-full" {...aria}>
-          <SelectValue placeholder={descriptor.description} />
+          <SelectValue placeholder={localizedProperty(descriptor, "description", descriptor.description)} />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value={true}>True</SelectItem>
-          <SelectItem value={false}>False</SelectItem>
+          <SelectItem value={true}>
+            <LocalizedText text={"True"} />
+          </SelectItem>
+          <SelectItem value={false}>
+            <LocalizedText text={"False"} />
+          </SelectItem>
         </SelectContent>
       </Select>
     );
@@ -189,7 +196,7 @@ const ProviderFieldInput: React.FC<ProviderFieldInputProps> = ({ descriptor, fie
         id={id}
         name={name}
         ref={ref}
-        placeholder={descriptor.description}
+        placeholder={localizedProperty(descriptor, "description", descriptor.description)}
         value={objectValue}
         onChange={(event) => onChange(event.target.value)}
         onBlur={(event) => {
@@ -207,7 +214,7 @@ const ProviderFieldInput: React.FC<ProviderFieldInputProps> = ({ descriptor, fie
         id={id}
         name={name}
         step={1}
-        placeholder={descriptor.description}
+        placeholder={localizedProperty(descriptor, "description", descriptor.description)}
         value={asText(value)}
         onChange={onChange}
         onBlur={onBlur}
@@ -222,7 +229,7 @@ const ProviderFieldInput: React.FC<ProviderFieldInputProps> = ({ descriptor, fie
         id={id}
         name={name}
         ref={ref}
-        placeholder={descriptor.description}
+        placeholder={localizedProperty(descriptor, "description", descriptor.description)}
         value={asText(value)}
         onChange={onChange}
         onBlur={onBlur}
@@ -236,7 +243,7 @@ const ProviderFieldInput: React.FC<ProviderFieldInputProps> = ({ descriptor, fie
       id={id}
       name={name}
       ref={ref}
-      placeholder={descriptor.description}
+      placeholder={localizedProperty(descriptor, "description", descriptor.description)}
       value={asText(value)}
       onChange={onChange}
       onBlur={onBlur}
@@ -252,6 +259,7 @@ const GuardrailProviderFields: React.FC<GuardrailProviderFieldsProps> = ({
   providerParams: providerParamsProp = null,
   value = null,
 }) => {
+  useUiLocale();
   const [loading, setLoading] = useState(false);
   const [providerParams, setProviderParams] = useState<ProviderParamsResponse | null>(providerParamsProp);
   const [error, setError] = useState<string | null>(null);
@@ -279,7 +287,7 @@ const GuardrailProviderFields: React.FC<GuardrailProviderFieldsProps> = ({
         populateGuardrailProviderMap(data);
       } catch (error) {
         console.error("Error fetching provider params:", error);
-        setError("Failed to load provider parameters");
+        setError(translateMessage("Failed to load provider parameters"));
       } finally {
         setLoading(false);
       }
@@ -301,7 +309,7 @@ const GuardrailProviderFields: React.FC<GuardrailProviderFieldsProps> = ({
     return (
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <UiLoadingSpinner className="size-4" />
-        Loading provider parameters...
+        <LocalizedText text={"Loading provider parameters..."} />
       </div>
     );
   }
@@ -318,7 +326,11 @@ const GuardrailProviderFields: React.FC<GuardrailProviderFieldsProps> = ({
   const providerFields = providerParams && providerParams[providerKey];
 
   if (!providerFields || Object.keys(providerFields).length === 0) {
-    return <div>No configuration fields available for this provider.</div>;
+    return (
+      <div>
+        <LocalizedText text={"No configuration fields available for this provider."} />
+      </div>
+    );
   }
 
   // Fields to skip for content filter provider (handled in dedicated steps)

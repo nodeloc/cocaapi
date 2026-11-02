@@ -1,3 +1,6 @@
+
+"use client";
+import { LocalizedText, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 import { useCustomerNative } from "@/components/account/native/CustomerNativeContext";
 import { useState } from "react";
 import { Check, ChevronDown, ChevronRight, CircleAlert, Copy, Info } from "lucide-react";
@@ -75,6 +78,7 @@ export function LogDetailContent({
   accessToken,
   userEmail,
 }: LogDetailContentProps) {
+  useUiLocale();
   const customer = useCustomerNative();
   const metadata = logEntry.metadata || {};
   const hasError = metadata.status === "failure";
@@ -129,7 +133,7 @@ export function LogDetailContent({
         >
           <CircleAlert className="size-4 shrink-0 text-destructive" />
           <div>
-            <div className="font-medium text-destructive">Request Failed</div>
+            <div className="font-medium text-destructive"><LocalizedText text={"Request Failed"} /></div>
             <ErrorDescription errorInfo={errorInfo} />
           </div>
         </div>
@@ -144,34 +148,34 @@ export function LogDetailContent({
       <div className="bg-card rounded-lg shadow-sm w-full max-w-full overflow-hidden mb-6">
         <Card size="sm" style={{ marginBottom: 0 }}>
           <CardHeader>
-            <CardTitle>Request Details</CardTitle>
+            <CardTitle><LocalizedText text={"Request Details"} /></CardTitle>
           </CardHeader>
           <CardContent>
             <DescriptionList>
-              <DescriptionItem label="Model">{logEntry.model}</DescriptionItem>
-              <DescriptionItem label="Provider">{logEntry.custom_llm_provider || "-"}</DescriptionItem>
-              <DescriptionItem label="Call Type">{logEntry.call_type}</DescriptionItem>
+              <DescriptionItem label={translateMessage("Model")}>{logEntry.model}</DescriptionItem>
+              <DescriptionItem label={translateMessage("Provider")}>{logEntry.custom_llm_provider || "-"}</DescriptionItem>
+              <DescriptionItem label={translateMessage("Call Type")}>{logEntry.call_type}</DescriptionItem>
               {logEntry.user && (
-                <DescriptionItem label="User">
+                <DescriptionItem label={translateMessage("User")}>
                   <UserIdentity userId={logEntry.user} email={userEmail} />
                 </DescriptionItem>
               )}
-              <DescriptionItem label="Model ID">
+              <DescriptionItem label={translateMessage("Model ID")}>
                 <TruncatedValue value={logEntry.model_id} />
               </DescriptionItem>
-              <DescriptionItem label="API Base">
+              <DescriptionItem label={translateMessage("API Base")}>
                 <TruncatedValue value={logEntry.api_base} maxWidth={API_BASE_MAX_WIDTH} />
               </DescriptionItem>
               {logEntry.requester_ip_address && (
-                <DescriptionItem label="IP Address">{logEntry.requester_ip_address}</DescriptionItem>
+                <DescriptionItem label={translateMessage("IP Address")}>{logEntry.requester_ip_address}</DescriptionItem>
               )}
               {typeof logEntry.metadata?.used_client_oauth_token === "boolean" && (
-                <DescriptionItem label="Credential">
-                  {CREDENTIAL_LABELS[String(logEntry.metadata.used_client_oauth_token)]}
+                <DescriptionItem label={translateMessage("Credential")}>
+                  {localizedProperty(CREDENTIAL_LABELS, String(logEntry.metadata.used_client_oauth_token), CREDENTIAL_LABELS[String(logEntry.metadata.used_client_oauth_token)])}
                 </DescriptionItem>
               )}
               {hasGuardrailData && (
-                <DescriptionItem label="Guardrail">
+                <DescriptionItem label={translateMessage("Guardrail")}>
                   <GuardrailLabel label={primaryGuardrailLabel} maskedCount={totalMaskedEntities} />
                 </DescriptionItem>
               )}
@@ -217,9 +221,7 @@ export function LogDetailContent({
       {isLoadingDetails ? (
         <div className="bg-card rounded-lg shadow-sm w-full max-w-full overflow-hidden mb-6 p-8 text-center">
           <UiLoadingSpinner className="inline-block size-5" />
-          <div style={{ marginTop: 8, color: "var(--color-muted-foreground)" }}>
-            Loading request &amp; response data...
-          </div>
+          <div style={{ marginTop: 8, color: "var(--color-muted-foreground)" }}><LocalizedText text={"Loading request & response data..."} /></div>
         </div>
       ) : null}
       {!isLoadingDetails && hasClassifierAudit && (
@@ -274,13 +276,16 @@ export function LogDetailContent({
 // ============================================================================
 
 function DescriptionList({ children }: { children: React.ReactNode }) {
+  useUiLocale();
   return <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">{children}</div>;
 }
 
-function DescriptionItem({ label, children }: { label: React.ReactNode; children: React.ReactNode }) {
+function DescriptionItem(cocaCopyProps0: { label: React.ReactNode; children: React.ReactNode }) {
+  const { label, children } = cocaCopyProps0;
+  useUiLocale();
   return (
     <div className="flex min-w-0 flex-wrap items-start gap-x-2 gap-y-0.5">
-      <span className="shrink-0 text-muted-foreground after:content-[':']">{label}</span>
+      <span className="shrink-0 text-muted-foreground after:content-[':']">{localizedProperty(cocaCopyProps0, "label", label)}</span>
       <span className="min-w-0 break-words">{children}</span>
     </div>
   );
@@ -295,6 +300,7 @@ function CopyButton({
   label: string;
   disabled?: boolean;
 }) {
+  useUiLocale();
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -313,7 +319,7 @@ function CopyButton({
       size="icon-sm"
       onClick={handleCopy}
       disabled={disabled}
-      aria-label={copied ? "Copied!" : label}
+      aria-label={copied ? translateMessage("Copied!") : label}
     >
       {copied ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
     </Button>
@@ -321,16 +327,17 @@ function CopyButton({
 }
 
 function ErrorDescription({ errorInfo }: { errorInfo: any }) {
+  useUiLocale();
   return (
     <div>
       {errorInfo.error_code && (
         <div>
-          <span className="font-semibold">Error Code:</span> {errorInfo.error_code}
+          <span className="font-semibold"><LocalizedText text={"Error Code:"} /></span> {errorInfo.error_code}
         </div>
       )}
       {errorInfo.error_message && (
         <div>
-          <span className="font-semibold">Message:</span> {errorInfo.error_message}
+          <span className="font-semibold"><LocalizedText text={"Message:"} /></span> {errorInfo.error_message}
         </div>
       )}
     </div>
@@ -338,11 +345,10 @@ function ErrorDescription({ errorInfo }: { errorInfo: any }) {
 }
 
 function TagsSection({ tags }: { tags: Record<string, any> }) {
+  useUiLocale();
   return (
     <div className="bg-card rounded-lg shadow-sm w-full max-w-full overflow-hidden p-4 mb-6">
-      <span className="font-semibold" style={{ display: "block", marginBottom: 8, fontSize: 16 }}>
-        Tags
-      </span>
+      <span className="font-semibold" style={{ display: "block", marginBottom: 8, fontSize: 16 }}><LocalizedText text={"Tags"} /></span>
       <div className="flex flex-wrap items-center gap-2">
         {Object.entries(tags).map(([key, value]) => (
           <Badge key={key} variant="outline">
@@ -355,6 +361,7 @@ function TagsSection({ tags }: { tags: Record<string, any> }) {
 }
 
 function UserIdentity({ userId, email }: { userId: string; email?: string }) {
+  useUiLocale();
   if (!email || email === userId) return <TruncatedValue value={userId} />;
   return (
     <span className="inline-flex items-center gap-2">
@@ -364,7 +371,9 @@ function UserIdentity({ userId, email }: { userId: string; email?: string }) {
   );
 }
 
-function GuardrailLabel({ label, maskedCount }: { label: string; maskedCount: number }) {
+function GuardrailLabel(cocaCopyProps1: { label: string; maskedCount: number }) {
+  const { label, maskedCount } = cocaCopyProps1;
+  useUiLocale();
   const handleClick = () => {
     const el = document.getElementById("guardrail-section");
     if (el) el.scrollIntoView({ behavior: "smooth" });
@@ -373,9 +382,9 @@ function GuardrailLabel({ label, maskedCount }: { label: string; maskedCount: nu
   return (
     <span className="inline-flex items-center gap-2">
       <a onClick={handleClick} style={{ cursor: "pointer" }}>
-        {label}
+        {localizedProperty(cocaCopyProps1, "label", label)}
       </a>
-      {maskedCount > 0 && <Badge variant="secondary">{maskedCount} masked</Badge>}
+      {maskedCount > 0 && <Badge variant="secondary">{maskedCount}<LocalizedText text={" masked"} /></Badge>}
     </span>
   );
 }
@@ -400,22 +409,22 @@ const CACHE_KEY_TOOLTIP =
   "The key LiteLLM computed for this request in the response cache. Requests with the same cache key share a cached response; a different key means the request content did not match any cached entry.";
 const PROMPT_CACHE_DOCS_URL = "https://docs.litellm.ai/docs/completion/prompt_caching";
 
-function MetricLabel({ label, tooltip, docsUrl }: { label: string; tooltip: string; docsUrl: string }) {
+function MetricLabel(cocaCopyProps2: { label: string; tooltip: string; docsUrl: string }) {
+  const { label, tooltip, docsUrl } = cocaCopyProps2;
+  useUiLocale();
   return (
     <span className="inline-flex items-center gap-1">
-      {label}
+      {localizedProperty(cocaCopyProps2, "label", label)}
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger
-            render={<span role="img" aria-label={`${label} info`} className="inline-flex text-muted-foreground" />}
+            render={<span role="img" aria-label={translateMessage("%{0} info", [label])} className="inline-flex text-muted-foreground" />}
           >
             <Info className="size-3.5" />
           </TooltipTrigger>
           <TooltipContent>
-            {tooltip}{" "}
-            <a href={docsUrl} target="_blank" rel="noreferrer" className="underline">
-              Docs
-            </a>
+            {localizedProperty(cocaCopyProps2, "tooltip", tooltip)}{" "}
+            <a href={docsUrl} target="_blank" rel="noreferrer" className="underline"><LocalizedText text={"Docs"} /></a>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
@@ -428,6 +437,7 @@ function MetricLabel({ label, tooltip, docsUrl }: { label: string; tooltip: stri
  * from the parsed output and error files, and the models the batch actually ran on.
  */
 function BatchResultsSection({ logEntry, metadata }: { logEntry: LogEntry; metadata: Record<string, unknown> }) {
+  useUiLocale();
   const counts = getBatchRequestCounts(metadata);
   const batchId = getBatchIdFromRequestId(logEntry.request_id);
   const batchModels = getBatchModels(metadata);
@@ -437,21 +447,21 @@ function BatchResultsSection({ logEntry, metadata }: { logEntry: LogEntry; metad
     <div className="bg-card rounded-lg shadow-sm w-full max-w-full overflow-hidden mb-6">
       <Card size="sm" style={{ marginBottom: 0 }}>
         <CardHeader>
-          <CardTitle>Batch Results</CardTitle>
+          <CardTitle><LocalizedText text={"Batch Results"} /></CardTitle>
         </CardHeader>
         <CardContent>
           <DescriptionList>
             {batchId && (
-              <DescriptionItem label="Batch ID">
+              <DescriptionItem label={translateMessage("Batch ID")}>
                 <TruncatedValue value={batchId} />
               </DescriptionItem>
             )}
             {counts && (
               <>
-                <DescriptionItem label="Successful Requests">
+                <DescriptionItem label={translateMessage("Successful Requests")}>
                   {formatNumberWithCommas(counts.successful)}
                 </DescriptionItem>
-                <DescriptionItem label="Failed Requests">
+                <DescriptionItem label={translateMessage("Failed Requests")}>
                   {counts.failed > 0 ? (
                     <Badge variant="secondary" className="bg-destructive/15 text-destructive">
                       {formatNumberWithCommas(counts.failed)}
@@ -462,7 +472,7 @@ function BatchResultsSection({ logEntry, metadata }: { logEntry: LogEntry; metad
                 </DescriptionItem>
               </>
             )}
-            {batchModels && <DescriptionItem label="Models">{batchModels.join(", ")}</DescriptionItem>}
+            {batchModels && <DescriptionItem label={translateMessage("Models")}>{batchModels.join(", ")}</DescriptionItem>}
           </DescriptionList>
         </CardContent>
       </Card>
@@ -471,6 +481,7 @@ function BatchResultsSection({ logEntry, metadata }: { logEntry: LogEntry; metad
 }
 
 function MetricsSection({ logEntry, metadata }: { logEntry: LogEntry; metadata: Record<string, any> }) {
+  useUiLocale();
   const completionStartTime = logEntry.completionStartTime;
   const ttftMs =
     completionStartTime && completionStartTime !== logEntry.endTime
@@ -493,19 +504,19 @@ function MetricsSection({ logEntry, metadata }: { logEntry: LogEntry; metadata: 
     <div className="bg-card rounded-lg shadow-sm w-full max-w-full overflow-hidden mb-6">
       <Card size="sm" style={{ marginBottom: 0 }}>
         <CardHeader>
-          <CardTitle>Metrics</CardTitle>
+          <CardTitle><LocalizedText text={"Metrics"} /></CardTitle>
         </CardHeader>
         <CardContent>
           <DescriptionList>
             {showAnthropicMessagesInputOutput ? (
               <>
-                <DescriptionItem label="Input Tokens">{formatNumberWithCommas(uncachedInputTokens)}</DescriptionItem>
-                <DescriptionItem label="Output Tokens">
+                <DescriptionItem label={translateMessage("Input Tokens")}>{formatNumberWithCommas(uncachedInputTokens)}</DescriptionItem>
+                <DescriptionItem label={translateMessage("Output Tokens")}>
                   {formatNumberWithCommas(logEntry.completion_tokens)}
                 </DescriptionItem>
               </>
             ) : (
-              <DescriptionItem label="Tokens">
+              <DescriptionItem label={translateMessage("Tokens")}>
                 <TokenFlow
                   prompt={logEntry.prompt_tokens}
                   completion={logEntry.completion_tokens}
@@ -514,34 +525,33 @@ function MetricsSection({ logEntry, metadata }: { logEntry: LogEntry; metadata: 
               </DescriptionItem>
             )}
             {reasoningTokens !== undefined && reasoningTokens > 0 && (
-              <DescriptionItem label="Reasoning Tokens">{formatNumberWithCommas(reasoningTokens)}</DescriptionItem>
+              <DescriptionItem label={translateMessage("Reasoning Tokens")}>{formatNumberWithCommas(reasoningTokens)}</DescriptionItem>
             )}
-            <DescriptionItem label="Cost">${formatNumberWithCommas(logEntry.spend || 0, 8)}</DescriptionItem>
-            <DescriptionItem label="Duration">
-              {logEntry.request_duration_ms != null ? (logEntry.request_duration_ms / 1000).toFixed(3) : "-"} s
-            </DescriptionItem>
+            <DescriptionItem label={translateMessage("Cost")}>${formatNumberWithCommas(logEntry.spend || 0, 8)}</DescriptionItem>
+            <DescriptionItem label={translateMessage("Duration")}>
+              {logEntry.request_duration_ms != null ? (logEntry.request_duration_ms / 1000).toFixed(3) : "-"}<LocalizedText text={" s"} /></DescriptionItem>
             {ttftMs != null && ttftMs > 0 && (
-              <DescriptionItem label="Time to First Token">{(ttftMs / 1000).toFixed(3)} s</DescriptionItem>
+              <DescriptionItem label={translateMessage("Time to First Token")}>{(ttftMs / 1000).toFixed(3)}<LocalizedText text={" s"} /></DescriptionItem>
             )}
 
             {showResponseCache && (
               <DescriptionItem
                 label={
                   <MetricLabel
-                    label="Response Cache"
+                    label={translateMessage("Response Cache")}
                     tooltip={RESPONSE_CACHE_TOOLTIP}
                     docsUrl={RESPONSE_CACHE_DOCS_URL}
                   />
                 }
               >
                 <Badge variant="secondary" className={isResponseCacheHit ? "bg-success/15 text-success" : undefined}>
-                  {isResponseCacheHit ? "Hit" : "Miss"}
+                  {isResponseCacheHit ? translateMessage("Hit") : translateMessage("Miss")}
                 </Badge>
               </DescriptionItem>
             )}
             {responseCacheKey && (
               <DescriptionItem
-                label={<MetricLabel label="Cache Key" tooltip={CACHE_KEY_TOOLTIP} docsUrl={RESPONSE_CACHE_DOCS_URL} />}
+                label={<MetricLabel label={translateMessage("Cache Key")} tooltip={CACHE_KEY_TOOLTIP} docsUrl={RESPONSE_CACHE_DOCS_URL} />}
               >
                 <TruncatedValue value={responseCacheKey} />
               </DescriptionItem>
@@ -550,7 +560,7 @@ function MetricsSection({ logEntry, metadata }: { logEntry: LogEntry; metadata: 
               <DescriptionItem
                 label={
                   <MetricLabel
-                    label="Prompt Cache Read Tokens"
+                    label={translateMessage("Prompt Cache Read Tokens")}
                     tooltip={PROMPT_CACHE_READ_TOOLTIP}
                     docsUrl={PROMPT_CACHE_DOCS_URL}
                   />
@@ -563,7 +573,7 @@ function MetricsSection({ logEntry, metadata }: { logEntry: LogEntry; metadata: 
               <DescriptionItem
                 label={
                   <MetricLabel
-                    label="Prompt Cache Creation Tokens"
+                    label={translateMessage("Prompt Cache Creation Tokens")}
                     tooltip={PROMPT_CACHE_CREATION_TOOLTIP}
                     docsUrl={PROMPT_CACHE_DOCS_URL}
                   />
@@ -574,12 +584,11 @@ function MetricsSection({ logEntry, metadata }: { logEntry: LogEntry; metadata: 
             )}
 
             {metadata?.litellm_overhead_time_ms !== undefined && metadata.litellm_overhead_time_ms !== null && (
-              <DescriptionItem label="LiteLLM Overhead">
-                {metadata.litellm_overhead_time_ms.toFixed(2)} ms
-              </DescriptionItem>
+              <DescriptionItem label={translateMessage("LiteLLM Overhead")}>
+                {metadata.litellm_overhead_time_ms.toFixed(2)}<LocalizedText text={" ms"} /></DescriptionItem>
             )}
 
-            <DescriptionItem label="Retries">
+            <DescriptionItem label={translateMessage("Retries")}>
               {metadata?.attempted_retries != null && metadata.attempted_retries > 0 && (
                 <>
                   {metadata.attempted_retries}
@@ -589,17 +598,15 @@ function MetricsSection({ logEntry, metadata }: { logEntry: LogEntry; metadata: 
                 </>
               )}
               {metadata?.attempted_retries != null && metadata.attempted_retries <= 0 && (
-                <Badge variant="secondary" className="bg-success/15 text-success">
-                  None
-                </Badge>
+                <Badge variant="secondary" className="bg-success/15 text-success"><LocalizedText text={"None"} /></Badge>
               )}
               {metadata?.attempted_retries == null && "-"}
             </DescriptionItem>
 
-            <DescriptionItem label="Start Time">
+            <DescriptionItem label={translateMessage("Start Time")}>
               {moment(logEntry.startTime).format("YYYY-MM-DDTHH:mm:ss.SSS[Z]")}
             </DescriptionItem>
-            <DescriptionItem label="End Time">
+            <DescriptionItem label={translateMessage("End Time")}>
               {moment(logEntry.endTime).format("YYYY-MM-DDTHH:mm:ss.SSS[Z]")}
             </DescriptionItem>
           </DescriptionList>
@@ -624,6 +631,7 @@ function RequestResponseSection({
   getFormattedResponse,
   logEntry,
 }: RequestResponseSectionProps) {
+  useUiLocale();
   const [open, setOpen] = useState(true);
   const [activeTab, setActiveTab] = useState<typeof TAB_REQUEST | typeof TAB_RESPONSE>(TAB_REQUEST);
   const [viewMode, setViewMode] = useState<"pretty" | "json">("pretty");
@@ -655,13 +663,11 @@ function RequestResponseSection({
               ) : (
                 <ChevronRight className="size-3.5 shrink-0 text-muted-foreground" />
               )}
-              <h3 className="text-lg font-medium text-foreground" style={{ margin: 0 }}>
-                Request & Response
-              </h3>
+              <h3 className="text-lg font-medium text-foreground" style={{ margin: 0 }}><LocalizedText text={"Request & Response"} /></h3>
             </CollapsibleTrigger>
             <TabsList className="mr-4">
-              <TabsTrigger value="pretty">Pretty</TabsTrigger>
-              <TabsTrigger value="json">JSON</TabsTrigger>
+              <TabsTrigger value="pretty"><LocalizedText text={"Pretty"} /></TabsTrigger>
+              <TabsTrigger value="json"><LocalizedText text={"JSON"} /></TabsTrigger>
             </TabsList>
           </div>
           <CollapsibleContent>
@@ -685,12 +691,12 @@ function RequestResponseSection({
                 >
                   <div className="flex items-center justify-between">
                     <TabsList>
-                      <TabsTrigger value={TAB_REQUEST}>Request</TabsTrigger>
-                      <TabsTrigger value={TAB_RESPONSE}>Response</TabsTrigger>
+                      <TabsTrigger value={TAB_REQUEST}><LocalizedText text={"Request"} /></TabsTrigger>
+                      <TabsTrigger value={TAB_RESPONSE}><LocalizedText text={"Response"} /></TabsTrigger>
                     </TabsList>
                     <CopyButton
                       getText={getCopyText}
-                      label="Copy JSON"
+                      label={translateMessage("Copy JSON")}
                       disabled={activeTab === TAB_RESPONSE && !hasResponse && !hasError}
                     />
                   </div>
@@ -711,9 +717,7 @@ function RequestResponseSection({
                             color: "var(--color-muted-foreground)",
                             fontStyle: "italic",
                           }}
-                        >
-                          Response data not available
-                        </div>
+                        ><LocalizedText text={"Response data not available"} /></div>
                       )}
                     </div>
                   </TabsContent>
@@ -746,6 +750,7 @@ const guardrailJumpLinkOutcome = (evaluated: unknown[]): keyof typeof GUARDRAIL_
 };
 
 export function GuardrailJumpLink({ guardrailEntries }: { guardrailEntries: any[] }) {
+  useUiLocale();
   const statuses = guardrailEntries.map((e) => e?.guardrail_status || e?.status);
   const evaluated = statuses.filter((s) => !isNotRunStatus(s));
   const notRunCount = statuses.length - evaluated.length;
@@ -772,9 +777,7 @@ export function GuardrailJumpLink({ guardrailEntries }: { guardrailEntries: any[
           fontWeight: 500,
         }}
       >
-        {glyph} {evaluated.length} guardrail
-        {evaluated.length !== 1 ? "s" : ""} evaluated
-        {notRunCount > 0 ? `, ${notRunCount} not run` : ""}
+        {glyph} {evaluated.length}<LocalizedText text={" guardrail"} />{evaluated.length !== 1 ? translateMessage("s") : ""}<LocalizedText text={" evaluated"} />{notRunCount > 0 ? translateMessage(", %{0} not run", [notRunCount]) : ""}
         <span style={{ fontSize: 11, opacity: 0.7 }}>{"\u2193"}</span>
       </div>
     </div>
@@ -782,6 +785,7 @@ export function GuardrailJumpLink({ guardrailEntries }: { guardrailEntries: any[
 }
 
 function MetadataSection({ metadata }: { metadata: Record<string, any> }) {
+  useUiLocale();
   const [open, setOpen] = useState(true);
 
   return (
@@ -793,12 +797,12 @@ function MetadataSection({ metadata }: { metadata: Record<string, any> }) {
           ) : (
             <ChevronRight className="size-3.5 shrink-0 text-muted-foreground" />
           )}
-          <h3 className="text-lg font-medium text-foreground">Metadata</h3>
+          <h3 className="text-lg font-medium text-foreground"><LocalizedText text={"Metadata"} /></h3>
         </CollapsibleTrigger>
         <CollapsibleContent>
           <div>
             <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
-              <CopyButton getText={() => JSON.stringify(metadata, null, 2)} label="Copy Metadata" />
+              <CopyButton getText={() => JSON.stringify(metadata, null, 2)} label={translateMessage("Copy Metadata")} />
             </div>
             <pre
               style={{

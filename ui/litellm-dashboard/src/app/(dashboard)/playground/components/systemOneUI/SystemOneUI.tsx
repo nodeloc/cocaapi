@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -44,20 +45,23 @@ interface PresetPickerProps {
 }
 
 function PresetPicker({ activePreset, onPick }: PresetPickerProps) {
+  useUiLocale();
   return (
     <Select value={activePreset?.id ?? CUSTOM_PRESET} onValueChange={onPick}>
-      <SelectTrigger className="w-56" aria-label="Example">
-        <SelectValue>{activePreset?.label ?? "Custom"}</SelectValue>
+      <SelectTrigger className="w-56" aria-label={translateMessage("Example")}>
+        <SelectValue>
+          {localizedProperty(activePreset, "label", activePreset?.label) ?? translateMessage("Custom")}
+        </SelectValue>
       </SelectTrigger>
       <SelectContent>
         {activePreset === undefined && (
           <SelectItem value={CUSTOM_PRESET} disabled>
-            Custom
+            <LocalizedText text={"Custom"} />
           </SelectItem>
         )}
         {DECISION_PRESETS.map((preset) => (
           <SelectItem key={preset.id} value={preset.id}>
-            {preset.label}
+            {localizedProperty(preset, "label", preset.label)}
           </SelectItem>
         ))}
       </SelectContent>
@@ -70,6 +74,7 @@ function getCustomProxyBaseUrl(): string | undefined {
 }
 
 export default function SystemOneUI({ accessToken, disabledPersonalKeyCreation = false }: SystemOneUIProps) {
+  useUiLocale();
   const [apiKeySource, setApiKeySource] = useState<ApiKeySource>(disabledPersonalKeyCreation ? "custom" : "session");
   const [customApiKey, setCustomApiKey] = useState("");
   const effectiveApiKey = apiKeySource === "session" ? accessToken || "" : customApiKey.trim();
@@ -166,7 +171,10 @@ export default function SystemOneUI({ accessToken, disabledPersonalKeyCreation =
           hasResult ? "max-w-7xl xl:grid-cols-2" : "max-w-3xl",
         )}
       >
-        <section className="flex min-h-96 flex-col gap-3 xl:min-h-0" aria-label="Decisions request editor">
+        <section
+          className="flex min-h-96 flex-col gap-3 xl:min-h-0"
+          aria-label={translateMessage("Decisions request editor")}
+        >
           <div className="flex flex-wrap items-center gap-2">
             <Select
               value={endpoint}
@@ -177,7 +185,7 @@ export default function SystemOneUI({ accessToken, disabledPersonalKeyCreation =
                 }
               }}
             >
-              <SelectTrigger className="w-44" aria-label="Decision endpoint">
+              <SelectTrigger className="w-44" aria-label={translateMessage("Decision endpoint")}>
                 <SelectValue>{endpoint}</SelectValue>
               </SelectTrigger>
               <SelectContent>
@@ -187,18 +195,22 @@ export default function SystemOneUI({ accessToken, disabledPersonalKeyCreation =
             </Select>
             <div className="w-56">
               <SearchSelect
-                aria-label="Decision model"
+                aria-label={translateMessage("Decision model")}
                 options={decisionModels.map((model) => ({ label: model, value: model }))}
                 value={payloadModel(rawPayload) ?? null}
                 onValueChange={handleModelPick}
-                placeholder={decisionModels.length > 0 ? "Pick a decision model" : "No decision models yet"}
-                emptyText="No decision models found"
+                placeholder={
+                  decisionModels.length > 0
+                    ? translateMessage("Pick a decision model")
+                    : translateMessage("No decision models yet")
+                }
+                emptyText={translateMessage("No decision models found")}
                 allowClear={false}
               />
             </div>
             {decisionModelsLoaded && decisionModels.length === 0 && (
               <a href={uiHref("models-and-endpoints")} className="text-sm text-primary underline">
-                Add a decision model
+                <LocalizedText text={"Add a decision model"} />
               </a>
             )}
             <Select
@@ -210,23 +222,27 @@ export default function SystemOneUI({ accessToken, disabledPersonalKeyCreation =
               }}
               disabled={disabledPersonalKeyCreation}
             >
-              <SelectTrigger className="w-44" aria-label="Virtual Key Source">
-                <SelectValue>{apiKeySource === "custom" ? "Virtual Key" : "Current UI Session"}</SelectValue>
+              <SelectTrigger className="w-44" aria-label={translateMessage("Virtual Key Source")}>
+                <SelectValue>
+                  {apiKeySource === "custom" ? translateMessage("Virtual Key") : translateMessage("Current UI Session")}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="session" disabled={!accessToken}>
-                  Current UI Session
+                  <LocalizedText text={"Current UI Session"} />
                 </SelectItem>
-                <SelectItem value="custom">Virtual Key</SelectItem>
+                <SelectItem value="custom">
+                  <LocalizedText text={"Virtual Key"} />
+                </SelectItem>
               </SelectContent>
             </Select>
             {apiKeySource === "custom" && (
               <Input
                 type="password"
-                aria-label="Virtual Key"
+                aria-label={translateMessage("Virtual Key")}
                 value={customApiKey}
                 onChange={(event) => setCustomApiKey(event.target.value)}
-                placeholder="Enter Virtual Key"
+                placeholder={translateMessage("Enter Virtual Key")}
                 className="w-56"
               />
             )}
@@ -238,9 +254,13 @@ export default function SystemOneUI({ accessToken, disabledPersonalKeyCreation =
             className="min-h-0 flex-1"
           >
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <TabsList aria-label="Request editor view">
-                <TabsTrigger value="form">Form</TabsTrigger>
-                <TabsTrigger value="curl">cURL</TabsTrigger>
+              <TabsList aria-label={translateMessage("Request editor view")}>
+                <TabsTrigger value="form">
+                  <LocalizedText text={"Form"} />
+                </TabsTrigger>
+                <TabsTrigger value="curl">
+                  <LocalizedText text={"cURL"} />
+                </TabsTrigger>
               </TabsList>
               <div className="flex items-center gap-1">
                 <PresetPicker activePreset={activePreset} onPick={handlePresetPick} />
@@ -249,7 +269,7 @@ export default function SystemOneUI({ accessToken, disabledPersonalKeyCreation =
                     href={DECISIONS_DOCS_URL}
                     target="_blank"
                     rel="noopener noreferrer"
-                    aria-label="How to call /v1/decisions and /v1/systemone"
+                    aria-label={translateMessage("How to call /v1/decisions and /v1/systemone")}
                     className={cn(buttonVariants({ variant: "ghost", size: "icon" }), "shrink-0")}
                   >
                     <BookOpen />
@@ -292,12 +312,12 @@ export default function SystemOneUI({ accessToken, disabledPersonalKeyCreation =
               disabled={rawPayload === clearedPayload}
             >
               <Eraser />
-              Clear
+              <LocalizedText text={"Clear"} />
             </Button>
             <div className="ml-auto flex items-center gap-2">
               {isLoading && (
                 <Button variant="outline" onClick={clearRequestState}>
-                  Cancel request
+                  <LocalizedText text={"Cancel request"} />
                 </Button>
               )}
               <Button
@@ -307,14 +327,17 @@ export default function SystemOneUI({ accessToken, disabledPersonalKeyCreation =
                 disabled={!validation.isValid || isLoading || !effectiveApiKey}
               >
                 {isLoading ? <LoaderCircle className="animate-spin" /> : <Send />}
-                Send
+                <LocalizedText text={"Send"} />
               </Button>
             </div>
           </div>
         </section>
 
         {hasResult && (
-          <section className="grid content-start gap-4 xl:min-h-0 xl:overflow-auto" aria-label="Decisions results">
+          <section
+            className="grid content-start gap-4 xl:min-h-0 xl:overflow-auto"
+            aria-label={translateMessage("Decisions results")}
+          >
             <ResponseView
               response={systemOne.data?.response}
               view={view}

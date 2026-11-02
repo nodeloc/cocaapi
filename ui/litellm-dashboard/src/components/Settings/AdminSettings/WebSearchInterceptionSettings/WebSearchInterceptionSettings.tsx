@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { useWebSearchInterceptionSettings } from "@/app/(dashboard)/hooks/webSearchInterceptionSettings/useWebSearchInterceptionSettings";
 import { useUpdateWebSearchInterceptionSettings } from "@/app/(dashboard)/hooks/webSearchInterceptionSettings/useUpdateWebSearchInterceptionSettings";
@@ -98,6 +99,7 @@ const readSearchToolNames = (response: unknown): string[] => {
 };
 
 const useSearchToolNames = (accessToken: string) => {
+  useUiLocale();
   const [searchTools, setSearchTools] = useState<string[]>([]);
   const [loadingSearchTools, setLoadingSearchTools] = useState(true);
 
@@ -126,6 +128,7 @@ interface WebSearchInterceptionFormProps {
 }
 
 function WebSearchInterceptionForm({ accessToken, initial, schema }: WebSearchInterceptionFormProps) {
+  useUiLocale();
   const {
     mutate: updateSettings,
     isPending: isUpdating,
@@ -139,7 +142,9 @@ function WebSearchInterceptionForm({ accessToken, initial, schema }: WebSearchIn
     updateSettings(formValues, {
       onSuccess: () => {
         form.reset(formValues);
-        toast.success("Settings updated successfully. Changes will be applied across all pods within 10 seconds.");
+        toast.success(
+          translateMessage("Settings updated successfully. Changes will be applied across all pods within 10 seconds."),
+        );
       },
       onError: (saveError) => {
         toast.fromError(saveError);
@@ -151,8 +156,12 @@ function WebSearchInterceptionForm({ accessToken, initial, schema }: WebSearchIn
     <>
       {updateError && (
         <Alert variant="error" className="mb-4">
-          <AlertTitle>Could not update settings</AlertTitle>
-          {updateError instanceof Error && <AlertDescription>{updateError.message}</AlertDescription>}
+          <AlertTitle>
+            <LocalizedText text={"Could not update settings"} />
+          </AlertTitle>
+          {updateError instanceof Error && (
+            <AlertDescription>{localizedProperty(updateError, "message", updateError.message)}</AlertDescription>
+          )}
         </Alert>
       )}
 
@@ -168,7 +177,7 @@ function WebSearchInterceptionForm({ accessToken, initial, schema }: WebSearchIn
                     "Enable Web Search Interception",
                     "When enabled, web search tool calls are executed server-side through the selected search tool",
                   )}
-                  description={schema?.properties?.enabled?.description}
+                  description={localizedProperty(schema?.properties?.enabled, "description")}
                 >
                   {({ value, onChange, onBlur, id }) => (
                     <Switch id={id} checked={value} onCheckedChange={onChange} onBlur={onBlur} disabled={isUpdating} />
@@ -182,7 +191,7 @@ function WebSearchInterceptionForm({ accessToken, initial, schema }: WebSearchIn
                     "Providers",
                     "Which LLM providers to intercept for. Leave empty to intercept Bedrock only.",
                   )}
-                  description={schema?.properties?.enabled_providers?.description}
+                  description={localizedProperty(schema?.properties?.enabled_providers, "description")}
                 >
                   {({ value, onChange, id }) => (
                     <MultiSelect
@@ -190,7 +199,7 @@ function WebSearchInterceptionForm({ accessToken, initial, schema }: WebSearchIn
                       options={PROVIDER_OPTIONS}
                       value={value}
                       onValueChange={onChange}
-                      placeholder="Select providers (defaults to Bedrock)"
+                      placeholder={translateMessage("Select providers (defaults to Bedrock)")}
                       allowCustomValues
                       disabled={isUpdating}
                     />
@@ -204,7 +213,7 @@ function WebSearchInterceptionForm({ accessToken, initial, schema }: WebSearchIn
                     "Search Tool",
                     "Which configured search tool runs the searches. Leave empty to use the first one available.",
                   )}
-                  description={schema?.properties?.search_tool_name?.description}
+                  description={localizedProperty(schema?.properties?.search_tool_name, "description")}
                 >
                   {({ value, onChange, id }) => (
                     <SearchSelect
@@ -212,7 +221,7 @@ function WebSearchInterceptionForm({ accessToken, initial, schema }: WebSearchIn
                       options={searchTools.map((name) => ({ label: name, value: name }))}
                       value={value}
                       onValueChange={onChange}
-                      placeholder="Select a search tool (defaults to the first available)"
+                      placeholder={translateMessage("Select a search tool (defaults to the first available)")}
                       disabled={isUpdating || loadingSearchTools}
                     />
                   )}
@@ -225,7 +234,7 @@ function WebSearchInterceptionForm({ accessToken, initial, schema }: WebSearchIn
                     "Max Agentic Loops",
                     "How many follow-up model calls one intercepted request may chain. Leave empty for the default of 3.",
                   )}
-                  description={schema?.properties?.max_agentic_loops?.description}
+                  description={localizedProperty(schema?.properties?.max_agentic_loops, "description")}
                 >
                   {({ value, onChange, onBlur, id, ref }) => (
                     <Input
@@ -251,7 +260,7 @@ function WebSearchInterceptionForm({ accessToken, initial, schema }: WebSearchIn
               disabled={!isDirty || isUpdating}
             >
               {isUpdating ? <UiLoadingSpinner className="size-4" /> : <Save />}
-              Save Settings
+              <LocalizedText text={"Save Settings"} />
             </Button>
           </div>
         </form>
@@ -261,13 +270,14 @@ function WebSearchInterceptionForm({ accessToken, initial, schema }: WebSearchIn
 }
 
 export default function WebSearchInterceptionSettings() {
+  useUiLocale();
   const { accessToken } = useAuthorized();
   const { data, isLoading, isError, error } = useWebSearchInterceptionSettings();
 
   if (!accessToken) {
     return (
       <div className="p-6 text-center text-muted-foreground">
-        Please log in to configure web search interception settings.
+        <LocalizedText text={"Please log in to configure web search interception settings."} />
       </div>
     );
   }
@@ -286,8 +296,12 @@ export default function WebSearchInterceptionSettings() {
   if (isError) {
     return (
       <Alert variant="error" className="mb-6">
-        <AlertTitle>Could not load web search interception settings</AlertTitle>
-        {error instanceof Error && <AlertDescription>{error.message}</AlertDescription>}
+        <AlertTitle>
+          <LocalizedText text={"Could not load web search interception settings"} />
+        </AlertTitle>
+        {error instanceof Error && (
+          <AlertDescription>{localizedProperty(error, "message", error.message)}</AlertDescription>
+        )}
       </Alert>
     );
   }
@@ -300,22 +314,30 @@ export default function WebSearchInterceptionSettings() {
       {notAppliedHere && (
         <Alert variant="warning" className="mb-6">
           <TriangleAlert />
-          <AlertTitle>Not running on the proxy that answered this page</AlertTitle>
+          <AlertTitle>
+            <LocalizedText text={"Not running on the proxy that answered this page"} />
+          </AlertTitle>
           <AlertDescription>
-            Interception is switched on for the cluster, but the proxy serving this page has not applied it. That is
-            expected for about 10 seconds after a change or a restart. If it persists, check that proxy&apos;s logs:
-            requests it handles are not being intercepted.
+            <LocalizedText
+              text={
+                "Interception is switched on for the cluster, but the proxy serving this page has not applied it. That is expected for about 10 seconds after a change or a restart. If it persists, check that proxy's logs: requests it handles are not being intercepted."
+              }
+            />
           </AlertDescription>
         </Alert>
       )}
 
       <Alert variant="info" className="mb-6">
         <Info />
-        <AlertTitle>Web Search Interception</AlertTitle>
+        <AlertTitle>
+          <LocalizedText text={"Web Search Interception"} />
+        </AlertTitle>
         <AlertDescription>
-          Serve web search tool calls from a configured search tool instead of passing them upstream, so models without
-          native web search can still answer with fresh results. Click &apos;Save Settings&apos; to apply changes across
-          all pods (takes effect within 10 seconds).
+          <LocalizedText
+            text={
+              "Serve web search tool calls from a configured search tool instead of passing them upstream, so models without native web search can still answer with fresh results. Click 'Save Settings' to apply changes across all pods (takes effect within 10 seconds)."
+            }
+          />
         </AlertDescription>
       </Alert>
 

@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, getIntlLocale, useUiLocale } from "@/lib/i18n";
 interface TokenFlowProps {
   prompt?: number;
   completion?: number;
@@ -9,10 +11,13 @@ interface TokenFlowProps {
  * Shows total with breakdown of prompt and completion tokens.
  */
 export function TokenFlow({ prompt = 0, completion = 0, total = 0 }: TokenFlowProps) {
+  useUiLocale();
   return (
     <span>
-      {total.toLocaleString()} ({prompt.toLocaleString()} prompt tokens + {completion.toLocaleString()} completion
-      tokens)
+      {total.toLocaleString(getIntlLocale())} ({prompt.toLocaleString(getIntlLocale())}
+      <LocalizedText text={" prompt tokens + "} />
+      {completion.toLocaleString(getIntlLocale())}
+      <LocalizedText text={" completion tokens)"} />
     </span>
   );
 }

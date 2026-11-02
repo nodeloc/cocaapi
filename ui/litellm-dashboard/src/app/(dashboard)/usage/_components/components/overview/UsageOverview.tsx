@@ -1,4 +1,5 @@
 "use client";
+import { markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 /**
  * Usage overview: a stat strip, the Model Leaderboard's stacked chart and
@@ -38,12 +39,12 @@ interface UsageOverviewProps {
 
 const METRIC_NOUN: Record<UsageMetric, string> = { spend: "spend", tokens: "tokens", requests: "requests" };
 const GRANULARITY_OPTIONS = [
-  { value: "day", label: "Daily" },
-  { value: "week", label: "Weekly" },
+  markUiCopy({ value: "day", label: "Daily" }, { label: "Daily" }),
+  markUiCopy({ value: "week", label: "Weekly" }, { label: "Weekly" }),
 ] as const satisfies readonly { value: Granularity; label: string }[];
 const SCALE_OPTIONS = [
-  { value: "linear", label: "Linear" },
-  { value: "log", label: "Log" },
+  markUiCopy({ value: "linear", label: "Linear" }, { label: "Linear" }),
+  markUiCopy({ value: "log", label: "Log" }, { label: "Log" }),
 ] as const satisfies readonly { value: StackedUsageScale; label: string }[];
 
 export default function UsageOverview({
@@ -57,6 +58,7 @@ export default function UsageOverview({
   providerBreakdown,
   budget,
 }: UsageOverviewProps) {
+  useUiLocale();
   const [state, setState] = useState<BreakdownState>({ metric: "spend", dimension: "model_groups" });
   const [granularity, setGranularity] = useState<Granularity>("day");
   const [scale, setScale] = useState<StackedUsageScale>("linear");
@@ -76,18 +78,18 @@ export default function UsageOverview({
       />
 
       <Panel
-        title="Top models"
+        title={translateMessage("Top models")}
         subtitle={`${granularity === "day" ? "Daily" : "Weekly"} ${METRIC_NOUN[state.metric]}, top 8 stacked`}
         action={
           <>
             <BreakdownControls state={state} onChange={setState} showDimension={false} />
             <Segmented
-              label="Bucket size"
+              label={translateMessage("Bucket size")}
               value={granularity}
               options={GRANULARITY_OPTIONS}
               onChange={setGranularity}
             />
-            <Segmented label="Scale" value={scale} options={SCALE_OPTIONS} onChange={setScale} />
+            <Segmented label={translateMessage("Scale")} value={scale} options={SCALE_OPTIONS} onChange={setScale} />
           </>
         }
         bodyClassName="px-0 pt-4 pb-0"
@@ -125,7 +127,7 @@ export default function UsageOverview({
       {providerBreakdown}
 
       {topKeys && (
-        <Panel icon={KeyRound} title="Top Virtual Keys">
+        <Panel icon={KeyRound} title={translateMessage("Top Virtual Keys")}>
           {topKeys}
         </Panel>
       )}

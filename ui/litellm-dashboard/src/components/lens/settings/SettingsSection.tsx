@@ -1,9 +1,13 @@
+"use client";
+import { localizedProperty, useUiLocale } from "@/lib/i18n";
 import type { ComponentProps } from "react";
 import { cn } from "@/lib/cva.config";
 
 export type SettingsSectionProps = ComponentProps<"section"> & { heading: string; description: string };
 
-export function SettingsSection({ heading, description, className, children, ...props }: SettingsSectionProps) {
+export function SettingsSection(cocaCopyProps0: SettingsSectionProps) {
+  const { heading, description, className, children, ...props } = cocaCopyProps0;
+  useUiLocale();
   return (
     <section
       data-slot="settings-section"
@@ -13,7 +17,9 @@ export function SettingsSection({ heading, description, className, children, ...
     >
       <div className="space-y-1">
         <h2 className="text-sm font-semibold">{heading}</h2>
-        <p className="text-xs leading-5 text-muted-foreground">{description}</p>
+        <p className="text-xs leading-5 text-muted-foreground">
+          {localizedProperty(cocaCopyProps0, "description", description)}
+        </p>
       </div>
       <div className="min-w-0 space-y-3">{children}</div>
     </section>
@@ -23,6 +29,7 @@ export function SettingsSection({ heading, description, className, children, ...
 export type SettingsCardProps = ComponentProps<"div">;
 
 export function SettingsCard({ className, ...props }: SettingsCardProps) {
+  useUiLocale();
   return (
     <div
       data-slot="settings-card"

@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, useUiLocale } from "@/lib/i18n";
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -24,6 +26,7 @@ const ModelConfigCard: React.FC<ModelConfigCardProps> = ({
   onTemperatureChange,
   onMaxTokensChange,
 }) => {
+  useUiLocale();
   const [showConfig, setShowConfig] = useState(false);
 
   return (
@@ -34,19 +37,23 @@ const ModelConfigCard: React.FC<ModelConfigCardProps> = ({
 
       <Button type="button" variant="outline" onClick={() => setShowConfig(!showConfig)} className="gap-2">
         <SettingsIcon size={16} />
-        <span>Parameters</span>
+        <span>
+          <LocalizedText text={"Parameters"} />
+        </span>
       </Button>
 
       <Dialog open={showConfig} onOpenChange={setShowConfig}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Model Parameters</DialogTitle>
+            <DialogTitle>
+              <LocalizedText text={"Model Parameters"} />
+            </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
               <div className="flex items-center justify-between mb-2">
                 <label htmlFor="prompt-temperature" className="text-sm text-foreground">
-                  Temperature
+                  <LocalizedText text={"Temperature"} />
                 </label>
                 <Input
                   id="prompt-temperature"
@@ -63,7 +70,7 @@ const ModelConfigCard: React.FC<ModelConfigCardProps> = ({
             <div>
               <div className="flex items-center justify-between mb-2">
                 <label htmlFor="prompt-max-tokens" className="text-sm text-foreground">
-                  Max Tokens
+                  <LocalizedText text={"Max Tokens"} />
                 </label>
                 <Input
                   id="prompt-max-tokens"

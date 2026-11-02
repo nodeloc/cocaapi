@@ -1,3 +1,4 @@
+import { markUiCopy } from "@/lib/i18n";
 import type { Job } from "./types";
 import { durationText } from "./format";
 
@@ -11,65 +12,94 @@ export function analysisProgress(job: Job) {
     candidates = 0,
   } = job.coverage ?? {};
   if (job.status === "queued") {
-    return {
-      step: -1,
-      title: "Queued for your worker",
-      done: 0,
-      total: 0,
-      detail: "The worker picks up queued investigations automatically.",
-    };
+    return markUiCopy(
+      {
+        step: -1,
+        title: "Queued for your worker",
+        done: 0,
+        total: 0,
+        detail: "The worker picks up queued investigations automatically.",
+      },
+      { title: "Queued for your worker" },
+    );
   }
   if (job.stage === "Grouping observations") {
-    return {
-      step: 1,
-      title: "Finding patterns",
-      done: grouped_batches,
-      total: grouping_batches,
-      detail: grouping_batches
-        ? `${grouped_batches} of ${grouping_batches} observation batches compared`
-        : `Comparing observations across ${screened} reviewed runs`,
-    };
+    return markUiCopy(
+      {
+        step: 1,
+        title: "Finding patterns",
+        done: grouped_batches,
+        total: grouping_batches,
+        detail: grouping_batches
+          ? `${grouped_batches} of ${grouping_batches} observation batches compared`
+          : `Comparing observations across ${screened} reviewed runs`,
+      },
+      { title: "Finding patterns" },
+    );
   }
   if (job.stage === "Checking original evidence") {
-    return {
-      step: 2,
-      title: "Checking evidence",
-      done: investigated,
-      total: candidates,
-      detail: candidates
-        ? `${investigated} of ${candidates} patterns checked against the original activity`
-        : `${investigated} patterns checked against the original activity`,
-    };
+    return markUiCopy(
+      {
+        step: 2,
+        title: "Checking evidence",
+        done: investigated,
+        total: candidates,
+        detail: candidates
+          ? `${investigated} of ${candidates} patterns checked against the original activity`
+          : `${investigated} patterns checked against the original activity`,
+      },
+      { title: "Checking evidence" },
+    );
   }
   if (!selected) {
-    return {
-      step: -1,
-      title: "Preparing activity",
-      done: 0,
-      total: 0,
-      detail: "Loading the runs selected for this investigation.",
-    };
+    return markUiCopy(
+      {
+        step: -1,
+        title: "Preparing activity",
+        done: 0,
+        total: 0,
+        detail: "Loading the runs selected for this investigation.",
+      },
+      { title: "Preparing activity" },
+    );
   }
-  return {
-    step: 0,
-    title: "Reviewing activity",
-    done: screened,
-    total: selected,
-    detail: `${screened} of ${selected} selected runs reviewed`,
-  };
+  return markUiCopy(
+    {
+      step: 0,
+      title: "Reviewing activity",
+      done: screened,
+      total: selected,
+      detail: `${screened} of ${selected} selected runs reviewed`,
+    },
+    { title: "Reviewing activity" },
+  );
 }
 
 type Coverage = Job["coverage"];
 
 export const ANALYSIS_STAGES = [
-  { label: "Review runs", weight: 0.6, done: (c: Coverage) => c.screened, total: (c: Coverage) => c.selected },
-  {
-    label: "Find patterns",
-    weight: 0.2,
-    done: (c: Coverage) => c.grouped_batches,
-    total: (c: Coverage) => c.grouping_batches,
-  },
-  { label: "Check evidence", weight: 0.2, done: (c: Coverage) => c.investigated, total: (c: Coverage) => c.candidates },
+  markUiCopy(
+    { label: "Review runs", weight: 0.6, done: (c: Coverage) => c.screened, total: (c: Coverage) => c.selected },
+    { label: "Review runs" },
+  ),
+  markUiCopy(
+    {
+      label: "Find patterns",
+      weight: 0.2,
+      done: (c: Coverage) => c.grouped_batches,
+      total: (c: Coverage) => c.grouping_batches,
+    },
+    { label: "Find patterns" },
+  ),
+  markUiCopy(
+    {
+      label: "Check evidence",
+      weight: 0.2,
+      done: (c: Coverage) => c.investigated,
+      total: (c: Coverage) => c.candidates,
+    },
+    { label: "Check evidence" },
+  ),
 ] as const;
 
 export interface StageProgress {
@@ -98,7 +128,10 @@ export function analysisStages(job: Job): readonly StageProgress[] {
     const state = stageState(index, step);
     const done = job.coverage ? stage.done(job.coverage) : 0;
     const total = job.coverage ? stage.total(job.coverage) : 0;
-    return { label: stage.label, weight: stage.weight, state, done, total, fill: stageFill(state, done, total) };
+    return markUiCopy(
+      { label: stage.label, weight: stage.weight, state, done, total, fill: stageFill(state, done, total) },
+      { label: { owner: stage, field: "label" } },
+    );
   });
 }
 

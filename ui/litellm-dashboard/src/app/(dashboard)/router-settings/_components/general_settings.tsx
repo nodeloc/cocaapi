@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
@@ -57,6 +59,7 @@ const SettingValueEditor: React.FC<{
   setting: generalSettingsItem;
   onChange: (fieldName: string, newValue: any) => void;
 }> = ({ setting, onChange }) => {
+  useUiLocale();
   if (setting.field_type === "Integer") {
     return (
       <Input
@@ -108,7 +111,7 @@ const SettingValueEditor: React.FC<{
       <Input
         key={String(setting.stored_in_db)}
         aria-label={setting.field_name}
-        placeholder="Comma-separated values"
+        placeholder={translateMessage("Comma-separated values")}
         defaultValue={fromListValue(setting.field_value)}
         onChange={(event) => onChange(setting.field_name, toListValue(event.target.value))}
       />
@@ -118,10 +121,12 @@ const SettingValueEditor: React.FC<{
     return (
       <Select value={setting.field_value ?? null} onValueChange={(newValue) => onChange(setting.field_name, newValue)}>
         <SelectTrigger className="min-w-32">
-          <SelectValue placeholder="Default" />
+          <SelectValue placeholder={translateMessage("Default")} />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value={null}>Default</SelectItem>
+          <SelectItem value={null}>
+            <LocalizedText text={"Default"} />
+          </SelectItem>
           {(setting.field_options ?? []).map((option) => (
             <SelectItem key={option} value={option}>
               {option}
@@ -139,6 +144,7 @@ export const PromptCachingPanel: React.FC<{
   settings: generalSettingsItem[];
   onChange: (fieldName: string, newValue: any) => void;
 }> = ({ accessToken, settings, onChange }) => {
+  useUiLocale();
   const enableSetting = settings.find((s) => s.field_name === ENABLE_ANTHROPIC_PROMPT_CACHING);
   const ttlSetting = settings.find((s) => s.field_name === ANTHROPIC_PROMPT_CACHING_TTL);
   const systemFirstSetting = settings.find((s) => s.field_name === OPENAI_SYSTEM_MESSAGES_FIRST);
@@ -165,11 +171,15 @@ export const PromptCachingPanel: React.FC<{
   return (
     <Card>
       <CardContent>
-        <CardTitle>Prompt Caching</CardTitle>
+        <CardTitle>
+          <LocalizedText text={"Prompt Caching"} />
+        </CardTitle>
 
         <div className="mt-6 flex items-start justify-between gap-8">
           <div className="min-w-0 max-w-2xl">
-            <p className="font-medium">Automatic Anthropic prompt caching</p>
+            <p className="font-medium">
+              <LocalizedText text={"Automatic Anthropic prompt caching"} />
+            </p>
             <p className="mt-1 break-words text-xs text-muted-foreground">{enableSetting.field_description}</p>
           </div>
           <Switch checked={enabled} onCheckedChange={(checked) => persist(ENABLE_ANTHROPIC_PROMPT_CACHING, checked)} />
@@ -178,7 +188,9 @@ export const PromptCachingPanel: React.FC<{
         {ttlSetting && (
           <div className="mt-6 flex items-start justify-between gap-8">
             <div className="min-w-0 max-w-2xl">
-              <p className={`font-medium ${enabled ? "" : "text-muted-foreground"}`}>Cache lifetime (TTL)</p>
+              <p className={`font-medium ${enabled ? "" : "text-muted-foreground"}`}>
+                <LocalizedText text={"Cache lifetime (TTL)"} />
+              </p>
               <p className="mt-1 break-words text-xs text-muted-foreground">{ttlSetting.field_description}</p>
             </div>
             <Select
@@ -187,10 +199,12 @@ export const PromptCachingPanel: React.FC<{
               onValueChange={(newValue) => persist(ANTHROPIC_PROMPT_CACHING_TTL, newValue)}
             >
               <SelectTrigger className="min-w-40">
-                <SelectValue placeholder="5m (default)" />
+                <SelectValue placeholder={translateMessage("5m (default)")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={null}>5m (default)</SelectItem>
+                <SelectItem value={null}>
+                  <LocalizedText text={"5m (default)"} />
+                </SelectItem>
                 {(ttlSetting.field_options ?? []).map((option) => (
                   <SelectItem key={option} value={option}>
                     {option}
@@ -204,11 +218,13 @@ export const PromptCachingPanel: React.FC<{
         {systemFirstSetting && (
           <div className="mt-6 flex items-start justify-between gap-8">
             <div className="min-w-0 max-w-2xl">
-              <p className="font-medium">System messages first for OpenAI</p>
+              <p className="font-medium">
+                <LocalizedText text={"System messages first for OpenAI"} />
+              </p>
               <p className="mt-1 break-words text-xs text-muted-foreground">{systemFirstSetting.field_description}</p>
             </div>
             <Switch
-              aria-label="System messages first for OpenAI"
+              aria-label={translateMessage("System messages first for OpenAI")}
               checked={isOn(systemFirstSetting.field_value)}
               onCheckedChange={(checked) => persist(OPENAI_SYSTEM_MESSAGES_FIRST, checked)}
             />
@@ -220,6 +236,7 @@ export const PromptCachingPanel: React.FC<{
 };
 
 const GeneralSettings: React.FC<GeneralSettingsPageProps> = ({ accessToken, userRole, userID }) => {
+  useUiLocale();
   const [generalSettings, setGeneralSettings] = useState<generalSettingsItem[]>([]);
 
   useEffect(() => {
@@ -293,11 +310,21 @@ const GeneralSettings: React.FC<GeneralSettingsPageProps> = ({ accessToken, user
     <div className="w-full">
       <Tabs defaultValue="loadbalancing" className="h-[75vh] w-full">
         <TabsList variant="line" className="mx-8 mt-4">
-          <TabsTrigger value="loadbalancing">Loadbalancing</TabsTrigger>
-          <TabsTrigger value="routing-groups">Routing Groups</TabsTrigger>
-          <TabsTrigger value="fallbacks">Fallbacks</TabsTrigger>
-          <TabsTrigger value="prompt-caching">Prompt Caching</TabsTrigger>
-          <TabsTrigger value="general">General</TabsTrigger>
+          <TabsTrigger value="loadbalancing">
+            <LocalizedText text={"Loadbalancing"} />
+          </TabsTrigger>
+          <TabsTrigger value="routing-groups">
+            <LocalizedText text={"Routing Groups"} />
+          </TabsTrigger>
+          <TabsTrigger value="fallbacks">
+            <LocalizedText text={"Fallbacks"} />
+          </TabsTrigger>
+          <TabsTrigger value="prompt-caching">
+            <LocalizedText text={"Prompt Caching"} />
+          </TabsTrigger>
+          <TabsTrigger value="general">
+            <LocalizedText text={"General"} />
+          </TabsTrigger>
         </TabsList>
         <TabsContent value="loadbalancing" className="px-8 py-6" keepMounted>
           <RouterSettings accessToken={accessToken} userRole={userRole} userID={userID} />
@@ -317,10 +344,18 @@ const GeneralSettings: React.FC<GeneralSettingsPageProps> = ({ accessToken, user
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Setting</TableHead>
-                    <TableHead>Value</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Action</TableHead>
+                    <TableHead>
+                      <LocalizedText text={"Setting"} />
+                    </TableHead>
+                    <TableHead>
+                      <LocalizedText text={"Value"} />
+                    </TableHead>
+                    <TableHead>
+                      <LocalizedText text={"Status"} />
+                    </TableHead>
+                    <TableHead>
+                      <LocalizedText text={"Action"} />
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -346,15 +381,17 @@ const GeneralSettings: React.FC<GeneralSettingsPageProps> = ({ accessToken, user
                         </TableCell>
                         <TableCell>
                           {value.stored_in_db == true ? (
-                            <StatusBadge tone="success" label="In DB" />
+                            <StatusBadge tone="success" label={translateMessage("In DB")} />
                           ) : value.stored_in_db == false ? (
-                            <StatusBadge tone="neutral" label="In Config" />
+                            <StatusBadge tone="neutral" label={translateMessage("In Config")} />
                           ) : (
-                            <StatusBadge tone="neutral" label="Not Set" />
+                            <StatusBadge tone="neutral" label={translateMessage("Not Set")} />
                           )}
                         </TableCell>
                         <TableCell>
-                          <Button onClick={() => handleUpdateField(value.field_name)}>Update</Button>
+                          <Button onClick={() => handleUpdateField(value.field_name)}>
+                            <LocalizedText text={"Update"} />
+                          </Button>
                           <span
                             onClick={() => handleResetField(value.field_name)}
                             className="inline-flex shrink-0 cursor-pointer items-center justify-center px-1.5 py-1.5 text-destructive"

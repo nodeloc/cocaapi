@@ -1,3 +1,4 @@
+import { markUiCopy } from "@/lib/i18n";
 export interface PermissionInfo {
   method: string;
   endpoint: string;
@@ -8,23 +9,42 @@ export interface PermissionInfo {
 /**
  * Map of permission endpoint patterns to their descriptions
  */
-export const PERMISSION_DESCRIPTIONS: Record<string, string> = {
-  "/auto_router/manage": "Member can create auto routers for this team and edit their own router configurations",
-  "/key/generate": "Member can generate a virtual key for this team",
-  "/key/service-account/generate":
-    "Member can generate a service account key (not belonging to any user) for this team",
-  "/key/update": "Member can update a virtual key belonging to this team",
-  "/key/delete": "Member can delete a virtual key belonging to this team",
-  "/key/info": "Member can get info about a virtual key belonging to this team",
-  "/key/regenerate": "Member can regenerate a virtual key belonging to this team",
-  "/key/{key_id}/regenerate": "Member can regenerate a virtual key belonging to this team",
-  "/key/list": "Member can list virtual keys belonging to this team",
-  "/key/block": "Member can block a virtual key belonging to this team",
-  "/key/unblock": "Member can unblock a virtual key belonging to this team",
-  "/key/access_group_assignment": "Member can assign access groups to virtual keys for this team",
-  "/team/daily/activity": "Member can view all team usage data (not just their own)",
-  "/spend/logs": "Member can view spend logs for the entire team (not just their own)",
-};
+export const PERMISSION_DESCRIPTIONS: Record<string, string> = markUiCopy(
+  {
+    "/auto_router/manage": "Member can create auto routers for this team and edit their own router configurations",
+    "/key/generate": "Member can generate a virtual key for this team",
+    "/key/service-account/generate":
+      "Member can generate a service account key (not belonging to any user) for this team",
+    "/key/update": "Member can update a virtual key belonging to this team",
+    "/key/delete": "Member can delete a virtual key belonging to this team",
+    "/key/info": "Member can get info about a virtual key belonging to this team",
+    "/key/regenerate": "Member can regenerate a virtual key belonging to this team",
+    "/key/{key_id}/regenerate": "Member can regenerate a virtual key belonging to this team",
+    "/key/list": "Member can list virtual keys belonging to this team",
+    "/key/block": "Member can block a virtual key belonging to this team",
+    "/key/unblock": "Member can unblock a virtual key belonging to this team",
+    "/key/access_group_assignment": "Member can assign access groups to virtual keys for this team",
+    "/team/daily/activity": "Member can view all team usage data (not just their own)",
+    "/spend/logs": "Member can view spend logs for the entire team (not just their own)",
+  },
+  {
+    "/auto_router/manage": "Member can create auto routers for this team and edit their own router configurations",
+    "/key/generate": "Member can generate a virtual key for this team",
+    "/key/service-account/generate":
+      "Member can generate a service account key (not belonging to any user) for this team",
+    "/key/update": "Member can update a virtual key belonging to this team",
+    "/key/delete": "Member can delete a virtual key belonging to this team",
+    "/key/info": "Member can get info about a virtual key belonging to this team",
+    "/key/regenerate": "Member can regenerate a virtual key belonging to this team",
+    "/key/{key_id}/regenerate": "Member can regenerate a virtual key belonging to this team",
+    "/key/list": "Member can list virtual keys belonging to this team",
+    "/key/block": "Member can block a virtual key belonging to this team",
+    "/key/unblock": "Member can unblock a virtual key belonging to this team",
+    "/key/access_group_assignment": "Member can assign access groups to virtual keys for this team",
+    "/team/daily/activity": "Member can view all team usage data (not just their own)",
+    "/spend/logs": "Member can view spend logs for the entire team (not just their own)",
+  },
+);
 
 /**
  * Determines the HTTP method for a given permission endpoint

@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { memo, useState } from "react";
 
@@ -23,6 +24,7 @@ const ROW =
   "grid h-9 w-full grid-cols-[0.75rem_minmax(0,5rem)_minmax(0,1fr)_auto] sm:grid-cols-[0.75rem_minmax(0,8rem)_minmax(0,1fr)_auto] items-center gap-2 px-2 text-left text-xs";
 
 function Expanded({ review }: { review: Review }) {
+  useUiLocale();
   const tools = toolCallSummary(review.tool_calls);
   const verdicts = review.verdicts.length
     ? review.verdicts
@@ -36,7 +38,12 @@ function Expanded({ review }: { review: Review }) {
   return (
     <div className="flex flex-col gap-1.5 px-7 pt-0.5 pb-2.5 text-xs leading-relaxed">
       {review.reasoning && <p className="text-muted-foreground">{briefReasoning(review.reasoning)}</p>}
-      {tools && <p className="text-muted-foreground">Tool calls: {tools}</p>}
+      {tools && (
+        <p className="text-muted-foreground">
+          <LocalizedText text={"Tool calls: "} />
+          {tools}
+        </p>
+      )}
       <ul className="flex flex-col gap-1">
         {verdicts.map((verdict, index) => (
           <li
@@ -69,6 +76,7 @@ function DoneRow({
   open: boolean;
   onToggle: () => void;
 }) {
+  useUiLocale();
   const result = outcome(review);
   return (
     <>
@@ -102,12 +110,18 @@ export const TraceList = memo(function TraceList({
   reviews: readonly Review[];
   group: string | null;
 }) {
+  useUiLocale();
   const now = useNow(5000);
   const [expanded, setExpanded] = useState<string | null>(null);
   const rows = newestFirst(reviews, LIMIT).filter((review) => inGroup(review, group));
-  if (!rows.length) return <p className="px-2 py-2 text-xs text-muted-foreground">No traces here yet.</p>;
+  if (!rows.length)
+    return (
+      <p className="px-2 py-2 text-xs text-muted-foreground">
+        <LocalizedText text={"No traces here yet."} />
+      </p>
+    );
   return (
-    <ol aria-label="Reviewed traces" className="flex flex-col">
+    <ol aria-label={translateMessage("Reviewed traces")} className="flex flex-col">
       {rows.map((review) => (
         <li
           key={review.execution_id}

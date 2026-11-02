@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -25,6 +26,7 @@ export function GroupSelect({
   disabled?: boolean;
   onChange: (value: string) => void;
 }) {
+  useUiLocale();
   return (
     <Select
       value={value}
@@ -49,6 +51,7 @@ export function GroupSelect({
 }
 
 export default function BillingGroupMembers({ token, config }: { token: string; config: BillingGroups }) {
+  useUiLocale();
   const [members, setMembers] = useState<BillingMembers | null>(null);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("");
@@ -59,7 +62,12 @@ export default function BillingGroupMembers({ token, config }: { token: string; 
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
-  const fail = (cause: unknown) => setError(cause instanceof Error ? cause.message : "请求失败，请稍后重试。");
+  const fail = (cause: unknown) =>
+    setError(
+      cause instanceof Error
+        ? localizedProperty(cause, "message", cause.message)
+        : translateMessage("请求失败，请稍后重试。"),
+    );
   const load = useCallback(async () => {
     const result = await billingGroupsApi.members(token, filter, offset);
     setMembers(result);
@@ -76,29 +84,38 @@ export default function BillingGroupMembers({ token, config }: { token: string; 
   }, []);
   const columns = useMemo<ColumnDef<BillingMember>[]>(
     () => [
-      {
-        id: "user",
-        header: "用户",
-        cell: ({ row }) => (
-          <div>
-            <p>{row.original.email ?? "未设置邮箱"}</p>
-            <p className="max-w-64 break-all whitespace-normal font-mono text-xs text-muted-foreground">
-              {row.original.user_id}
-            </p>
-          </div>
-        ),
-      },
-      { accessorKey: "group_name", header: "用户组" },
-      { id: "status", header: "账户状态", cell: ({ row }) => (row.original.enabled ? "正常" : "已停用") },
-      {
-        id: "actions",
-        header: "操作",
-        cell: ({ row }) => (
-          <Button variant="outline" size="sm" disabled={busy} onClick={() => select(row.original)}>
-            调整分组
-          </Button>
-        ),
-      },
+      markUiCopy(
+        {
+          id: "user",
+          header: "用户",
+          cell: ({ row }) => (
+            <div>
+              <p>{row.original.email ?? translateMessage("未设置邮箱")}</p>
+              <p className="max-w-64 break-all whitespace-normal font-mono text-xs text-muted-foreground">
+                {row.original.user_id}
+              </p>
+            </div>
+          ),
+        },
+        { header: "用户" },
+      ),
+      markUiCopy({ accessorKey: "group_name", header: "用户组" }, { header: "用户组" }),
+      markUiCopy(
+        { id: "status", header: "账户状态", cell: ({ row }) => (row.original.enabled ? "正常" : "已停用") },
+        { header: "账户状态" },
+      ),
+      markUiCopy(
+        {
+          id: "actions",
+          header: "操作",
+          cell: ({ row }) => (
+            <Button variant="outline" size="sm" disabled={busy} onClick={() => select(row.original)}>
+              <LocalizedText text={"调整分组"} />
+            </Button>
+          ),
+        },
+        { header: "操作" },
+      ),
     ],
     [busy, select],
   );
@@ -115,7 +132,7 @@ export default function BillingGroupMembers({ token, config }: { token: string; 
         reason,
       });
       setSelected(null);
-      setMessage("用户分组已保存，后续调用按新分组计费。");
+      setMessage(translateMessage("用户分组已保存，后续调用按新分组计费。"));
       await load();
     } catch (cause) {
       fail(cause);
@@ -137,31 +154,33 @@ export default function BillingGroupMembers({ token, config }: { token: string; 
     <Card>
       <CardHeader>
         <CardTitle>
-          <h2>用户归组</h2>
+          <h2>
+            <LocalizedText text={"用户归组"} />
+          </h2>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <AccountNotice error={error} message={message} />
         <p className="text-sm text-muted-foreground">
-          新注册用户默认进入普通组。归组只调整倍率和禁用规则，账户及 Key 的模型权限继续生效。
+          <LocalizedText text={"新注册用户默认进入普通组。归组只调整倍率和禁用规则，账户及 Key 的模型权限继续生效。"} />
         </p>
         <form className="flex flex-wrap gap-2" onSubmit={applySearch}>
           <Label className="sr-only" htmlFor="member-search">
-            搜索用户
+            <LocalizedText text={"搜索用户"} />
           </Label>
           <Input
             id="member-search"
             className="sm:max-w-xs"
-            placeholder="邮箱或用户 ID"
+            placeholder={translateMessage("邮箱或用户 ID")}
             value={search}
             maxLength={254}
             onChange={(event) => setSearch(event.target.value)}
           />
           <Button variant="outline" type="submit" disabled={busy}>
-            搜索用户
+            <LocalizedText text={"搜索用户"} />
           </Button>
           <Button variant="outline" type="button" disabled={busy} onClick={refresh}>
-            刷新用户
+            <LocalizedText text={"刷新用户"} />
           </Button>
         </form>
         {members && (
@@ -172,16 +191,21 @@ export default function BillingGroupMembers({ token, config }: { token: string; 
               getRowId={(member) => member.user_id}
               paginationMode="none"
               sortingMode="none"
-              noDataMessage="暂无匹配用户"
+              noDataMessage={translateMessage("暂无匹配用户")}
             />
             <Pager offset={offset} hasMore={members.has_more} busy={busy} onPage={setOffset} />
           </>
         )}
         {selected && (
           <form className="grid gap-4 rounded-md border p-4 sm:grid-cols-2" onSubmit={save}>
-            <p className="break-all text-sm sm:col-span-2">调整用户：{selected.email ?? selected.user_id}</p>
+            <p className="break-all text-sm sm:col-span-2">
+              <LocalizedText text={"调整用户："} />
+              {selected.email ?? selected.user_id}
+            </p>
             <div className="space-y-2">
-              <Label htmlFor="member-group">目标用户组</Label>
+              <Label htmlFor="member-group">
+                <LocalizedText text={"目标用户组"} />
+              </Label>
               <GroupSelect
                 id="member-group"
                 value={groupId}
@@ -191,7 +215,9 @@ export default function BillingGroupMembers({ token, config }: { token: string; 
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="member-reason">归组原因</Label>
+              <Label htmlFor="member-reason">
+                <LocalizedText text={"归组原因"} />
+              </Label>
               <Input
                 id="member-reason"
                 required
@@ -203,10 +229,10 @@ export default function BillingGroupMembers({ token, config }: { token: string; 
             </div>
             <div className="flex gap-2 sm:col-span-2">
               <Button type="submit" disabled={busy || !reason.trim()}>
-                保存用户分组
+                <LocalizedText text={"保存用户分组"} />
               </Button>
               <Button type="button" variant="outline" disabled={busy} onClick={() => setSelected(null)}>
-                取消
+                <LocalizedText text={"取消"} />
               </Button>
             </div>
           </form>

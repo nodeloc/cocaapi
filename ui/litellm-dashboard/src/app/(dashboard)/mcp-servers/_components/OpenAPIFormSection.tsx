@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, useUiLocale } from "@/lib/i18n";
 import { Info } from "lucide-react";
 import React, { useState } from "react";
 import { SimpleTooltip } from "@/components/ui/tooltip";
@@ -35,6 +37,7 @@ const OpenAPIFormSection: React.FC<OpenAPIFormSectionProps> = ({
   onLogoUrlChange,
   onOAuthDocsUrlChange,
 }) => {
+  useUiLocale();
   const [selectedPreset, setSelectedPreset] = useState<string | null>(null);
 
   const handlePresetSelect = (entry: OpenAPIRegistryEntry) => {
@@ -68,7 +71,7 @@ const OpenAPIFormSection: React.FC<OpenAPIFormSectionProps> = ({
       <MountedFormField
         label={
           <span className="text-sm font-medium text-foreground flex items-center">
-            OpenAPI Spec URL
+            <LocalizedText text={"OpenAPI Spec URL"} />
             <SimpleTooltip content="URL to an OpenAPI specification (JSON or YAML). MCP tools will be automatically generated from the API endpoints defined in the spec.">
               <Info className="ml-2 size-4 text-info hover:text-info/80 cursor-help" />
             </SimpleTooltip>

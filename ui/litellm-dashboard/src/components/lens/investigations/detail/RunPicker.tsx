@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,7 @@ export interface RunPickerProps {
 }
 
 export function RunPicker({ lens, job }: RunPickerProps) {
+  useUiLocale();
   const { batchId, selectRun } = useRunRoute();
   const history = useRunHistory(lens, 0);
   if (!job) return null;
@@ -29,12 +31,14 @@ export function RunPicker({ lens, job }: RunPickerProps) {
   return (
     <div className="flex min-w-0 items-center gap-1 pb-1">
       <select
-        aria-label="Investigation run"
+        aria-label={translateMessage("Investigation run")}
         className="h-8 w-44 max-w-full truncate rounded-md border-0 bg-transparent px-2 text-xs text-muted-foreground hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring"
         value={batchId}
         onChange={(e) => selectRun(e.target.value)}
       >
-        <option value="latest">Latest run</option>
+        <option value="latest">
+          <LocalizedText text={"Latest run"} />
+        </option>
         {outsideHistory && (
           <option value={batchId}>
             {when(job.created_at)} · {runStatus(job)}
@@ -45,39 +49,57 @@ export function RunPicker({ lens, job }: RunPickerProps) {
             {when(j.created_at)} · {runStatus(j)}
           </option>
         ))}
-        <option value="all">All accumulated findings</option>
+        <option value="all">
+          <LocalizedText text={"All accumulated findings"} />
+        </option>
       </select>
       {batchId !== "all" && (
         <Popover key={job.id}>
           <PopoverTrigger
-            aria-label="Run details"
+            aria-label={translateMessage("Run details")}
             render={<Button variant="ghost" size="icon" className="size-7 text-muted-foreground" />}
           >
             <Info className="size-3.5" />
           </PopoverTrigger>
           <PopoverContent align="end" className="gap-3">
-            <PopoverTitle>Run details</PopoverTitle>
+            <PopoverTitle>
+              <LocalizedText text={"Run details"} />
+            </PopoverTitle>
             <p className="text-xs text-muted-foreground">
-              {newlyReviewed} newly reviewed · {reused} reused reviews
+              {newlyReviewed}
+              <LocalizedText text={" newly reviewed · "} />
+              {reused}
+              <LocalizedText text={" reused reviews"} />
               <ScanDuration job={job} />
             </p>
             <p className="text-xs text-muted-foreground">
-              {job.coverage?.partial ?? 0} partial traces · {job.coverage?.unassessable ?? 0} could not be assessed ·{" "}
-              {job.coverage?.inconclusive ?? 0} inconclusive
+              {job.coverage?.partial ?? 0}
+              <LocalizedText text={" partial traces · "} />
+              {job.coverage?.unassessable ?? 0}
+              <LocalizedText text={" could not be assessed ·"} /> {job.coverage?.inconclusive ?? 0}
+              <LocalizedText text={" inconclusive"} />
             </p>
             <dl className="space-y-2 text-xs">
               <div>
-                <dt className="text-muted-foreground">Activity window</dt>
+                <dt className="text-muted-foreground">
+                  <LocalizedText text={"Activity window"} />
+                </dt>
                 <dd className="mt-1">
-                  {when(job.start)} to {when(job.end)}
+                  {when(job.start)}
+                  <LocalizedText text={" to "} />
+                  {when(job.end)}
                 </dd>
               </div>
               <div className="flex justify-between gap-2">
-                <dt className="text-muted-foreground">Analysis cost</dt>
+                <dt className="text-muted-foreground">
+                  <LocalizedText text={"Analysis cost"} />
+                </dt>
                 <dd>{money(job.cost ?? 0)}</dd>
               </div>
               <div className="flex justify-between gap-2">
-                <dt className="text-muted-foreground">Status</dt>
+                <dt className="text-muted-foreground">
+                  <LocalizedText text={"Status"} />
+                </dt>
                 <dd>{runStatus(job)}</dd>
               </div>
             </dl>

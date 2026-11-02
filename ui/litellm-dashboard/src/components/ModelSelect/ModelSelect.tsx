@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import { ProxyModel, useAllProxyModels } from "@/app/(dashboard)/hooks/models/useModels";
 import { useOrganization } from "@/app/(dashboard)/hooks/organizations/useOrganizations";
 import { useTeam } from "@/app/(dashboard)/hooks/teams/useTeams";
@@ -22,15 +24,21 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import type { Team } from "@/components/key_team_helpers/key_list";
 import { splitWildcardModels } from "./modelUtils";
 
-const MODEL_SELECT_ALL_PROXY_MODELS_SPECIAL_VALUE = {
-  label: "All Proxy Models",
-  value: "all-proxy-models",
-} as const;
+const MODEL_SELECT_ALL_PROXY_MODELS_SPECIAL_VALUE = markUiCopy(
+  {
+    label: "All Proxy Models",
+    value: "all-proxy-models",
+  } as const,
+  { label: "All Proxy Models" },
+);
 
-const MODEL_SELECT_NO_DEFAULT_MODELS_SPECIAL_VALUE = {
-  label: "No Default Models",
-  value: "no-default-models",
-} as const;
+const MODEL_SELECT_NO_DEFAULT_MODELS_SPECIAL_VALUE = markUiCopy(
+  {
+    label: "No Default Models",
+    value: "no-default-models",
+  } as const,
+  { label: "No Default Models" },
+);
 
 export const MODEL_SENTINEL_OPTIONS = [
   MODEL_SELECT_ALL_PROXY_MODELS_SPECIAL_VALUE,
@@ -141,10 +149,11 @@ const unavailableGroups = (
   if (!offeredListKnown) return [];
   const items = selectedOptions.filter((option) => !offeredByValue.has(option.value));
   if (items.length === 0) return [];
-  return [{ label: "Unavailable", items }];
+  return [markUiCopy({ label: "Unavailable", items }, { label: "Unavailable" })];
 };
 
 export const ModelSelect = (props: ModelSelectProps) => {
+  useUiLocale();
   const anchor = useComboboxAnchor();
   const { id, teamID, organizationID, options, context, dataTestId, value = [], onChange, style } = props;
   const { showAllProxyModelsOverride, includeSpecialOptions } = options || {};
@@ -185,58 +194,73 @@ export const ModelSelect = (props: ModelSelectProps) => {
   const offeredGroups: ModelOptionGroup[] = [
     ...(includeSpecialOptions
       ? [
-          {
-            label: "Special Options",
-            items: [
-              ...(shouldShowAllProxyModels
-                ? [
-                    {
-                      label: MODEL_SELECT_ALL_PROXY_MODELS_SPECIAL_VALUE.label,
-                      value: MODEL_SELECT_ALL_PROXY_MODELS_SPECIAL_VALUE.value,
-                      disabled:
-                        value.length > 0 &&
-                        value.some(
-                          (v) => isSpecialOption(v) && v !== MODEL_SELECT_ALL_PROXY_MODELS_SPECIAL_VALUE.value,
-                        ),
-                    },
-                  ]
-                : []),
-              {
-                label: MODEL_SELECT_NO_DEFAULT_MODELS_SPECIAL_VALUE.label,
-                value: MODEL_SELECT_NO_DEFAULT_MODELS_SPECIAL_VALUE.value,
-                disabled:
-                  value.length > 0 &&
-                  value.some((v) => isSpecialOption(v) && v !== MODEL_SELECT_NO_DEFAULT_MODELS_SPECIAL_VALUE.value),
-              },
-            ],
-          },
+          markUiCopy(
+            {
+              label: "Special Options",
+              items: [
+                ...(shouldShowAllProxyModels
+                  ? [
+                      markUiCopy(
+                        {
+                          label: MODEL_SELECT_ALL_PROXY_MODELS_SPECIAL_VALUE.label,
+                          value: MODEL_SELECT_ALL_PROXY_MODELS_SPECIAL_VALUE.value,
+                          disabled:
+                            value.length > 0 &&
+                            value.some(
+                              (v) => isSpecialOption(v) && v !== MODEL_SELECT_ALL_PROXY_MODELS_SPECIAL_VALUE.value,
+                            ),
+                        },
+                        { label: { owner: MODEL_SELECT_ALL_PROXY_MODELS_SPECIAL_VALUE, field: "label" } },
+                      ),
+                    ]
+                  : []),
+                markUiCopy(
+                  {
+                    label: MODEL_SELECT_NO_DEFAULT_MODELS_SPECIAL_VALUE.label,
+                    value: MODEL_SELECT_NO_DEFAULT_MODELS_SPECIAL_VALUE.value,
+                    disabled:
+                      value.length > 0 &&
+                      value.some((v) => isSpecialOption(v) && v !== MODEL_SELECT_NO_DEFAULT_MODELS_SPECIAL_VALUE.value),
+                  },
+                  { label: { owner: MODEL_SELECT_NO_DEFAULT_MODELS_SPECIAL_VALUE, field: "label" } },
+                ),
+              ],
+            },
+            { label: "Special Options" },
+          ),
         ]
       : []),
     ...(wildcard.length > 0
       ? [
-          {
-            label: "Wildcard Options",
-            items: wildcard.map((model) => {
-              const provider = model.replace("/*", "");
-              const capitalizedProvider = provider.charAt(0).toUpperCase() + provider.slice(1);
+          markUiCopy(
+            {
+              label: "Wildcard Options",
+              items: wildcard.map((model) => {
+                const provider = model.replace("/*", "");
+                const capitalizedProvider = provider.charAt(0).toUpperCase() + provider.slice(1);
 
-              return {
-                label: `All ${capitalizedProvider} models`,
-                value: model,
-                disabled: hasSpecialOptionSelected,
-              };
-            }),
-          },
+                return {
+                  label: `All ${capitalizedProvider} models`,
+                  value: model,
+                  disabled: hasSpecialOptionSelected,
+                };
+              }),
+            },
+            { label: "Wildcard Options" },
+          ),
         ]
       : []),
-    {
-      label: "Models",
-      items: regular.map((model) => ({
-        label: model,
-        value: model,
-        disabled: hasSpecialOptionSelected,
-      })),
-    },
+    markUiCopy(
+      {
+        label: "Models",
+        items: regular.map((model) => ({
+          label: model,
+          value: model,
+          disabled: hasSpecialOptionSelected,
+        })),
+      },
+      { label: "Models" },
+    ),
   ];
 
   const offeredByValue = new Map(offeredGroups.flatMap((group) => group.items).map((option) => [option.value, option]));
@@ -266,33 +290,40 @@ export const ModelSelect = (props: ModelSelectProps) => {
             {(selected: ModelOption[]) => (
               <>
                 {selected.slice(0, MAX_VISIBLE_MODEL_CHIPS).map((option) => (
-                  <ComboboxChip key={option.value} aria-label={option.label}>
-                    {option.label}
+                  <ComboboxChip key={option.value} aria-label={localizedProperty(option, "label", option.label)}>
+                    {localizedProperty(option, "label", option.label)}
                   </ComboboxChip>
                 ))}
                 {overflowOptions.length > 0 && (
                   <Tooltip>
-                    <TooltipTrigger
-                      render={<span className="px-1 text-xs text-muted-foreground" />}
-                    >{`+${overflowOptions.length} more`}</TooltipTrigger>
+                    <TooltipTrigger render={<span className="px-1 text-xs text-muted-foreground" />}>
+                      {translateMessage("+%{0} more", [overflowOptions.length])}
+                    </TooltipTrigger>
                     <TooltipContent>{overflowOptions.map((option) => option.value).join(", ")}</TooltipContent>
                   </Tooltip>
                 )}
               </>
             )}
           </ComboboxValue>
-          <ComboboxChipsInput id={id} placeholder="Select Models" aria-label="Select Models" className="min-w-24" />
+          <ComboboxChipsInput
+            id={id}
+            placeholder={translateMessage("Select Models")}
+            aria-label={translateMessage("Select Models")}
+            className="min-w-24"
+          />
         </ComboboxChips>
         <ComboboxContent anchor={anchor}>
-          <ComboboxEmpty>No models found</ComboboxEmpty>
+          <ComboboxEmpty>
+            <LocalizedText text={"No models found"} />
+          </ComboboxEmpty>
           <ComboboxList>
             {(group: ModelOptionGroup) => (
               <ComboboxGroup key={group.label} items={group.items}>
-                <ComboboxLabel>{group.label}</ComboboxLabel>
+                <ComboboxLabel>{localizedProperty(group, "label", group.label)}</ComboboxLabel>
                 <ComboboxCollection>
                   {(option: ModelOption) => (
                     <ComboboxItem key={option.value} value={option} disabled={option.disabled}>
-                      <span className="min-w-0 break-words">{option.label}</span>
+                      <span className="min-w-0 break-words">{localizedProperty(option, "label", option.label)}</span>
                     </ComboboxItem>
                   )}
                 </ComboboxCollection>

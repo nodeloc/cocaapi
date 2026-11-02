@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, useUiLocale } from "@/lib/i18n";
 import { Badge } from "@/components/ui/badge";
 import { hasRouterSettings } from "./routerSettingsPayload";
 
@@ -17,6 +19,7 @@ export default function RouterSettingsSummary({
   routerSettings,
   emptyText = "No router settings configured",
 }: RouterSettingsSummaryProps) {
+  useUiLocale();
   if (!hasRouterSettings(routerSettings)) {
     return <div className="text-muted-foreground">{emptyText}</div>;
   }
@@ -28,18 +31,53 @@ export default function RouterSettingsSummary({
     <div className="space-y-1 text-sm">
       {settings.routing_strategy != null && (
         <div>
-          Routing Strategy: <Badge variant="secondary">{String(settings.routing_strategy)}</Badge>
+          <LocalizedText text={"Routing Strategy: "} />
+          <Badge variant="secondary">{String(settings.routing_strategy)}</Badge>
         </div>
       )}
-      {settings.num_retries != null && <div>Number of Retries: {String(settings.num_retries)}</div>}
-      {settings.allowed_fails != null && <div>Allowed Failures: {String(settings.allowed_fails)}</div>}
-      {settings.cooldown_time != null && <div>Cooldown Time: {String(settings.cooldown_time)}s</div>}
-      {settings.timeout != null && <div>Timeout: {String(settings.timeout)}s</div>}
-      {settings.retry_after != null && <div>Retry After: {String(settings.retry_after)}s</div>}
-      {Boolean(settings.enable_tag_filtering) && <div>Tag Filtering: Enabled</div>}
+      {settings.num_retries != null && (
+        <div>
+          <LocalizedText text={"Number of Retries: "} />
+          {String(settings.num_retries)}
+        </div>
+      )}
+      {settings.allowed_fails != null && (
+        <div>
+          <LocalizedText text={"Allowed Failures: "} />
+          {String(settings.allowed_fails)}
+        </div>
+      )}
+      {settings.cooldown_time != null && (
+        <div>
+          <LocalizedText text={"Cooldown Time: "} />
+          {String(settings.cooldown_time)}
+          <LocalizedText text={"s"} />
+        </div>
+      )}
+      {settings.timeout != null && (
+        <div>
+          <LocalizedText text={"Timeout: "} />
+          {String(settings.timeout)}
+          <LocalizedText text={"s"} />
+        </div>
+      )}
+      {settings.retry_after != null && (
+        <div>
+          <LocalizedText text={"Retry After: "} />
+          {String(settings.retry_after)}
+          <LocalizedText text={"s"} />
+        </div>
+      )}
+      {Boolean(settings.enable_tag_filtering) && (
+        <div>
+          <LocalizedText text={"Tag Filtering: Enabled"} />
+        </div>
+      )}
       {fallbacks.length > 0 && (
         <div>
-          <div>Fallbacks:</div>
+          <div>
+            <LocalizedText text={"Fallbacks:"} />
+          </div>
           <div className="mt-1 space-y-1">
             {fallbacks.map(([model, targets]) => (
               <div key={model} className="text-xs text-muted-foreground">

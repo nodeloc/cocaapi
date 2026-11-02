@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { dayLabel, type Frequency, percentLabel } from "../model/frequency";
@@ -9,36 +10,43 @@ const TICK = { fontSize: 11, fill: "var(--muted-foreground)" };
 const TOP_RADIUS: [number, number, number, number] = [3, 3, 0, 0];
 
 function Legend() {
+  useUiLocale();
   return (
     <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
       <span className="flex items-center gap-1.5">
         <span aria-hidden="true" className="size-2 rounded-sm bg-finding-affected" />
-        Affected
+        <LocalizedText text={"Affected"} />
       </span>
       <span className="flex items-center gap-1.5">
         <span aria-hidden="true" className="size-2 rounded-sm bg-finding-unaffected" />
-        Unaffected
+        <LocalizedText text={"Unaffected"} />
       </span>
     </div>
   );
 }
 
 export function FrequencyCard({ frequency }: { frequency: Frequency }) {
+  useUiLocale();
   const percent = percentLabel(frequency.affected, frequency.total);
   const data = frequency.days.map((d) => ({ ...d, label: dayLabel(d.day) }));
   const range = data.length > 0 ? `${data[0].label} – ${data[data.length - 1].label}` : null;
   return (
     <section
-      aria-label="Frequency"
+      aria-label={translateMessage("Frequency")}
       className="space-y-4 rounded-xl border border-transparent bg-muted/40 p-4 shadow-finding-ring"
     >
       <div aria-live="polite" className="flex items-start justify-between gap-4">
         <div>
-          <h3 className="mb-1 text-sm font-medium">Frequency</h3>
+          <h3 className="mb-1 text-sm font-medium">
+            <LocalizedText text={"Frequency"} />
+          </h3>
           <p className="text-2xl leading-tight font-semibold tracking-tight tabular-nums">
             {percent ?? "—"}
             <span className="ml-1.5 text-sm font-normal tracking-normal text-muted-foreground">
-              {frequency.affected} of {frequency.total} traces affected
+              {frequency.affected}
+              <LocalizedText text={" of "} />
+              {frequency.total}
+              <LocalizedText text={" traces affected"} />
             </span>
           </p>
         </div>
@@ -81,7 +89,9 @@ export function FrequencyCard({ frequency }: { frequency: Frequency }) {
       )}
       <div className="flex flex-wrap items-center justify-between gap-2">
         <Legend />
-        <p className="text-xs text-muted-foreground">Share of traces sampled by the reporting investigations</p>
+        <p className="text-xs text-muted-foreground">
+          <LocalizedText text={"Share of traces sampled by the reporting investigations"} />
+        </p>
       </div>
     </section>
   );

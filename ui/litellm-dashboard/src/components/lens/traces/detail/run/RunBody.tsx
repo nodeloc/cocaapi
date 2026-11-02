@@ -1,4 +1,5 @@
 "use client";
+import { markUiCopy } from "@/lib/i18n";
 
 import { type RefObject, useRef, useState } from "react";
 import { useDefaultLayout } from "react-resizable-panels";
@@ -45,13 +46,41 @@ export function RunBody({ trace, accessToken, selection, embedded, stale, conver
 
   const active = !stale && view === "steps";
   const pane = { layer: "pane", enabled: active } as const;
-  useShortcut("down", () => tree.moveBy(1), { ...pane, description: "step" });
-  useShortcut("up", () => tree.moveBy(-1), { ...pane, description: "step" });
-  useShortcut("j", () => tree.moveBy(1), { ...pane, enabled: active && !embedded, description: "move" });
-  useShortcut("k", () => tree.moveBy(-1), { ...pane, enabled: active && !embedded, description: "move" });
-  useShortcut("left", () => tree.fold(false), { ...pane, description: "fold" });
-  useShortcut("right", () => tree.fold(true), { ...pane, description: "fold" });
-  useShortcut("escape", () => setDetailOpen(false), { ...pane, enabled: active && detailOpen, description: "close" });
+  useShortcut(
+    "down",
+    () => tree.moveBy(1),
+    markUiCopy({ ...pane, description: "step" }, { description: "step" }, [pane]),
+  );
+  useShortcut(
+    "up",
+    () => tree.moveBy(-1),
+    markUiCopy({ ...pane, description: "step" }, { description: "step" }, [pane]),
+  );
+  useShortcut(
+    "j",
+    () => tree.moveBy(1),
+    markUiCopy({ ...pane, enabled: active && !embedded, description: "move" }, { description: "move" }, [pane]),
+  );
+  useShortcut(
+    "k",
+    () => tree.moveBy(-1),
+    markUiCopy({ ...pane, enabled: active && !embedded, description: "move" }, { description: "move" }, [pane]),
+  );
+  useShortcut(
+    "left",
+    () => tree.fold(false),
+    markUiCopy({ ...pane, description: "fold" }, { description: "fold" }, [pane]),
+  );
+  useShortcut(
+    "right",
+    () => tree.fold(true),
+    markUiCopy({ ...pane, description: "fold" }, { description: "fold" }, [pane]),
+  );
+  useShortcut(
+    "escape",
+    () => setDetailOpen(false),
+    markUiCopy({ ...pane, enabled: active && detailOpen, description: "close" }, { description: "close" }, [pane]),
+  );
 
   const openStep = (id: string) => {
     select(id);

@@ -1,9 +1,12 @@
+"use client";
+import { LocalizedText, localizedProperty, useUiLocale } from "@/lib/i18n";
 import React from "react";
 import { CircleCheck } from "lucide-react";
 import { GuardrailCardInfo } from "./guardrail_garden_data";
 import { Logo } from "@/components/molecules/logo/Logo";
 
 const GuardrailCard: React.FC<{ card: GuardrailCardInfo; onClick: () => void }> = ({ card, onClick }) => {
+  useUiLocale();
   return (
     <div
       onClick={onClick}
@@ -14,13 +17,17 @@ const GuardrailCard: React.FC<{ card: GuardrailCardInfo; onClick: () => void }> 
         <span className="text-sm leading-tight font-semibold text-foreground">{card.name}</span>
       </div>
 
-      <p className="line-clamp-3 m-0 flex-1 text-xs leading-relaxed text-muted-foreground">{card.description}</p>
+      <p className="line-clamp-3 m-0 flex-1 text-xs leading-relaxed text-muted-foreground">
+        {localizedProperty(card, "description", card.description)}
+      </p>
 
       {card.eval && (
         <div className="mt-2.5 flex items-center gap-1 text-success">
           <CircleCheck className="size-3" />
           <span className="text-[11px] font-medium">
-            F1: {card.eval.f1}% &middot; {card.eval.testCases} test cases
+            <LocalizedText text={"F1: "} />
+            {card.eval.f1}% &middot; {card.eval.testCases}
+            <LocalizedText text={" test cases"} />
           </span>
         </div>
       )}

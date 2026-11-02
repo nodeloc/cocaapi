@@ -1,4 +1,6 @@
 "use client";
+import { LocalizedText, useUiLocale } from "@/lib/i18n";
+
 import { ListRow } from "@/components/shared/ListRow";
 
 import { useState } from "react";
@@ -22,6 +24,7 @@ export interface HistoryTabProps {
 }
 
 export function HistoryTab({ lens }: HistoryTabProps) {
+  useUiLocale();
   const [offset, setOffset] = useState(0);
   return (
     <TabsContent value="activity" className="pt-4 space-y-4">
@@ -35,6 +38,7 @@ function HistoryContent({
   offset,
   setOffset,
 }: HistoryTabProps & { offset: number; setOffset: (offset: number) => void }) {
+  useUiLocale();
   const history = useRunHistory(lens, offset, offset > 0);
   const { openRun } = useRunRoute();
   const rows = history.data ?? lens.jobs;
@@ -42,9 +46,9 @@ function HistoryContent({
     <>
       {history.error && (
         <p role="alert" className="text-sm text-destructive">
-          Could not load run history.{" "}
+          <LocalizedText text={"Could not load run history."} />{" "}
           <Button variant="link" size="sm" onClick={() => void history.refetch()}>
-            Retry
+            <LocalizedText text={"Retry"} />
           </Button>
         </p>
       )}
@@ -59,8 +63,15 @@ function HistoryContent({
             <div className="min-w-0 flex-1">
               <p className="text-sm font-medium">{when(j.created_at)}</p>
               <p className="mt-1 text-xs text-muted-foreground">
-                {j.coverage?.screened ?? 0} runs reviewed
-                {j.findings != null && <> · {j.findings.length} findings</>}
+                {j.coverage?.screened ?? 0}
+                <LocalizedText text={" runs reviewed"} />
+                {j.findings != null && (
+                  <>
+                    {" "}
+                    · {j.findings.length}
+                    <LocalizedText text={" findings"} />
+                  </>
+                )}
                 <ScanDuration job={j} />
               </p>
               {j.error && (
@@ -85,7 +96,7 @@ function HistoryContent({
       {(offset > 0 || (history.data?.length ?? 0) >= PAGE) && (
         <div className="flex justify-between">
           <Button variant="ghost" size="sm" disabled={!offset} onClick={() => setOffset(Math.max(0, offset - PAGE))}>
-            Newer runs
+            <LocalizedText text={"Newer runs"} />
           </Button>
           <Button
             variant="ghost"
@@ -93,7 +104,7 @@ function HistoryContent({
             disabled={(history.data?.length ?? 0) < PAGE}
             onClick={() => setOffset(offset + PAGE)}
           >
-            Older runs
+            <LocalizedText text={"Older runs"} />
           </Button>
         </div>
       )}

@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, useUiLocale } from "@/lib/i18n";
 
 import * as React from "react";
 import { Bar, BarChart as RechartsBarChart, CartesianGrid, Cell, XAxis, YAxis } from "recharts";
@@ -50,13 +51,16 @@ export function BarChart<TDatum extends Record<string, unknown>>({
   className,
   style,
 }: BarChartProps<TDatum>) {
+  useUiLocale();
   if (data.length === 0) {
     return (
       <div
         className={cn("flex h-80 w-full items-center justify-center rounded-lg border border-dashed", className)}
         style={style}
       >
-        <p className="text-sm text-muted-foreground">No data</p>
+        <p className="text-sm text-muted-foreground">
+          <LocalizedText text={"No data"} />
+        </p>
       </div>
     );
   }
@@ -96,14 +100,17 @@ export function BarChart<TDatum extends Record<string, unknown>>({
         )}
         {showTooltip && (
           <ChartTooltip
-            content={({ active, payload, label }) => (
-              <TooltipContent
-                active={active}
-                payload={payload}
-                label={label}
-                {...(customTooltip ? {} : { valueFormatter })}
-              />
-            )}
+            content={(cocaCopyProps0) => {
+              const { active, payload, label } = cocaCopyProps0;
+              return (
+                <TooltipContent
+                  active={active}
+                  payload={payload}
+                  label={localizedProperty(cocaCopyProps0, "label", label)}
+                  {...(customTooltip ? {} : { valueFormatter })}
+                />
+              );
+            }}
           />
         )}
         {showLegend && (

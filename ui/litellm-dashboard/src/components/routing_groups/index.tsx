@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import React, { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,7 @@ import { groupNameByModel } from "./modelOwnership";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const RoutingGroups: React.FC = () => {
+  useUiLocale();
   const { data, isLoading, refetch, isFetching } = useRoutingGroups();
   const { data: routerFields } = useRouterFields();
   const { data: modelHub } = useModelHub();
@@ -86,12 +88,16 @@ const RoutingGroups: React.FC = () => {
       await saveMutation.mutateAsync(next);
       toast.success(
         drawerMode === "create"
-          ? `Created routing group "${incoming.group_name}"`
-          : `Updated routing group "${incoming.group_name}"`,
+          ? translateMessage('Created routing group "%{0}"', [incoming.group_name])
+          : translateMessage('Updated routing group "%{0}"', [incoming.group_name]),
       );
       setDrawerOpen(false);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to save routing group");
+      toast.error(
+        err instanceof Error
+          ? localizedProperty(err, "message", err.message)
+          : translateMessage("Failed to save routing group"),
+      );
     }
   };
 
@@ -100,10 +106,14 @@ const RoutingGroups: React.FC = () => {
     const next = groups.filter((g) => g.group_name !== deletingGroup.group_name);
     try {
       await saveMutation.mutateAsync(next);
-      toast.success(`Deleted routing group "${deletingGroup.group_name}"`);
+      toast.success(translateMessage('Deleted routing group "%{0}"', [deletingGroup.group_name]));
       setDeletingGroup(null);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to delete routing group");
+      toast.error(
+        err instanceof Error
+          ? localizedProperty(err, "message", err.message)
+          : translateMessage("Failed to delete routing group"),
+      );
     }
   };
 
@@ -117,13 +127,17 @@ const RoutingGroups: React.FC = () => {
                 <Search className="size-4 text-muted-foreground" />
               </InputGroupAddon>
               <InputGroupInput
-                placeholder="Search groups..."
+                placeholder={translateMessage("Search groups...")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
               {searchQuery && (
                 <InputGroupAddon align="inline-end">
-                  <InputGroupButton size="icon-xs" aria-label="Clear search" onClick={() => setSearchQuery("")}>
+                  <InputGroupButton
+                    size="icon-xs"
+                    aria-label={translateMessage("Clear search")}
+                    onClick={() => setSearchQuery("")}
+                  >
                     <X />
                   </InputGroupButton>
                 </InputGroupAddon>
@@ -137,14 +151,16 @@ const RoutingGroups: React.FC = () => {
                 aria-busy={isFetching && !isLoading}
               >
                 <RefreshCw />
-                Refresh
+                <LocalizedText text={"Refresh"} />
               </Button>
               <Button onClick={openCreate}>
                 <Plus />
-                Create Group
+                <LocalizedText text={"Create Group"} />
               </Button>
               <span className="text-sm whitespace-nowrap text-muted-foreground">
-                Showing {filteredGroups.length} {filteredGroups.length === 1 ? "result" : "results"}
+                <LocalizedText text={"Showing "} />
+                {filteredGroups.length}{" "}
+                {filteredGroups.length === 1 ? translateMessage("result") : translateMessage("results")}
               </span>
             </div>
           </div>
@@ -176,24 +192,34 @@ const RoutingGroups: React.FC = () => {
       <Dialog open={Boolean(deletingGroup)} onOpenChange={(open) => !open && setDeletingGroup(null)}>
         <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Delete routing group?</DialogTitle>
+            <DialogTitle>
+              <LocalizedText text={"Delete routing group?"} />
+            </DialogTitle>
           </DialogHeader>
           <p className="text-sm text-foreground">
             {deletingGroup?.routing_strategy === "priority" ? (
               <>
-                Calls to <span className="font-medium">{deletingGroup.group_name}</span> will stop working. Direct
-                requests to its member models keep their existing routing behavior. This cannot be undone.
+                <LocalizedText text={"Calls to "} />
+                <span className="font-medium">{deletingGroup.group_name}</span>
+                <LocalizedText
+                  text={
+                    " will stop working. Direct requests to its member models keep their existing routing behavior. This cannot be undone."
+                  }
+                />
               </>
             ) : (
               <>
-                Models in <span className="font-medium">{deletingGroup?.group_name}</span> will fall back to the
-                proxy&apos;s top-level routing strategy. This cannot be undone.
+                <LocalizedText text={"Models in "} />
+                <span className="font-medium">{deletingGroup?.group_name}</span>
+                <LocalizedText
+                  text={" will fall back to the proxy's top-level routing strategy. This cannot be undone."}
+                />
               </>
             )}
           </p>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeletingGroup(null)}>
-              Cancel
+              <LocalizedText text={"Cancel"} />
             </Button>
             <Button
               onClick={confirmDelete}
@@ -201,7 +227,7 @@ const RoutingGroups: React.FC = () => {
               disabled={saveMutation.isPending}
               aria-busy={saveMutation.isPending}
             >
-              Delete
+              <LocalizedText text={"Delete"} />
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { useState } from "react";
 import { ChevronRight, ClipboardCopy, X } from "lucide-react";
@@ -40,6 +41,7 @@ export interface FindingDetailsProps {
 }
 
 function TopBar({ finding, onClose }: Pick<FindingDetailsProps, "finding" | "onClose">) {
+  useUiLocale();
   const now = useNow(30000);
   return (
     <div className="sticky top-0 z-raised flex h-11 items-center justify-between gap-2 bg-background/95 px-4 backdrop-blur">
@@ -60,18 +62,18 @@ function TopBar({ finding, onClose }: Pick<FindingDetailsProps, "finding" | "onC
           onClick={() => void copyToClipboard(findingMarkdown(finding), "Copied for agent")}
         >
           <ClipboardCopy />
-          Copy for agent
+          <LocalizedText text={"Copy for agent"} />
         </Button>
         {onClose && (
           <Button
             variant="ghost"
             size="xs"
             className="enabled:active:scale-[0.96]"
-            aria-label="Close finding (Esc)"
+            aria-label={translateMessage("Close finding (Esc)")}
             onClick={onClose}
           >
             <X />
-            Close
+            <LocalizedText text={"Close"} />
           </Button>
         )}
       </div>
@@ -79,7 +81,9 @@ function TopBar({ finding, onClose }: Pick<FindingDetailsProps, "finding" | "onC
   );
 }
 
-function Disclosure({ title, children }: { title: string; children: React.ReactNode }) {
+function Disclosure(cocaCopyProps0: { title: string; children: React.ReactNode }) {
+  const { title, children } = cocaCopyProps0;
+  useUiLocale();
   return (
     <details className="group rounded-lg">
       <summary className="flex cursor-pointer list-none items-center gap-1.5 text-sm font-semibold [&::-webkit-details-marker]:hidden">
@@ -87,17 +91,19 @@ function Disclosure({ title, children }: { title: string; children: React.ReactN
           aria-hidden="true"
           className="size-4 text-muted-foreground transition-[rotate] duration-150 group-open:rotate-90 motion-reduce:transition-none"
         />
-        {title}
+        {localizedProperty(cocaCopyProps0, "title", title)}
       </summary>
       <div className="mt-3">{children}</div>
     </details>
   );
 }
 
-function ProseSection({ title, children }: { title: string; children: string }) {
+function ProseSection(cocaCopyProps1: { title: string; children: string }) {
+  const { title, children } = cocaCopyProps1;
+  useUiLocale();
   return (
     <section>
-      <h2 className="mb-1.5 text-sm font-semibold">{title}</h2>
+      <h2 className="mb-1.5 text-sm font-semibold">{localizedProperty(cocaCopyProps1, "title", title)}</h2>
       <p className="max-w-[70ch] text-sm leading-relaxed text-pretty whitespace-pre-wrap text-foreground/85">
         {children}
       </p>
@@ -126,13 +132,14 @@ const MARK = {
 } as const;
 
 function QuoteCard({ quote, onOpen }: { quote: Quote; onOpen: () => void }) {
+  useUiLocale();
   const isTrace = evidenceTarget(quote.execution_id)?.source === "traces";
   return (
     <div className="-mx-1 rounded-lg border border-transparent bg-background p-2.5 shadow-finding-ring">
       <div className="mb-1.5 flex items-center justify-between gap-2">
         <span className="min-w-0 truncate text-sm font-medium">{quoteLabel(quote, isTrace)}</span>
         <Button variant="outline" size="xs" className="enabled:active:scale-[0.96]" onClick={onOpen}>
-          {isTrace ? "View span" : "View request"}
+          {isTrace ? translateMessage("View span") : translateMessage("View request")}
         </Button>
       </div>
       <button
@@ -151,6 +158,7 @@ function QuoteCard({ quote, onOpen }: { quote: Quote; onOpen: () => void }) {
 }
 
 function EvidenceRail({ children }: { children: React.ReactNode }) {
+  useUiLocale();
   return (
     <>
       <div className="relative flex gap-2">
@@ -160,7 +168,9 @@ function EvidenceRail({ children }: { children: React.ReactNode }) {
           </div>
           <div aria-hidden="true" className="h-2 w-px bg-border" />
         </div>
-        <div className="min-w-0 flex-1 text-xs leading-5 font-medium text-muted-foreground">Evidence</div>
+        <div className="min-w-0 flex-1 text-xs leading-5 font-medium text-muted-foreground">
+          <LocalizedText text={"Evidence"} />
+        </div>
       </div>
       <div className="relative">
         <div aria-hidden="true" className="absolute inset-y-0 left-[5px] w-px bg-border" />
@@ -177,6 +187,7 @@ interface ExampleGroup {
 }
 
 function Example({ group, onOpenEvidence }: { group: ExampleGroup; onOpenEvidence: (e: EvidenceRef) => void }) {
+  useUiLocale();
   const traceId = evidenceTarget(group.id)?.id;
   const name = group.run?.name ?? (traceId ? `Trace ${traceId.slice(0, 8)}` : "Recorded run");
   return (
@@ -192,9 +203,11 @@ function Example({ group, onOpenEvidence }: { group: ExampleGroup; onOpenEvidenc
       <div className="w-full">
         {group.quotes.length === 0 ? (
           <div className="flex items-center justify-between gap-3">
-            <p className="text-sm text-muted-foreground">No quote was retained for this trace.</p>
+            <p className="text-sm text-muted-foreground">
+              <LocalizedText text={"No quote was retained for this trace."} />
+            </p>
             <Button variant="outline" size="xs" onClick={() => onOpenEvidence({ id: group.id, span: "" })}>
-              View trace
+              <LocalizedText text={"View trace"} />
             </Button>
           </div>
         ) : (
@@ -222,8 +235,14 @@ function Examples({
   groups: readonly ExampleGroup[];
   onOpenEvidence: (e: EvidenceRef) => void;
 }) {
+  useUiLocale();
   const [expanded, setExpanded] = useState(false);
-  if (groups.length === 0) return <p className="text-sm text-muted-foreground">No examples were recorded.</p>;
+  if (groups.length === 0)
+    return (
+      <p className="text-sm text-muted-foreground">
+        <LocalizedText text={"No examples were recorded."} />
+      </p>
+    );
   const shown = expanded ? groups : groups.slice(0, VISIBLE_EXAMPLES);
   const hidden = groups.length - shown.length;
   return (
@@ -238,7 +257,10 @@ function Examples({
           className="self-start text-muted-foreground"
           onClick={() => setExpanded(true)}
         >
-          Show {hidden} more {hidden === 1 ? "example" : "examples"}
+          <LocalizedText text={"Show "} />
+          {hidden}
+          <LocalizedText text={" more "} />
+          {hidden === 1 ? translateMessage("example") : translateMessage("examples")}
         </Button>
       )}
     </>
@@ -246,26 +268,29 @@ function Examples({
 }
 
 function ReviewForm({ finding, busy, onReview }: Pick<FindingDetailsProps, "finding" | "busy" | "onReview">) {
+  useUiLocale();
   const [reason, setReason] = useState(finding.reason ?? "");
   return (
     <section className="space-y-3 border-t pt-6">
       <label className="grid gap-2 text-sm font-medium">
-        What should Lens remember?
+        <LocalizedText text={"What should Lens remember?"} />
         <Textarea
           value={reason}
           onChange={(e) => setReason(e.target.value)}
-          placeholder="What should Lens know about this finding?"
+          placeholder={translateMessage("What should Lens know about this finding?")}
         />
       </label>
-      <p className="text-xs text-muted-foreground">Your explanation informs future scans of this Lens.</p>
+      <p className="text-xs text-muted-foreground">
+        <LocalizedText text={"Your explanation informs future scans of this Lens."} />
+      </p>
       <div className="flex flex-wrap gap-2">
         {finding.kind === "issue" && (
           <Button disabled={busy} onClick={() => onReview(finding.status === "resolved" ? "open" : "resolved", reason)}>
-            {finding.status === "resolved" ? "Reopen" : "Mark resolved"}
+            {finding.status === "resolved" ? translateMessage("Reopen") : translateMessage("Mark resolved")}
           </Button>
         )}
         <Button disabled={busy} variant="outline" onClick={() => onReview("dismissed", reason)}>
-          This is expected
+          <LocalizedText text={"This is expected"} />
         </Button>
       </div>
     </section>
@@ -283,6 +308,7 @@ export function FindingDetails({
   onReview,
   onClose,
 }: FindingDetailsProps) {
+  useUiLocale();
   const groups: ExampleGroup[] = [
     ...new Set([...finding.evidence.map((e) => e.execution_id), ...finding.occurrences]),
   ].map((id) => ({
@@ -297,50 +323,67 @@ export function FindingDetails({
       <TopBar finding={finding} onClose={onClose} />
       <div className="mx-auto flex w-full max-w-3xl flex-col gap-7 px-6 pt-4 pb-16">
         <header className="flex flex-col gap-3">
-          <h1 className="text-2xl leading-tight font-semibold tracking-tight text-balance">{finding.title}</h1>
+          <h1 className="text-2xl leading-tight font-semibold tracking-tight text-balance">
+            {localizedProperty(finding, "title", finding.title)}
+          </h1>
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-muted-foreground">
             {finding.kind === "issue" ? (
               <PriorityPill priority={finding.priority} />
             ) : (
-              <span className="inline-flex h-5 items-center rounded-full bg-muted px-2 font-medium">Pattern</span>
+              <span className="inline-flex h-5 items-center rounded-full bg-muted px-2 font-medium">
+                <LocalizedText text={"Pattern"} />
+              </span>
             )}
             {agents.length > 0 && <span className="font-medium text-foreground">{agents.join(", ")}</span>}
             <span className="tabular-nums">
-              {affected} affected {affected === 1 ? "trace" : "traces"}
+              {affected}
+              <LocalizedText text={" affected "} />
+              {affected === 1 ? translateMessage("trace") : translateMessage("traces")}
             </span>
             {runs > 0 && (
               <span className="tabular-nums">
-                Found across {runs} investigation {runs === 1 ? "run" : "runs"}
+                <LocalizedText text={"Found across "} />
+                {runs}
+                <LocalizedText text={" investigation "} />
+                {runs === 1 ? translateMessage("run") : translateMessage("runs")}
               </span>
             )}
           </div>
         </header>
-        <ProseSection title="Summary">{finding.description}</ProseSection>
-        {finding.suggestion && <ProseSection title="Suggested fix">{finding.suggestion}</ProseSection>}
+        <ProseSection title={translateMessage("Summary")}>
+          {localizedProperty(finding, "description", finding.description)}
+        </ProseSection>
+        {finding.suggestion && (
+          <ProseSection title={translateMessage("Suggested fix")}>{finding.suggestion}</ProseSection>
+        )}
         {finding.brief && (
-          <Disclosure title="Issue brief and test cases">
-            <IssueBrief title={finding.title} brief={finding.brief} />
+          <Disclosure title={translateMessage("Issue brief and test cases")}>
+            <IssueBrief title={localizedProperty(finding, "title", finding.title)} brief={finding.brief} />
           </Disclosure>
         )}
         {finding.limitation && (
-          <Disclosure title="Evidence limits">
+          <Disclosure title={translateMessage("Evidence limits")}>
             <p className="max-w-[70ch] text-sm leading-relaxed text-pretty text-muted-foreground">
               {finding.limitation}
             </p>
           </Disclosure>
         )}
         <section>
-          <h2 className={`mb-2 ${SECTION_LABEL}`}>Monitors</h2>
+          <h2 className={`mb-2 ${SECTION_LABEL}`}>
+            <LocalizedText text={"Monitors"} />
+          </h2>
           <FrequencyCard frequency={findingFrequency(finding.occurrences, sampledRuns)} />
         </section>
         <section className="flex flex-col gap-2">
           <div className="flex items-center justify-between gap-2">
-            <h2 className={SECTION_LABEL}>Examples</h2>
+            <h2 className={SECTION_LABEL}>
+              <LocalizedText text={"Examples"} />
+            </h2>
             {lensId && finding.evidence.length > 0 && (
               <AddToDatasetButton
                 sources={[{ kind: "finding", lens_id: lensId, finding_ids: [finding.id] }]}
                 agentName={agents[0]}
-                label="Add evidence to dataset"
+                label={translateMessage("Add evidence to dataset")}
               />
             )}
           </div>
@@ -371,6 +414,7 @@ export function FindingPanelBody({
   sampledRuns,
   onReview,
 }: FindingPanelProps & { readonly owned: OwnedFinding }) {
+  useUiLocale();
   const { evidence, setEvidence } = useEvidenceRoute();
   return (
     <>
@@ -401,8 +445,9 @@ export function FindingPanelBody({
 
 /** The side panel for whichever finding the surrounding Inspector has open. */
 export function FindingPanel(props: FindingPanelProps) {
+  useUiLocale();
   return (
-    <Inspector.Panel label="Finding details" testId="finding-panel">
+    <Inspector.Panel label={translateMessage("Finding details")} testId="finding-panel">
       {(owned: OwnedFinding) => <FindingPanelBody {...props} owned={owned} />}
     </Inspector.Panel>
   );

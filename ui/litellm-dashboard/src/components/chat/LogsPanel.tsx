@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, getIntlLocale, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import React, { useState } from "react";
 import moment from "moment";
@@ -21,9 +22,9 @@ interface Props {
 type TimeRange = "24h" | "7d" | "30d";
 
 const TIME_RANGE_OPTIONS: { value: TimeRange; label: string }[] = [
-  { value: "24h", label: "24h" },
-  { value: "7d", label: "7d" },
-  { value: "30d", label: "30d" },
+  markUiCopy({ value: "24h", label: "24h" }, { label: "24h" }),
+  markUiCopy({ value: "7d", label: "7d" }, { label: "7d" }),
+  markUiCopy({ value: "30d", label: "30d" }, { label: "30d" }),
 ];
 
 function getStartMoment(range: TimeRange): moment.Moment {
@@ -61,7 +62,7 @@ interface LogDetails {
 }
 
 function formatTokens(n: number): string {
-  return (n ?? 0).toLocaleString();
+  return (n ?? 0).toLocaleString(getIntlLocale());
 }
 
 function formatCost(spend: number): string {
@@ -84,18 +85,24 @@ function formatDuration(row: LogRow): string {
 }
 
 function StatusBadge({ status }: { status?: string }) {
+  useUiLocale();
   const isFailure = status === "failure";
   return (
     <span className={`inline-flex items-center gap-1.5 text-xs ${isFailure ? "text-destructive" : "text-success"}`}>
       <span className={`h-1.5 w-1.5 rounded-full ${isFailure ? "bg-destructive" : "bg-success"}`} />
-      {isFailure ? "Failure" : "Success"}
+      {isFailure ? translateMessage("Failure") : translateMessage("Success")}
     </span>
   );
 }
 
 function JsonBlock({ value }: { value: unknown }) {
+  useUiLocale();
   if (value == null || value === "") {
-    return <p className="m-0 text-xs text-muted-foreground">Not available</p>;
+    return (
+      <p className="m-0 text-xs text-muted-foreground">
+        <LocalizedText text={"Not available"} />
+      </p>
+    );
   }
   const text = typeof value === "string" ? value : JSON.stringify(value, null, 2);
   return (
@@ -106,6 +113,7 @@ function JsonBlock({ value }: { value: unknown }) {
 }
 
 function LogsSkeleton() {
+  useUiLocale();
   return (
     <div className="overflow-hidden rounded-lg border">
       <div className="flex flex-col gap-px">
@@ -123,38 +131,53 @@ function LogsSkeleton() {
 }
 
 function LogsEmpty() {
+  useUiLocale();
   return (
     <div className="rounded-lg border border-dashed py-12 text-center text-sm text-muted-foreground">
       <ScrollText className="mx-auto mb-3 h-6 w-6 text-muted-foreground/50" />
-      No logs for this period
+      <LocalizedText text={"No logs for this period"} />
     </div>
   );
 }
 
 function LogsError({ onRetry }: { onRetry: () => void }) {
+  useUiLocale();
   return (
     <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed py-12 text-center text-sm text-muted-foreground">
       <AlertCircle className="h-6 w-6 text-destructive/70" />
-      Failed to load your logs
+      <LocalizedText text={"Failed to load your logs"} />
       <Button variant="outline" size="sm" onClick={onRetry}>
-        Retry
+        <LocalizedText text={"Retry"} />
       </Button>
     </div>
   );
 }
 
 function LogsTable({ rows, onRowClick }: { rows: LogRow[]; onRowClick: (row: LogRow) => void }) {
+  useUiLocale();
   return (
     <div className="overflow-hidden rounded-lg border">
       <Table>
         <TableHeader>
           <TableRow className="bg-muted/50">
-            <TableHead className="text-[11px] font-medium uppercase tracking-wide">Time</TableHead>
-            <TableHead className="text-[11px] font-medium uppercase tracking-wide">Model</TableHead>
-            <TableHead className="text-[11px] font-medium uppercase tracking-wide">Status</TableHead>
-            <TableHead className="text-right text-[11px] font-medium uppercase tracking-wide">Tokens</TableHead>
-            <TableHead className="text-right text-[11px] font-medium uppercase tracking-wide">Duration</TableHead>
-            <TableHead className="text-right text-[11px] font-medium uppercase tracking-wide">Cost</TableHead>
+            <TableHead className="text-[11px] font-medium uppercase tracking-wide">
+              <LocalizedText text={"Time"} />
+            </TableHead>
+            <TableHead className="text-[11px] font-medium uppercase tracking-wide">
+              <LocalizedText text={"Model"} />
+            </TableHead>
+            <TableHead className="text-[11px] font-medium uppercase tracking-wide">
+              <LocalizedText text={"Status"} />
+            </TableHead>
+            <TableHead className="text-right text-[11px] font-medium uppercase tracking-wide">
+              <LocalizedText text={"Tokens"} />
+            </TableHead>
+            <TableHead className="text-right text-[11px] font-medium uppercase tracking-wide">
+              <LocalizedText text={"Duration"} />
+            </TableHead>
+            <TableHead className="text-right text-[11px] font-medium uppercase tracking-wide">
+              <LocalizedText text={"Cost"} />
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -191,39 +214,53 @@ function LogDetailDialog({
   isLoading: boolean;
   onClose: () => void;
 }) {
+  useUiLocale();
   return (
     <Dialog open={!!log} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Request details</DialogTitle>
+          <DialogTitle>
+            <LocalizedText text={"Request details"} />
+          </DialogTitle>
           <DialogDescription className="break-all font-mono text-xs">{log?.request_id}</DialogDescription>
         </DialogHeader>
         {log && (
           <div className="flex flex-col gap-4">
             <div className="grid grid-cols-2 gap-3">
               <div className="rounded-md border bg-card p-3">
-                <div className="mb-0.5 text-xs text-muted-foreground">Model</div>
+                <div className="mb-0.5 text-xs text-muted-foreground">
+                  <LocalizedText text={"Model"} />
+                </div>
                 <div className="text-sm text-foreground">{log.model || "-"}</div>
               </div>
               <div className="rounded-md border bg-card p-3">
-                <div className="mb-0.5 text-xs text-muted-foreground">Cost</div>
+                <div className="mb-0.5 text-xs text-muted-foreground">
+                  <LocalizedText text={"Cost"} />
+                </div>
                 <div className="text-sm text-foreground">{formatCost(log.spend)}</div>
               </div>
               <div className="rounded-md border bg-card p-3">
-                <div className="mb-0.5 text-xs text-muted-foreground">Tokens</div>
+                <div className="mb-0.5 text-xs text-muted-foreground">
+                  <LocalizedText text={"Tokens"} />
+                </div>
                 <div className="text-sm text-foreground">
-                  {formatTokens(log.total_tokens)} ({formatTokens(log.prompt_tokens)} in /{" "}
-                  {formatTokens(log.completion_tokens)} out)
+                  {formatTokens(log.total_tokens)} ({formatTokens(log.prompt_tokens)}
+                  <LocalizedText text={" in /"} /> {formatTokens(log.completion_tokens)}
+                  <LocalizedText text={" out)"} />
                 </div>
               </div>
               <div className="rounded-md border bg-card p-3">
-                <div className="mb-0.5 text-xs text-muted-foreground">Duration</div>
+                <div className="mb-0.5 text-xs text-muted-foreground">
+                  <LocalizedText text={"Duration"} />
+                </div>
                 <div className="text-sm text-foreground">{formatDuration(log)}</div>
               </div>
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Request</div>
+              <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                <LocalizedText text={"Request"} />
+              </div>
               {isLoading ? (
                 <Skeleton className="h-16 w-full" />
               ) : (
@@ -231,7 +268,9 @@ function LogDetailDialog({
               )}
             </div>
             <div className="flex flex-col gap-1.5">
-              <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Response</div>
+              <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                <LocalizedText text={"Response"} />
+              </div>
               {isLoading ? <Skeleton className="h-16 w-full" /> : <JsonBlock value={details?.response} />}
             </div>
           </div>
@@ -242,6 +281,7 @@ function LogDetailDialog({
 }
 
 const LogsPanel: React.FC<Props> = ({ accessToken, userId }) => {
+  useUiLocale();
   const [timeRange, setTimeRange] = useState<TimeRange>("24h");
   const [page, setPage] = useState(1);
   const [selectedLog, setSelectedLog] = useState<LogRow | null>(null);
@@ -287,16 +327,18 @@ const LogsPanel: React.FC<Props> = ({ accessToken, userId }) => {
         <LogsTable rows={rows} onRowClick={setSelectedLog} />
         <div className="mt-3 flex items-center justify-between">
           <p className="m-0 text-xs text-muted-foreground">
-            {total.toLocaleString()} request{total === 1 ? "" : "s"}
-            {totalPages > 1 ? ` · Page ${page} of ${totalPages}` : ""}
+            {total.toLocaleString(getIntlLocale())}
+            <LocalizedText text={" request"} />
+            {total === 1 ? "" : translateMessage("s")}
+            {totalPages > 1 ? translateMessage(" · Page %{0} of %{1}", [page, totalPages]) : ""}
           </p>
           {totalPages > 1 && (
             <div className="flex gap-1">
               <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
-                Previous
+                <LocalizedText text={"Previous"} />
               </Button>
               <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)}>
-                Next
+                <LocalizedText text={"Next"} />
               </Button>
             </div>
           )}
@@ -309,8 +351,12 @@ const LogsPanel: React.FC<Props> = ({ accessToken, userId }) => {
     <div className="w-full">
       <div className="mb-4 flex items-center justify-between">
         <div>
-          <h2 className="mb-0.5 text-base font-semibold tracking-tight text-foreground">Your Logs</h2>
-          <p className="m-0 text-sm text-muted-foreground">Request logs for your account only</p>
+          <h2 className="mb-0.5 text-base font-semibold tracking-tight text-foreground">
+            <LocalizedText text={"Your Logs"} />
+          </h2>
+          <p className="m-0 text-sm text-muted-foreground">
+            <LocalizedText text={"Request logs for your account only"} />
+          </p>
         </div>
         <div className="flex gap-1">
           {TIME_RANGE_OPTIONS.map((opt) => (
@@ -323,7 +369,7 @@ const LogsPanel: React.FC<Props> = ({ accessToken, userId }) => {
                 setPage(1);
               }}
             >
-              {opt.label}
+              {localizedProperty(opt, "label", opt.label)}
             </Button>
           ))}
         </div>

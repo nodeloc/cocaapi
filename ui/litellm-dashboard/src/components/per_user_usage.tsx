@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import React, { useState, useEffect, useCallback } from "react";
 import type { ColumnDef, OnChangeFn, PaginationState } from "@tanstack/react-table";
 import { BarChart } from "@/components/shared/charts";
@@ -31,6 +33,7 @@ interface PerUserUsageProps {
 }
 
 const PerUserUsage: React.FC<PerUserUsageProps> = ({ accessToken, selectedTags, formatAbbreviatedNumber }) => {
+  useUiLocale();
   // Maximum number of user agent categories to show in charts to prevent color palette overflow
   const MAX_USER_AGENTS = 8;
   const [perUserData, setPerUserData] = useState<PerUserAnalyticsResponse>({
@@ -78,59 +81,84 @@ const PerUserUsage: React.FC<PerUserUsageProps> = ({ accessToken, selectedTags, 
   }, []);
 
   const columns: ColumnDef<PerUserMetrics>[] = [
-    {
-      header: "User ID",
-      accessorKey: "user_id",
-      cell: ({ row }) => <span className="font-medium">{row.original.user_id}</span>,
-    },
-    {
-      header: "User Email",
-      accessorKey: "user_email",
-      cell: ({ row }) => row.original.user_email || "N/A",
-    },
-    {
-      header: "User Agent",
-      accessorKey: "user_agent",
-      cell: ({ row }) => row.original.user_agent || "Unknown",
-    },
-    {
-      header: "Success Generations",
-      accessorKey: "successful_requests",
-      meta: { numeric: true },
-      cell: ({ row }) => formatAbbreviatedNumber(row.original.successful_requests),
-    },
-    {
-      header: "Total Tokens",
-      accessorKey: "total_tokens",
-      meta: { numeric: true },
-      cell: ({ row }) => formatAbbreviatedNumber(row.original.total_tokens),
-    },
-    {
-      header: "Failed Requests",
-      accessorKey: "failed_requests",
-      meta: { numeric: true },
-      cell: ({ row }) => formatAbbreviatedNumber(row.original.failed_requests),
-    },
-    {
-      header: "Total Cost",
-      accessorKey: "spend",
-      meta: { numeric: true },
-      cell: ({ row }) => `$${formatAbbreviatedNumber(row.original.spend, 4)}`,
-    },
+    markUiCopy(
+      {
+        header: "User ID",
+        accessorKey: "user_id",
+        cell: ({ row }) => <span className="font-medium">{row.original.user_id}</span>,
+      },
+      { header: "User ID" },
+    ),
+    markUiCopy(
+      {
+        header: "User Email",
+        accessorKey: "user_email",
+        cell: ({ row }) => row.original.user_email || "N/A",
+      },
+      { header: "User Email" },
+    ),
+    markUiCopy(
+      {
+        header: "User Agent",
+        accessorKey: "user_agent",
+        cell: ({ row }) => row.original.user_agent || "Unknown",
+      },
+      { header: "User Agent" },
+    ),
+    markUiCopy(
+      {
+        header: "Success Generations",
+        accessorKey: "successful_requests",
+        meta: { numeric: true },
+        cell: ({ row }) => formatAbbreviatedNumber(row.original.successful_requests),
+      },
+      { header: "Success Generations" },
+    ),
+    markUiCopy(
+      {
+        header: "Total Tokens",
+        accessorKey: "total_tokens",
+        meta: { numeric: true },
+        cell: ({ row }) => formatAbbreviatedNumber(row.original.total_tokens),
+      },
+      { header: "Total Tokens" },
+    ),
+    markUiCopy(
+      {
+        header: "Failed Requests",
+        accessorKey: "failed_requests",
+        meta: { numeric: true },
+        cell: ({ row }) => formatAbbreviatedNumber(row.original.failed_requests),
+      },
+      { header: "Failed Requests" },
+    ),
+    markUiCopy(
+      {
+        header: "Total Cost",
+        accessorKey: "spend",
+        meta: { numeric: true },
+        cell: ({ row }) => `$${formatAbbreviatedNumber(row.original.spend, 4)}`,
+      },
+      { header: "Total Cost" },
+    ),
   ];
 
   return (
     <div className="mb-6">
-      <h3 className="text-lg font-medium text-foreground">Per User Usage</h3>
-      <p className="text-sm text-muted-foreground">Individual developer usage metrics</p>
+      <h3 className="text-lg font-medium text-foreground">
+        <LocalizedText text={"Per User Usage"} />
+      </h3>
+      <p className="text-sm text-muted-foreground">
+        <LocalizedText text={"Individual developer usage metrics"} />
+      </p>
 
       <Tabs defaultValue="details">
         <TabsList variant="line" className="mb-6 h-auto w-full justify-start rounded-none border-b p-0">
           <TabsTrigger value="details" className="flex-none rounded-none px-4 py-2">
-            User Details
+            <LocalizedText text={"User Details"} />
           </TabsTrigger>
           <TabsTrigger value="distribution" className="flex-none rounded-none px-4 py-2">
-            Usage Distribution
+            <LocalizedText text={"Usage Distribution"} />
           </TabsTrigger>
         </TabsList>
 
@@ -144,7 +172,7 @@ const PerUserUsage: React.FC<PerUserUsageProps> = ({ accessToken, selectedTags, 
             pagination={pagination}
             onPaginationChange={handlePaginationChange}
             rowCount={perUserData.total_count}
-            noDataMessage="No per-user usage data"
+            noDataMessage={translateMessage("No per-user usage data")}
             size="compact"
           />
         </TabsContent>
@@ -152,8 +180,12 @@ const PerUserUsage: React.FC<PerUserUsageProps> = ({ accessToken, selectedTags, 
         {/* Tab 2: Usage Distribution Histogram */}
         <TabsContent value="distribution" keepMounted>
           <div className="mb-4">
-            <h4 className="text-lg font-medium text-foreground">User Usage Distribution</h4>
-            <p className="text-sm text-muted-foreground">Number of users by successful request frequency</p>
+            <h4 className="text-lg font-medium text-foreground">
+              <LocalizedText text={"User Usage Distribution"} />
+            </h4>
+            <p className="text-sm text-muted-foreground">
+              <LocalizedText text={"Number of users by successful request frequency"} />
+            </p>
           </div>
 
           <BarChart

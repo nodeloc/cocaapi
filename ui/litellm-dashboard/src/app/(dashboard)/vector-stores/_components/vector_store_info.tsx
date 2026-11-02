@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, getIntlLocale, translateMessage, useUiLocale } from "@/lib/i18n";
 import React, { useState, useEffect } from "react";
 import { ArrowLeft, CircleHelp, Lock } from "lucide-react";
 import { z } from "zod";
@@ -79,6 +81,7 @@ const VectorStoreInfoView: React.FC<VectorStoreInfoViewProps> = ({
   is_admin,
   editVectorStore,
 }) => {
+  useUiLocale();
   const form = useZodForm(vectorStoreEditSchema, { defaultValues: EMPTY_VALUES });
   const [vectorStoreDetails, setVectorStoreDetails] = useState<VectorStore | null>(null);
   const [loadFailed, setLoadFailed] = useState<boolean>(false);
@@ -155,7 +158,7 @@ const VectorStoreInfoView: React.FC<VectorStoreInfoViewProps> = ({
       };
 
       await vectorStoreUpdateCall(accessToken, updateData);
-      toast.success("Vector store updated successfully");
+      toast.success(translateMessage("Vector store updated successfully"));
       setIsEditing(false);
       fetchVectorStoreDetails();
     } catch (error) {
@@ -169,18 +172,26 @@ const VectorStoreInfoView: React.FC<VectorStoreInfoViewProps> = ({
       <div className="p-4 max-w-full">
         <Button variant="ghost" className="mb-4" onClick={onClose}>
           <ArrowLeft />
-          Back to Vector Stores
+          <LocalizedText text={"Back to Vector Stores"} />
         </Button>
-        <h1 className="text-xl font-semibold">Vector store not found</h1>
+        <h1 className="text-xl font-semibold">
+          <LocalizedText text={"Vector store not found"} />
+        </h1>
         <p className="text-sm text-muted-foreground">
-          Vector store {vectorStoreId} could not be loaded. It may have been deleted.
+          <LocalizedText text={"Vector store "} />
+          {vectorStoreId}
+          <LocalizedText text={" could not be loaded. It may have been deleted."} />
         </p>
       </div>
     );
   }
 
   if (!vectorStoreDetails) {
-    return <div>Loading...</div>;
+    return (
+      <div>
+        <LocalizedText text={"Loading..."} />
+      </div>
+    );
   }
 
   const canEdit = is_admin && !vectorStoreDetails.is_config;
@@ -192,29 +203,41 @@ const VectorStoreInfoView: React.FC<VectorStoreInfoViewProps> = ({
         <div>
           <Button variant="ghost" className="mb-4" onClick={onClose}>
             <ArrowLeft />
-            Back to Vector Stores
+            <LocalizedText text={"Back to Vector Stores"} />
           </Button>
           <div className="flex items-center gap-2">
-            <h1 className="text-xl font-semibold">Vector Store ID: {vectorStoreDetails.vector_store_id}</h1>
+            <h1 className="text-xl font-semibold">
+              <LocalizedText text={"Vector Store ID: "} />
+              {vectorStoreDetails.vector_store_id}
+            </h1>
             <StatusBadge
               tone={vectorStoreDetails.is_config ? "neutral" : "info"}
-              label={vectorStoreDetails.is_config ? "Config" : "DB"}
+              label={vectorStoreDetails.is_config ? translateMessage("Config") : translateMessage("DB")}
             />
           </div>
           <p className="text-sm text-muted-foreground">
-            {vectorStoreDetails.vector_store_description || "No description"}
+            {vectorStoreDetails.vector_store_description || translateMessage("No description")}
           </p>
         </div>
-        {canEdit && !isEditing && <Button onClick={startEditing}>Edit Vector Store</Button>}
+        {canEdit && !isEditing && (
+          <Button onClick={startEditing}>
+            <LocalizedText text={"Edit Vector Store"} />
+          </Button>
+        )}
       </div>
 
       {vectorStoreDetails.is_config && (
         <Alert variant="info" className="mb-4">
           <Lock className="size-4" aria-hidden />
-          <AlertTitle>Read only: defined in the config file</AlertTitle>
+          <AlertTitle>
+            <LocalizedText text={"Read only: defined in the config file"} />
+          </AlertTitle>
           <AlertDescription>
-            This vector store comes from the proxy config YAML, so it cannot be edited or deleted on the dashboard.
-            Change or remove it in the config file and restart the proxy.
+            <LocalizedText
+              text={
+                "This vector store comes from the proxy config YAML, so it cannot be edited or deleted on the dashboard. Change or remove it in the config file and restart the proxy."
+              }
+            />
           </AlertDescription>
         </Alert>
       )}
@@ -222,10 +245,10 @@ const VectorStoreInfoView: React.FC<VectorStoreInfoViewProps> = ({
       <Tabs defaultValue="details">
         <TabsList variant="line" className="mb-6 h-auto w-full justify-start rounded-none p-0">
           <TabsTrigger value="details" className="flex-none rounded-none px-4 py-2">
-            Details
+            <LocalizedText text={"Details"} />
           </TabsTrigger>
           <TabsTrigger value="test" className="flex-none rounded-none px-4 py-2">
-            Test Vector Store
+            <LocalizedText text={"Test Vector Store"} />
           </TabsTrigger>
         </TabsList>
 
@@ -233,22 +256,36 @@ const VectorStoreInfoView: React.FC<VectorStoreInfoViewProps> = ({
           {showEditForm ? (
             <div>
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-medium">Edit Vector Store</h3>
+                <h3 className="text-lg font-medium">
+                  <LocalizedText text={"Edit Vector Store"} />
+                </h3>
               </div>
               <Card>
                 <CardContent>
                   <TooltipProvider>
                     <form onSubmit={form.handleSubmit(handleSave)}>
                       <FieldGroup>
-                        <FormField control={form.control} name="vector_store_id" label="Vector Store ID">
+                        <FormField
+                          control={form.control}
+                          name="vector_store_id"
+                          label={translateMessage("Vector Store ID")}
+                        >
                           {({ ref, ...field }) => <Input {...field} ref={ref} disabled />}
                         </FormField>
 
-                        <FormField control={form.control} name="vector_store_name" label="Vector Store Name">
+                        <FormField
+                          control={form.control}
+                          name="vector_store_name"
+                          label={translateMessage("Vector Store Name")}
+                        >
                           {({ ref, value, ...field }) => <Input {...field} ref={ref} value={value ?? ""} />}
                         </FormField>
 
-                        <FormField control={form.control} name="vector_store_description" label="Description">
+                        <FormField
+                          control={form.control}
+                          name="vector_store_description"
+                          label={translateMessage("Description")}
+                        >
                           {({ ref, value, ...field }) => <Textarea {...field} ref={ref} value={value ?? ""} rows={4} />}
                         </FormField>
 
@@ -298,14 +335,20 @@ const VectorStoreInfoView: React.FC<VectorStoreInfoViewProps> = ({
                         </FormField>
 
                         <p className="text-sm text-muted-foreground">
-                          Either select existing credentials OR enter provider credentials below
+                          <LocalizedText
+                            text={"Either select existing credentials OR enter provider credentials below"}
+                          />
                         </p>
 
-                        <FormField control={form.control} name="litellm_credential_name" label="Existing Credentials">
+                        <FormField
+                          control={form.control}
+                          name="litellm_credential_name"
+                          label={translateMessage("Existing Credentials")}
+                        >
                           {({ id, value, onChange }) => (
                             <SearchSelect
                               inputId={id}
-                              placeholder="Select or search for existing credentials"
+                              placeholder={translateMessage("Select or search for existing credentials")}
                               options={credentialOptions(credentials)}
                               value={value ?? ""}
                               onValueChange={(selected) =>
@@ -317,7 +360,9 @@ const VectorStoreInfoView: React.FC<VectorStoreInfoViewProps> = ({
 
                         <div className="flex items-center">
                           <div className="grow border-t border-border"></div>
-                          <span className="px-4 text-muted-foreground text-sm">OR</span>
+                          <span className="px-4 text-muted-foreground text-sm">
+                            <LocalizedText text={"OR"} />
+                          </span>
                           <div className="grow border-t border-border"></div>
                         </div>
 
@@ -336,9 +381,11 @@ const VectorStoreInfoView: React.FC<VectorStoreInfoViewProps> = ({
 
                       <div className="mt-6 flex justify-end space-x-2">
                         <Button type="button" variant="outline" onClick={() => setIsEditing(false)}>
-                          Cancel
+                          <LocalizedText text={"Cancel"} />
                         </Button>
-                        <Button type="submit">Save Changes</Button>
+                        <Button type="submit">
+                          <LocalizedText text={"Save Changes"} />
+                        </Button>
                       </div>
                     </form>
                   </TooltipProvider>
@@ -348,26 +395,40 @@ const VectorStoreInfoView: React.FC<VectorStoreInfoViewProps> = ({
           ) : (
             <div>
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-medium">Vector Store Details</h3>
-                {canEdit && <Button onClick={startEditing}>Edit Vector Store</Button>}
+                <h3 className="text-lg font-medium">
+                  <LocalizedText text={"Vector Store Details"} />
+                </h3>
+                {canEdit && (
+                  <Button onClick={startEditing}>
+                    <LocalizedText text={"Edit Vector Store"} />
+                  </Button>
+                )}
               </div>
               <Card>
                 <CardContent>
                   <div className="space-y-4">
                     <div>
-                      <p className="font-medium">ID</p>
+                      <p className="font-medium">
+                        <LocalizedText text={"ID"} />
+                      </p>
                       <p>{vectorStoreDetails.vector_store_id}</p>
                     </div>
                     <div>
-                      <p className="font-medium">Name</p>
+                      <p className="font-medium">
+                        <LocalizedText text={"Name"} />
+                      </p>
                       <p>{vectorStoreDetails.vector_store_name || "-"}</p>
                     </div>
                     <div>
-                      <p className="font-medium">Description</p>
+                      <p className="font-medium">
+                        <LocalizedText text={"Description"} />
+                      </p>
                       <p>{vectorStoreDetails.vector_store_description || "-"}</p>
                     </div>
                     <div>
-                      <p className="font-medium">Provider</p>
+                      <p className="font-medium">
+                        <LocalizedText text={"Provider"} />
+                      </p>
                       <div className="flex items-center space-x-2 mt-1">
                         {(() => {
                           const provider = vectorStoreDetails.custom_llm_provider || "bedrock";
@@ -383,21 +444,31 @@ const VectorStoreInfoView: React.FC<VectorStoreInfoViewProps> = ({
                       </div>
                     </div>
                     <div>
-                      <p className="font-medium">Metadata</p>
+                      <p className="font-medium">
+                        <LocalizedText text={"Metadata"} />
+                      </p>
                       <div className="bg-muted p-3 rounded-sm mt-2 font-mono text-xs overflow-auto max-h-48">
                         <pre>{metadataString}</pre>
                       </div>
                     </div>
                     <div>
-                      <p className="font-medium">Created</p>
+                      <p className="font-medium">
+                        <LocalizedText text={"Created"} />
+                      </p>
                       <p>
-                        {vectorStoreDetails.created_at ? new Date(vectorStoreDetails.created_at).toLocaleString() : "-"}
+                        {vectorStoreDetails.created_at
+                          ? new Date(vectorStoreDetails.created_at).toLocaleString(getIntlLocale())
+                          : "-"}
                       </p>
                     </div>
                     <div>
-                      <p className="font-medium">Last Updated</p>
+                      <p className="font-medium">
+                        <LocalizedText text={"Last Updated"} />
+                      </p>
                       <p>
-                        {vectorStoreDetails.updated_at ? new Date(vectorStoreDetails.updated_at).toLocaleString() : "-"}
+                        {vectorStoreDetails.updated_at
+                          ? new Date(vectorStoreDetails.updated_at).toLocaleString(getIntlLocale())
+                          : "-"}
                       </p>
                     </div>
                   </div>

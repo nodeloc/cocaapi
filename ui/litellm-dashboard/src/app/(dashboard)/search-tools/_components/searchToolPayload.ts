@@ -1,3 +1,4 @@
+import { markUiCopy } from "@/lib/i18n";
 import type { SearchToolInfo, SearchToolLiteLLMParams } from "./types";
 
 export interface SearchToolFormValues {
@@ -19,5 +20,7 @@ export const buildSearchToolPayload = (values: SearchToolFormValues): SearchTool
     search_provider: values.search_provider,
     api_key: values.api_key,
   },
-  search_tool_info: values.description ? { description: values.description } : undefined,
+  search_tool_info: values.description
+    ? markUiCopy({ description: values.description }, { description: { owner: values, field: "description" } })
+    : undefined,
 });

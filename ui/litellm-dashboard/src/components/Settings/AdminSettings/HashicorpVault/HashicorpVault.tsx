@@ -1,4 +1,5 @@
 "use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import { Edit, ExternalLink, Info, KeyRound, PlugZap, Trash2 } from "lucide-react";
 import { useState } from "react";
@@ -26,16 +27,21 @@ function detectAuthMethod(values: Record<string, unknown>): string {
   return "None";
 }
 
-function DetailRow({ children, label }: { children: React.ReactNode; label: string }) {
+function DetailRow(cocaCopyProps0: { children: React.ReactNode; label: string }) {
+  const { children, label } = cocaCopyProps0;
+  useUiLocale();
   return (
     <div className="grid grid-cols-1 sm:grid-cols-3">
-      <dt className="bg-muted/50 px-4 py-3 text-sm font-medium text-foreground">{label}</dt>
+      <dt className="bg-muted/50 px-4 py-3 text-sm font-medium text-foreground">
+        {localizedProperty(cocaCopyProps0, "label", label)}
+      </dt>
       <dd className="px-4 py-3 text-sm text-foreground sm:col-span-2">{children}</dd>
     </div>
   );
 }
 
 export default function HashicorpVault() {
+  useUiLocale();
   const { accessToken } = useAuthorized();
   const { data, isLoading, isError, error } = useHashicorpVaultConfig();
   const { mutate: deleteConfig, isPending: isDeleting } = useDeleteHashicorpVaultConfig(accessToken);
@@ -52,7 +58,9 @@ export default function HashicorpVault() {
     setIsTesting(true);
     try {
       const result = await testHashicorpVaultConnection(accessToken);
-      toast.success(result.message || "Connection to Vault successful!");
+      toast.success(
+        localizedProperty(result, "message", result.message) || translateMessage("Connection to Vault successful!"),
+      );
     } catch (err) {
       toast.fromError(err);
     } finally {
@@ -63,7 +71,7 @@ export default function HashicorpVault() {
   const handleDelete = () => {
     deleteConfig(undefined, {
       onSuccess: () => {
-        toast.success("Hashicorp Vault configuration deleted");
+        toast.success(translateMessage("Hashicorp Vault configuration deleted"));
         setIsDeleteModalOpen(false);
       },
       onError: (err) => toast.fromError(err),
@@ -76,7 +84,7 @@ export default function HashicorpVault() {
       { [clearingField]: "" },
       {
         onSuccess: () => {
-          toast.success(`${FIELD_LABELS[clearingField] ?? clearingField} cleared`);
+          toast.success(translateMessage("%{0} cleared", [FIELD_LABELS[clearingField] ?? clearingField]));
           setClearingField(null);
         },
         onError: (err) => toast.fromError(err),
@@ -86,7 +94,12 @@ export default function HashicorpVault() {
 
   const renderValue = (key: string) => {
     const value = rawValues[key];
-    if (!value) return <span className="text-muted-foreground italic">Not configured</span>;
+    if (!value)
+      return (
+        <span className="text-muted-foreground italic">
+          <LocalizedText text={"Not configured"} />
+        </span>
+      );
     if (!SENSITIVE_FIELDS.has(key)) return <span className="font-mono text-muted-foreground">{value}</span>;
 
     return (
@@ -96,7 +109,7 @@ export default function HashicorpVault() {
           type="button"
           variant="ghost"
           size="icon-sm"
-          aria-label={`Clear ${FIELD_LABELS[key] ?? key}`}
+          aria-label={translateMessage("Clear %{0}", [FIELD_LABELS[key] ?? key])}
           onClick={() => setClearingField(key)}
         >
           <Trash2 className="size-3.5" />
@@ -110,7 +123,7 @@ export default function HashicorpVault() {
   return (
     <>
       {isLoading ? (
-        <Card role="status" aria-label="Loading Hashicorp Vault configuration">
+        <Card role="status" aria-label={translateMessage("Loading Hashicorp Vault configuration")}>
           <CardContent className="space-y-3">
             <Skeleton className="h-8 w-64" />
             <Skeleton className="h-40 w-full" />
@@ -120,8 +133,12 @@ export default function HashicorpVault() {
         <Card>
           <CardContent>
             <Alert variant="error">
-              <AlertTitle>Could not load Hashicorp Vault configuration</AlertTitle>
-              {error instanceof Error && <AlertDescription>{error.message}</AlertDescription>}
+              <AlertTitle>
+                <LocalizedText text={"Could not load Hashicorp Vault configuration"} />
+              </AlertTitle>
+              {error instanceof Error && (
+                <AlertDescription>{localizedProperty(error, "message", error.message)}</AlertDescription>
+              )}
             </Alert>
           </CardContent>
         </Card>
@@ -132,24 +149,28 @@ export default function HashicorpVault() {
               <KeyRound className="size-6 text-muted-foreground" />
               <div>
                 <CardTitle>
-                  <h3>Hashicorp Vault</h3>
+                  <h3>
+                    <LocalizedText text={"Hashicorp Vault"} />
+                  </h3>
                 </CardTitle>
-                <CardDescription>Manage secret manager configuration</CardDescription>
+                <CardDescription>
+                  <LocalizedText text={"Manage secret manager configuration"} />
+                </CardDescription>
               </div>
             </div>
             {isConfigured && (
               <CardAction className="flex flex-wrap gap-2">
                 <Button type="button" variant="outline" disabled={isTesting} onClick={handleTestConnection}>
                   <PlugZap />
-                  {isTesting ? "Testing..." : "Test Connection"}
+                  {isTesting ? translateMessage("Testing...") : translateMessage("Test Connection")}
                 </Button>
                 <Button type="button" variant="outline" onClick={() => setIsEditModalVisible(true)}>
                   <Edit />
-                  Edit Configuration
+                  <LocalizedText text={"Edit Configuration"} />
                 </Button>
                 <Button type="button" variant="destructive" onClick={() => setIsDeleteModalOpen(true)}>
                   <Trash2 />
-                  Delete Configuration
+                  <LocalizedText text={"Delete Configuration"} />
                 </Button>
               </CardAction>
             )}
@@ -158,7 +179,9 @@ export default function HashicorpVault() {
             {isConfigured && (
               <Alert variant="info">
                 <Info />
-                <AlertTitle>Secrets must be stored with the field name &quot;key&quot;</AlertTitle>
+                <AlertTitle>
+                  <LocalizedText text={'Secrets must be stored with the field name "key"'} />
+                </AlertTitle>
                 <AlertDescription>
                   <code className="block font-mono">vault kv put secret/SECRET_NAME key=secret_value</code>
                   <a
@@ -167,7 +190,7 @@ export default function HashicorpVault() {
                     rel="noreferrer"
                     className="inline-flex items-center gap-1"
                   >
-                    View documentation
+                    <LocalizedText text={"View documentation"} />
                     <ExternalLink className="size-3" />
                   </a>
                 </AlertDescription>
@@ -177,9 +200,9 @@ export default function HashicorpVault() {
             {isConfigured ? (
               fieldsToShow.length > 0 && (
                 <dl className="divide-y divide-border overflow-hidden rounded-md border border-border">
-                  <DetailRow label="Auth Method">{detectAuthMethod(rawValues)}</DetailRow>
+                  <DetailRow label={translateMessage("Auth Method")}>{detectAuthMethod(rawValues)}</DetailRow>
                   {fieldsToShow.map(([key]) => (
-                    <DetailRow key={key} label={FIELD_LABELS[key] ?? key}>
+                    <DetailRow key={key} label={localizedProperty(FIELD_LABELS, key, FIELD_LABELS[key]) ?? key}>
                       {renderValue(key)}
                     </DetailRow>
                   ))}
@@ -199,21 +222,28 @@ export default function HashicorpVault() {
       />
       <DeleteResourceModal
         isOpen={isDeleteModalOpen}
-        title="Delete Hashicorp Vault Configuration?"
-        message="Models using Vault secrets will lose access to their API keys until a new configuration is saved."
+        title={translateMessage("Delete Hashicorp Vault Configuration?")}
+        message={translateMessage(
+          "Models using Vault secrets will lose access to their API keys until a new configuration is saved.",
+        )}
         resourceInformationTitle="Vault Configuration"
-        resourceInformation={[{ label: "Vault Address", value: rawValues.vault_addr }]}
+        resourceInformation={[
+          markUiCopy({ label: "Vault Address", value: rawValues.vault_addr }, { label: "Vault Address" }),
+        ]}
         onCancel={() => setIsDeleteModalOpen(false)}
         onOk={handleDelete}
         confirmLoading={isDeleting}
       />
       <DeleteResourceModal
         isOpen={clearingField !== null}
-        title={`Clear ${clearingField ? FIELD_LABELS[clearingField] ?? clearingField : ""}?`}
-        message="This will remove the stored value."
+        title={translateMessage("Clear %{0}?", [clearingField ? FIELD_LABELS[clearingField] ?? clearingField : ""])}
+        message={translateMessage("This will remove the stored value.")}
         resourceInformationTitle="Field"
         resourceInformation={[
-          { label: "Field", value: clearingField ? FIELD_LABELS[clearingField] ?? clearingField : "" },
+          markUiCopy(
+            { label: "Field", value: clearingField ? FIELD_LABELS[clearingField] ?? clearingField : "" },
+            { label: "Field" },
+          ),
         ]}
         onCancel={() => setClearingField(null)}
         onOk={handleClearField}

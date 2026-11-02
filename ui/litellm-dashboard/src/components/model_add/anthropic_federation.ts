@@ -1,3 +1,4 @@
+import { markUiCopy } from "@/lib/i18n";
 import { isMaskedSecret } from "@/utils/maskedSecretUtils";
 import { isBlank, type FederationField } from "./federation_field";
 
@@ -23,172 +24,277 @@ const ACCEPTED_REFERENCE_PREFIX = "oidc/";
 const REJECTED_REFERENCE_PREFIX = "oidc/env_path/";
 
 export const FEDERATION_CORE_FIELDS: readonly FederationField[] = [
-  {
-    key: "anthropic_federation_rule_id",
-    label: "Federation Rule ID",
-    tooltip:
-      "The fdrl_ id of the federation rule, from Settings > Workload identity in the Claude Console. Leave empty when the proxy sets ANTHROPIC_FEDERATION_RULE_ID in its environment.",
-    placeholder: "fdrl_...",
-    required: false,
-    control: "text",
-  },
-  {
-    key: "anthropic_organization_id",
-    label: "Organization ID",
-    tooltip:
-      "The Anthropic organization the federation rule belongs to, shown on the rule's detail page. Leave empty when the proxy sets ANTHROPIC_ORGANIZATION_ID in its environment.",
-    required: false,
-    control: "text",
-  },
-  {
-    key: "anthropic_service_account_id",
-    label: "Service Account ID",
-    tooltip: "The svac_ id the federation rule targets. Anthropic's reference lists it as required.",
-    placeholder: "svac_...",
-    required: false,
-    control: "text",
-  },
-  {
-    key: "anthropic_federation_workspace_id",
-    label: "Workspace ID",
-    tooltip:
-      "Set this when the federation rule is enabled in more than one workspace: the wrkspc_ id to mint tokens for, or 'default'.",
-    placeholder: "wrkspc_...",
-    required: false,
-    control: "text",
-  },
+  markUiCopy(
+    {
+      key: "anthropic_federation_rule_id",
+      label: "Federation Rule ID",
+      tooltip:
+        "The fdrl_ id of the federation rule, from Settings > Workload identity in the Claude Console. Leave empty when the proxy sets ANTHROPIC_FEDERATION_RULE_ID in its environment.",
+      placeholder: "fdrl_...",
+      required: false,
+      control: "text",
+    },
+    {
+      label: "Federation Rule ID",
+      tooltip:
+        "The fdrl_ id of the federation rule, from Settings > Workload identity in the Claude Console. Leave empty when the proxy sets ANTHROPIC_FEDERATION_RULE_ID in its environment.",
+    },
+  ),
+  markUiCopy(
+    {
+      key: "anthropic_organization_id",
+      label: "Organization ID",
+      tooltip:
+        "The Anthropic organization the federation rule belongs to, shown on the rule's detail page. Leave empty when the proxy sets ANTHROPIC_ORGANIZATION_ID in its environment.",
+      required: false,
+      control: "text",
+    },
+    {
+      label: "Organization ID",
+      tooltip:
+        "The Anthropic organization the federation rule belongs to, shown on the rule's detail page. Leave empty when the proxy sets ANTHROPIC_ORGANIZATION_ID in its environment.",
+    },
+  ),
+  markUiCopy(
+    {
+      key: "anthropic_service_account_id",
+      label: "Service Account ID",
+      tooltip: "The svac_ id the federation rule targets. Anthropic's reference lists it as required.",
+      placeholder: "svac_...",
+      required: false,
+      control: "text",
+    },
+    {
+      label: "Service Account ID",
+      tooltip: "The svac_ id the federation rule targets. Anthropic's reference lists it as required.",
+    },
+  ),
+  markUiCopy(
+    {
+      key: "anthropic_federation_workspace_id",
+      label: "Workspace ID",
+      tooltip:
+        "Set this when the federation rule is enabled in more than one workspace: the wrkspc_ id to mint tokens for, or 'default'.",
+      placeholder: "wrkspc_...",
+      required: false,
+      control: "text",
+    },
+    {
+      label: "Workspace ID",
+      tooltip:
+        "Set this when the federation rule is enabled in more than one workspace: the wrkspc_ id to mint tokens for, or 'default'.",
+    },
+  ),
 ];
 
 export const IDENTITY_SOURCES: readonly IdentitySource[] = [
-  {
-    id: "token_file",
-    label: "Identity token file",
-    fixedValues: {},
-    fields: [
-      {
-        key: "anthropic_identity_token_file",
-        label: "Identity Token File",
-        tooltip:
-          "Absolute path on the proxy host of a file holding the identity token, for example a projected Kubernetes service account token. It must sit under an allowed credential directory.",
-        placeholder: "/var/run/secrets/anthropic/token",
-        required: true,
-        control: "text",
-      },
-    ],
-  },
-  {
-    id: "secret_reference",
-    label: "Identity token secret reference",
-    fixedValues: {},
-    fields: [
-      {
-        key: "anthropic_identity_token",
-        label: "Identity Token Reference",
-        tooltip:
-          "An oidc/ secret reference the proxy resolves on each exchange, such as oidc/env/VAR_NAME, oidc/github/<audience>, or oidc/google/<audience>. Raw tokens are not accepted.",
-        placeholder: "oidc/env/ANTHROPIC_IDENTITY_TOKEN",
-        required: true,
-        control: "text",
-      },
-    ],
-  },
-  {
-    id: "internal_issuer",
-    label: "Token signed by LiteLLM (internal issuer)",
-    fixedValues: { [IDENTITY_SOURCE_KEY]: "internal_issuer" },
-    fields: [
-      {
-        key: "anthropic_issuer_url",
-        label: "Issuer URL",
-        tooltip: "The issuer registered on the federation rule. The proxy puts it in the token's iss claim.",
-        placeholder: "https://litellm.example.com",
-        required: true,
-        control: "text",
-      },
-      {
-        key: "anthropic_issuer_subject",
-        label: "Subject",
-        tooltip: "The sub claim the federation rule matches.",
-        required: true,
-        control: "text",
-      },
-      {
-        key: "anthropic_issuer_audience",
-        label: "Audience",
-        tooltip: "Optional aud claim, when the federation rule checks one.",
-        required: false,
-        control: "text",
-      },
-      {
-        key: "anthropic_issuer_ttl_seconds",
-        label: "Token Lifetime (seconds)",
-        tooltip: `Optional. How long each signed token is valid, from 1 to ${MAX_ISSUER_TTL_SECONDS} seconds. The proxy uses its default when this is empty.`,
-        required: false,
-        control: "integer",
-      },
-      {
-        key: "anthropic_issuer_signing_key_ref",
-        label: "Signing Key Reference",
-        tooltip:
-          "A secret reference to the PEM private key the proxy signs with, such as os.environ/VAR_NAME. Enter the reference, never the key itself.",
-        placeholder: "os.environ/ANTHROPIC_ISSUER_SIGNING_KEY",
-        required: true,
-        control: "text",
-      },
-    ],
-  },
-  {
-    id: "keycloak",
-    label: "Keycloak client credentials",
-    fixedValues: { [IDENTITY_SOURCE_KEY]: "keycloak" },
-    fields: [
-      {
-        key: "anthropic_keycloak_token_url",
-        label: "Keycloak Token URL",
-        tooltip: "The realm's token endpoint the proxy requests an identity token from.",
-        placeholder: "https://keycloak.example.com/realms/<realm>/protocol/openid-connect/token",
-        required: true,
-        control: "text",
-      },
-      {
-        key: "anthropic_keycloak_client_id",
-        label: "Keycloak Client ID",
-        tooltip: "The client the proxy authenticates as.",
-        required: true,
-        control: "text",
-      },
-      {
-        key: "anthropic_keycloak_client_secret_ref",
-        label: "Client Secret Reference",
-        tooltip:
-          "A secret reference to the client secret, such as os.environ/VAR_NAME. Enter the reference, never the secret itself.",
-        placeholder: "os.environ/KEYCLOAK_CLIENT_SECRET",
-        required: true,
-        control: "text",
-      },
-      {
-        key: "anthropic_keycloak_auth_method",
-        label: "Client Authentication Method",
-        tooltip: "Optional. How the client secret is sent to Keycloak. The proxy uses client_secret_basic when unset.",
-        required: false,
-        control: "select",
-        options: ["client_secret_basic", "client_secret_post"],
-      },
-      {
-        key: "anthropic_keycloak_scope",
-        label: "Scope",
-        tooltip: "Optional scope to request with the token.",
-        required: false,
-        control: "text",
-      },
-    ],
-  },
-  {
-    id: "environment",
-    label: "Proxy environment variables",
-    fixedValues: {},
-    fields: [],
-  },
+  markUiCopy(
+    {
+      id: "token_file",
+      label: "Identity token file",
+      fixedValues: {},
+      fields: [
+        markUiCopy(
+          {
+            key: "anthropic_identity_token_file",
+            label: "Identity Token File",
+            tooltip:
+              "Absolute path on the proxy host of a file holding the identity token, for example a projected Kubernetes service account token. It must sit under an allowed credential directory.",
+            placeholder: "/var/run/secrets/anthropic/token",
+            required: true,
+            control: "text",
+          },
+          {
+            label: "Identity Token File",
+            tooltip:
+              "Absolute path on the proxy host of a file holding the identity token, for example a projected Kubernetes service account token. It must sit under an allowed credential directory.",
+          },
+        ),
+      ],
+    },
+    { label: "Identity token file" },
+  ),
+  markUiCopy(
+    {
+      id: "secret_reference",
+      label: "Identity token secret reference",
+      fixedValues: {},
+      fields: [
+        markUiCopy(
+          {
+            key: "anthropic_identity_token",
+            label: "Identity Token Reference",
+            tooltip:
+              "An oidc/ secret reference the proxy resolves on each exchange, such as oidc/env/VAR_NAME, oidc/github/<audience>, or oidc/google/<audience>. Raw tokens are not accepted.",
+            placeholder: "oidc/env/ANTHROPIC_IDENTITY_TOKEN",
+            required: true,
+            control: "text",
+          },
+          {
+            label: "Identity Token Reference",
+            tooltip:
+              "An oidc/ secret reference the proxy resolves on each exchange, such as oidc/env/VAR_NAME, oidc/github/<audience>, or oidc/google/<audience>. Raw tokens are not accepted.",
+          },
+        ),
+      ],
+    },
+    { label: "Identity token secret reference" },
+  ),
+  markUiCopy(
+    {
+      id: "internal_issuer",
+      label: "Token signed by LiteLLM (internal issuer)",
+      fixedValues: { [IDENTITY_SOURCE_KEY]: "internal_issuer" },
+      fields: [
+        markUiCopy(
+          {
+            key: "anthropic_issuer_url",
+            label: "Issuer URL",
+            tooltip: "The issuer registered on the federation rule. The proxy puts it in the token's iss claim.",
+            placeholder: "https://litellm.example.com",
+            required: true,
+            control: "text",
+          },
+          {
+            label: "Issuer URL",
+            tooltip: "The issuer registered on the federation rule. The proxy puts it in the token's iss claim.",
+          },
+        ),
+        markUiCopy(
+          {
+            key: "anthropic_issuer_subject",
+            label: "Subject",
+            tooltip: "The sub claim the federation rule matches.",
+            required: true,
+            control: "text",
+          },
+          { label: "Subject", tooltip: "The sub claim the federation rule matches." },
+        ),
+        markUiCopy(
+          {
+            key: "anthropic_issuer_audience",
+            label: "Audience",
+            tooltip: "Optional aud claim, when the federation rule checks one.",
+            required: false,
+            control: "text",
+          },
+          { label: "Audience", tooltip: "Optional aud claim, when the federation rule checks one." },
+        ),
+        markUiCopy(
+          {
+            key: "anthropic_issuer_ttl_seconds",
+            label: "Token Lifetime (seconds)",
+            tooltip: `Optional. How long each signed token is valid, from 1 to ${MAX_ISSUER_TTL_SECONDS} seconds. The proxy uses its default when this is empty.`,
+            required: false,
+            control: "integer",
+          },
+          { label: "Token Lifetime (seconds)" },
+        ),
+        markUiCopy(
+          {
+            key: "anthropic_issuer_signing_key_ref",
+            label: "Signing Key Reference",
+            tooltip:
+              "A secret reference to the PEM private key the proxy signs with, such as os.environ/VAR_NAME. Enter the reference, never the key itself.",
+            placeholder: "os.environ/ANTHROPIC_ISSUER_SIGNING_KEY",
+            required: true,
+            control: "text",
+          },
+          {
+            label: "Signing Key Reference",
+            tooltip:
+              "A secret reference to the PEM private key the proxy signs with, such as os.environ/VAR_NAME. Enter the reference, never the key itself.",
+          },
+        ),
+      ],
+    },
+    { label: "Token signed by LiteLLM (internal issuer)" },
+  ),
+  markUiCopy(
+    {
+      id: "keycloak",
+      label: "Keycloak client credentials",
+      fixedValues: { [IDENTITY_SOURCE_KEY]: "keycloak" },
+      fields: [
+        markUiCopy(
+          {
+            key: "anthropic_keycloak_token_url",
+            label: "Keycloak Token URL",
+            tooltip: "The realm's token endpoint the proxy requests an identity token from.",
+            placeholder: "https://keycloak.example.com/realms/<realm>/protocol/openid-connect/token",
+            required: true,
+            control: "text",
+          },
+          {
+            label: "Keycloak Token URL",
+            tooltip: "The realm's token endpoint the proxy requests an identity token from.",
+          },
+        ),
+        markUiCopy(
+          {
+            key: "anthropic_keycloak_client_id",
+            label: "Keycloak Client ID",
+            tooltip: "The client the proxy authenticates as.",
+            required: true,
+            control: "text",
+          },
+          { label: "Keycloak Client ID", tooltip: "The client the proxy authenticates as." },
+        ),
+        markUiCopy(
+          {
+            key: "anthropic_keycloak_client_secret_ref",
+            label: "Client Secret Reference",
+            tooltip:
+              "A secret reference to the client secret, such as os.environ/VAR_NAME. Enter the reference, never the secret itself.",
+            placeholder: "os.environ/KEYCLOAK_CLIENT_SECRET",
+            required: true,
+            control: "text",
+          },
+          {
+            label: "Client Secret Reference",
+            tooltip:
+              "A secret reference to the client secret, such as os.environ/VAR_NAME. Enter the reference, never the secret itself.",
+          },
+        ),
+        markUiCopy(
+          {
+            key: "anthropic_keycloak_auth_method",
+            label: "Client Authentication Method",
+            tooltip:
+              "Optional. How the client secret is sent to Keycloak. The proxy uses client_secret_basic when unset.",
+            required: false,
+            control: "select",
+            options: ["client_secret_basic", "client_secret_post"],
+          },
+          {
+            label: "Client Authentication Method",
+            tooltip:
+              "Optional. How the client secret is sent to Keycloak. The proxy uses client_secret_basic when unset.",
+          },
+        ),
+        markUiCopy(
+          {
+            key: "anthropic_keycloak_scope",
+            label: "Scope",
+            tooltip: "Optional scope to request with the token.",
+            required: false,
+            control: "text",
+          },
+          { label: "Scope", tooltip: "Optional scope to request with the token." },
+        ),
+      ],
+    },
+    { label: "Keycloak client credentials" },
+  ),
+  markUiCopy(
+    {
+      id: "environment",
+      label: "Proxy environment variables",
+      fixedValues: {},
+      fields: [],
+    },
+    { label: "Proxy environment variables" },
+  ),
 ];
 
 export const DEFAULT_IDENTITY_SOURCE: IdentitySourceId = "token_file";
@@ -239,7 +345,9 @@ export const identitySourceOptions = (
   ...(inferIdentitySource(storedValues) === "unrecognized"
     ? [{ value: "unrecognized" as const, label: `Stored: ${String(storedValues[IDENTITY_SOURCE_KEY])}` }]
     : []),
-  ...IDENTITY_SOURCES.map((source) => ({ value: source.id, label: source.label })),
+  ...IDENTITY_SOURCES.map((source) =>
+    markUiCopy({ value: source.id, label: source.label }, { label: { owner: source, field: "label" } }),
+  ),
 ];
 
 export const validateFederationValueStored =

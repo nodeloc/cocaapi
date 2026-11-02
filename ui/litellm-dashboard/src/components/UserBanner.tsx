@@ -1,4 +1,5 @@
 "use client";
+import { localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import React, { useState } from "react";
 import ReactMarkdown from "react-markdown";
@@ -18,24 +19,34 @@ export const SEVERITY_ICONS: Record<UserBannerSeverity, React.ReactElement> = {
 };
 
 export const bannerSignature = (banner: UserBannerData): string =>
-  JSON.stringify({ message: banner.message, severity: banner.severity, revision: banner.revision });
+  JSON.stringify(
+    markUiCopy(
+      { message: banner.message, severity: banner.severity, revision: banner.revision },
+      { message: { owner: banner, field: "message" } },
+    ),
+  );
 
-export const UserBannerMarkdown: React.FC<{ message: string }> = ({ message }) => (
-  <ReactMarkdown
-    remarkPlugins={[remarkGfm]}
-    components={{
-      a: ({ node: _node, ...props }) => <a {...props} target="_blank" rel="noopener noreferrer" />,
-    }}
-  >
-    {message}
-  </ReactMarkdown>
-);
+export const UserBannerMarkdown: React.FC<{ message: string }> = (cocaCopyProps0) => {
+  const { message } = cocaCopyProps0;
+  useUiLocale();
+  return (
+    <ReactMarkdown
+      remarkPlugins={[remarkGfm]}
+      components={{
+        a: ({ node: _node, ...props }) => <a {...props} target="_blank" rel="noopener noreferrer" />,
+      }}
+    >
+      {message}
+    </ReactMarkdown>
+  );
+};
 
 interface UserBannerProps {
   accessToken: string | null;
 }
 
 export const UserBanner: React.FC<UserBannerProps> = ({ accessToken }) => {
+  useUiLocale();
   const { data: banner } = useUserBanner(accessToken);
   const [dismissedSignature, setDismissedSignature] = useState<string | null>(() =>
     typeof window === "undefined" ? null : localStorage.getItem(DISMISS_STORAGE_KEY),
@@ -59,10 +70,10 @@ export const UserBanner: React.FC<UserBannerProps> = ({ accessToken }) => {
     <Alert variant={banner.severity} className="rounded-none border-x-0 border-t-0">
       {SEVERITY_ICONS[banner.severity]}
       <AlertDescription>
-        <UserBannerMarkdown message={banner.message} />
+        <UserBannerMarkdown message={localizedProperty(banner, "message", banner.message)} />
       </AlertDescription>
       <AlertAction>
-        <Button variant="ghost" size="icon-sm" aria-label="Dismiss banner" onClick={handleDismiss}>
+        <Button variant="ghost" size="icon-sm" aria-label={translateMessage("Dismiss banner")} onClick={handleDismiss}>
           <X />
         </Button>
       </AlertAction>

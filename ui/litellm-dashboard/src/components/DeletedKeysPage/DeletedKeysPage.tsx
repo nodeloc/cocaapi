@@ -1,4 +1,6 @@
 "use client";
+import { LocalizedText, useUiLocale } from "@/lib/i18n";
+
 import { PageContent } from "@/components/shared/Page";
 import { useState } from "react";
 import { PaginationState } from "@tanstack/react-table";
@@ -9,6 +11,7 @@ import useAuthorized from "@/app/(dashboard)/hooks/useAuthorized";
 import { DeletedKeysTable } from "./DeletedKeysTable/DeletedKeysTable";
 
 export default function DeletedKeysPage() {
+  useUiLocale();
   const { premiumUser } = useAuthorized();
   const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 50 });
 
@@ -19,9 +22,13 @@ export default function DeletedKeysPage() {
       {!premiumUser && (
         <Alert className="shrink-0">
           <Info />
-          <AlertTitle>Coming soon to Enterprise</AlertTitle>
+          <AlertTitle>
+            <LocalizedText text={"Coming soon to Enterprise"} />
+          </AlertTitle>
           <AlertDescription>
-            Deleted key auditing is graduating from beta into our Enterprise audit &amp; compliance suite.
+            <LocalizedText
+              text={"Deleted key auditing is graduating from beta into our Enterprise audit & compliance suite."}
+            />
           </AlertDescription>
         </Alert>
       )}

@@ -1,3 +1,4 @@
+import { markUiCopy } from "@/lib/i18n";
 import type { RoutingGroup } from "./types";
 
 export const STRATEGIES_WITH_ARGS = new Set<string>(["latency-based-routing", "usage-based-routing"]);
@@ -66,11 +67,14 @@ export const buildRoutingGroupPayload = (values: RoutingGroupFormValues): Routin
     const exactMembership =
       configuredModels.size === values.models.length && values.models.every((model) => configuredModels.has(model));
     if (priorities.length === 0 || priorities.length !== values.models.length || !exactMembership) {
-      return {
-        ok: false,
-        field: "model_priorities",
-        message: "Set a priority for each selected model and remove unused priorities",
-      };
+      return markUiCopy(
+        {
+          ok: false,
+          field: "model_priorities" as const,
+          message: "Set a priority for each selected model and remove unused priorities",
+        },
+        { message: "Set a priority for each selected model and remove unused priorities" },
+      );
     }
     if (
       priorities.some(
@@ -78,11 +82,14 @@ export const buildRoutingGroupPayload = (values: RoutingGroupFormValues): Routin
           !/^\d+$/.test(priority.trim()) || !Number.isSafeInteger(Number(priority)) || Number(priority) < 1,
       )
     ) {
-      return {
-        ok: false,
-        field: "model_priorities",
-        message: "Priorities must be whole numbers from 1 to 9007199254740991",
-      };
+      return markUiCopy(
+        {
+          ok: false,
+          field: "model_priorities" as const,
+          message: "Priorities must be whole numbers from 1 to 9007199254740991",
+        },
+        { message: "Priorities must be whole numbers from 1 to 9007199254740991" },
+      );
     }
     return {
       ok: true,
@@ -101,6 +108,9 @@ export const buildRoutingGroupPayload = (values: RoutingGroupFormValues): Routin
   try {
     return { ok: true, group: { ...base, routing_strategy_args: JSON.parse(args) as Record<string, unknown> } };
   } catch {
-    return { ok: false, field: "routing_strategy_args", message: "Must be valid JSON" };
+    return markUiCopy(
+      { ok: false, field: "routing_strategy_args" as const, message: "Must be valid JSON" },
+      { message: "Must be valid JSON" },
+    );
   }
 };

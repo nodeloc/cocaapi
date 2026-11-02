@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 import React, { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -40,6 +42,7 @@ const GuardrailSelectionModal: React.FC<GuardrailSelectionModalProps> = ({
   isLoading = false,
   progressInfo,
 }) => {
+  useUiLocale();
   const [selectedGuardrails, setSelectedGuardrails] = useState<Set<string>>(new Set());
 
   // Prepare guardrail info with existence status
@@ -95,14 +98,19 @@ const GuardrailSelectionModal: React.FC<GuardrailSelectionModalProps> = ({
       <DialogContent className="sm:max-w-175">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-lg">
-            {template?.title}
+            {localizedProperty(template, "title", template?.title)}
             {progressInfo && (
               <Badge variant="secondary">
-                Template {progressInfo.current} of {progressInfo.total}
+                <LocalizedText text={"Template "} />
+                {progressInfo.current}
+                <LocalizedText text={" of "} />
+                {progressInfo.total}
               </Badge>
             )}
           </DialogTitle>
-          <DialogDescription>Review and select guardrails to create for this template</DialogDescription>
+          <DialogDescription>
+            <LocalizedText text={"Review and select guardrails to create for this template"} />
+          </DialogDescription>
         </DialogHeader>
 
         <div className="py-4">
@@ -111,13 +119,22 @@ const GuardrailSelectionModal: React.FC<GuardrailSelectionModalProps> = ({
             <Info className="size-4 text-muted-foreground" />
             <div className="flex-1">
               <div className="text-sm">
-                <span className="font-medium">{guardrailsInfo.length} total guardrails</span>
+                <span className="font-medium">
+                  {guardrailsInfo.length}
+                  <LocalizedText text={" total guardrails"} />
+                </span>
                 <span className="mx-2 text-muted-foreground">•</span>
-                <span className="font-medium text-success">{newGuardrailsCount} new</span>
+                <span className="font-medium text-success">
+                  {newGuardrailsCount}
+                  <LocalizedText text={" new"} />
+                </span>
                 {existingCount > 0 && (
                   <>
                     <span className="mx-2 text-muted-foreground">•</span>
-                    <span className="text-muted-foreground">{existingCount} already exist</span>
+                    <span className="text-muted-foreground">
+                      {existingCount}
+                      <LocalizedText text={" already exist"} />
+                    </span>
                   </>
                 )}
               </div>
@@ -125,10 +142,10 @@ const GuardrailSelectionModal: React.FC<GuardrailSelectionModalProps> = ({
             {newGuardrailsCount > 0 && (
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" onClick={handleSelectAll}>
-                  Select All New
+                  <LocalizedText text={"Select All New"} />
                 </Button>
                 <Button variant="outline" size="sm" onClick={handleDeselectAll}>
-                  Deselect All
+                  <LocalizedText text={"Deselect All"} />
                 </Button>
               </div>
             )}
@@ -157,19 +174,28 @@ const GuardrailSelectionModal: React.FC<GuardrailSelectionModalProps> = ({
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="font-mono text-sm font-medium">{guardrail.guardrail_name}</span>
-                      {guardrail.alreadyExists && <Badge variant="secondary">Already exists</Badge>}
+                      {guardrail.alreadyExists && (
+                        <Badge variant="secondary">
+                          <LocalizedText text={"Already exists"} />
+                        </Badge>
+                      )}
                     </div>
-                    <p className="text-sm text-muted-foreground">{guardrail.description}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {localizedProperty(guardrail, "description", guardrail.description)}
+                    </p>
 
                     {/* Show guardrail type and mode */}
                     <div className="flex gap-2 mt-2">
-                      <Badge variant="outline">{guardrail.definition?.litellm_params?.guardrail || "unknown"}</Badge>
+                      <Badge variant="outline">
+                        {guardrail.definition?.litellm_params?.guardrail || translateMessage("unknown")}
+                      </Badge>
                       <Badge variant="secondary">
-                        {formatGuardrailMode(guardrail.definition?.litellm_params?.mode) || "unknown"}
+                        {formatGuardrailMode(guardrail.definition?.litellm_params?.mode) || translateMessage("unknown")}
                       </Badge>
                       {guardrail.definition?.litellm_params?.patterns && (
                         <Badge variant="secondary">
-                          {guardrail.definition.litellm_params.patterns.length} pattern(s)
+                          {guardrail.definition.litellm_params.patterns.length}
+                          <LocalizedText text={" pattern(s)"} />
                         </Badge>
                       )}
                       {guardrail.definition?.litellm_params?.categories && (
@@ -186,8 +212,12 @@ const GuardrailSelectionModal: React.FC<GuardrailSelectionModalProps> = ({
 
           {guardrailsInfo.length === 0 && (
             <div className="py-8 text-center text-muted-foreground">
-              <p>No guardrails defined for this template.</p>
-              <p className="text-sm mt-2">This template will use existing guardrails in your system.</p>
+              <p>
+                <LocalizedText text={"No guardrails defined for this template."} />
+              </p>
+              <p className="text-sm mt-2">
+                <LocalizedText text={"This template will use existing guardrails in your system."} />
+              </p>
             </div>
           )}
 
@@ -199,7 +229,8 @@ const GuardrailSelectionModal: React.FC<GuardrailSelectionModalProps> = ({
                 <div className="mb-2 flex items-center gap-2">
                   <span className="text-lg">✨</span>
                   <span className="text-sm font-medium">
-                    AI-Discovered Competitors ({template.discoveredCompetitors.length})
+                    <LocalizedText text={"AI-Discovered Competitors ("} />
+                    {template.discoveredCompetitors.length})
                   </span>
                 </div>
                 <div className="flex flex-wrap gap-1.5">
@@ -210,7 +241,11 @@ const GuardrailSelectionModal: React.FC<GuardrailSelectionModalProps> = ({
                   ))}
                 </div>
                 <p className="mt-2 text-xs text-muted-foreground">
-                  These competitor names will be automatically blocked by the competitor-name-blocker guardrail.
+                  <LocalizedText
+                    text={
+                      "These competitor names will be automatically blocked by the competitor-name-blocker guardrail."
+                    }
+                  />
                 </p>
               </div>
             </>
@@ -222,15 +257,22 @@ const GuardrailSelectionModal: React.FC<GuardrailSelectionModalProps> = ({
           <div className="text-sm text-muted-foreground">
             {selectedCount > 0 ? (
               <p>
-                <span className="font-medium text-foreground">{selectedCount}</span> guardrail
-                {selectedCount > 1 ? "s" : ""} will be created
+                <span className="font-medium text-foreground">{selectedCount}</span>
+                <LocalizedText text={" guardrail"} />
+                {selectedCount > 1 ? translateMessage("s") : ""}
+                <LocalizedText text={" will be created"} />
               </p>
             ) : existingCount > 0 ? (
-              <p className="text-success">All guardrails already exist. You can proceed to use this template.</p>
+              <p className="text-success">
+                <LocalizedText text={"All guardrails already exist. You can proceed to use this template."} />
+              </p>
             ) : (
               <p className="text-warning">
-                Select at least one guardrail to create, or click &quot;Use Template&quot; to proceed without creating
-                new guardrails.
+                <LocalizedText
+                  text={
+                    'Select at least one guardrail to create, or click "Use Template" to proceed without creating new guardrails.'
+                  }
+                />
               </p>
             )}
           </div>
@@ -238,12 +280,15 @@ const GuardrailSelectionModal: React.FC<GuardrailSelectionModalProps> = ({
 
         <DialogFooter>
           <Button variant="outline" onClick={onCancel} disabled={isLoading}>
-            Cancel
+            <LocalizedText text={"Cancel"} />
           </Button>
           <Button onClick={handleConfirm} disabled={isLoading || (selectedCount === 0 && existingCount === 0)}>
             {selectedCount > 0
-              ? `Create ${selectedCount} Guardrail${selectedCount > 1 ? "s" : ""} & Use Template`
-              : "Use Template"}
+              ? translateMessage("Create %{0} Guardrail%{1} & Use Template", [
+                  selectedCount,
+                  selectedCount > 1 ? "s" : "",
+                ])
+              : translateMessage("Use Template")}
           </Button>
         </DialogFooter>
       </DialogContent>

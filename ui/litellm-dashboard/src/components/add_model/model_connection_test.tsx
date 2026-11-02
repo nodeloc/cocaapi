@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, localizedProperty, translateMessage, useUiLocale } from "@/lib/i18n";
 import React from "react";
 import { AlertTriangle, CircleCheck, Copy, ExternalLink, Info, LoaderCircle } from "lucide-react";
 
@@ -25,6 +27,7 @@ const ModelConnectionTest: React.FC<ModelConnectionTestProps> = ({
   onClose: _onClose,
   onTestComplete,
 }) => {
+  useUiLocale();
   const [error, setError] = React.useState<Error | string | null>(null);
   const [rawResponse, setRawResponse] = React.useState<any>(null);
   const [isLoading, setIsLoading] = React.useState(true);
@@ -44,7 +47,7 @@ const ModelConnectionTest: React.FC<ModelConnectionTestProps> = ({
       const result = await prepareModelAddRequest(formValues, accessToken, null);
 
       if (!result) {
-        setError("Failed to prepare model data. Please check your form inputs.");
+        setError(translateMessage("Failed to prepare model data. Please check your form inputs."));
         setIsSuccess(false);
         setIsLoading(false);
         return;
@@ -54,7 +57,7 @@ const ModelConnectionTest: React.FC<ModelConnectionTestProps> = ({
       const response = await testConnectionRequest(accessToken, litellmParamsObj, modelInfoObj, modelInfoObj?.mode);
 
       if (response.status === "success") {
-        toast.success("Connection test successful!");
+        toast.success(translateMessage("Connection test successful!"));
         setError(null);
         setIsSuccess(true);
       } else {
@@ -65,7 +68,11 @@ const ModelConnectionTest: React.FC<ModelConnectionTestProps> = ({
       }
     } catch (connectionError) {
       console.error("Test connection error:", connectionError);
-      setError(connectionError instanceof Error ? connectionError.message : String(connectionError));
+      setError(
+        connectionError instanceof Error
+          ? localizedProperty(connectionError, "message", connectionError.message)
+          : String(connectionError),
+      );
       setIsSuccess(false);
     } finally {
       setIsLoading(false);
@@ -137,13 +144,18 @@ ${formattedBody}
       {isLoading ? (
         <div aria-busy="true" className="flex flex-col items-center justify-center gap-4 px-5 py-8 text-center">
           <LoaderCircle className="size-8 animate-spin text-primary" />
-          <p className="text-base">Testing connection to {modelName}...</p>
+          <p className="text-base">
+            <LocalizedText text={"Testing connection to "} />
+            {modelName}...
+          </p>
         </div>
       ) : isSuccess ? (
         <div className="flex items-center justify-center gap-2.5 px-5 py-8">
           <CircleCheck className="size-6 text-primary" />
           <p data-testid="connection-success-msg" className="text-lg font-medium">
-            Connection to {modelName} successful!
+            <LocalizedText text={"Connection to "} />
+            {modelName}
+            <LocalizedText text={" successful!"} />
           </p>
         </div>
       ) : (
@@ -151,12 +163,16 @@ ${formattedBody}
           <div className="mb-5 flex items-center gap-3">
             <AlertTriangle className="size-6 text-destructive" />
             <p data-testid="connection-failure-msg" className="text-lg font-medium text-destructive">
-              Connection to {modelName} failed
+              <LocalizedText text={"Connection to "} />
+              {modelName}
+              <LocalizedText text={" failed"} />
             </p>
           </div>
 
           <div className="mb-5 rounded-lg border border-destructive/30 bg-destructive/10 p-4 shadow-xs">
-            <p className="mb-2 font-medium">Error:</p>
+            <p className="mb-2 font-medium">
+              <LocalizedText text={"Error:"} />
+            </p>
             <p className="text-sm leading-relaxed text-destructive">{errorMessage}</p>
 
             {error && (
@@ -166,14 +182,16 @@ ${formattedBody}
                 className="mt-3 h-auto px-0"
                 onClick={() => setShowDetails((visible) => !visible)}
               >
-                {showDetails ? "Hide Details" : "Show Details"}
+                {showDetails ? translateMessage("Hide Details") : translateMessage("Show Details")}
               </Button>
             )}
           </div>
 
           {showDetails && (
             <div className="mb-5">
-              <p className="mb-2 text-sm font-medium">Troubleshooting Details</p>
+              <p className="mb-2 text-sm font-medium">
+                <LocalizedText text={"Troubleshooting Details"} />
+              </p>
               <pre className="max-h-52 overflow-auto rounded-lg border bg-muted/50 p-4 text-xs leading-relaxed">
                 {typeof error === "string" ? error : JSON.stringify(error, null, 2)}
               </pre>
@@ -181,7 +199,9 @@ ${formattedBody}
           )}
 
           <div>
-            <p className="mb-2 text-sm font-medium">API Request</p>
+            <p className="mb-2 text-sm font-medium">
+              <LocalizedText text={"API Request"} />
+            </p>
             <pre className="max-h-64 overflow-auto rounded-lg border bg-muted/50 p-4 text-xs leading-relaxed">
               {curlCommand || "No request data available"}
             </pre>
@@ -191,11 +211,11 @@ ${formattedBody}
               className="mt-2"
               onClick={() => {
                 navigator.clipboard.writeText(curlCommand || "");
-                toast.success("Copied to clipboard");
+                toast.success(translateMessage("Copied to clipboard"));
               }}
             >
               <Copy data-icon="inline-start" />
-              Copy to Clipboard
+              <LocalizedText text={"Copy to Clipboard"} />
             </Button>
           </div>
         </div>
@@ -209,7 +229,7 @@ ${formattedBody}
         render={<a href="https://docs.litellm.ai/docs/providers" target="_blank" rel="noopener noreferrer" />}
       >
         <Info data-icon="inline-start" />
-        View Documentation
+        <LocalizedText text={"View Documentation"} />
         <ExternalLink data-icon="inline-end" />
       </Button>
     </div>

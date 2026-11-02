@@ -1,4 +1,5 @@
 "use client";
+import { localizedProperty, useUiLocale } from "@/lib/i18n";
 
 import React, { type ReactNode } from "react";
 import { Radio as RadioPrimitive } from "@base-ui/react/radio";
@@ -14,16 +15,7 @@ const EMPTY_CONFIG = {};
 
 export const PANEL_INSET_X = "px-5";
 
-export function Panel({
-  icon: Icon,
-  title,
-  subtitle,
-  action,
-  className,
-  bodyClassName,
-  children,
-  testId,
-}: {
+export function Panel(cocaCopyProps0: {
   icon?: LucideIcon;
   title: ReactNode;
   subtitle?: ReactNode;
@@ -33,6 +25,8 @@ export function Panel({
   children: ReactNode;
   testId?: string;
 }) {
+  const { icon: Icon, title, subtitle, action, className, bodyClassName, children, testId } = cocaCopyProps0;
+  useUiLocale();
   return (
     <section data-testid={testId} className={cn("flex min-w-0 flex-col rounded-xl border bg-card", className)}>
       <header
@@ -45,7 +39,7 @@ export function Panel({
         <div className="min-w-0">
           <h3 className="flex min-w-0 items-center gap-2 text-sm leading-5 font-medium text-foreground">
             {Icon && <Icon aria-hidden="true" className="size-4 shrink-0 text-muted-foreground" strokeWidth={1.75} />}
-            <span className="truncate">{title}</span>
+            <span className="truncate">{localizedProperty(cocaCopyProps0, "title", title)}</span>
           </h3>
           {subtitle && <p className="mt-0.5 truncate text-xs text-muted-foreground">{subtitle}</p>}
         </div>
@@ -67,6 +61,7 @@ export function Sparkline({
   color: string;
   className?: string;
 }) {
+  useUiLocale();
   const gradientId = React.useId().replace(/:/g, "");
   if (data.length < 2) return <div className={cn("h-10 w-full", className)} />;
   return (
@@ -97,23 +92,21 @@ export function Sparkline({
 }
 
 export function ChartSkeleton({ className }: { className?: string }) {
+  useUiLocale();
   return <Skeleton className={cn("h-48 w-full rounded-lg", className)} />;
 }
 
-export function Segmented<T extends string>({
-  value,
-  options,
-  onChange,
-  label,
-}: {
+export function Segmented<T extends string>(cocaCopyProps1: {
   value: T;
   options: readonly { value: T; label: string }[];
   onChange: (value: T) => void;
   label: string;
 }) {
+  const { value, options, onChange, label } = cocaCopyProps1;
+  useUiLocale();
   return (
     <RadioGroupPrimitive
-      aria-label={label}
+      aria-label={localizedProperty(cocaCopyProps1, "label", label)}
       value={value}
       onValueChange={(next) => onChange(next as T)}
       className="inline-flex items-center rounded-lg bg-muted p-0.5"
@@ -124,7 +117,7 @@ export function Segmented<T extends string>({
           value={option.value}
           className="rounded-md px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50 data-checked:bg-background data-checked:text-foreground data-checked:shadow-xs"
         >
-          {option.label}
+          {localizedProperty(option, "label", option.label)}
         </RadioPrimitive.Root>
       ))}
     </RadioGroupPrimitive>
@@ -149,6 +142,7 @@ export function Stat({
   /** Full-precision value shown on hover when `value` is abbreviated (41.7M -> 41,719,305). */
   exact?: string;
 }) {
+  useUiLocale();
   return (
     <div className="min-w-0">
       <div className="flex h-4 items-center gap-1.5 text-xs leading-4 text-muted-foreground">{label}</div>

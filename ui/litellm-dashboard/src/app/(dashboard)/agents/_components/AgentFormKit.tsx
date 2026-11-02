@@ -1,4 +1,5 @@
 "use client";
+import { localizedProperty, useUiLocale } from "@/lib/i18n";
 
 import * as React from "react";
 import { ChevronRight, CircleHelp } from "lucide-react";
@@ -140,15 +141,9 @@ interface AgentFormFieldProps {
   children: (control: AgentFieldControlProps) => React.ReactNode;
 }
 
-export const AgentFormField = ({
-  name,
-  label,
-  description,
-  defaultValue,
-  rules,
-  className,
-  children,
-}: AgentFormFieldProps) => {
+export const AgentFormField = (cocaCopyProps0: AgentFormFieldProps) => {
+  const { name, label, description, defaultValue, rules, className, children } = cocaCopyProps0;
+  useUiLocale();
   const { control } = useFormContext<AgentFormValues>();
   const reactId = React.useId();
   const controlId = `${reactId}-control`;
@@ -164,14 +159,20 @@ export const AgentFormField = ({
 
     return (
       <Field data-invalid={invalid || undefined} className={className}>
-        {label !== undefined && <FieldLabel htmlFor={controlId}>{label}</FieldLabel>}
+        {label !== undefined && (
+          <FieldLabel htmlFor={controlId}>{localizedProperty(cocaCopyProps0, "label", label)}</FieldLabel>
+        )}
         {children({
           ...field,
           id: controlId,
           "aria-invalid": invalid || undefined,
           "aria-describedby": describedBy,
         })}
-        {description !== undefined && <FieldDescription id={descriptionId}>{description}</FieldDescription>}
+        {description !== undefined && (
+          <FieldDescription id={descriptionId}>
+            {localizedProperty(cocaCopyProps0, "description", description)}
+          </FieldDescription>
+        )}
         <FieldError id={errorId} errors={[fieldState.error]} />
       </Field>
     );
@@ -187,6 +188,7 @@ export interface CollapsiblePanelsState {
 }
 
 export const useCollapsiblePanels = (initiallyOpen: readonly string[]): CollapsiblePanelsState => {
+  useUiLocale();
   const [openPanels, setOpenPanels] = React.useState<readonly string[]>(initiallyOpen);
   const [mountedPanels, setMountedPanels] = React.useState<readonly string[]>(initiallyOpen);
 
@@ -207,21 +209,25 @@ interface AgentFormPanelProps {
   children: React.ReactNode;
 }
 
-export const AgentFormPanel = ({ panelKey, title, panels, children }: AgentFormPanelProps) => (
-  <Collapsible
-    open={panels.openPanels.includes(panelKey)}
-    onOpenChange={() => panels.toggle(panelKey)}
-    className="border-b border-border last:border-b-0"
-  >
-    <CollapsibleTrigger className="group flex w-full items-center gap-2 py-3 text-left text-sm font-medium text-foreground">
-      <ChevronRight className="size-4 shrink-0 text-muted-foreground transition-transform group-data-panel-open:rotate-90" />
-      {title}
-    </CollapsibleTrigger>
-    <CollapsibleContent keepMounted>
-      {panels.mountedPanels.includes(panelKey) && <FieldGroup className="pt-1 pb-5">{children}</FieldGroup>}
-    </CollapsibleContent>
-  </Collapsible>
-);
+export const AgentFormPanel = (cocaCopyProps1: AgentFormPanelProps) => {
+  const { panelKey, title, panels, children } = cocaCopyProps1;
+  useUiLocale();
+  return (
+    <Collapsible
+      open={panels.openPanels.includes(panelKey)}
+      onOpenChange={() => panels.toggle(panelKey)}
+      className="border-b border-border last:border-b-0"
+    >
+      <CollapsibleTrigger className="group flex w-full items-center gap-2 py-3 text-left text-sm font-medium text-foreground">
+        <ChevronRight className="size-4 shrink-0 text-muted-foreground transition-transform group-data-panel-open:rotate-90" />
+        {localizedProperty(cocaCopyProps1, "title", title)}
+      </CollapsibleTrigger>
+      <CollapsibleContent keepMounted>
+        {panels.mountedPanels.includes(panelKey) && <FieldGroup className="pt-1 pb-5">{children}</FieldGroup>}
+      </CollapsibleContent>
+    </Collapsible>
+  );
+};
 
 export const omitFieldValues = (values: AgentFormValues, names: readonly string[]): AgentFormValues =>
   Object.fromEntries(Object.entries(values).filter(([key]) => !names.includes(key)));
@@ -236,24 +242,27 @@ interface AgentNumberInputProps extends Omit<AgentFieldControlProps, "value" | "
   className?: string;
 }
 
-export const AgentNumberInput = ({ value, onChange, onBlur, inputRef, min, ...props }: AgentNumberInputProps) => (
-  <Input
-    {...props}
-    ref={inputRef}
-    type="number"
-    step="any"
-    value={typeof value === "number" ? value : ""}
-    onWheel={(event) => event.currentTarget.blur()}
-    onChange={(event) => {
-      const raw = event.target.valueAsNumber;
-      onChange(Number.isNaN(raw) ? null : raw);
-    }}
-    onBlur={() => {
-      if (min !== undefined && typeof value === "number" && value < min) onChange(min);
-      onBlur();
-    }}
-  />
-);
+export const AgentNumberInput = ({ value, onChange, onBlur, inputRef, min, ...props }: AgentNumberInputProps) => {
+  useUiLocale();
+  return (
+    <Input
+      {...props}
+      ref={inputRef}
+      type="number"
+      step="any"
+      value={typeof value === "number" ? value : ""}
+      onWheel={(event) => event.currentTarget.blur()}
+      onChange={(event) => {
+        const raw = event.target.valueAsNumber;
+        onChange(Number.isNaN(raw) ? null : raw);
+      }}
+      onBlur={() => {
+        if (min !== undefined && typeof value === "number" && value < min) onChange(min);
+        onBlur();
+      }}
+    />
+  );
+};
 
 export interface AgentSelectOption {
   label: string;
@@ -285,6 +294,7 @@ export const AgentTagsInput = ({
   emptyText = "No matching options",
   ...props
 }: AgentTagsInputProps) => {
+  useUiLocale();
   const anchor = useComboboxAnchor();
   const [query, setQuery] = React.useState("");
   const pendingRef = React.useRef("");
@@ -350,8 +360,8 @@ export const AgentTagsInput = ({
           {(chips: AgentSelectOption[]) => (
             <>
               {chips.map((option) => (
-                <ComboboxChip key={option.value} aria-label={option.label}>
-                  {option.label}
+                <ComboboxChip key={option.value} aria-label={localizedProperty(option, "label", option.label)}>
+                  {localizedProperty(option, "label", option.label)}
                 </ComboboxChip>
               ))}
               <ComboboxChipsInput
@@ -369,8 +379,8 @@ export const AgentTagsInput = ({
         <ComboboxEmpty>{emptyText}</ComboboxEmpty>
         <ComboboxList>
           {(option: AgentSelectOption) => (
-            <ComboboxItem key={option.value} value={option} title={option.label}>
-              {option.label}
+            <ComboboxItem key={option.value} value={option} title={localizedProperty(option, "label", option.label)}>
+              {localizedProperty(option, "label", option.label)}
             </ComboboxItem>
           )}
         </ComboboxList>
@@ -399,6 +409,7 @@ export const AgentMultiSelect = ({
   emptyText = "No matching options",
   ...props
 }: AgentMultiSelectProps) => {
+  useUiLocale();
   const anchor = useComboboxAnchor();
   const items = [...options];
   const selected = value.map((item) => items.find((option) => option.value === item) ?? { label: item, value: item });
@@ -419,8 +430,8 @@ export const AgentMultiSelect = ({
           {(chips: AgentSelectOption[]) => (
             <>
               {chips.map((option) => (
-                <ComboboxChip key={option.value} aria-label={option.label}>
-                  {option.label}
+                <ComboboxChip key={option.value} aria-label={localizedProperty(option, "label", option.label)}>
+                  {localizedProperty(option, "label", option.label)}
                 </ComboboxChip>
               ))}
               <ComboboxChipsInput id={id} placeholder={placeholder} className="min-w-24" {...props} />
@@ -432,8 +443,8 @@ export const AgentMultiSelect = ({
         <ComboboxEmpty>{emptyText}</ComboboxEmpty>
         <ComboboxList>
           {(option: AgentSelectOption) => (
-            <ComboboxItem key={option.value} value={option} title={option.label}>
-              {option.label}
+            <ComboboxItem key={option.value} value={option} title={localizedProperty(option, "label", option.label)}>
+              {localizedProperty(option, "label", option.label)}
             </ComboboxItem>
           )}
         </ComboboxList>

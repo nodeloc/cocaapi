@@ -1,3 +1,4 @@
+import { markUiCopy } from "@/lib/i18n";
 import { durationText } from "./format";
 import { activeJob, isActive, readingStart } from "./status";
 import type { Activity, InFlight, Job, Review, ReviewVerdict, Settings, ToolCount } from "./types";
@@ -59,7 +60,11 @@ export function stripState(
   if (job.status === "failed") return { kind: "failed", message: job.error || "The investigation failed" };
   if (job.status === "completed" || job.status === "cancelled") return { kind: "done" };
   const stepError = job.steps.findLast((step) => step.kind === "error");
-  if (stepError && !job.reviews.length) return { kind: "failed", message: stepError.label };
+  if (stepError && !job.reviews.length)
+    return markUiCopy(
+      { kind: "failed" as const, message: stepError.label },
+      { message: { owner: stepError, field: "label" } },
+    );
   if (job.reviews.length) return { kind: "reviewing", message: job.stage || "Reviewing traces" };
   if (job.status === "queued") return { kind: "waiting", message: queued };
   const { selected } = job.coverage;
@@ -181,39 +186,76 @@ export function activeActivities(job: Pick<Job, "status" | "activities">): reado
   return job.status === "running" ? (job.activities ?? []).filter((activity) => !activity.finished) : [];
 }
 
-const PHASE_LABELS: Record<Activity["phase"], string> = {
-  load: "Loading trace evidence",
-  review: "Reviewing trace",
-  group: "Grouping observations",
-  reconcile: "Combining candidate groups",
-  investigate: "Investigating candidate",
-};
+const PHASE_LABELS: Record<Activity["phase"], string> = markUiCopy(
+  {
+    load: "Loading trace evidence",
+    review: "Reviewing trace",
+    group: "Grouping observations",
+    reconcile: "Combining candidate groups",
+    investigate: "Investigating candidate",
+  },
+  {
+    load: "Loading trace evidence",
+    review: "Reviewing trace",
+    group: "Grouping observations",
+    reconcile: "Combining candidate groups",
+    investigate: "Investigating candidate",
+  },
+);
 
-const TOOL_LABELS: Record<ToolCount["name"], string> = {
-  model: "Model",
-  read: "Read",
-  search: "Search",
-  python: "Python",
-  catalog: "Trace catalog",
-  review_catalog: "Review catalog",
-  read_reviews: "Read reviews",
-  search_reviews: "Search reviews",
-  history: "History",
-  checkpoint: "Context compaction",
-};
+const TOOL_LABELS: Record<ToolCount["name"], string> = markUiCopy(
+  {
+    model: "Model",
+    read: "Read",
+    search: "Search",
+    python: "Python",
+    catalog: "Trace catalog",
+    review_catalog: "Review catalog",
+    read_reviews: "Read reviews",
+    search_reviews: "Search reviews",
+    history: "History",
+    checkpoint: "Context compaction",
+  },
+  {
+    model: "Model",
+    read: "Read",
+    search: "Search",
+    python: "Python",
+    catalog: "Trace catalog",
+    review_catalog: "Review catalog",
+    read_reviews: "Read reviews",
+    search_reviews: "Search reviews",
+    history: "History",
+    checkpoint: "Context compaction",
+  },
+);
 
-const OPERATION_LABELS: Record<ToolCount["name"], string> = {
-  model: "Analyzing evidence",
-  read: "Reading trace content",
-  search: "Searching trace content",
-  python: "Running Python",
-  catalog: "Inspecting trace catalog",
-  review_catalog: "Inspecting review catalog",
-  read_reviews: "Reading review observations",
-  search_reviews: "Searching review observations",
-  history: "Reading prior analysis",
-  checkpoint: "Compacting context",
-};
+const OPERATION_LABELS: Record<ToolCount["name"], string> = markUiCopy(
+  {
+    model: "Analyzing evidence",
+    read: "Reading trace content",
+    search: "Searching trace content",
+    python: "Running Python",
+    catalog: "Inspecting trace catalog",
+    review_catalog: "Inspecting review catalog",
+    read_reviews: "Reading review observations",
+    search_reviews: "Searching review observations",
+    history: "Reading prior analysis",
+    checkpoint: "Compacting context",
+  },
+  {
+    model: "Analyzing evidence",
+    read: "Reading trace content",
+    search: "Searching trace content",
+    python: "Running Python",
+    catalog: "Inspecting trace catalog",
+    review_catalog: "Inspecting review catalog",
+    read_reviews: "Reading review observations",
+    search_reviews: "Searching review observations",
+    history: "Reading prior analysis",
+    checkpoint: "Compacting context",
+  },
+);
 
 export function activityPhase(activity: Pick<Activity, "phase">): string {
   return PHASE_LABELS[activity.phase];

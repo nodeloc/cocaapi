@@ -1,3 +1,6 @@
+
+"use client";
+import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import { canViewProjectsPage, projectReaderRoles } from "@/app/(dashboard)/hooks/projects/projectAccess";
 import { useTeams } from "@/app/(dashboard)/hooks/teams/useTeams";
 import useAuthorized from "@/app/(dashboard)/hooks/useAuthorized";
@@ -194,12 +197,12 @@ export const visibleMenuGroups = (groups: readonly MenuGroup[], context: MenuVis
   const isAdmin = isAdminRole(context.userRole);
   const filterItems = (items: MenuItem[]): MenuItem[] =>
     items
-      .map((item) => ({ ...item, children: item.children ? filterItems(item.children) : undefined }))
+      .map((item) => markUiCopy({ ...item, children: item.children ? filterItems(item.children) : undefined }, {}, [item]))
       .filter((item) => menuItemIsVisible(item, context, isAdmin));
 
   return groups
     .filter((group) => !group.roles || group.roles.includes(context.userRole))
-    .map((group) => ({ groupLabel: group.groupLabel, items: filterItems(group.items) }))
+    .map((group) => (markUiCopy({ groupLabel: group.groupLabel, items: filterItems(group.items) }, {"groupLabel": { owner: group, field: "groupLabel" }})))
     .filter((group) => group.items.length > 0);
 };
 
@@ -207,283 +210,280 @@ export const visibleMenuGroups = (groups: readonly MenuGroup[], context: MenuVis
 // Shape (key/page/label/roles/children) is consumed by page_utils.ts; only the
 // icons changed to lucide as part of the sidebar redesign.
 const menuGroups: MenuGroup[] = [
-  {
+  markUiCopy({
     groupLabel: "AI GATEWAY",
     items: [
-      { key: "home", page: "home", label: "Home", icon: <House {...ICON} /> },
-      { key: "api-keys", page: "api-keys", label: "Virtual Keys", icon: <KeyRound {...ICON} /> },
-      {
+      markUiCopy({ key: "home", page: "home", label: "Home", icon: <House {...ICON} /> }, {"label": "Home"}),
+      markUiCopy({ key: "api-keys", page: "api-keys", label: "Virtual Keys", icon: <KeyRound {...ICON} /> }, {"label": "Virtual Keys"}),
+      markUiCopy({
         key: "llm-playground",
         page: "llm-playground",
         route: "playground",
         label: "Playground",
         icon: <PlayCircle {...ICON} />,
         roles: rolesWithWriteAccess,
-      },
-      {
+      }, {"label": "Playground"}),
+      markUiCopy({
         key: "models",
         page: "models",
         route: "models-and-endpoints",
         label: "Models + Endpoints",
         icon: <Network {...ICON} />,
         roles: rolesAllowedToViewWriteScopedPages,
-      },
-      {
+      }, {"label": "Models + Endpoints"}),
+      markUiCopy({
         key: "agentic",
         page: "agentic",
         label: "Agentic",
         icon: <Bot {...ICON} />,
         children: [
-          {
+          markUiCopy({
             key: "agents",
             page: "agents",
             label: "Agents",
             icon: <Bot {...ICON} />,
             roles: rolesAllowedToViewWriteScopedPages,
-          },
-          {
+          }, {"label": "Agents"}),
+          markUiCopy({
             key: "workflows",
             page: "workflows",
             label: "Workflow Runs",
             icon: <Workflow {...ICON} />,
             roles: rolesWithCapability("viewWorkflowRuns"),
-          },
-          {
+          }, {"label": "Workflow Runs"}),
+          markUiCopy({
             key: "memory",
             page: "memory",
             label: "Memory",
             icon: <Database {...ICON} />,
             roles: rolesWithCapability("viewMemory"),
-          },
+          }, {"label": "Memory"}),
         ],
-      },
-      { key: "mcp-servers", page: "mcp-servers", label: "MCP Servers", icon: <Server {...ICON} /> },
-      { key: "skills", page: "skills", label: "Skills", icon: <Blocks {...ICON} />, roles: all_admin_roles },
-      { key: "guardrails", page: "guardrails", label: "Guardrails", icon: <Shield {...ICON} /> },
-      {
+      }, {"label": "Agentic"}),
+      markUiCopy({ key: "mcp-servers", page: "mcp-servers", label: "MCP Servers", icon: <Server {...ICON} /> }, {"label": "MCP Servers"}),
+      markUiCopy({ key: "skills", page: "skills", label: "Skills", icon: <Blocks {...ICON} />, roles: all_admin_roles }, {"label": "Skills"}),
+      markUiCopy({ key: "guardrails", page: "guardrails", label: "Guardrails", icon: <Shield {...ICON} /> }, {"label": "Guardrails"}),
+      markUiCopy({
         key: "policies",
         page: "policies",
         label: "Policies",
         icon: <ScrollText {...ICON} />,
         roles: rolesWithCapability("viewPolicies"),
-      },
-      {
+      }, {"label": "Policies"}),
+      markUiCopy({
         key: "tools",
         page: "tools",
         label: "Tools",
         icon: <Wrench {...ICON} />,
         children: [
-          { key: "search-tools", page: "search-tools", label: "Search Tools", icon: <Search {...ICON} /> },
-          { key: "vector-stores", page: "vector-stores", label: "Vector Stores", icon: <Database {...ICON} /> },
-          {
+          markUiCopy({ key: "search-tools", page: "search-tools", label: "Search Tools", icon: <Search {...ICON} /> }, {"label": "Search Tools"}),
+          markUiCopy({ key: "vector-stores", page: "vector-stores", label: "Vector Stores", icon: <Database {...ICON} /> }, {"label": "Vector Stores"}),
+          markUiCopy({
             key: "tool-policies",
             page: "tool-policies",
             label: "Tool Policies",
             icon: <ShieldCheck {...ICON} />,
             roles: rolesWithCapability("viewToolPolicies"),
-          },
+          }, {"label": "Tool Policies"}),
         ],
-      },
+      }, {"label": "Tools"}),
     ],
-  },
-  {
+  }, {"groupLabel": "AI GATEWAY"}),
+  markUiCopy({
     groupLabel: "OBSERVABILITY",
     items: [
-      {
+      markUiCopy({
         key: "new_usage",
         page: "new_usage",
         route: "usage",
         icon: <BarChart3 {...ICON} />,
         roles: [...all_admin_roles, ...internalUserRoles],
         label: "Usage",
-      },
+      }, {"label": "Usage"}),
       {
         key: "model-insights",
         page: "model-insights",
         icon: <Trophy {...ICON} />,
         roles: all_admin_roles,
         label: (
-          <span className="flex items-center gap-2">
-            Model Leaderboard <BetaBadge />
+          <span className="flex items-center gap-2"><LocalizedText text={"Model Leaderboard "} /><BetaBadge />
           </span>
         ),
       },
-      {
+      markUiCopy({
         key: "cost-optimization",
         page: "cost-optimization",
         icon: <PiggyBank {...ICON} />,
         roles: [...all_admin_roles, ...internalUserRoles],
         label: "Cost Optimization",
-      },
-      { key: "logs", page: "logs", label: "Logs", icon: <Activity {...ICON} /> },
+      }, {"label": "Cost Optimization"}),
+      markUiCopy({ key: "logs", page: "logs", label: "Logs", icon: <Activity {...ICON} /> }, {"label": "Logs"}),
       {
         key: "lens",
         page: "lens",
         label: (
-          <span className="flex items-center gap-2">
-            Lens <BetaBadge />
+          <span className="flex items-center gap-2"><LocalizedText text={"Lens "} /><BetaBadge />
           </span>
         ),
         icon: <Aperture {...ICON} />,
       },
-      {
+      markUiCopy({
         key: "guardrails-monitor",
         page: "guardrails-monitor",
         label: "Guardrails Monitor",
         icon: <HeartPulse {...ICON} />,
         roles: rolesWithCapability("viewGuardrailUsage"),
-      },
+      }, {"label": "Guardrails Monitor"}),
     ],
-  },
-  {
+  }, {"groupLabel": "OBSERVABILITY"}),
+  markUiCopy({
     groupLabel: "ACCESS CONTROL",
     items: [
-      { key: "teams", page: "teams", label: "Teams", icon: <Users {...ICON} /> },
+      markUiCopy({ key: "teams", page: "teams", label: "Teams", icon: <Users {...ICON} /> }, {"label": "Teams"}),
       {
         key: "projects",
         page: "projects",
         label: (
-          <span className="flex items-center gap-2">
-            Projects <BetaBadge />
+          <span className="flex items-center gap-2"><LocalizedText text={"Projects "} /><BetaBadge />
           </span>
         ),
         icon: <Folder {...ICON} />,
         roles: [...projectReaderRoles],
       },
-      { key: "users", page: "users", label: "Internal Users", icon: <User {...ICON} />, roles: all_admin_roles },
-      {
+      markUiCopy({ key: "users", page: "users", label: "Internal Users", icon: <User {...ICON} />, roles: all_admin_roles }, {"label": "Internal Users"}),
+      markUiCopy({
         key: "organizations",
         page: "organizations",
         label: "Organizations",
         icon: <Building2 {...ICON} />,
         roles: all_admin_roles,
-      },
-      {
+      }, {"label": "Organizations"}),
+      markUiCopy({
         key: "access-groups",
         page: "access-groups",
         label: "Access Groups",
         icon: <Boxes {...ICON} />,
         roles: all_admin_roles,
-      },
-      { key: "budgets", page: "budgets", label: "Budgets", icon: <Wallet {...ICON} />, roles: all_admin_roles },
-      {
+      }, {"label": "Access Groups"}),
+      markUiCopy({ key: "budgets", page: "budgets", label: "Budgets", icon: <Wallet {...ICON} />, roles: all_admin_roles }, {"label": "Budgets"}),
+      markUiCopy({
         key: "commerce",
         page: "commerce",
         label: "账户与充值",
         icon: <Wallet {...ICON} />,
         roles: ["Admin", "proxy_admin"],
-      },
-      {
+      }, {"label": "账户与充值"}),
+      markUiCopy({
         key: "login-settings",
         page: "commerce/settings",
         label: "登录与注册",
         icon: <SettingsIcon {...ICON} />,
         roles: ["Admin", "proxy_admin"],
-      },
+      }, {"label": "登录与注册"}),
     ],
-  },
-  {
+  }, {"groupLabel": "ACCESS CONTROL"}),
+  markUiCopy({
     groupLabel: "DEVELOPER TOOLS",
     items: [
-      { key: "api_ref", page: "api_ref", route: "api-reference", label: "API Reference", icon: <Code2 {...ICON} /> },
-      { key: "model-hub-table", page: "model-hub-table", label: "AI Hub", icon: <LayoutGrid {...ICON} /> },
-      {
+      markUiCopy({ key: "api_ref", page: "api_ref", route: "api-reference", label: "API Reference", icon: <Code2 {...ICON} /> }, {"label": "API Reference"}),
+      markUiCopy({ key: "model-hub-table", page: "model-hub-table", label: "AI Hub", icon: <LayoutGrid {...ICON} /> }, {"label": "AI Hub"}),
+      markUiCopy({
         key: "learning-resources",
         page: "learning-resources",
         label: "Learning Resources",
         icon: <BookOpen {...ICON} />,
         external_url: "https://models.litellm.ai/cookbook",
-      },
-      {
+      }, {"label": "Learning Resources"}),
+      markUiCopy({
         key: "caching",
         page: "caching",
         label: "Response Cache",
         icon: <Database {...ICON} />,
         roles: all_admin_roles,
-      },
-      {
+      }, {"label": "Response Cache"}),
+      markUiCopy({
         key: "experimental",
         page: "experimental",
         label: "Experimental",
         icon: <FlaskConical {...ICON} />,
         children: [
-          {
+          markUiCopy({
             key: "prompts",
             page: "prompts",
             label: "Prompts",
             icon: <FileText {...ICON} />,
             roles: rolesWithCapability("viewPrompts"),
-          },
-          {
+          }, {"label": "Prompts"}),
+          markUiCopy({
             key: "transform-request",
             page: "transform-request",
             label: "API Playground",
             icon: <Terminal {...ICON} />,
             roles: [...all_admin_roles, ...internalUserRoles],
-          },
-          {
+          }, {"label": "API Playground"}),
+          markUiCopy({
             key: "tag-management",
             page: "tag-management",
             label: "Tag Management",
             icon: <Tags {...ICON} />,
             roles: all_admin_roles,
-          },
-          {
+          }, {"label": "Tag Management"}),
+          markUiCopy({
             key: "4",
             page: "usage",
             route: "old-usage",
             label: "Old Usage",
             icon: <BarChart3 {...ICON} />,
             roles: rolesWithCapability("viewGlobalSpend"),
-          },
+          }, {"label": "Old Usage"}),
         ],
-      },
+      }, {"label": "Experimental"}),
     ],
-  },
-  {
+  }, {"groupLabel": "DEVELOPER TOOLS"}),
+  markUiCopy({
     groupLabel: "SETTINGS",
     roles: all_admin_roles,
     items: [
-      {
+      markUiCopy({
         key: "settings",
         page: "settings",
         label: "Settings",
         icon: <SettingsIcon {...ICON} />,
         roles: all_admin_roles,
         children: [
-          {
+          markUiCopy({
             key: "router-settings",
             page: "router-settings",
             label: "Router Settings",
             icon: <Route {...ICON} />,
             roles: all_admin_roles,
-          },
-          {
+          }, {"label": "Router Settings"}),
+          markUiCopy({
             key: "logging-and-alerts",
             page: "logging-and-alerts",
             label: "Logging & Alerts",
             icon: <Bell {...ICON} />,
             roles: all_admin_roles,
-          },
-          {
+          }, {"label": "Logging & Alerts"}),
+          markUiCopy({
             key: "admin-panel",
             page: "admin-panel",
             label: "Admin Settings",
             icon: <SettingsIcon {...ICON} />,
             roles: all_admin_roles,
-          },
-          {
+          }, {"label": "Admin Settings"}),
+          markUiCopy({
             key: "cost-tracking",
             page: "cost-tracking",
             label: "Cost Tracking",
             icon: <BarChart3 {...ICON} />,
             roles: all_admin_roles,
-          },
-          { key: "ui-theme", page: "ui-theme", label: "UI Theme", icon: <Palette {...ICON} />, roles: all_admin_roles },
+          }, {"label": "Cost Tracking"}),
+          markUiCopy({ key: "ui-theme", page: "ui-theme", label: "UI Theme", icon: <Palette {...ICON} />, roles: all_admin_roles }, {"label": "UI Theme"}),
         ],
-      },
+      }, {"label": "Settings"}),
     ],
-  },
+  }, {"groupLabel": "SETTINGS"}),
 ];
 
 const HOME_ROUTE = "home";
@@ -554,6 +554,7 @@ const Sidebar_: React.FC<SidebarProps> = ({
   disableVectorStoresForInternalUsers,
   allowVectorStoresForTeamAdmins,
 }) => {
+  useUiLocale();
   const { userId, accessToken, userRole, isViewOnly } = useAuthorized();
   const isOrgAdmin = useIsOrgAdmin();
   const { data: teams } = useTeams();
@@ -630,7 +631,7 @@ const Sidebar_: React.FC<SidebarProps> = ({
   const renderLeaf = (item: MenuItem, isChild: boolean) => {
     const active = selectedKey === item.key;
     const size = isChild ? "sub" : "default";
-    const label = <span className="flex-1 truncate group-data-[collapsed=true]/sidebar:hidden">{item.label}</span>;
+    const label = <span className="flex-1 truncate group-data-[collapsed=true]/sidebar:hidden">{localizedProperty(item, "label", item.label)}</span>;
 
     if (item.external_url) {
       return (
@@ -681,7 +682,7 @@ const Sidebar_: React.FC<SidebarProps> = ({
           title={collapsed ? labelText(item) : undefined}
         >
           {item.icon}
-          <span className="flex-1 truncate group-data-[collapsed=true]/sidebar:hidden">{item.label}</span>
+          <span className="flex-1 truncate group-data-[collapsed=true]/sidebar:hidden">{localizedProperty(item, "label", item.label)}</span>
           <ChevronRight
             className={cn(
               "size-4 shrink-0 transition-transform group-data-[collapsed=true]/sidebar:hidden",
@@ -709,8 +710,8 @@ const Sidebar_: React.FC<SidebarProps> = ({
       <SidebarHeader className="h-14 border-b border-border group-data-[collapsed=true]/sidebar:h-auto">
         <div className="flex items-center justify-between gap-2 group-data-[collapsed=true]/sidebar:flex-col">
           <div className="flex min-w-0 items-center gap-2">
-            <Link href={uiHref("")} className="flex min-w-0 items-center" aria-label="CocaAPI 管理后台">
-              <img src={logoSrc} alt="CocaAPI" className={cn(LOGO_CLASS_NAME, "dark:hidden")} />
+            <Link href={uiHref("")} className="flex min-w-0 items-center" aria-label={translateMessage("CocaAPI 管理后台")}>
+              <img src={logoSrc} alt={translateMessage("CocaAPI")} className={cn(LOGO_CLASS_NAME, "dark:hidden")} />
               <img
                 src={darkLogoSrc}
                 alt=""
@@ -734,7 +735,7 @@ const Sidebar_: React.FC<SidebarProps> = ({
               variant="ghost"
               size="icon-sm"
               onClick={onToggleCollapsed}
-              aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+              aria-label={collapsed ? translateMessage("Expand sidebar") : translateMessage("Collapse sidebar")}
               className="flex-none text-muted-foreground"
             >
               {collapsed ? <PanelLeftOpen /> : <PanelLeftClose />}
@@ -748,7 +749,7 @@ const Sidebar_: React.FC<SidebarProps> = ({
           {visibleGroups.map((group, gi) => (
             <SidebarGroup key={group.groupLabel}>
               {gi > 0 && <SidebarSeparator className="hidden group-data-[collapsed=true]/sidebar:block" />}
-              <SidebarGroupLabel>{group.groupLabel}</SidebarGroupLabel>
+              <SidebarGroupLabel>{localizedProperty(group, "groupLabel", group.groupLabel)}</SidebarGroupLabel>
               <SidebarMenu>{group.items.map((item) => renderItem(item))}</SidebarMenu>
             </SidebarGroup>
           ))}

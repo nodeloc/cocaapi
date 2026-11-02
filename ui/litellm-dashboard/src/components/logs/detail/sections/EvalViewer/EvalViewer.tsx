@@ -1,3 +1,5 @@
+"use client";
+import { LocalizedText, translateMessage, useUiLocale } from "@/lib/i18n";
 import React from "react";
 import { CircleCheck, CircleX, FlaskConical } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -30,6 +32,7 @@ interface EvalViewerProps {
 }
 
 export default function EvalViewer({ data }: EvalViewerProps) {
+  useUiLocale();
   const entries: EvalInformation[] = Array.isArray(data) ? data : [data];
 
   if (!entries.length) return null;
@@ -39,7 +42,7 @@ export default function EvalViewer({ data }: EvalViewerProps) {
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
         <FlaskConical className="size-4" style={{ color: "#6366f1" }} />
         <span className="font-semibold" style={{ fontSize: 15 }}>
-          LLM Judge Results
+          <LocalizedText text={"LLM Judge Results"} />
         </span>
       </div>
 
@@ -51,6 +54,7 @@ export default function EvalViewer({ data }: EvalViewerProps) {
 }
 
 function EvalEntryCard({ entry }: { entry: EvalInformation }) {
+  useUiLocale();
   const passed = entry.passed;
   const scoreColor = passed ? "#52c41a" : "#ff4d4f";
 
@@ -71,7 +75,9 @@ function EvalEntryCard({ entry }: { entry: EvalInformation }) {
               <CircleX className="size-4" style={{ color: "#ff4d4f" }} />
             )}
             <span className="font-semibold">{entry.eval_name}</span>
-            <Badge variant={passed ? "secondary" : "destructive"}>{passed ? "PASSED" : "FAILED"}</Badge>
+            <Badge variant={passed ? "secondary" : "destructive"}>
+              {passed ? translateMessage("PASSED") : translateMessage("FAILED")}
+            </Badge>
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger
@@ -83,11 +89,14 @@ function EvalEntryCard({ entry }: { entry: EvalInformation }) {
                   }
                 >
                   {entry.overall_score?.toFixed(0)} / 100
-                  {entry.threshold != null && ` (threshold: ${entry.threshold})`}
+                  {entry.threshold != null && translateMessage(" (threshold: %{0})", [entry.threshold])}
                 </TooltipTrigger>
                 <TooltipContent>
-                  Weighted average of all criterion scores. Each criterion has a weight (%) set when the eval was
-                  created — higher-weight criteria count more toward the final score.
+                  <LocalizedText
+                    text={
+                      "Weighted average of all criterion scores. Each criterion has a weight (%) set when the eval was created — higher-weight criteria count more toward the final score."
+                    }
+                  />
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -97,12 +106,14 @@ function EvalEntryCard({ entry }: { entry: EvalInformation }) {
           <div className="flex items-center gap-2">
             {entry.judge_model && (
               <span className="text-muted-foreground" style={{ fontSize: 12 }}>
-                Judge: {entry.judge_model}
+                <LocalizedText text={"Judge: "} />
+                {entry.judge_model}
               </span>
             )}
             {entry.iteration != null && (
               <span className="text-muted-foreground" style={{ fontSize: 12 }}>
-                Iter: {entry.iteration + 1}
+                <LocalizedText text={"Iter: "} />
+                {entry.iteration + 1}
               </span>
             )}
           </div>
@@ -112,7 +123,8 @@ function EvalEntryCard({ entry }: { entry: EvalInformation }) {
       <CardContent>
         {entry.eval_error && (
           <span className="text-warning" style={{ display: "block", marginBottom: 8, fontSize: 12 }}>
-            Judge error: {entry.eval_error}
+            <LocalizedText text={"Judge error: "} />
+            {entry.eval_error}
           </span>
         )}
 
@@ -120,22 +132,32 @@ function EvalEntryCard({ entry }: { entry: EvalInformation }) {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead style={{ width: 160 }}>Criterion</TableHead>
-                <TableHead style={{ width: 65 }}>Weight</TableHead>
-                <TableHead style={{ width: 65 }}>Score</TableHead>
+                <TableHead style={{ width: 160 }}>
+                  <LocalizedText text={"Criterion"} />
+                </TableHead>
+                <TableHead style={{ width: 65 }}>
+                  <LocalizedText text={"Weight"} />
+                </TableHead>
+                <TableHead style={{ width: 65 }}>
+                  <LocalizedText text={"Score"} />
+                </TableHead>
                 <TableHead style={{ width: 75 }}>
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger render={<span style={{ borderBottom: "1px dashed #aaa", cursor: "help" }} />}>
-                        Weighted
+                        <LocalizedText text={"Weighted"} />
                       </TooltipTrigger>
                       <TooltipContent>
-                        Score × Weight — how much each criterion contributes to the final score
+                        <LocalizedText
+                          text={"Score × Weight — how much each criterion contributes to the final score"}
+                        />
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
                 </TableHead>
-                <TableHead>Comment</TableHead>
+                <TableHead>
+                  <LocalizedText text={"Comment"} />
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -189,7 +211,7 @@ function EvalEntryCard({ entry }: { entry: EvalInformation }) {
                 <TableRow>
                   <TableCell>
                     <span className="font-semibold" style={{ fontSize: 12 }}>
-                      Total
+                      <LocalizedText text={"Total"} />
                     </span>
                   </TableCell>
                   <TableCell />
@@ -206,7 +228,9 @@ function EvalEntryCard({ entry }: { entry: EvalInformation }) {
           </Table>
         ) : (
           <span className="text-muted-foreground" style={{ fontSize: 12 }}>
-            Score: {entry.overall_score?.toFixed(1)} — no per-criterion breakdown available.
+            <LocalizedText text={"Score: "} />
+            {entry.overall_score?.toFixed(1)}
+            <LocalizedText text={" — no per-criterion breakdown available."} />
           </span>
         )}
       </CardContent>
