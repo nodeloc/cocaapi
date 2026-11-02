@@ -16,9 +16,54 @@
       content="一个 API 入口，连接应用与 AI 模型。统一密钥、用量与余额管理。"
     />
     <meta property="og:type" content="website" />
+    <meta property="og:locale" content="zh_CN" />
+    <meta property="og:site_name" content="CocaAPI" />
+    <meta
+      property="og:image"
+      content="https://cocaapi.com/site/brand/og-image-1200x630.png"
+    />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="CocaAPI · Model Infrastructure，连接应用与 AI 模型"
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="CocaAPI · Model Infrastructure" />
+    <meta
+      name="twitter:description"
+      content="一个 API 入口，统一密钥、用量与余额管理。"
+    />
+    <meta
+      name="twitter:image"
+      content="https://cocaapi.com/site/brand/og-image-1200x630.png"
+    />
+    <meta
+      name="twitter:image:alt"
+      content="CocaAPI · Model Infrastructure，连接应用与 AI 模型"
+    />
     <meta property="og:url" content="https://cocaapi.com/" />
     <link rel="canonical" href="https://cocaapi.com/" />
-    <link rel="icon" href="/site/icon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/site/brand/favicon.svg" type="image/svg+xml" />
+    <link
+      rel="icon"
+      href="/site/brand/favicon-32.png"
+      sizes="32x32"
+      type="image/png"
+    />
+    <link
+      rel="icon"
+      href="/site/brand/favicon-16.png"
+      sizes="16x16"
+      type="image/png"
+    />
+    <link rel="shortcut icon" href="/site/brand/favicon.ico" />
+    <link
+      rel="apple-touch-icon"
+      href="/site/brand/apple-touch-icon.png"
+      sizes="180x180"
+    />
+    <link rel="manifest" href="/site/brand/manifest.json" />
     <link
       rel="preload"
       href="/site/fonts/geist-latin.woff2"
@@ -26,9 +71,9 @@
       type="font/woff2"
       crossorigin
     />
-    <script src="/site/theme.js?v=20261102-1"></script>
-    <link rel="stylesheet" href="/site/website.css?v=20261102-1" />
-    <script src="/site/website.js?v=20261102-1" defer></script>
+    <script src="/site/theme.js?v=20261102-2"></script>
+    <link rel="stylesheet" href="/site/website.css?v=20261102-2" />
+    <script src="/site/website.js?v=20261102-2" defer></script>
   </head>
   <body>
     <a class="skip-link" href="#main">跳到主要内容</a>
@@ -80,8 +125,18 @@
     <header class="site-header">
       <div class="header-inner container">
         <a class="wordmark" href="/" aria-label="CocaAPI 首页"
-          ><span class="brand-mark" aria-hidden="true"></span>CocaAPI</a
-        >
+          ><img
+            class="brand-logo brand-dark"
+            src="/site/brand/cocaapi-logo-horizontal-white.svg"
+            width="446"
+            height="96"
+            alt="CocaAPI" /><img
+            class="brand-logo brand-light"
+            src="/site/brand/cocaapi-logo-horizontal-black.svg"
+            width="446"
+            height="96"
+            alt="CocaAPI"
+        /></a>
         <nav id="primary-nav" class="primary-nav" aria-label="主导航">
           <a href="#platform">产品能力</a><a href="#quickstart">快速接入</a
           ><a href="#billing">计费方式</a><a href="#faq">常见问题</a>
@@ -152,7 +207,6 @@
           <div class="orb-color orb-pink"></div>
           <div class="orb-color orb-blue"></div>
           <div class="orb-color orb-violet"></div>
-          <div class="orb-color orb-amber"></div>
         </div>
         <div class="hero-notes">
           <span>为应用，接入更多模型</span><span>为 Agent，统一调用方式</span
@@ -181,7 +235,13 @@
         <div class="feature-layout">
           <div class="routing-demo" aria-label="模型调用界面示意">
             <div class="policy-window">
-              <div class="app-logo">C</div>
+              <img
+                class="app-logo"
+                src="/site/brand/app-icon-gradient.svg"
+                width="1024"
+                height="1024"
+                alt="CocaAPI 应用图标"
+              />
               <p>Routing policy</p>
               <div class="policy-line"></div>
               <span>为请求选择路径</span>
@@ -192,7 +252,19 @@
                 ><span class="demo-badge">界面示意</span>
               </div>
               <div class="playground-content">
-                <span class="avatar">C</span>
+                <span class="avatar" aria-hidden="true"
+                  ><img
+                    class="brand-dark"
+                    src="/site/brand/cocaapi-mark-white.svg"
+                    width="104"
+                    height="104"
+                    alt="" /><img
+                    class="brand-light"
+                    src="/site/brand/cocaapi-mark-black.svg"
+                    width="104"
+                    height="104"
+                    alt=""
+                /></span>
                 <h3>今天，用 AI 构建什么？</h3>
                 <div class="routing-options">
                   <span
@@ -246,9 +318,20 @@
         <div class="feature-layout">
           <div class="usage-demo mock-window" aria-label="用量统计界面示意">
             <div class="window-top usage-top">
-              <span class="mock-brand">CocaAPI</span><span>概览</span
-              ><span class="active-tab">用量</span><span>日志</span
-              ><span class="demo-badge">演示数据</span>
+              <span class="mock-brand"
+                ><img
+                  class="mock-logo brand-dark"
+                  src="/site/brand/cocaapi-logo-horizontal-white.svg"
+                  width="446"
+                  height="96"
+                  alt="CocaAPI" /><img
+                  class="mock-logo brand-light"
+                  src="/site/brand/cocaapi-logo-horizontal-black.svg"
+                  width="446"
+                  height="96"
+                  alt="CocaAPI" /></span
+              ><span>概览</span><span class="active-tab">用量</span
+              ><span>日志</span><span class="demo-badge">演示数据</span>
             </div>
             <div class="usage-body">
               <div class="usage-metrics">
@@ -310,9 +393,20 @@
         <div class="feature-layout">
           <div class="keys-demo mock-window" aria-label="API Key 管理界面示意">
             <div class="mock-sidebar">
-              <strong>CocaAPI</strong><span>概览</span
-              ><span class="active-sidebar">API 密钥</span><span>模型目录</span
-              ><span>调用限额</span><span>请求日志</span>
+              <strong class="mock-brand"
+                ><img
+                  class="mock-logo brand-dark"
+                  src="/site/brand/cocaapi-logo-horizontal-white.svg"
+                  width="446"
+                  height="96"
+                  alt="CocaAPI" /><img
+                  class="mock-logo brand-light"
+                  src="/site/brand/cocaapi-logo-horizontal-black.svg"
+                  width="446"
+                  height="96"
+                  alt="CocaAPI" /></strong
+              ><span>概览</span><span class="active-sidebar">API 密钥</span
+              ><span>模型目录</span><span>调用限额</span><span>请求日志</span>
             </div>
             <div class="keys-body">
               <div class="window-top">
@@ -602,8 +696,18 @@
     <footer class="site-footer container">
       <div class="footer-top">
         <a class="wordmark" href="/" aria-label="CocaAPI 首页"
-          ><span class="brand-mark" aria-hidden="true"></span>CocaAPI</a
-        >
+          ><img
+            class="brand-logo brand-dark"
+            src="/site/brand/cocaapi-logo-horizontal-white.svg"
+            width="446"
+            height="96"
+            alt="CocaAPI" /><img
+            class="brand-logo brand-light"
+            src="/site/brand/cocaapi-logo-horizontal-black.svg"
+            width="446"
+            height="96"
+            alt="CocaAPI"
+        /></a>
         <p>连接应用与模型。<br />让每一个想法，更快成为现实。</p>
         <div class="footer-column">
           <strong>产品</strong><a href="/account/models/">模型目录</a

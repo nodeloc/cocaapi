@@ -30,7 +30,7 @@ playwright-cli -s=website run-code --filename=deploy/cocaapi/tests/website.brows
 node deploy/cocaapi/tests/website.smoke.mjs https://cocaapi.com
 ```
 
-浏览器函数接受可选第二参数 `{ screenshotDirectory: "/absolute/existing/directory" }`，默认不写截图。HTTP smoke 使用 Node.js 内置 fetch，核对首页及七个资源的实际字节与本地文件一致、robots 与 sitemap 内容、14 个用户页面、6 个受保护读取、原管理登录与脚本资源，以及 readiness。所有网络检查仅访问给定源站，不执行充值、注册或模型调用
+浏览器函数接受可选第二参数 `{ screenshotDirectory: "/absolute/existing/directory" }`，默认不写截图。HTTP smoke 使用 Node.js 内置 fetch，核对首页及 21 个资源的实际字节与本地文件一致、robots 与 sitemap 内容、14 个用户页面、6 个受保护读取、原管理登录与脚本资源，以及 readiness。所有网络检查仅访问给定源站，不执行充值、注册或模型调用
 
 源站上线前使用独立 Caddy 的本地监听及 SSH 隧道完成同样的路由、CSP 和缓存检查。发布只复制静态资源和热重载 Caddy，不重建网关镜像、不运行数据库迁移
 
@@ -47,3 +47,13 @@ node deploy/cocaapi/tests/website.smoke.mjs https://cocaapi.com
 独立静态审查没有 P1 / P2 问题，两个关于无 JavaScript 控件和验收脚本路径的建议均已处理并重验。托管 CI 及外部审查机器人未运行；本次没有重新运行无关的模型计费测试，也没有真实上游扣费、第三方登录或支付验收
 
 临时 Caddy 预发布进程、SSH 隧道、本地静态服务及浏览器验收会话均已关闭；静态发布目录与回退资料保留
+
+## 2026-11-02 品牌更新
+
+本次素材来自用户提供的 CocaAPI-brand-assets 及更新后的 CocaAPI Website.html 中的视觉规范。页眉、页脚、用量与密钥示意图使用原始横版 SVG，深色底显示 white 版，浅色底显示 black 版。字标保留原比例，最小显示宽度为 100px；移动端页眉使用 120px。方形应用图标使用原始渐变 SVG，Playground 头像使用对应主题的独立标志。原有文字与背景保持黑白基调，光晕统一为 #FF2D95、#7A5CFF、#00C8FF
+
+新增自适应浏览器主题的 SVG favicon、16/32px PNG 与 ICO 兼容图标、Apple 与 Android 图标，以及 1200×630 的 Open Graph / Twitter 分享图。素材原样复制，不拉伸、不增加阴影或滤镜；分享图保留用户原稿英文文案。所有素材在 /site/brand/ 本地提供，不访问第三方资源。图标清单使用 manifest.json，使当前 Caddy 能正确返回 application/json；公开首页不注册 Service Worker
+
+当前版本为 /var/www/cocaapi/releases/website-brand-20261102T032316Z，资源查询版本为 20261102-2。发布采用新目录与软链接切换，没有修改 Caddy 路由、网关镜像或数据库。恢复本次更新前的官网，可将 /var/www/cocaapi/current 原子切回 /var/www/cocaapi/releases/website-20261102T030853Z；配置与镜像指纹备份在 /opt/cocaapi/backups/website-brand-20261102T032235Z/，中间发布记录保留于 /opt/cocaapi/backups/website-brand-20261102T032316Z/
+
+公网 HTTP 验收通过：首页及 21 个静态资源字节与源码一致，14 个用户页面可访问，6 个受保护读取仍返回 401，原管理页与 readiness 正常。公网浏览器在 375、768、1024、1440px 的深浅主题下通过 Logo 加载、对应主题版本、比例和最小尺寸检查，原菜单、注册链接、SDK 复制和无 JavaScript 使用检查通过，无失败资源、外部请求或运行异常。本地另外确认 320px 无横向溢出，SVG favicon 随浏览器明暗主题变色。独立只读审查未发现 P1 / P2 问题

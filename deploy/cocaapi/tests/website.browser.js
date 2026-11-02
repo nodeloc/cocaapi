@@ -131,6 +131,52 @@ async function verifyWebsite(page, options = {}) {
         metrics.document <= metrics.viewport,
         JSON.stringify({ width, theme, metrics }),
       );
+      const brandImages = page.locator(
+        ".wordmark img:visible, .mock-brand img:visible",
+      );
+      ensure(
+        (await brandImages.count()) ===
+          (await page
+            .locator(".wordmark:visible, .mock-brand:visible")
+            .count()),
+        "Each brand slot must show one logo",
+      );
+      const logos = await brandImages.evaluateAll((items) =>
+        items.map((item) => ({
+          src: item.currentSrc,
+          loaded: item.complete && item.naturalWidth > 0,
+          width: item.getBoundingClientRect().width,
+          ratio:
+            item.getBoundingClientRect().width /
+            item.getBoundingClientRect().height,
+          intrinsicRatio: item.naturalWidth / item.naturalHeight,
+        })),
+      );
+      ensure(
+        logos.every(
+          (logo) =>
+            logo.loaded &&
+            logo.width >= 96 &&
+            Math.abs(logo.ratio - logo.intrinsicRatio) < 0.02 &&
+            logo.src.endsWith(
+              theme === "dark"
+                ? "horizontal-white.svg"
+                : "horizontal-black.svg",
+            ),
+        ),
+        "Brand logo failed to load, switch theme, or retain its proportions: " +
+          JSON.stringify(logos),
+      );
+      ensure(
+        await page
+          .locator(".app-logo")
+          .evaluate((image) => image.complete && image.naturalWidth > 0),
+        "Application icon did not load",
+      );
+      if (width === 1440) {
+        await page.evaluate(() => scrollTo({ top: 0, behavior: "instant" }));
+        await capture("website-desktop-" + theme + ".png");
+      }
       checks.push({ width, theme, overflow: false });
     }
   }
@@ -209,6 +255,8 @@ async function verifyWebsite(page, options = {}) {
     checks,
     links: "valid",
     theme: "persisted",
+    branding:
+      "theme variants, original proportions and application icon verified",
     code: "three samples and keyboard verified",
     clipboard: "verified",
     mobileMenu: "verified",

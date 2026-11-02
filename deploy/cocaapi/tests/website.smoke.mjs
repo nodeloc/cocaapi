@@ -37,6 +37,8 @@ assert.doesNotMatch(
 const html = await homepage.text();
 assert(html.includes('lang="zh-CN"'));
 assert(html.includes("Model") && html.includes("Infrastructure"));
+assert(html.includes("https://cocaapi.com/site/brand/og-image-1200x630.png"));
+assert(html.includes('name="twitter:card" content="summary_large_image"'));
 const digest = (bytes) => createHash("sha256").update(bytes).digest("hex");
 assert.equal(
   digest(html),
@@ -44,10 +46,60 @@ assert.equal(
 );
 
 const assets = [
-  ["/site/website.css?v=20261102-1", "text/css", "site/website.css"],
-  ["/site/website.js?v=20261102-1", "javascript", "site/website.js"],
-  ["/site/theme.js?v=20261102-1", "javascript", "site/theme.js"],
-  ["/site/icon.svg", "image/svg+xml", "site/icon.svg"],
+  [
+    "/site/brand/android-chrome-192x192.png",
+    "image/png",
+    "site/brand/android-chrome-192x192.png",
+  ],
+  [
+    "/site/brand/android-chrome-512x512.png",
+    "image/png",
+    "site/brand/android-chrome-512x512.png",
+  ],
+  [
+    "/site/brand/app-icon-gradient.svg",
+    "image/svg+xml",
+    "site/brand/app-icon-gradient.svg",
+  ],
+  [
+    "/site/brand/apple-touch-icon.png",
+    "image/png",
+    "site/brand/apple-touch-icon.png",
+  ],
+  [
+    "/site/brand/cocaapi-logo-horizontal-black.svg",
+    "image/svg+xml",
+    "site/brand/cocaapi-logo-horizontal-black.svg",
+  ],
+  [
+    "/site/brand/cocaapi-logo-horizontal-white.svg",
+    "image/svg+xml",
+    "site/brand/cocaapi-logo-horizontal-white.svg",
+  ],
+  [
+    "/site/brand/cocaapi-mark-black.svg",
+    "image/svg+xml",
+    "site/brand/cocaapi-mark-black.svg",
+  ],
+  [
+    "/site/brand/cocaapi-mark-white.svg",
+    "image/svg+xml",
+    "site/brand/cocaapi-mark-white.svg",
+  ],
+  ["/site/brand/favicon-16.png", "image/png", "site/brand/favicon-16.png"],
+  ["/site/brand/favicon-32.png", "image/png", "site/brand/favicon-32.png"],
+  ["/site/brand/favicon.ico", "image/", "site/brand/favicon.ico"],
+  ["/site/brand/favicon.svg", "image/svg+xml", "site/brand/favicon.svg"],
+  [
+    "/site/brand/og-image-1200x630.png",
+    "image/png",
+    "site/brand/og-image-1200x630.png",
+  ],
+  ["/site/brand/manifest.json", "application/json", "site/brand/manifest.json"],
+  ["/site/website.css?v=20261102-2", "text/css", "site/website.css"],
+  ["/site/website.js?v=20261102-2", "javascript", "site/website.js"],
+  ["/site/theme.js?v=20261102-2", "javascript", "site/theme.js"],
+  ["/site/icon.svg?v=20261102-2", "image/svg+xml", "site/icon.svg"],
   [
     "/site/fonts/geist-latin.woff2",
     "font/woff2",
