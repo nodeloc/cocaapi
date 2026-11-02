@@ -8,7 +8,8 @@
 <p align="center">面向多用户的 AI API 网关与计费平台</p>
 
 <p align="center">
-  <a href="https://cocaapi.com">在线体验</a> ·
+  <a href="https://cocaapi.com">官网</a> ·
+  <a href="https://demo.cocaapi.com">在线体验</a> ·
   <a href="https://github.com/nodeloc/cocaapi/tree/litellm_account_auth">CocaAPI 源码</a> ·
   <a href="https://github.com/nodeloc/cocaapi/blob/litellm_account_auth/deploy/cocaapi/README.md">部署文档</a> ·
   <a href="https://github.com/nodeloc/cocaapi/blob/litellm_account_auth/LICENSE">许可证</a>
