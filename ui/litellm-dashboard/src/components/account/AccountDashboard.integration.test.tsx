@@ -29,11 +29,23 @@ describe("customer dashboard", () => {
   it("provides the user sidebar and keeps account overview separate from security forms", async () => {
     render(<AccountProfile />);
     const navigation = await screen.findByRole("navigation", { name: "用户中心导航" });
-    expect(within(navigation).getByRole("link", { name: "安全设置" })).toHaveAttribute("href", "/account/security/");
+    expect(within(navigation).getByRole("link", { name: "安全设置" })).toHaveAttribute(
+      "href",
+      expect.stringMatching(/^\/account\/security\/?$/),
+    );
     expect(within(navigation).getByRole("link", { name: "我的账号" })).toHaveAttribute("aria-current", "page");
-    expect(within(navigation).getByRole("link", { name: "API 密钥" })).toHaveAttribute("href", "/account/keys/");
-    expect(within(navigation).getByRole("link", { name: "用量统计" })).toHaveAttribute("href", "/account/usage/");
-    expect(within(navigation).getByRole("link", { name: "接入文档" })).toHaveAttribute("href", "/account/docs/");
+    expect(within(navigation).getByRole("link", { name: "API 密钥" })).toHaveAttribute(
+      "href",
+      expect.stringMatching(/^\/account\/keys\/?$/),
+    );
+    expect(within(navigation).getByRole("link", { name: "用量统计" })).toHaveAttribute(
+      "href",
+      expect.stringMatching(/^\/account\/usage\/?$/),
+    );
+    expect(within(navigation).getByRole("link", { name: "接入文档" })).toHaveAttribute(
+      "href",
+      expect.stringMatching(/^\/account\/docs\/?$/),
+    );
     expect(screen.queryByLabelText("新密码")).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "登录与注册" })).not.toBeInTheDocument();
   });
@@ -49,7 +61,8 @@ describe("customer dashboard", () => {
       return Response.json(request.url.endsWith("/me") ? profile : methods);
     });
     render(<AccountProfile />);
-    fireEvent.click(await screen.findByRole("button", { name: "账号菜单" }));
+    await waitFor(() => expect(screen.getByRole("button", { name: "账号菜单" })).toBeEnabled());
+    fireEvent.click(screen.getByRole("button", { name: "账号菜单" }));
     fireEvent.click(await screen.findByRole("menuitem", { name: "退出登录" }));
     await waitFor(() => expect(replace).toHaveBeenCalledWith("/account/login/"));
   });
@@ -57,7 +70,10 @@ describe("customer dashboard", () => {
     render(<AccountProfile />);
     fireEvent.click(screen.getByRole("button", { name: "打开用户导航" }));
     const menu = await screen.findByRole("dialog", { name: "用户中心菜单" });
-    expect(within(menu).getByRole("link", { name: "充值订单" })).toHaveAttribute("href", "/account/orders/");
+    expect(within(menu).getByRole("link", { name: "充值订单" })).toHaveAttribute(
+      "href",
+      expect.stringMatching(/^\/account\/orders\/?$/),
+    );
     fireEvent.click(within(menu).getByRole("button", { name: "收起侧栏" }));
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
   });
@@ -89,7 +105,8 @@ describe("customer dashboard", () => {
       return Response.json(request.url.endsWith("/me") ? profile : methods);
     });
     render(<AccountProfile />);
-    fireEvent.click(await screen.findByRole("button", { name: "账号菜单" }));
+    await waitFor(() => expect(screen.getByRole("button", { name: "账号菜单" })).toBeEnabled());
+    fireEvent.click(screen.getByRole("button", { name: "账号菜单" }));
     fireEvent.click(await screen.findByRole("menuitem", { name: "退出登录" }));
     expect(await screen.findByRole("alert")).toHaveTextContent("页面状态已过期，请刷新页面后重试");
     expect(replace).not.toHaveBeenCalled();

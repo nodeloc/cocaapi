@@ -3,6 +3,7 @@ import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLo
 
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Loader2, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,6 +14,8 @@ import { PasswordInput } from "@/components/shared/PasswordInput";
 import { accountApi, AccountRequestError, type Methods, type Profile, type Provider } from "./accountApi";
 import { AccountNotice } from "./AccountShell";
 import { AccountDashboardShell } from "./AccountDashboardShell";
+import { CustomerSessionBoundary } from "./native/CustomerSessionProvider";
+import type { CustomerSession } from "./native/CustomerSessionContext";
 
 function canEditSecurity(profile: Profile | null, busy: boolean, requireVerified = true) {
   if (!profile) return false;
@@ -21,11 +24,19 @@ function canEditSecurity(profile: Profile | null, busy: boolean, requireVerified
 }
 
 export default function AccountProfile({ security = false }: { security?: boolean }) {
+  return (
+    <CustomerSessionBoundary>
+      {(session) => <AccountProfileContent security={security} session={session} />}
+    </CustomerSessionBoundary>
+  );
+}
+
+function AccountProfileContent({ security, session }: { security: boolean; session: CustomerSession }) {
   useUiLocale();
-  const router = useRouter();
-  const [profile, setProfile] = useState<Profile | null>(null);
+  const { replace } = useRouter();
+  const { profile, refreshProfile, clearSession } = session;
   const [methods, setMethods] = useState<Methods | null>(null);
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(profile.email ?? "");
   const [password, setPassword] = useState("");
   const [current, setCurrent] = useState("");
   const [confirmation, setConfirmation] = useState("");
@@ -35,7 +46,8 @@ export default function AccountProfile({ security = false }: { security?: boolea
   const showError = useCallback(
     (reason: unknown) => {
       if (reason instanceof AccountRequestError && reason.status === 401) {
-        router.replace("/account/login/");
+        clearSession();
+        replace("/account/login/");
         return;
       }
       setError(
@@ -44,22 +56,20 @@ export default function AccountProfile({ security = false }: { security?: boolea
           : translateMessage("无法加载账号。"),
       );
     },
-    [router],
+    [replace, clearSession],
   );
   const refresh = useCallback(async () => {
-    const [account, options] = await Promise.all([accountApi.profile(), accountApi.methods()]);
-    setProfile(account);
+    const [account, options] = await Promise.all([refreshProfile(), accountApi.methods()]);
     setMethods(options);
     setEmail(account.email ?? "");
-  }, []);
+  }, [refreshProfile]);
   useEffect(() => {
     let active = true;
-    Promise.all([accountApi.profile(), accountApi.methods()])
-      .then(([account, options]) => {
+    accountApi
+      .methods()
+      .then((options) => {
         if (!active) return;
-        setProfile(account);
         setMethods(options);
-        setEmail(account.email ?? "");
       })
       .catch((reason) => {
         if (active) showError(reason);
@@ -100,7 +110,7 @@ export default function AccountProfile({ security = false }: { security?: boolea
     }
     await run(async () => {
       await accountApi.password(password, profile.has_password ? current : undefined, profile.csrf_token);
-      router.replace("/account/login/");
+      replace("/account/login/");
     });
   };
 
@@ -209,9 +219,9 @@ export default function AccountProfile({ security = false }: { security?: boolea
               ].map((item) => (
                 <Card key={item.href}>
                   <CardContent className="space-y-2">
-                    <a href={item.href} className="font-semibold underline-offset-4 hover:underline">
+                    <Link href={item.href} className="font-semibold underline-offset-4 hover:underline">
                       {localizedProperty(item, "title", item.title)}
-                    </a>
+                    </Link>
                     <p className="text-sm text-muted-foreground">
                       {localizedProperty(item, "description", item.description)}
                     </p>

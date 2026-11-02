@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { accountApi, AccountRequestError, type Profile } from "./accountApi";
+import { AccountRequestError } from "./accountApi";
 import { AccountNotice } from "./AccountShell";
 import { AccountDashboardShell } from "./AccountDashboardShell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,11 +16,21 @@ import { Stat } from "@/app/(dashboard)/usage/_components/components/overview/Pr
 import { RefreshCw } from "lucide-react";
 import { formatCredits } from "./money";
 import { LedgerTable, OrdersTable, Pager } from "./WalletTables";
+import { CustomerSessionBoundary } from "./native/CustomerSessionProvider";
+import type { CustomerSession } from "./native/CustomerSessionContext";
 
 export default function AccountWallet({ ordersOnly = false }: { ordersOnly?: boolean }) {
+  return (
+    <CustomerSessionBoundary>
+      {(session) => <AccountWalletContent ordersOnly={ordersOnly} session={session} />}
+    </CustomerSessionBoundary>
+  );
+}
+
+function AccountWalletContent({ ordersOnly, session }: { ordersOnly: boolean; session: CustomerSession }) {
   useUiLocale();
-  const router = useRouter();
-  const [profile, setProfile] = useState<Profile | null>(null);
+  const { push, replace } = useRouter();
+  const { profile, clearSession } = session;
   const [wallet, setWallet] = useState<Wallet | null>(null);
   const [ledger, setLedger] = useState<Ledger | null>(null);
   const [orders, setOrders] = useState<Orders | null>(null);
@@ -36,7 +46,8 @@ export default function AccountWallet({ ordersOnly = false }: { ordersOnly?: boo
   const showError = useCallback(
     (reason: unknown) => {
       if (reason instanceof AccountRequestError && reason.status === 401) {
-        router.replace("/account/login/");
+        clearSession();
+        replace("/account/login/");
         return;
       }
       setError(
@@ -45,15 +56,10 @@ export default function AccountWallet({ ordersOnly = false }: { ordersOnly?: boo
           : translateMessage("请求失败，请稍后重试。"),
       );
     },
-    [router],
+    [replace, clearSession],
   );
   const load = useCallback(async () => {
-    const [account, balance, options] = await Promise.all([
-      accountApi.profile(),
-      walletApi.balance(),
-      walletApi.methods(),
-    ]);
-    setProfile(account);
+    const [balance, options] = await Promise.all([walletApi.balance(), walletApi.methods()]);
     setWallet(balance);
     setMethods(options);
     if (options.networks.length)
@@ -98,7 +104,7 @@ export default function AccountWallet({ ordersOnly = false }: { ordersOnly?: boo
     void run(async () => {
       await walletApi.create({ amount_usd: amount, network }, profile.csrf_token, key);
       request.current = null;
-      router.push("/account/orders/");
+      push("/account/orders/");
     });
   };
   return (

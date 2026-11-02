@@ -3,6 +3,7 @@ import { LocalizedText, localizedProperty, markUiCopy, translateMessage, useUiLo
 
 import { useState, type ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import Link from "next/link";
 import { useMediaQuery } from "usehooks-ts";
 import {
   ChevronsUpDown,
@@ -38,7 +39,6 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   Breadcrumb,
   BreadcrumbItem,
-  BreadcrumbLink,
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
@@ -57,6 +57,7 @@ import { AccountNotice } from "./AccountShell";
 import { accountApi, type Profile } from "./accountApi";
 import { LanguageSwitcher } from "@/lib/i18n/LanguageSwitcher";
 import { CocaApiLogo } from "@/components/common_components/CocaApiLogo";
+import { useCustomerSession } from "./native/CustomerSessionContext";
 
 const groups = [
   markUiCopy(
@@ -129,13 +130,13 @@ function AccountNavigation({
     <Sidebar collapsed={collapsed}>
       <SidebarHeader className="h-14 border-b border-border group-data-[collapsed=true]/sidebar:h-auto">
         <div className="flex items-center justify-between gap-2 group-data-[collapsed=true]/sidebar:flex-col">
-          <a
+          <Link
             href="/account/home/"
             aria-label={translateMessage("CocaAPI 用户中心")}
             className="min-w-0 text-xl font-semibold tracking-tight"
           >
             <CocaApiLogo compact={collapsed} className={collapsed ? undefined : "w-[120px]"} />
-          </a>
+          </Link>
           <Button
             variant="ghost"
             size="icon-sm"
@@ -155,7 +156,7 @@ function AccountNavigation({
                 const { label, href, icon: Icon } = cocaCopyProps0;
                 return (
                   <SidebarMenuItem key={href}>
-                    <a
+                    <Link
                       href={href}
                       aria-label={localizedProperty(cocaCopyProps0, "label", label)}
                       aria-current={pathname === href ? "page" : undefined}
@@ -166,7 +167,7 @@ function AccountNavigation({
                       <span className="truncate group-data-[collapsed=true]/sidebar:hidden">
                         {localizedProperty(cocaCopyProps0, "label", label)}
                       </span>
-                    </a>
+                    </Link>
                   </SidebarMenuItem>
                 );
               })}
@@ -226,7 +227,10 @@ export function AccountDashboardShell({
 }) {
   useUiLocale();
   const router = useRouter();
-  const [collapsed, setCollapsed] = useState(false);
+  const session = useCustomerSession();
+  const [localCollapsed, setLocalCollapsed] = useState(false);
+  const collapsed = session?.collapsed ?? localCollapsed;
+  const setCollapsed = session?.setCollapsed ?? setLocalCollapsed;
   const [mobileOpen, setMobileOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -239,6 +243,7 @@ export function AccountDashboardShell({
     setError("");
     try {
       await accountApi.logout(profile.csrf_token);
+      session?.clearSession();
       router.replace("/account/login/");
     } catch (cause) {
       setError(
@@ -304,9 +309,9 @@ export function AccountDashboardShell({
             <Breadcrumb className="min-w-0 flex-1">
               <BreadcrumbList className="flex-nowrap">
                 <BreadcrumbItem className="hidden md:inline-flex">
-                  <BreadcrumbLink href="/account/home/">
+                  <Link href="/account/home/" className="transition-colors hover:text-foreground">
                     <LocalizedText text={"用户中心"} />
-                  </BreadcrumbLink>
+                  </Link>
                 </BreadcrumbItem>
                 <BreadcrumbSeparator className="hidden md:flex" />
                 <BreadcrumbItem className="min-w-0">

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import AccountSessionLayout from "@/components/account/AccountSessionLayout";
 
 export const metadata: Metadata = {
   title: "CocaAPI 账号",
@@ -8,5 +9,5 @@ export const metadata: Metadata = {
 };
 
 export default function Layout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return children;
+  return <AccountSessionLayout>{children}</AccountSessionLayout>;
 }
