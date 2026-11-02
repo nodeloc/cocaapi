@@ -1,2 +1,4 @@
 *.ipynb linguist-vendored
 ui/litellm-dashboard/src/lib/http/schema.d.ts linguist-generated
+deploy/cocaapi/website/** text eol=lf
+deploy/cocaapi/website/**/*.woff2 binary

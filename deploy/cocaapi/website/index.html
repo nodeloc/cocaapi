@@ -1,0 +1,633 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark light" />
+    <meta name="theme-color" content="#000000" />
+    <title>CocaAPI · 一个入口，连接你的 AI 模型</title>
+    <meta
+      name="description"
+      content="通过 OpenAI 兼容接口接入 AI 模型。在 CocaAPI 统一管理 API Key、查看用量与请求日志，并通过账户余额按实际用量结算。"
+    />
+    <meta property="og:title" content="CocaAPI · Model Infrastructure" />
+    <meta
+      property="og:description"
+      content="一个 API 入口，连接应用与 AI 模型。统一密钥、用量与余额管理。"
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://cocaapi.com/" />
+    <link rel="canonical" href="https://cocaapi.com/" />
+    <link rel="icon" href="/site/icon.svg" type="image/svg+xml" />
+    <link
+      rel="preload"
+      href="/site/fonts/geist-latin.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <script src="/site/theme.js?v=20261102-1"></script>
+    <link rel="stylesheet" href="/site/website.css?v=20261102-1" />
+    <script src="/site/website.js?v=20261102-1" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">跳到主要内容</a>
+    <svg
+      class="icon-definitions"
+      aria-hidden="true"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <symbol id="i-arrow" viewBox="0 0 24 24">
+        <path d="M5 12h14m-6-6 6 6-6 6" />
+      </symbol>
+      <symbol id="i-copy" viewBox="0 0 24 24">
+        <rect x="8" y="8" width="12" height="12" rx="2" />
+        <path d="M16 8V4H4v12h4" />
+      </symbol>
+      <symbol id="i-check" viewBox="0 0 24 24">
+        <path d="m5 12 4 4L19 6" />
+      </symbol>
+      <symbol id="i-sun" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="4" />
+        <path
+          d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"
+        />
+      </symbol>
+      <symbol id="i-moon" viewBox="0 0 24 24">
+        <path d="M20.5 14A9 9 0 0 1 10 3.5 9 9 0 1 0 20.5 14Z" />
+      </symbol>
+      <symbol id="i-route" viewBox="0 0 24 24">
+        <circle cx="5" cy="5" r="2" />
+        <circle cx="19" cy="5" r="2" />
+        <circle cx="19" cy="19" r="2" />
+        <path d="M5 7v8a4 4 0 0 0 4 4h8M7 5h10" />
+      </symbol>
+      <symbol id="i-key" viewBox="0 0 24 24">
+        <circle cx="8" cy="9" r="5" />
+        <path d="m12 12 8 8m-3-3 3-3m-6 0 3-3" />
+      </symbol>
+      <symbol id="i-chart" viewBox="0 0 24 24">
+        <path d="M4 4v16h17M8 15v-4m5 4V7m5 8V4" />
+      </symbol>
+      <symbol id="i-menu" viewBox="0 0 24 24">
+        <path d="M4 7h16M4 12h16M4 17h16" />
+      </symbol>
+      <symbol id="i-close" viewBox="0 0 24 24">
+        <path d="m6 6 12 12M6 18 18 6" />
+      </symbol>
+    </svg>
+
+    <header class="site-header">
+      <div class="header-inner container">
+        <a class="wordmark" href="/" aria-label="CocaAPI 首页"
+          ><span class="brand-mark" aria-hidden="true"></span>CocaAPI</a
+        >
+        <nav id="primary-nav" class="primary-nav" aria-label="主导航">
+          <a href="#platform">产品能力</a><a href="#quickstart">快速接入</a
+          ><a href="#billing">计费方式</a><a href="#faq">常见问题</a>
+        </nav>
+        <div class="header-actions">
+          <button
+            class="icon-button theme-toggle"
+            type="button"
+            aria-label="切换到浅色模式"
+            title="切换主题"
+            hidden
+          >
+            <svg class="icon theme-sun"><use href="#i-sun" /></svg
+            ><svg class="icon theme-moon"><use href="#i-moon" /></svg>
+          </button>
+          <a
+            class="button button-small button-outline login-link"
+            href="/account/login/"
+            >登录</a
+          >
+          <a
+            class="button button-small button-primary"
+            href="/account/register/"
+            >注册账号</a
+          >
+          <button
+            class="icon-button menu-toggle"
+            type="button"
+            aria-label="打开导航菜单"
+            aria-expanded="false"
+            aria-controls="primary-nav"
+            hidden
+          >
+            <svg class="icon menu-open"><use href="#i-menu" /></svg
+            ><svg class="icon menu-close"><use href="#i-close" /></svg>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main id="main">
+      <section class="hero container" aria-labelledby="hero-title">
+        <div class="hero-copy">
+          <p class="eyebrow">为开发者与 AI 应用而生</p>
+          <h1 id="hero-title">
+            Model<br />Infrastructure<span class="title-dot">.</span>
+          </h1>
+          <p class="hero-description">
+            一个 OpenAI 兼容接口，连接你的 AI 模型。<br
+              class="desktop-break"
+            />让应用专注体验，让模型接入更简单。
+          </p>
+          <div class="actions">
+            <a class="button button-primary" href="/account/keys/"
+              >获取 API Key<svg class="icon"><use href="#i-arrow" /></svg></a
+            ><a class="button button-outline" href="#quickstart"
+              >查看接入示例</a
+            >
+          </div>
+          <p class="hero-endpoint">
+            <span class="status-dot" aria-hidden="true"></span
+            ><span>cocaapi.com/v1</span
+            ><span class="endpoint-label">OpenAI compatible</span>
+          </p>
+        </div>
+        <div class="hero-orb" aria-hidden="true">
+          <div class="orb-glow"></div>
+          <div class="orb-color orb-pink"></div>
+          <div class="orb-color orb-blue"></div>
+          <div class="orb-color orb-violet"></div>
+          <div class="orb-color orb-amber"></div>
+        </div>
+        <div class="hero-notes">
+          <span>为应用，接入更多模型</span><span>为 Agent，统一调用方式</span
+          ><span>为开发者，管理每次用量</span>
+        </div>
+      </section>
+
+      <section class="provider-section container" aria-label="模型生态">
+        <div class="provider-list">
+          <span>OpenAI</span><span>Anthropic</span><span>Google</span
+          ><span>DeepSeek</span><span>Mistral</span><span>Qwen</span
+          ><span>xAI</span><span>Meta</span>
+        </div>
+        <p>模型生态展示 · 实际可用模型及权限以你的控制台为准</p>
+      </section>
+
+      <section
+        id="platform"
+        class="feature-section container"
+        aria-labelledby="routing-title"
+      >
+        <div class="section-heading">
+          <p class="eyebrow">接入与调用</p>
+          <h2 id="routing-title">让每次请求，<br />都有合适的模型。</h2>
+        </div>
+        <div class="feature-layout">
+          <div class="routing-demo" aria-label="模型调用界面示意">
+            <div class="policy-window">
+              <div class="app-logo">C</div>
+              <p>Routing policy</p>
+              <div class="policy-line"></div>
+              <span>为请求选择路径</span>
+            </div>
+            <div class="playground-window mock-window">
+              <div class="window-top">
+                <span>Playground · 文本生成</span
+                ><span class="demo-badge">界面示意</span>
+              </div>
+              <div class="playground-content">
+                <span class="avatar">C</span>
+                <h3>今天，用 AI 构建什么？</h3>
+                <div class="routing-options">
+                  <span
+                    ><svg class="icon"><use href="#i-route" /></svg
+                    >统一接口，切换已授权模型</span
+                  ><span
+                    ><svg class="icon"><use href="#i-check" /></svg
+                    >调用前检查权限与余额</span
+                  ><span
+                    ><svg class="icon"><use href="#i-chart" /></svg
+                    >调用后记录用量与费用</span
+                  >
+                </div>
+              </div>
+              <div class="mock-input">
+                <span class="mini-tag">chat-primary</span>
+                <p>
+                  发送你的第一条消息<span class="caret" aria-hidden="true"
+                    >▍</span
+                  >
+                </p>
+              </div>
+            </div>
+          </div>
+          <div class="feature-description">
+            <p>
+              从同一个入口调用不同模型，使用熟悉的 SDK。先在 Playground
+              验证想法，再接入自己的应用。
+            </p>
+            <ul class="feature-list">
+              <li>OpenAI 兼容接口</li>
+              <li>文本生成与流式响应</li>
+              <li>Embeddings 向量接口</li>
+              <li>模型权限与调用限额</li>
+            </ul>
+            <a class="text-link" href="/account/playground/"
+              >进入 Playground<svg class="icon"><use href="#i-arrow" /></svg
+            ></a>
+          </div>
+        </div>
+      </section>
+
+      <section
+        class="feature-section feature-reverse container"
+        aria-labelledby="usage-title"
+      >
+        <div class="section-heading">
+          <p class="eyebrow">用量与观测</p>
+          <h2 id="usage-title">从第一条请求，<br />到每一笔消耗。</h2>
+        </div>
+        <div class="feature-layout">
+          <div class="usage-demo mock-window" aria-label="用量统计界面示意">
+            <div class="window-top usage-top">
+              <span class="mock-brand">CocaAPI</span><span>概览</span
+              ><span class="active-tab">用量</span><span>日志</span
+              ><span class="demo-badge">演示数据</span>
+            </div>
+            <div class="usage-body">
+              <div class="usage-metrics">
+                <div><span>请求数</span><strong>1,284</strong></div>
+                <div><span>Tokens</span><strong>862.4K</strong></div>
+                <div><span>消耗</span><strong>$2.48</strong></div>
+              </div>
+              <div class="usage-chart" aria-hidden="true">
+                <i style="--bar-height: 24%"></i
+                ><i style="--bar-height: 38%"></i
+                ><i style="--bar-height: 33%"></i
+                ><i style="--bar-height: 52%"></i
+                ><i style="--bar-height: 47%"></i
+                ><i style="--bar-height: 64%"></i
+                ><i style="--bar-height: 58%"></i
+                ><i style="--bar-height: 73%"></i
+                ><i style="--bar-height: 68%"></i
+                ><i style="--bar-height: 85%"></i
+                ><i style="--bar-height: 78%"></i
+                ><i style="--bar-height: 96%"></i>
+              </div>
+              <div class="request-row">
+                <span class="code-success">200</span><span>chat-primary</span
+                ><span>web-app</span>
+              </div>
+              <div class="request-row">
+                <span class="code-success">200</span><span>embedding</span
+                ><span>knowledge-base</span>
+              </div>
+              <div class="request-row">
+                <span class="code-success">200</span><span>chat-assistant</span
+                ><span>support-agent</span>
+              </div>
+            </div>
+          </div>
+          <div class="feature-description">
+            <p>
+              在一个控制台查看自己的请求、Token
+              和消耗。按时间、模型与请求筛选，让每次调用都有迹可查。
+            </p>
+            <ul class="feature-list">
+              <li>用量趋势与模型统计</li>
+              <li>Token 与费用记录</li>
+              <li>请求日志与状态筛选</li>
+              <li>个人数据独立可见</li>
+            </ul>
+            <a class="text-link" href="/account/usage/"
+              >查看我的用量<svg class="icon"><use href="#i-arrow" /></svg
+            ></a>
+          </div>
+        </div>
+      </section>
+
+      <section class="feature-section container" aria-labelledby="keys-title">
+        <div class="section-heading">
+          <p class="eyebrow">密钥与访问</p>
+          <h2 id="keys-title">给每个应用，<br />一把自己的钥匙。</h2>
+        </div>
+        <div class="feature-layout">
+          <div class="keys-demo mock-window" aria-label="API Key 管理界面示意">
+            <div class="mock-sidebar">
+              <strong>CocaAPI</strong><span>概览</span
+              ><span class="active-sidebar">API 密钥</span><span>模型目录</span
+              ><span>调用限额</span><span>请求日志</span>
+            </div>
+            <div class="keys-body">
+              <div class="window-top">
+                <strong>API 密钥</strong
+                ><span class="demo-badge">界面示意</span>
+              </div>
+              <div class="key-table-wrap">
+                <table class="key-table">
+                  <caption class="sr-only">
+                    三把示例密钥，均非真实凭据
+                  </caption>
+                  <thead>
+                    <tr>
+                      <th>应用</th>
+                      <th>密钥</th>
+                      <th>状态</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>web-app</td>
+                      <td>sk-••••a91f</td>
+                      <td><span class="key-status">有效</span></td>
+                    </tr>
+                    <tr>
+                      <td>support-agent</td>
+                      <td>sk-••••0c3e</td>
+                      <td><span class="key-status">有效</span></td>
+                    </tr>
+                    <tr>
+                      <td>local-dev</td>
+                      <td>sk-••••77d2</td>
+                      <td><span class="key-status">有效</span></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <p class="key-note">
+                <svg class="icon"><use href="#i-key" /></svg
+                >按应用管理，随时撤销。
+              </p>
+            </div>
+          </div>
+          <div class="feature-description">
+            <p>
+              为不同应用创建个人 API
+              Key，选择已获授权的模型，查看有效期与用量。需要停止访问时，直接撤销对应密钥。
+            </p>
+            <ul class="feature-list">
+              <li>个人 API Key 管理</li>
+              <li>按模型限制访问范围</li>
+              <li>密钥有效期管理</li>
+              <li>多把密钥共用账户余额</li>
+            </ul>
+            <a class="text-link" href="/account/keys/"
+              >管理 API Key<svg class="icon"><use href="#i-arrow" /></svg
+            ></a>
+          </div>
+        </div>
+      </section>
+
+      <section
+        id="quickstart"
+        class="quickstart-section container"
+        aria-labelledby="quickstart-title"
+      >
+        <div class="section-heading">
+          <p class="eyebrow">兼容你熟悉的工具</p>
+          <h2 id="quickstart-title">换个入口，<br />继续使用你的 SDK。</h2>
+          <p class="section-description">
+            准备好 API Key 和已授权的模型名称，就可以开始发送请求。
+          </p>
+        </div>
+        <div class="code-window mock-window">
+          <div class="code-toolbar">
+            <div class="code-tabs" role="tablist" aria-label="接入示例语言">
+              <button
+                type="button"
+                id="tab-curl"
+                role="tab"
+                aria-selected="true"
+                aria-controls="code-panel"
+                data-language="curl"
+              >
+                cURL</button
+              ><button
+                type="button"
+                id="tab-python"
+                role="tab"
+                aria-selected="false"
+                aria-controls="code-panel"
+                tabindex="-1"
+                data-language="python"
+                hidden
+              >
+                Python</button
+              ><button
+                type="button"
+                id="tab-node"
+                role="tab"
+                aria-selected="false"
+                aria-controls="code-panel"
+                tabindex="-1"
+                data-language="node"
+                hidden
+              >
+                Node.js
+              </button>
+            </div>
+            <button id="copy-code" class="copy-button" type="button" hidden>
+              <svg class="icon"><use href="#i-copy" /></svg
+              ><span>复制代码</span>
+            </button>
+          </div>
+          <div
+            id="code-panel"
+            role="tabpanel"
+            tabindex="0"
+            aria-labelledby="tab-curl"
+          >
+            <pre><code id="code-example">curl https://cocaapi.com/v1/chat/completions \
+  -H "Authorization: Bearer $COCAAPI_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "YOUR_MODEL_NAME",
+    "messages": [{"role": "user", "content": "你好，CocaAPI"}],
+    "max_tokens": 128
+  }'</code></pre>
+          </div>
+          <div class="code-footer">
+            <span>替换 YOUR_MODEL_NAME 为模型目录中已授权的名称。</span
+            ><span id="copy-status" role="status" aria-live="polite"></span>
+          </div>
+        </div>
+        <div class="quickstart-links">
+          <span
+            ><span class="status-dot" aria-hidden="true"></span>Base URL
+            <code>https://cocaapi.com/v1</code></span
+          ><a class="text-link" href="/account/docs/"
+            >查看接入文档<svg class="icon"><use href="#i-arrow" /></svg
+          ></a>
+        </div>
+      </section>
+
+      <section
+        id="billing"
+        class="billing-section container"
+        aria-labelledby="billing-title"
+      >
+        <div class="billing-heading">
+          <div class="section-heading">
+            <p class="eyebrow">透明的使用方式</p>
+            <h2 id="billing-title">
+              按实际用量付费。<br />把预算用在每次调用上。
+            </h2>
+          </div>
+          <p>
+            账户余额统一结算。调用前预扣预计费用，<br
+              class="desktop-break"
+            />完成后按实际用量退回差额。
+          </p>
+        </div>
+        <div class="billing-grid">
+          <article class="billing-card">
+            <span class="card-label">按量结算</span>
+            <h3>用多少，付多少。</h3>
+            <p>
+              文本和向量调用按平台已配置的模型价格结算。可用模型以账号权限为准。
+            </p>
+            <ul class="feature-list">
+              <li>按模型用量扣费</li>
+              <li>调用前检查可用余额</li>
+              <li>已有调用限额继续生效</li>
+            </ul>
+            <a class="button button-outline" href="/account/models/"
+              >查看可用模型<svg class="icon"><use href="#i-arrow" /></svg
+            ></a>
+          </article>
+          <article class="billing-card featured-card">
+            <span class="card-label">统一钱包</span>
+            <h3>多个应用，一个余额。</h3>
+            <p>
+              API 和 Playground
+              使用同一钱包。兑换额度后，在账户里查看余额与明细。
+            </p>
+            <ul class="feature-list">
+              <li>兑换码入账</li>
+              <li>多 Key 共享可用余额</li>
+              <li>冻结与待补缴独立展示</li>
+            </ul>
+            <a class="button button-primary" href="/account/wallet/"
+              >进入余额与充值<svg class="icon"><use href="#i-arrow" /></svg
+            ></a>
+          </article>
+          <article class="billing-card">
+            <span class="card-label">用量可查</span>
+            <h3>每笔支出，都有记录。</h3>
+            <p>按时间和模型查看调用用量，再通过钱包流水核对扣费与入账。</p>
+            <ul class="feature-list">
+              <li>模型用量统计</li>
+              <li>API 扣费流水</li>
+              <li>异常冻结可核对</li>
+            </ul>
+            <a class="button button-outline" href="/account/usage/"
+              >查看用量记录<svg class="icon"><use href="#i-arrow" /></svg
+            ></a>
+          </article>
+        </div>
+        <p class="billing-note">
+          支付方式以账户页实际开放的选项为准。费用不明的中断请求会保留冻结额度，待核对后结算。
+        </p>
+      </section>
+
+      <section
+        id="faq"
+        class="faq-section container"
+        aria-labelledby="faq-title"
+      >
+        <div class="section-heading">
+          <p class="eyebrow">开始之前</p>
+          <h2 id="faq-title">你可能想知道。</h2>
+        </div>
+        <div class="faq-list">
+          <details>
+            <summary>
+              如何开始第一次 API 调用？<span aria-hidden="true">+</span>
+            </summary>
+            <p>
+              注册并登录账号，完成必要的邮箱验证。确认账号已获模型权限与调用额度，并有足够可用余额后，在「API
+              密钥」创建
+              Key，再使用上面的接入示例。具体授权范围可在模型目录与调用限额中查看。
+            </p>
+          </details>
+          <details>
+            <summary>
+              已有的 OpenAI SDK 可以使用吗？<span aria-hidden="true">+</span>
+            </summary>
+            <p>
+              可以。将 SDK 的 base URL 设置为
+              <code>https://cocaapi.com/v1</code>，使用 CocaAPI 的 API
+              Key，并将模型名称改成你已获授权的名称。支持范围可在账户内的接入文档中查看。
+            </p>
+          </details>
+          <details>
+            <summary>
+              为什么有余额，仍然无法调用？<span aria-hidden="true">+</span>
+            </summary>
+            <p>
+              余额、模型权限和调用限额会分别检查。请确认已验证邮箱、Key
+              有效、模型已授权，并且调用限额足够。预扣预计费用高于可用余额或存在待补缴费用时，也会拒绝调用。
+            </p>
+          </details>
+          <details>
+            <summary>
+              支持哪些模型和登录方式？<span aria-hidden="true">+</span>
+            </summary>
+            <p>
+              模型目录会列出你的账号实际可用的模型。账号与第三方登录方式以登录页当前开放的选项为准。
+            </p>
+          </details>
+          <details>
+            <summary>
+              API Key 应该放在哪里？<span aria-hidden="true">+</span>
+            </summary>
+            <p>
+              将 Key 保存在服务端环境变量或密钥管理工具中，通过自己的后端调用
+              API。不要把密钥写入网页源码、公共代码仓库或发给其他人；发现泄露后请立即撤销并重新创建。
+            </p>
+          </details>
+        </div>
+      </section>
+
+      <section class="final-cta container" aria-labelledby="start-title">
+        <p class="eyebrow">从一个想法开始</p>
+        <h2 id="start-title">
+          Built by you.<br class="mobile-break" />
+          Powered by CocaAPI.
+        </h2>
+        <div class="actions">
+          <a class="button button-primary" href="/account/register/"
+            >创建你的账号<svg class="icon"><use href="#i-arrow" /></svg></a
+          ><a class="button button-outline" href="/account/home/">进入控制台</a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer container">
+      <div class="footer-top">
+        <a class="wordmark" href="/" aria-label="CocaAPI 首页"
+          ><span class="brand-mark" aria-hidden="true"></span>CocaAPI</a
+        >
+        <p>连接应用与模型。<br />让每一个想法，更快成为现实。</p>
+        <div class="footer-column">
+          <strong>产品</strong><a href="/account/models/">模型目录</a
+          ><a href="/account/playground/">Playground</a
+          ><a href="/account/keys/">API 密钥</a>
+        </div>
+        <div class="footer-column">
+          <strong>开发者</strong><a href="#quickstart">快速接入</a
+          ><a href="/account/docs/">接入文档</a
+          ><a href="/account/logs/">请求日志</a>
+        </div>
+        <div class="footer-column">
+          <strong>我的账号</strong><a href="/account/login/">登录</a
+          ><a href="/account/register/">注册</a
+          ><a href="/account/wallet/">余额与充值</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2026 CocaAPI</span
+        ><span class="footer-protocol"
+          ><span class="status-dot" aria-hidden="true"></span>OPENAI-COMPATIBLE
+          API</span
+        ><a href="#main">返回顶部 ↑</a>
+      </div>
+    </footer>
+  </body>
+</html>

@@ -1,8 +1,8 @@
 # cocaapi.com 部署
 
-服务器为 `141.98.197.58`，运行 Debian 13。服务目录为 `/opt/cocaapi`，Caddy 配置为 `/etc/caddy/Caddyfile`。入口为 `https://cocaapi.com/ui/`，API 地址为 `https://cocaapi.com/v1`
+服务器为 `141.98.197.58`，运行 Debian 13。服务目录为 `/opt/cocaapi`，Caddy 配置为 `/etc/caddy/Caddyfile`。公开官网为 `https://cocaapi.com/`，用户入口为 `/account/login/`，管理入口为 `/ui/`，API 地址为 `https://cocaapi.com/v1`。官网静态发布与验收见 [WEBSITE.md](WEBSITE.md)
 
-基础网关固定为官方 LiteLLM `v1.106.6` 镜像。账号版本使用 `Dockerfile.auth` 在该固定摘要上构建，复用现有前端组件，新增 `/account/` 用户中心。管理员继续使用 `/ui/`，模型 API 仍为 `/v1`。充值和兑换码属于后续阶段，本次没有实现
+基础网关固定为官方 LiteLLM `v1.106.6` 镜像。账号与计费版本使用 `Dockerfile.auth` 在该固定摘要上构建，复用现有前端组件，提供 `/account/` 用户中心、钱包、兑换码与调用扣费。管理员继续使用 `/ui/`，模型 API 仍为 `/v1`。USDT 支付网关按 [WALLET.md](WALLET.md) 保留适配接口
 
 ## 配置和凭据
 

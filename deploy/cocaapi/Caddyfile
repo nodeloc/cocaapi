@@ -1,7 +1,5 @@
 cocaapi.com {
     encode zstd gzip
-    @homepage path /
-    redir @homepage /account/login/ 302
     header {
         X-Content-Type-Options nosniff
     }
@@ -13,7 +11,21 @@ cocaapi.com {
         Cache-Control no-store
         defer
     }
-    reverse_proxy 127.0.0.1:4000 {
-        flush_interval -1
+    @website path / /site/* /robots.txt /sitemap.xml
+    handle @website {
+        root * /var/www/cocaapi/current
+        header {
+            Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"
+        }
+        @website_documents not path /site/*
+        header @website_documents Cache-Control "public, no-cache, no-transform"
+        @website_assets path /site/*
+        header @website_assets Cache-Control "public, max-age=86400"
+        file_server
+    }
+    handle {
+        reverse_proxy 127.0.0.1:4000 {
+            flush_interval -1
+        }
     }
 }
