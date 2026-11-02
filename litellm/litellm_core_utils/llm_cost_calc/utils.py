@@ -4,7 +4,7 @@
 import re
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
-from datetime import datetime, timezone, tzinfo
+from datetime import date, datetime, timezone, tzinfo
 from types import MappingProxyType
 from typing import Final, Literal, TypedDict, cast
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
@@ -501,15 +501,47 @@ def _as_window_strings(value: object) -> tuple[str, ...]:
     return ()
 
 
+def _calendar_date(value: object) -> date:
+    if not isinstance(value, str):
+        raise TypeError("Off-peak calendar dates must be ISO date strings")
+    return date.fromisoformat(value)
+
+
+def is_calendar_off_peak(off_peak: Mapping[str, object], current_time: datetime | None = None) -> bool:
+    entries: Final = off_peak.get("calendar_dates", ())
+    valid_until: Final = off_peak.get("calendar_valid_until")
+    if "calendar_dates" not in off_peak and valid_until is None:
+        return False
+    if isinstance(entries, str) or not isinstance(entries, Sequence):
+        raise TypeError("Off-peak calendar_dates must be a sequence")
+    calendar_name: Final = off_peak.get("calendar_timezone", "UTC")
+    if not isinstance(calendar_name, str):
+        raise TypeError("Off-peak calendar_timezone must be an IANA timezone")
+    try:
+        calendar: Final = ZoneInfo(calendar_name)
+    except (ValueError, ZoneInfoNotFoundError):
+        raise ValueError("Off-peak calendar_timezone must be an IANA timezone") from None
+    reference: Final = current_time if current_time is not None else current_billing_time()
+    reference_utc: Final = (
+        reference.astimezone(timezone.utc) if reference.tzinfo is not None else reference.replace(tzinfo=timezone.utc)
+    )
+    today: Final = reference_utc.astimezone(calendar).date()
+    if valid_until is not None and today > _calendar_date(valid_until):
+        raise ValueError("Off-peak holiday calendar has expired")
+    return today in frozenset(_calendar_date(entry) for entry in entries)
+
+
 def _is_off_peak(off_peak: Mapping[str, object], current_time: datetime | None = None) -> bool:
     """Return True when current_time (UTC, defaulting to now) is off-peak under the block's
-    rules: the flat hours_utc windows, which apply every day, or any entry in windows, whose
-    hours apply only on its weekdays.
+    rules: explicit calendar dates, flat hours_utc windows applying every day, or entries in
+    windows whose hours apply only on their weekdays. Calendar expiry is checked first.
     """
     reference: Final = current_time if current_time is not None else current_billing_time()
     reference_utc: Final = (
         reference.astimezone(timezone.utc) if reference.tzinfo is not None else reference.replace(tzinfo=timezone.utc)
     )
+    if is_calendar_off_peak(off_peak, reference_utc):
+        return True
     flat_windows: Final = _as_window_strings(off_peak.get("hours_utc"))
     if flat_windows and _is_within_off_peak_window(flat_windows, reference_utc):
         return True

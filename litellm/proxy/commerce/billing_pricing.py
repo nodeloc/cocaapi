@@ -5,6 +5,7 @@ from itertools import chain
 from types import MappingProxyType
 from typing import Final
 
+from litellm.litellm_core_utils.llm_cost_calc.utils import is_calendar_off_peak
 from litellm.models.commerce_auth import AuthError
 from litellm.proxy.spend_tracking.budget_reservation import (
     count_request_input_tokens,  # pyright: ignore[reportUnknownVariableType]  # Native helper accepts legacy untyped payloads
@@ -205,7 +206,13 @@ def client_overrides(data: Mapping[str, object]) -> bool:
 def has_premium_controls(value: object) -> bool:
     if isinstance(value, Mapping):
         mapped: Final = _MAPPING.validate_python(value)
-        if mapped.get("cache_control") or mapped.get("encrypted_content"):
+        if any(
+            mapped.get(field)
+            for field in (
+                "cache_control", "encrypted_content", "prompt_cache_retention",
+                "prompt_cache_options", "prompt_cache_breakpoint",
+            )
+        ):
             return True
         if mapped.get("service_tier") not in (None, "default", "standard") or mapped.get("speed") not in (
             None,
@@ -260,6 +267,16 @@ async def single_quote(data: Mapping[str, object], route: str, router: Router | 
     if router is not None and isinstance(model, str):
         defaults: Final = getattr(router, "default_litellm_params", None)
         deployments: Final = router.get_model_list(model_name=model) or ()
+        for deployment in deployments:
+            off_peak = object_mapping(deployment.get("model_info")).get("off_peak_pricing")
+            if off_peak is None:
+                continue
+            if not isinstance(off_peak, Mapping):
+                return AuthError("wallet_pricing_unavailable", 503)
+            try:
+                is_calendar_off_peak(object_mapping(off_peak))
+            except (ValueError, TypeError):
+                return AuthError("wallet_pricing_unavailable", 503)
         if unsafe_defaults(defaults) or any(unsafe_defaults(item["litellm_params"]) for item in deployments):
             return AuthError("wallet_pricing_unavailable", 503)
     request_body: Final = dict(data)

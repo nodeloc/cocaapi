@@ -1,0 +1,7 @@
+ARG COCAAPI_RUNTIME_IMAGE
+FROM ${COCAAPI_RUNTIME_IMAGE}
+
+COPY litellm/litellm_core_utils/llm_cost_calc/utils.py /app/.venv/lib/python3.13/site-packages/litellm/litellm_core_utils/llm_cost_calc/utils.py
+COPY litellm/types/utils.py /app/.venv/lib/python3.13/site-packages/litellm/types/utils.py
+COPY litellm/proxy/commerce/billing_pricing.py /app/.venv/lib/python3.13/site-packages/litellm/proxy/commerce/billing_pricing.py
+COPY litellm/proxy/spend_tracking/budget_reservation.py /app/.venv/lib/python3.13/site-packages/litellm/proxy/spend_tracking/budget_reservation.py

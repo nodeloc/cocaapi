@@ -1464,16 +1464,24 @@ def _max_cost_for_cost_info(
                 tier_rate(tier, "output_cost_per_token"),
                 tier_rate(tier, "output_cost_per_reasoning_token"),
             )
-            return (estimated_input_tokens * tier_rate(tier, "input_cost_per_token")) + (
-                output_tokens * output_multiplier * output_rate
+            tier_input_rate: Final = max(
+                tier_rate(tier, "input_cost_per_token"),
+                tier_rate(tier, "cache_read_input_token_cost", "input_cost_per_token"),
+                tier_rate(tier, "cache_creation_input_token_cost", "input_cost_per_token"),
             )
+            return (estimated_input_tokens * tier_input_rate) + (output_tokens * output_multiplier * output_rate)
 
     input_cost_per_token: Final = _to_float(model_info.get("input_cost_per_token"))
     output_cost_per_token: Final = _to_float(model_info.get("output_cost_per_token"))
     output_cost_per_reasoning_token: Final = _to_float(model_info.get("output_cost_per_reasoning_token"))
     cost = 0.0
     if input_cost_per_token is not None:
-        cost += estimated_input_tokens * input_cost_per_token
+        input_rate: Final = max(
+            input_cost_per_token,
+            _to_float(model_info.get("cache_read_input_token_cost")) or 0.0,
+            _to_float(model_info.get("cache_creation_input_token_cost")) or 0.0,
+        )
+        cost += estimated_input_tokens * input_rate
     elif estimated_input_tokens > 0:
         return None
 

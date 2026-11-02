@@ -5,11 +5,8 @@ from datetime import datetime, timedelta, timezone
 from typing import Final
 
 import pytest
-
-import litellm
 from litellm.caching import DualCache
 from litellm.models.budget import LiteLLM_BudgetTable
-from litellm.proxy import proxy_server
 from litellm.proxy._types import (
     LiteLLM_OrganizationTable,
     LiteLLM_ProjectTableCachedObj,
@@ -25,6 +22,7 @@ from litellm.proxy.common_utils.user_api_key_cache import (
 )
 from litellm.proxy.spend_tracking.budget_reservation import (
     _get_team_member_budget_counter,
+    _max_cost_for_cost_info,
     estimate_request_max_cost,
     get_budget_window_start,
     release_unbound_budget_reservation,
@@ -33,6 +31,29 @@ from litellm.proxy.spend_tracking.budget_reservation import (
 from litellm.proxy.utils import ProxyLogging
 from litellm.router import Router
 from litellm.types.router import Deployment, LiteLLM_Params, ModelInfo
+
+import litellm
+from litellm.proxy import proxy_server
+
+
+@pytest.mark.parametrize("tiered", [False, True])
+def test_maximum_cost_reserves_cache_write_premium_for_all_input_tokens(tiered: bool) -> None:
+    rates = {
+        "input_cost_per_token": 1e-7,
+        "output_cost_per_token": 5e-7,
+        "cache_read_input_token_cost": 1e-8,
+        "cache_creation_input_token_cost": 1.25e-7,
+    }
+    info = {**rates, **({"tiered_pricing": [{"range": [0, 272000], **rates}]} if tiered else {})}
+    quoted = _max_cost_for_cost_info(
+        request_body={"max_tokens": 1},
+        route="/v1/chat/completions",
+        model="cache-write-priced-model",
+        model_info=info,
+        input_tokens=1000,
+    )
+    assert quoted == pytest.approx(1000 * rates["cache_creation_input_token_cost"] + rates["output_cost_per_token"])
+
 
 TOKEN_COUNTING_ROUTES: Final = (
     "/responses/input_tokens",

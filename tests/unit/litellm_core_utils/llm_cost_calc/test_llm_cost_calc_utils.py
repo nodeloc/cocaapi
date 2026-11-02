@@ -1,11 +1,8 @@
-import json
 from collections.abc import Mapping
 from datetime import datetime, timezone
 from typing import Final, cast
 
 import pytest
-
-import litellm
 from litellm._internal_context import pinned_billing_time
 from litellm.litellm_core_utils.llm_cost_calc.utils import (
     BilledTokenRates,
@@ -23,9 +20,6 @@ from litellm.litellm_core_utils.llm_cost_calc.utils import (
     get_billed_token_rates,
     get_token_type_cost_breakdown,
 )
-from litellm.llms.gemini.image_generation.cost_calculator import (
-    cost_calculator as gemini_image_generation_cost_calculator,
-)
 from litellm.llms.vertex_ai.image_generation.cost_calculator import (
     cost_calculator as vertex_image_generation_cost_calculator,
 )
@@ -40,6 +34,8 @@ from litellm.types.utils import (
     PromptTokensDetailsWrapper,
     Usage,
 )
+
+import litellm
 
 
 @pytest.fixture
@@ -322,8 +318,6 @@ def test_reasoning_tokens_gemini(_local_model_cost_map):
         + (model_cost_map["output_cost_per_reasoning_token"] * usage.completion_tokens_details.reasoning_tokens),
         10,
     )
-
-
 
 
 def test_image_tokens_with_custom_pricing():
@@ -683,6 +677,52 @@ def test_is_off_peak_weekday_qualified_windows_deepseek_schedule():
         assert _is_off_peak(deepseek, when) is False, f"{when.isoformat()} should bill peak"
     for when in off_peak_instants:
         assert _is_off_peak(deepseek, when) is True, f"{when.isoformat()} should bill off-peak"
+
+
+@pytest.mark.parametrize(
+    ("instant", "expected"),
+    [
+        ("2026-04-30T15:59:00+00:00", False),
+        ("2026-04-30T16:00:00+00:00", True),
+        ("2026-05-01T02:00:00+00:00", True),
+        ("2026-05-05T15:59:00+00:00", True),
+        ("2026-05-05T16:00:00+00:00", False),
+    ],
+)
+def test_calendar_dates_apply_off_peak_for_the_vendor_local_day(instant: str, expected: bool) -> None:
+    block = {
+        "calendar_dates": ["2026-05-01", "2026-05-02", "2026-05-03", "2026-05-04", "2026-05-05"],
+        "calendar_timezone": "Asia/Shanghai",
+        "calendar_valid_until": "2026-12-31",
+    }
+    assert _is_off_peak(block, datetime.fromisoformat(instant)) is expected
+
+
+def test_expired_holiday_calendar_rejects_even_an_otherwise_off_peak_window() -> None:
+    block = {
+        "hours_utc": "00:00-00:00",
+        "calendar_dates": [],
+        "calendar_timezone": "Asia/Shanghai",
+        "calendar_valid_until": "2026-12-31",
+    }
+    assert _is_off_peak(block, datetime.fromisoformat("2026-12-31T15:59:00+00:00")) is True
+    with pytest.raises(ValueError, match="expired"):
+        _is_off_peak(block, datetime.fromisoformat("2026-12-31T16:00:00+00:00"))
+
+
+@pytest.mark.parametrize(
+    "invalid_calendar",
+    [
+        {"calendar_dates": "2026-05-01"},
+        {"calendar_dates": ["2026-02-30"]},
+        {"calendar_dates": [False]},
+        {"calendar_dates": [], "calendar_timezone": "Not/AZone"},
+        {"calendar_dates": [], "calendar_valid_until": "invalid"},
+    ],
+)
+def test_invalid_calendar_configuration_does_not_fall_back_to_peak_pricing(invalid_calendar: dict[str, object]) -> None:
+    with pytest.raises((ValueError, TypeError)):
+        _is_off_peak(invalid_calendar, datetime(2026, 5, 1, 2, tzinfo=timezone.utc))
 
 
 def test_is_off_peak_weekday_timezone_reads_vendor_calendar():
@@ -2299,10 +2339,6 @@ def test_vertex_image_generation_cost_falls_back_to_flat_image_pricing(_local_mo
     assert round(cost, 10) == round(expected_cost, 10)
 
 
-
-
-
-
 def test_query_count_is_free_without_a_per_query_price(_local_model_cost_map):
     usage = Usage(
         prompt_tokens=0,
@@ -2481,8 +2517,6 @@ def test_vertex_global_or_absent_location_no_uplift(vertex_location, _local_mode
     assert base == located
 
 
-
-
 def test_vertex_uplift_invalid_multiplier_defaults_to_one():
     """A malformed multiplier in the cost map degrades to base pricing, never raises."""
     from litellm.litellm_core_utils.llm_cost_calc.utils import (
@@ -2522,6 +2556,7 @@ def test_get_cost_per_unit_falls_back_from_service_tier_key_to_base():
 )
 def test_flat_input_price_keeps_other_token_thresholds(field: str) -> None:
     from typing import Final, cast
+
     from litellm.litellm_core_utils.llm_cost_calc.utils import _get_token_base_cost
 
     info: Final = cast(
@@ -2548,6 +2583,7 @@ def test_flat_input_price_keeps_other_token_thresholds(field: str) -> None:
 @pytest.mark.parametrize("higher_rate", (0.0, 0.009))
 def test_mixed_token_thresholds_preserve_each_crossed_rate(prompt_tokens: int, higher_rate: float) -> None:
     from typing import Final, cast
+
     from litellm.litellm_core_utils.llm_cost_calc.utils import _get_token_base_cost
 
     info: Final = cast(
@@ -3756,8 +3792,6 @@ def test_route_image_generation_cost_openai_honors_deployment_input_cost_per_ima
     assert cost == pytest.approx(0.07)
 
 
-
-
 @pytest.mark.parametrize(
     ("custom_llm_provider", "model"),
     [
@@ -4118,17 +4152,28 @@ def test_token_breakdown_uses_supplied_pricing_without_catalog_lookup(rate: floa
         "cache_creation_input_token_cost": rate,
     }
     usage: Final = Usage(
-        prompt_tokens=20, completion_tokens=3, total_tokens=23,
-        prompt_tokens_details=PromptTokensDetailsWrapper(cached_tokens=5), cache_creation_input_tokens=5,
+        prompt_tokens=20,
+        completion_tokens=3,
+        total_tokens=23,
+        prompt_tokens_details=PromptTokensDetailsWrapper(cached_tokens=5),
+        cache_creation_input_tokens=5,
     )
     prompt_cost, output_cost = generic_cost_per_token(
-        model="supplied-pricing-test", usage=usage, custom_llm_provider="bedrock", model_info=model_info,
+        model="supplied-pricing-test",
+        usage=usage,
+        custom_llm_provider="bedrock",
+        model_info=model_info,
     )
     breakdown: Final = get_token_type_cost_breakdown(
-        model="supplied-pricing-test", usage=usage, custom_llm_provider="bedrock", model_info=model_info,
+        model="supplied-pricing-test",
+        usage=usage,
+        custom_llm_provider="bedrock",
+        model_info=model_info,
     )
     assert breakdown.cache_read_cost == pytest.approx(5 * rate)
     assert breakdown.cache_creation_cost == pytest.approx(5 * rate)
     assert breakdown.rates is not None
-    assert prompt_cost == pytest.approx(10 * breakdown.rates.input_cost_per_token + breakdown.cache_read_cost + breakdown.cache_creation_cost)
+    assert prompt_cost == pytest.approx(
+        10 * breakdown.rates.input_cost_per_token + breakdown.cache_read_cost + breakdown.cache_creation_cost
+    )
     assert output_cost == pytest.approx(3 * breakdown.rates.output_cost_per_token)

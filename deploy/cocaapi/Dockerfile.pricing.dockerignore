@@ -1,0 +1,12 @@
+**
+!litellm/
+!litellm/types/
+!litellm/types/utils.py
+!litellm/litellm_core_utils/
+!litellm/litellm_core_utils/llm_cost_calc/
+!litellm/litellm_core_utils/llm_cost_calc/utils.py
+!litellm/proxy/
+!litellm/proxy/commerce/
+!litellm/proxy/commerce/billing_pricing.py
+!litellm/proxy/spend_tracking/
+!litellm/proxy/spend_tracking/budget_reservation.py
