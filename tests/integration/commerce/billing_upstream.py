@@ -104,7 +104,7 @@ class BillingUpstream(BaseHTTPRequestHandler):
                 "prompt_tokens": 7, "completion_tokens": 5, "total_tokens": 12,
                 "prompt_tokens_details": {"cached_tokens": 0},
                 "completion_tokens_details": {"reasoning_tokens": 0},
-                "cost": 0, "is_byok": False,
+                "cost": 0.0025 if trigger == "priced-provider-cost" else 0, "is_byok": False,
             },
         }
         if self.path.endswith("/completions") and not self.path.endswith("/chat/completions"):
@@ -192,7 +192,11 @@ def request_trigger(body: Mapping[str, JsonValue]) -> str:
     if not isinstance(messages, list):
         return ""
     return next(
-        (text for message in messages if (text := message_text(message)).startswith(("fail-", "delayed-", "invalid-"))), ""
+        (
+            text for message in messages
+            if (text := message_text(message)).startswith(("fail-", "delayed-", "invalid-", "priced-"))
+        ),
+        "",
     )
 
 

@@ -1,0 +1,7 @@
+ARG COCAAPI_RUNTIME_IMAGE
+FROM ${COCAAPI_RUNTIME_IMAGE}
+
+COPY litellm/proxy/commerce/gateway_routes.py litellm/proxy/commerce/gateway_service.py /app/.venv/lib/python3.13/site-packages/litellm/proxy/commerce/
+COPY litellm/proxy/commerce/billing_hook.py /app/.venv/lib/python3.13/site-packages/litellm/proxy/commerce/
+COPY litellm/litellm_core_utils/litellm_logging.py /app/.venv/lib/python3.13/site-packages/litellm/litellm_core_utils/
+COPY ui/litellm-dashboard/out/ /app/cocaapi-ui/

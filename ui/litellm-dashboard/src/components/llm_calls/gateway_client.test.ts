@@ -1,6 +1,47 @@
 import { afterEach, expect, it, vi } from "vitest";
 import { registerAuthHeaderNameGetter } from "@/lib/http/runtime";
 import { createGatewayClient } from "./gateway_client";
+import { registerCustomerTransport } from "@/lib/http/customerTransport";
+import { createCustomerTransport } from "@/components/account/native/customerNativeRequest";
+vi.hoisted(() => vi.stubGlobal("window", { location: { origin: "http://localhost" } }));
+
+it("does not automatically repeat a potentially billable customer request", async () => {
+  const release = registerCustomerTransport(
+    createCustomerTransport({
+      user_id: "customer-a",
+      email: "a@example.com",
+      email_verified: true,
+      has_password: true,
+      bindings: [],
+      csrf_token: "csrf-test",
+      reauthentication_required: false,
+    }),
+  );
+  const fetchImpl = vi.fn(async (input: RequestInfo | URL) => {
+    const path = new URL((input as Request).url).pathname;
+    return path.endsWith("/authorize")
+      ? Response.json({ message: "ok" })
+      : Response.json({ choices: [{ message: { content: "already generated" } }] });
+  });
+  vi.stubGlobal("fetch", fetchImpl);
+  try {
+    const client = createGatewayClient({ accessToken: "sk-test-personal-key", baseURL: "http://localhost/v1" });
+    await expect(
+      client.chat.completions.create({
+        model: "model-a",
+        messages: [{ role: "user", content: "hello" }],
+        stream: true,
+      }),
+    ).rejects.toThrow("模型没有返回流式响应");
+    expect(fetchImpl.mock.calls.map(([input]) => new URL((input as Request).url).pathname)).toEqual([
+      "/account/api/v1/gateway/playground/authorize",
+      "/v1/chat/completions",
+    ]);
+  } finally {
+    release();
+    vi.unstubAllGlobals();
+  }
+});
 
 vi.mock("@/components/networking", () => ({ getProxyBaseUrl: () => "https://management.example/root" }));
 afterEach(() => registerAuthHeaderNameGetter(() => "Authorization"));

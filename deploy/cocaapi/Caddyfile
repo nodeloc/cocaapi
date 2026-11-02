@@ -1,5 +1,12 @@
 cocaapi.com {
-    encode zstd gzip
+    @compressible not path /v1/chat/completions /chat/completions
+    encode @compressible zstd gzip
+    @chat path /v1/chat/completions /chat/completions
+    header @chat {
+        Cache-Control "no-cache, no-transform"
+        X-Accel-Buffering no
+        defer
+    }
     header {
         X-Content-Type-Options nosniff
     }

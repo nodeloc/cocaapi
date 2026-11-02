@@ -90,7 +90,8 @@ describe("ChatUI", () => {
     await selectComboboxOption("Select a Model", "Model 1");
     await user.click(screen.getByRole("button", { name: "Model Settings", exact: true }));
     expect(screen.queryByLabelText("Temperature value")).not.toBeInTheDocument();
-    expect(screen.queryByRole("checkbox", { name: "Stream responses", exact: true })).not.toBeInTheDocument();
+    expect(screen.getByRole("checkbox", { name: "Stream responses", exact: true })).toBeChecked();
+    await user.click(screen.getByRole("checkbox", { name: "Stream responses", exact: true }));
     await user.click(screen.getByRole("checkbox", { name: "Use Advanced Parameters", exact: true }));
     const input = screen.getByRole("textbox", { name: "Max tokens value", exact: true });
     fireEvent.change(input, { target: { value: "8192" } });
@@ -103,6 +104,10 @@ describe("ChatUI", () => {
     fireEvent.change(message, { target: { value: "hello" } });
     fireEvent.keyDown(message, { key: "Enter", code: "Enter" });
     expect(await screen.findByRole("status")).toHaveTextContent("回答尚未完成");
+    expect(vi.mocked(makeOpenAIChatCompletionRequest).mock.calls[0][25]).toBe(false);
+    await user.click(screen.getByRole("button", { name: "Model Settings", exact: true }));
+    await user.click(screen.getByRole("checkbox", { name: "Stream responses", exact: true }));
+    await user.keyboard("{Escape}");
     fireEvent.change(message, { target: { value: "continue" } });
     fireEvent.keyDown(message, { key: "Enter", code: "Enter" });
     await waitFor(() => expect(makeOpenAIChatCompletionRequest).toHaveBeenCalledTimes(2));
@@ -112,6 +117,7 @@ describe("ChatUI", () => {
       { role: "user", content: "continue" },
     ]);
     expect(submitted[17]).toBe(8192);
+    expect(submitted[25]).toBe(true);
   });
   beforeEach(() => {
     vi.clearAllMocks();

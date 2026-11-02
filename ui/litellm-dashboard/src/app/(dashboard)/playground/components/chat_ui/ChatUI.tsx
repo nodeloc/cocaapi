@@ -289,7 +289,7 @@ const ChatUI: React.FC<ChatUIProps> = ({
   const [useAdvancedParams, setUseAdvancedParams] = useState<boolean>(false);
   const [mockTestFallbacks, setMockTestFallbacks] = useState<boolean>(false);
   const [streamingEnabled, setStreamingEnabled] = useState<boolean>(() => {
-    if (customer) return false;
+    if (customer) return true;
     if (simplified) return true;
     const saved = sessionStorage.getItem("streamingEnabled");
     return saved === null ? true : saved === "true";
@@ -1433,7 +1433,7 @@ const ChatUI: React.FC<ChatUIProps> = ({
                               mockTestFallbacks={mockTestFallbacks}
                               onMockTestFallbacksChange={customer ? undefined : setMockTestFallbacks}
                               streamingEnabled={streamingEnabled}
-                              onStreamingChange={!customer && supportsStreamingToggle ? setStreamingEnabled : undefined}
+                              onStreamingChange={supportsStreamingToggle ? setStreamingEnabled : undefined}
                             />
                           </PopoverContent>
                         </Popover>

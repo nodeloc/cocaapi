@@ -1,0 +1,13 @@
+**
+!litellm/
+!litellm/proxy/
+!litellm/proxy/commerce/
+!litellm/proxy/commerce/gateway_routes.py
+!litellm/proxy/commerce/gateway_service.py
+!litellm/proxy/commerce/billing_hook.py
+!litellm/litellm_core_utils/
+!litellm/litellm_core_utils/litellm_logging.py
+!ui/
+!ui/litellm-dashboard/
+!ui/litellm-dashboard/out/
+!ui/litellm-dashboard/out/**

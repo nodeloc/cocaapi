@@ -119,7 +119,7 @@ class GatewayService:
             return AuthError("key_not_found", 404)
         return await self.native.delete_key(token, session.customer.user_id)
 
-    async def chat(self, session: Session, body: PlaygroundInput) -> PlaygroundOutput | AuthError:
+    async def authorize_chat(self, session: Session, body: PlaygroundInput) -> AuthError | None:
         owned: Final = await self.store.key(session.customer.user_id, hash_token(body.api_key.get_secret_value()))
         if owned is None:
             return AuthError("key_not_found", 404)
@@ -132,4 +132,10 @@ class GatewayService:
             return AuthError("email_verification_required", 403)
         if access.key_creation_reason:
             return AuthError(access.key_creation_reason, 403)
+        return None
+
+    async def chat(self, session: Session, body: PlaygroundInput) -> PlaygroundOutput | AuthError:
+        error: Final = await self.authorize_chat(session, body)
+        if error is not None:
+            return error
         return await self.native.chat(body)

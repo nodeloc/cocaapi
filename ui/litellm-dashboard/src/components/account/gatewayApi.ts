@@ -65,4 +65,12 @@ export const gatewayApi = {
         headers: { "X-CSRF-Token": csrf },
       }),
     ),
+  authorizePlayground: async (body: components["schemas"]["PlaygroundInput"], csrf: string, signal: AbortSignal) =>
+    unwrap(
+      await client.POST("/account/api/v1/gateway/playground/authorize", {
+        body,
+        signal,
+        headers: { "X-CSRF-Token": csrf },
+      }),
+    ),
 };

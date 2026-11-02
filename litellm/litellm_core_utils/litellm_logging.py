@@ -1883,7 +1883,7 @@ class Logging(LiteLLMLoggingBaseClass):
             if (
                 "response_cost" in hidden_params
                 and hidden_params["response_cost"] is not None
-                and not (hidden_params["response_cost"] == 0 and self.custom_pricing_for(priced_result))
+                and not self.custom_pricing_for(priced_result)
             ):  # use cost if already calculated
                 self._record_zero_cost_diagnostic(
                     priced_result,
@@ -2477,12 +2477,16 @@ class Logging(LiteLLMLoggingBaseClass):
 
         if self.model_call_details.get("cache_hit") is True:
             self.model_call_details["response_cost"] = 0.0
-        elif "response_cost" in hidden_params and not (
-            hidden_params["response_cost"] == 0 and self.custom_pricing_for(logging_result)
+        elif "response_cost" in hidden_params and (
+            hidden_params["response_cost"] is None or not self.custom_pricing_for(logging_result)
         ):
             self.model_call_details["response_cost"] = hidden_params["response_cost"]
             self._record_zero_cost_diagnostic(logging_result, hidden_params["response_cost"])
-        elif (existing_cost := self.model_call_details.get("response_cost")) is not None and existing_cost != 0:
+        elif (
+            (existing_cost := self.model_call_details.get("response_cost")) is not None
+            and existing_cost != 0
+            and not self.custom_pricing_for(logging_result)
+        ):
             # Preserve response_cost if already calculated (e.g., by pass-through
             # handlers like Gemini/Vertex which call completion_cost directly).
             # Do not preserve 0 from failure_handler on intermediate router retries.

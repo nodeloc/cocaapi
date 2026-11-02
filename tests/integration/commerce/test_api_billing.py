@@ -101,7 +101,10 @@ async def test_positive_but_insufficient_balance_rejects_maximum_cost(wallet_cli
 
 
 @pytest.mark.asyncio
-async def test_provider_failure_releases_the_pre_authorized_balance(wallet_client: WalletClient) -> None:
+@pytest.mark.parametrize("stream", (False, True))
+async def test_provider_failure_releases_nonstream_cost_or_retains_stream_cost_for_review(
+    wallet_client: WalletClient, stream: bool
+) -> None:
     key: Final = await api_key(wallet_client)
     await fund(wallet_client, 1_000_000_000)
     async with httpx.AsyncClient(base_url=os.environ["COCAAPI_NATIVE_BILLING_URL"], timeout=30) as client:
@@ -112,12 +115,23 @@ async def test_provider_failure_releases_the_pre_authorized_balance(wallet_clien
                 "model": "wallet-priced-model",
                 "messages": [{"role": "user", "content": "fail-before-response"}],
                 "max_tokens": 64,
+                "stream": stream,
             },
         )
     assert response.status_code >= 400
     balance: Final = await WalletRepository(wallet_client.database).balance(wallet_client.session.customer.user_id)
     assert not isinstance(balance, AuthError)
-    assert balance.available_units == 1_000_000_000 and balance.reserved_units == 0 and balance.debited_units == 0
+    assert balance.debited_units == 0
+    assert balance.available_units + balance.reserved_units == 1_000_000_000
+    if stream:
+        assert balance.reserved_units > 0
+        rows: Final = await wallet_client.database.query_raw(
+            'SELECT status FROM "CommerceCallReservation" WHERE user_id=$1 LIMIT 1',
+            wallet_client.session.customer.user_id,
+        )
+        assert rows[0]["status"] == "review"
+    else:
+        assert balance.reserved_units == 0
 
 
 @pytest.mark.asyncio
@@ -148,6 +162,107 @@ async def test_stream_completion_settles_once_and_refunds_unused_reservation(wal
             return
         await asyncio.sleep(0.05)
     raise AssertionError("Completed stream did not settle its wallet reservation")
+
+
+@pytest.mark.asyncio
+async def test_customer_authorized_stream_delivers_before_completion_and_settles_once(
+    wallet_client: WalletClient,
+) -> None:
+    key: Final = await api_key(wallet_client)
+    await wallet_client.database.execute_raw('DELETE FROM "CommerceLoginConfiguration"')
+    accounts: Final = AccountService(
+        AccountRepository(wallet_client.database),
+        AccountSettings(
+            secret=SecretStr("billing-test-auth-secret-not-for-production-123456789"),
+            public_url="http://localhost:4400",
+        ),
+    )
+    login: Final = await accounts.new_session(wallet_client.session.customer)
+    assert isinstance(login, LoginResult)
+    auth: Final = {"Origin": "http://localhost:4400", "X-CSRF-Token": accounts.security.csrf(login.token)}
+    payload: Final = {
+        "model": "wallet-priced-model",
+        "messages": [{"role": "user", "content": "delayed-stream"}],
+        "max_tokens": 64,
+        "stream": True,
+        "stream_options": {"include_usage": True},
+    }
+    store: Final = WalletRepository(wallet_client.database)
+    async with httpx.AsyncClient(base_url=os.environ["COCAAPI_NATIVE_BILLING_URL"], timeout=30) as client:
+        client.cookies.set("coca_session", login.token)
+        preflight: Final = await client.post(
+            "/account/api/v1/gateway/playground/authorize",
+            json={"api_key": key, "model": payload["model"], "prompt": "delayed-stream", "max_tokens": 64},
+            headers=auth,
+        )
+        assert preflight.status_code == 200, preflight.text
+        denied: Final = await client.post(
+            "/v1/chat/completions", json=payload, headers={"Authorization": "Bearer " + key}
+        )
+        assert denied.status_code == 402 and "insufficient_balance" in denied.text
+        await fund(wallet_client, 1_000_000_000)
+        async with client.stream(
+            "POST", "/v1/chat/completions", json=payload, headers={"Authorization": "Bearer " + key}
+        ) as response:
+            assert response.status_code == 200
+            lines: Final = response.aiter_lines()
+            async for line in lines:
+                if "Billing test response" in line:
+                    break
+            else:
+                raise AssertionError("No incremental content arrived")
+            first_at: Final = time.monotonic()
+            during: Final = await store.balance(wallet_client.session.customer.user_id)
+            assert not isinstance(during, AuthError) and during.reserved_units > 0 and during.debited_units == 0
+            remaining: Final = tuple([line async for line in lines])
+            assert any("[DONE]" in line for line in remaining)
+            assert time.monotonic() - first_at > 1
+    deadline: Final = time.monotonic() + 10
+    while time.monotonic() < deadline:
+        balance: Final = await store.balance(wallet_client.session.customer.user_id)
+        assert not isinstance(balance, AuthError)
+        if balance.reserved_units == 0:
+            assert 0 < balance.debited_units < 1_000_000_000
+            assert balance.available_units + balance.debited_units == 1_000_000_000
+            rows: Final = await store.transactions(wallet_client.session.customer.user_id, 100, 0)
+            assert len(tuple(row for row in rows.items if row.kind == "usage")) == 1
+            return
+        await asyncio.sleep(0.05)
+    raise AssertionError("Authorized stream did not settle")
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("stream", (False, True))
+async def test_provider_stated_cost_cannot_override_customer_platform_pricing(
+    wallet_client: WalletClient, stream: bool
+) -> None:
+    key: Final = await api_key(wallet_client)
+    await fund(wallet_client, 1_000_000_000)
+    async with httpx.AsyncClient(base_url=os.environ["COCAAPI_NATIVE_BILLING_URL"], timeout=30) as client:
+        response: Final = await client.post(
+            "/v1/chat/completions",
+            headers={"Authorization": "Bearer " + key},
+            json={
+                "model": "wallet-priced-model",
+                "messages": [{"role": "user", "content": "priced-provider-cost"}],
+                "max_tokens": 64,
+                "stream": stream,
+                "stream_options": {"include_usage": True} if stream else None,
+            },
+        )
+        assert response.status_code == 200, response.text
+    store: Final = WalletRepository(wallet_client.database)
+    deadline: Final = time.monotonic() + 10
+    while time.monotonic() < deadline:
+        balance: Final = await store.balance(wallet_client.session.customer.user_id)
+        assert not isinstance(balance, AuthError)
+        if balance.reserved_units == 0:
+            assert balance.debited_units == 17_000_000
+            rows: Final = await store.transactions(wallet_client.session.customer.user_id, 100, 0)
+            assert len(tuple(row for row in rows.items if row.kind == "usage")) == 1
+            return
+        await asyncio.sleep(0.05)
+    raise AssertionError("Provider-cost request did not settle")
 
 
 @pytest.mark.asyncio

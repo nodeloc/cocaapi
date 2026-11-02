@@ -225,6 +225,66 @@ it("forwards the selected output limit and preserves a truncated completion", as
   expect(await submitted.json()).toMatchObject({ max_tokens: 8192 });
 });
 
+it("authorizes the personal key before opening a live stream and forwards only allowed fields", async () => {
+  const sent: Request[] = [];
+  fetchMock.mockImplementation(async (input) => {
+    const req = input as Request;
+    sent.push(req);
+    if (new URL(req.url).pathname.endsWith("/authorize")) return Response.json({ message: "ok" });
+    return new Response(
+      'data: {"choices":[{"index":0,"delta":{"content":"hello"},"finish_reason":"stop"}]}\n\ndata: [DONE]\n\n',
+      { headers: { "Content-Type": "text/event-stream" } },
+    );
+  });
+  const controller = new AbortController();
+  const req = new Request("http://localhost/v1/chat/completions", {
+    method: "POST",
+    signal: controller.signal,
+    headers: { Authorization: "Bearer sk-owned-secret" },
+    body: JSON.stringify({
+      model: "model-a",
+      messages: [{ role: "user", content: "hello" }],
+      stream: true,
+      max_tokens: 8192,
+      user: "forged-owner",
+      extra_body: { max_tokens: 1 },
+      stream_options: { include_usage: false },
+    }),
+  });
+  const result = await createCustomerTransport(profile).request(req);
+  expect(result.headers.get("Content-Type")).toContain("text/event-stream");
+  expect(await result.text()).toContain("hello");
+  expect(sent.map((item) => new URL(item.url).pathname)).toEqual([
+    "/account/api/v1/gateway/playground/authorize",
+    "/v1/chat/completions",
+  ]);
+  expect(sent[0].headers.get("X-CSRF-Token")).toBe(profile.csrf_token);
+  expect(sent[1].headers.get("Authorization")).toBe("Bearer sk-owned-secret");
+  expect(sent[1].headers.has("X-CSRF-Token")).toBe(false);
+  expect(sent[1].credentials).toBe("omit");
+  expect(await sent[1].json()).toEqual({
+    model: "model-a",
+    messages: [{ role: "user", content: "hello" }],
+    max_tokens: 8192,
+    stream: true,
+    stream_options: { include_usage: true },
+  });
+  controller.abort();
+  expect(sent[1].signal.aborted).toBe(true);
+});
+
+it("does not open the native stream when account authorization rejects the key", async () => {
+  fetchMock.mockResolvedValueOnce(Response.json({ detail: "key_not_found" }, { status: 404 }));
+  const req = request("/v1/chat/completions", {
+    model: "model-a",
+    messages: [{ role: "user", content: "hello" }],
+    stream: true,
+  });
+  req.headers.set("Authorization", "Bearer sk-other-key");
+  expect((await createCustomerTransport(profile).request(req)).status).toBe(404);
+  expect(fetchMock).toHaveBeenCalledTimes(1);
+});
+
 it("converts native local-day filters to UTC bounds", () => {
   expect(
     nativeWindow(new URLSearchParams({ start_date: "2026-11-02", end_date: "2026-11-02", timezone: "-480" })),

@@ -5,6 +5,7 @@ import { nativeKey, nativeModels, nativeUser } from "./customerNativeData";
 import { nativeUsage, nativeWindow } from "./customerNativeUsage";
 import type { CustomerTransport } from "@/lib/http/customerTransport";
 import { getAuthHeaderName } from "@/lib/http/runtime";
+import { streamResponse } from "./customerChatStream";
 
 const bodySchema = z.record(z.string(), z.unknown());
 const denied = () =>
@@ -269,7 +270,7 @@ export function createCustomerTransport(profile: Profile): CustomerTransport {
         });
       }
       if (path === "/chat/completions" || path === "/v1/chat/completions") {
-        if (data.stream !== false) return denied();
+        if (data.stream !== false && data.stream !== true) return denied();
         const rawKey = request.headers.get(getAuthHeaderName())?.replace(/^Bearer /, "") ?? "";
         const model = z.string().parse(data.model);
         const messages = z
@@ -277,6 +278,33 @@ export function createCustomerTransport(profile: Profile): CustomerTransport {
           .parse(data.messages);
         const maxTokens =
           data.max_tokens === undefined ? 4096 : z.number().int().min(1).max(32768).parse(data.max_tokens);
+        if (data.stream) {
+          await gatewayApi.authorizePlayground(
+            { api_key: rawKey, model, messages, prompt: "", max_tokens: maxTokens },
+            profile.csrf_token,
+            request.signal,
+          );
+          const response = await globalThis.fetch(
+            new Request(new URL("/v1/chat/completions", url.origin), {
+              method: "POST",
+              credentials: "omit",
+              signal: request.signal,
+              headers: {
+                [getAuthHeaderName()]: "Bearer " + rawKey,
+                "Content-Type": "application/json",
+                Accept: "text/event-stream",
+              },
+              body: JSON.stringify({
+                model,
+                messages,
+                max_tokens: maxTokens,
+                stream: true,
+                stream_options: { include_usage: true },
+              }),
+            }),
+          );
+          return streamResponse(response);
+        }
         const answer = await gatewayApi.chat(
           { api_key: rawKey, model, messages, prompt: "", max_tokens: maxTokens },
           profile.csrf_token,

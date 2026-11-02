@@ -616,23 +616,34 @@ class TestZeroCostDiagnostic:
 
     @pytest.mark.parametrize("cache_hit,expected", ((False, 0.017), (True, 0.0)))
     @pytest.mark.parametrize("provider_header", (False, True))
+    @pytest.mark.parametrize("provider_cost", (0, 0.005, 1.0))
+    @pytest.mark.parametrize("existing_cost", (None, 0.025))
+    @pytest.mark.parametrize("free", (False, True))
     def test_provider_zero_does_not_replace_configured_deployment_price(
-        self, cache_hit: bool, expected: float, provider_header: bool
+        self, cache_hit: bool, expected: float, provider_header: bool,
+        provider_cost: float, existing_cost: float | None, free: bool,
     ) -> None:
         deployment_id: Final = "test-provider-zero-priced-deployment"
-        pricing: Final = {"input_cost_per_token": 0.001, "output_cost_per_token": 0.002}
+        pricing: Final = self.FREE_PRICING if free else {"input_cost_per_token": 0.001, "output_cost_per_token": 0.002}
+        expected_price: Final = 0.0 if free else expected
         litellm.register_model(model_cost={deployment_id: pricing}, persist_across_reloads=False)
         try:
             logging_obj: Final = self._logging_obj(pricing, stream=True, deployment_id=deployment_id)
             response: Final = self._response(
-                litellm.Usage(prompt_tokens=7, completion_tokens=5, total_tokens=12, cost=0),
-                model_id=deployment_id, response_cost=0,
-                **({"additional_headers": {"llm_provider-x-litellm-response-cost": "0"}} if provider_header else {}),
+                litellm.Usage(prompt_tokens=7, completion_tokens=5, total_tokens=12, cost=provider_cost),
+                model_id=deployment_id, response_cost=provider_cost,
+                **(
+                    {"additional_headers": {"llm_provider-x-litellm-response-cost": str(provider_cost)}}
+                    if provider_header else {}
+                ),
             )
-            assert logging_obj.response_cost_calculator(result=response, cache_hit=cache_hit) == pytest.approx(expected)
+            assert logging_obj.response_cost_calculator(result=response, cache_hit=cache_hit) == pytest.approx(
+                expected_price
+            )
             logging_obj.model_call_details["cache_hit"] = cache_hit
+            logging_obj.model_call_details["response_cost"] = existing_cost
             logging_obj._process_hidden_params_and_response_cost(response, 0, 0, build_logging_payload=False)
-            assert logging_obj.model_call_details["response_cost"] == pytest.approx(expected)
+            assert logging_obj.model_call_details["response_cost"] == pytest.approx(expected_price)
         finally:
             litellm.model_cost.pop(deployment_id, None)
 

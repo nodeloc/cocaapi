@@ -271,7 +271,7 @@ class WalletBillingHook(CustomLogger):
                 if cached
                 else logged_cost
                 if logged_cost is not None and not (
-                    logged_cost == 0 and isinstance(logging_obj, Logging) and logging_obj.custom_pricing_for(response)
+                    isinstance(logging_obj, Logging) and logging_obj.custom_pricing_for(response)
                 )
                 else logging_obj.response_cost_calculator(result=response)
                 if isinstance(logging_obj, Logging)

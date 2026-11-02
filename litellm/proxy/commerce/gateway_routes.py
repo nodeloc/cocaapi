@@ -163,3 +163,15 @@ async def playground(
     if isinstance(result, AuthError):
         raise_public(result)
     return result
+
+
+@router.post("/playground/authorize", response_model=MessageView)
+async def authorize_playground(
+    body: PlaygroundInput, session: CurrentSession, gateway: GatewayDep, accounts: Service
+) -> MessageView:
+    if not await accounts.rate_limit("customer-playground", session.customer.user_id, 6):
+        raise_public(AuthError("too_many_attempts", 429))
+    error: Final = await gateway.authorize_chat(session, body)
+    if error is not None:
+        raise_public(error)
+    return MessageView()

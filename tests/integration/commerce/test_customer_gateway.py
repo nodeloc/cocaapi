@@ -30,6 +30,35 @@ async def seed_key(client: WalletClient, owner: str, alias: str) -> str:
 
 
 @pytest.mark.asyncio
+async def test_stream_preflight_checks_ownership_grants_and_csrf_without_calling_a_model(
+    gateway_client: WalletClient,
+) -> None:
+    await grant(gateway_client)
+    own: Final = await seed_key(gateway_client, gateway_client.session.customer.user_id, "stream-own")
+    other: Final = await seed_key(gateway_client, gateway_client.other_session.customer.user_id, "stream-other")
+    path: Final = "/account/api/v1/gateway/playground/authorize"
+    body: Final = {"api_key": own, "model": "granted-model", "prompt": "hello", "max_tokens": 64}
+    allowed: Final = await gateway_client.http.post(path, json=body)
+    assert allowed.status_code == 200 and allowed.json() == {"message": "ok"}
+    denied: Final = await gateway_client.http.post(path, json={**body, "api_key": other})
+    assert denied.status_code == 404 and denied.json()["detail"] == "key_not_found"
+    restricted: Final = await gateway_client.http.post(path, json={**body, "model": "restricted-model"})
+    assert restricted.status_code == 403 and restricted.json()["detail"] == "model_access_required"
+    csrf: Final = await gateway_client.http.post(path, json=body, headers={"X-CSRF-Token": "wrong"})
+    assert csrf.status_code == 403 and csrf.json()["detail"] == "invalid_csrf"
+    await gateway_client.database.execute_raw(
+        'UPDATE "CommerceCustomer" SET email_verified=false WHERE user_id=$1', gateway_client.session.customer.user_id
+    )
+    unverified: Final = await gateway_client.http.post(path, json=body)
+    assert unverified.status_code == 403 and unverified.json()["detail"] == "email_verification_required"
+    rows: Final = await gateway_client.database.query_raw(
+        'SELECT request_id FROM "CommerceCallReservation" WHERE user_id=$1 LIMIT 1',
+        gateway_client.session.customer.user_id,
+    )
+    assert not rows
+
+
+@pytest.mark.asyncio
 async def test_customer_gateway_starts_with_no_unassigned_model_access(gateway_client: WalletClient) -> None:
     response: Final = await gateway_client.http.get("/account/api/v1/gateway/access")
     assert response.status_code == 200

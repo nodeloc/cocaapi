@@ -1,7 +1,7 @@
 import OpenAI, { type ClientOptions } from "openai";
 import { getProxyBaseUrl } from "@/components/networking";
 import { getAuthHeaderName } from "@/lib/http/runtime";
-import { dashboardFetch } from "@/lib/http/customerTransport";
+import { dashboardFetch, getCustomerTransport } from "@/lib/http/customerTransport";
 
 type GatewayClientOptions = Pick<ClientOptions, "baseURL" | "defaultHeaders" | "fetch" | "maxRetries" | "timeout"> & {
   accessToken: string;
@@ -11,6 +11,7 @@ export function createGatewayClient({ accessToken, ...options }: GatewayClientOp
   const authHeader = getAuthHeaderName();
   const config: ClientOptions = {
     ...options,
+    maxRetries: getCustomerTransport() ? 0 : options.maxRetries,
     apiKey: accessToken,
     baseURL: options.baseURL || getProxyBaseUrl(),
     dangerouslyAllowBrowser: true,
