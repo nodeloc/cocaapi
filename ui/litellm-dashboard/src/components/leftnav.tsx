@@ -86,10 +86,10 @@ import { routeSegmentForPathname, uiHref } from "@/utils/uiHref";
 const ICON = { strokeWidth: 1.75 } as const;
 
 const LOGO_CLASS_NAME =
-  "h-5 w-auto max-w-[150px] object-contain group-data-[collapsed=true]/sidebar:h-7 group-data-[collapsed=true]/sidebar:w-7";
+  "h-6 w-auto max-w-[150px] object-contain group-data-[collapsed=true]/sidebar:h-7 group-data-[collapsed=true]/sidebar:w-7";
 
 function bundledLogoSrc(baseUrl: string, { dark, monogram }: { dark: boolean; monogram: boolean }): string {
-  const query = [dark && "theme=dark", monogram && "variant=monogram"].filter(Boolean).join("&");
+  const query = [dark && "theme=dark", monogram && "variant=monogram", "v=cocaapi-20261102"].filter(Boolean).join("&");
   return `${baseUrl}/get_image${query ? `?${query}` : ""}`;
 }
 
@@ -366,8 +366,20 @@ const menuGroups: MenuGroup[] = [
         roles: all_admin_roles,
       },
       { key: "budgets", page: "budgets", label: "Budgets", icon: <Wallet {...ICON} />, roles: all_admin_roles },
-      { key: "commerce", page: "commerce", label: "账户与充值", icon: <Wallet {...ICON} />, roles: ["Admin", "proxy_admin"] },
-      { key: "login-settings", page: "commerce/settings", label: "登录与注册", icon: <SettingsIcon {...ICON} />, roles: ["Admin", "proxy_admin"] },
+      {
+        key: "commerce",
+        page: "commerce",
+        label: "账户与充值",
+        icon: <Wallet {...ICON} />,
+        roles: ["Admin", "proxy_admin"],
+      },
+      {
+        key: "login-settings",
+        page: "commerce/settings",
+        label: "登录与注册",
+        icon: <SettingsIcon {...ICON} />,
+        roles: ["Admin", "proxy_admin"],
+      },
     ],
   },
   {
@@ -697,8 +709,8 @@ const Sidebar_: React.FC<SidebarProps> = ({
       <SidebarHeader className="h-14 border-b border-border group-data-[collapsed=true]/sidebar:h-auto">
         <div className="flex items-center justify-between gap-2 group-data-[collapsed=true]/sidebar:flex-col">
           <div className="flex min-w-0 items-center gap-2">
-            <Link href={uiHref("")} className="flex min-w-0 items-center" aria-label="LiteLLM home">
-              <img src={logoSrc} alt="LiteLLM" className={cn(LOGO_CLASS_NAME, "dark:hidden")} />
+            <Link href={uiHref("")} className="flex min-w-0 items-center" aria-label="CocaAPI 管理后台">
+              <img src={logoSrc} alt="CocaAPI" className={cn(LOGO_CLASS_NAME, "dark:hidden")} />
               <img
                 src={darkLogoSrc}
                 alt=""

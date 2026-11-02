@@ -1,3 +1,4 @@
+import { CocaApiLogo } from "@/components/common_components/CocaApiLogo";
 import React from "react";
 import { CircleAlert, Info } from "lucide-react";
 import { z } from "zod";
@@ -38,7 +39,9 @@ export function OnboardingFormBody({ variant, userEmail, isPending, claimError, 
     <div className="mx-auto w-full max-w-md mt-10">
       <Card>
         <CardContent>
-          <h5 className="text-center mb-5 text-base font-semibold text-foreground">🚅 LiteLLM</h5>
+          <div className="mb-5 flex justify-center py-2">
+            <CocaApiLogo />
+          </div>
           <h3 className="text-2xl font-semibold text-foreground">{actionLabel}</h3>
           <p className="text-sm text-foreground">
             {isResetPassword

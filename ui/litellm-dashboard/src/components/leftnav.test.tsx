@@ -154,18 +154,18 @@ describe("Sidebar (leftnav)", () => {
   it("should link the logo to the UI home route rather than the proxy origin", () => {
     renderWithProviders(<Sidebar {...defaultProps} />);
 
-    expect(screen.getByRole("link", { name: /litellm home/i })).toHaveAttribute("href", "/ui");
+    expect(screen.getByRole("link", { name: /CocaAPI 管理后台/ })).toHaveAttribute("href", "/ui");
   });
 
   it("pairs the logo with a dark-mode variant that swaps on the dark class", () => {
     renderWithProviders(<Sidebar {...defaultProps} />);
 
-    const [light, dark] = Array.from(screen.getByRole("link", { name: /litellm home/i }).querySelectorAll("img"));
+    const [light, dark] = Array.from(screen.getByRole("link", { name: /CocaAPI 管理后台/ }).querySelectorAll("img"));
     const classesOf = (el: Element) => new Set(el.className.split(/\s+/));
 
     const lightSrc = light.getAttribute("src") ?? "";
-    expect(light).toHaveAttribute("src", expect.stringMatching(/\/get_image$/));
-    expect(dark).toHaveAttribute("src", `${lightSrc}?theme=dark`);
+    expect(light).toHaveAttribute("src", expect.stringMatching(/\/get_image\?v=cocaapi-20261102$/));
+    expect(dark).toHaveAttribute("src", lightSrc.replace("?", "?theme=dark&"));
     expect(classesOf(light).has("dark:hidden")).toBe(true);
     expect(classesOf(light).has("hidden")).toBe(false);
     expect(classesOf(dark).has("hidden")).toBe(true);
@@ -173,9 +173,9 @@ describe("Sidebar (leftnav)", () => {
   });
 
   const collapsedLogos = () => {
-    const home = within(screen.getByRole("link", { name: /litellm home/i }));
+    const home = within(screen.getByRole("link", { name: /CocaAPI 管理后台/ }));
     return {
-      light: home.getByRole("img", { name: "LiteLLM" }),
+      light: home.getByRole("img", { name: "CocaAPI" }),
       dark: home.getByRole("presentation", { hidden: true }),
     };
   };
@@ -185,8 +185,11 @@ describe("Sidebar (leftnav)", () => {
 
     const { light, dark } = collapsedLogos();
 
-    expect(light).toHaveAttribute("src", expect.stringMatching(/\/get_image\?variant=monogram$/));
-    expect(dark).toHaveAttribute("src", expect.stringMatching(/\/get_image\?theme=dark&variant=monogram$/));
+    expect(light).toHaveAttribute("src", expect.stringMatching(/\/get_image\?variant=monogram&v=cocaapi-20261102$/));
+    expect(dark).toHaveAttribute(
+      "src",
+      expect.stringMatching(/\/get_image\?theme=dark&variant=monogram&v=cocaapi-20261102$/),
+    );
   });
 
   it("keeps a configured custom logo when collapsed instead of the LiteLLM monogram", () => {
@@ -211,7 +214,7 @@ describe("Sidebar (leftnav)", () => {
     });
     renderWithProviders(<Sidebar {...defaultProps} />);
 
-    const [light, dark] = Array.from(screen.getByRole("link", { name: /litellm home/i }).querySelectorAll("img"));
+    const [light, dark] = Array.from(screen.getByRole("link", { name: /CocaAPI 管理后台/ }).querySelectorAll("img"));
 
     expect(light).toHaveAttribute("src", "https://cdn.example.com/logo.png");
     expect(dark).toHaveAttribute("src", "https://cdn.example.com/logo-dark.png");
@@ -221,7 +224,7 @@ describe("Sidebar (leftnav)", () => {
     mockUseThemeImpl = () => ({ ...unbrandedTheme(), logoUrl: "https://cdn.example.com/logo.png" });
     renderWithProviders(<Sidebar {...defaultProps} />);
 
-    const [light, dark] = Array.from(screen.getByRole("link", { name: /litellm home/i }).querySelectorAll("img"));
+    const [light, dark] = Array.from(screen.getByRole("link", { name: /CocaAPI 管理后台/ }).querySelectorAll("img"));
 
     expect(light).toHaveAttribute("src", "https://cdn.example.com/logo.png");
     expect(dark).toHaveAttribute("src", "https://cdn.example.com/logo.png");
@@ -235,7 +238,7 @@ describe("Sidebar (leftnav)", () => {
     });
     renderWithProviders(<Sidebar {...defaultProps} />);
 
-    const [, dark] = Array.from(screen.getByRole("link", { name: /litellm home/i }).querySelectorAll("img"));
+    const [, dark] = Array.from(screen.getByRole("link", { name: /CocaAPI 管理后台/ }).querySelectorAll("img"));
     expect(dark).toHaveAttribute("src", "https://cdn.example.com/gone.png");
 
     fireEvent.error(dark);

@@ -1,5 +1,7 @@
 "use client";
 
+import { CocaApiLogo } from "@/components/common_components/CocaApiLogo";
+
 import { useLogin } from "@/app/(dashboard)/hooks/login/useLogin";
 import { useUIConfig } from "@/app/(dashboard)/hooks/uiConfig/useUIConfig";
 import LoadingScreen from "@/components/common_components/LoadingScreen";
@@ -192,7 +194,9 @@ function LoginPageContent() {
           <CardContent>
             <div className="flex w-full flex-col gap-4">
               <div className="text-center">
-                <h2 className="text-3xl font-semibold text-foreground">🚅 LiteLLM</h2>
+                <div className="flex justify-center py-2">
+                  <CocaApiLogo />
+                </div>
               </div>
 
               <Alert variant="warning">
@@ -222,7 +226,9 @@ function LoginPageContent() {
           <TooltipProvider>
             <div className="flex w-full flex-col gap-4">
               <div className="text-center">
-                <h2 className="text-3xl font-semibold text-foreground">🚅 LiteLLM</h2>
+                <div className="flex justify-center py-2">
+                  <CocaApiLogo />
+                </div>
               </div>
 
               <div className="text-center">

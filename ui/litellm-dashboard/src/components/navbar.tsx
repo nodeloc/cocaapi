@@ -45,8 +45,8 @@ const Navbar: React.FC<NavbarProps> = ({
   const { isControlPlane, selectedWorker } = useWorker();
   const showWorkerSwitch = isControlPlane && selectedWorker !== null;
 
-  const imageUrl = logoUrl || `${baseUrl}/get_image`;
-  const darkImageUrl = logoUrl || `${baseUrl}/get_image?theme=dark`;
+  const imageUrl = logoUrl || `${baseUrl}/get_image?v=cocaapi-20261102`;
+  const darkImageUrl = logoUrl || `${baseUrl}/get_image?theme=dark&v=cocaapi-20261102`;
 
   const handleLogout = useLogout(accessToken);
 
@@ -78,10 +78,10 @@ const Navbar: React.FC<NavbarProps> = ({
             )}
 
             <div className="flex items-center gap-2">
-              <Link href={uiHref("")} className="flex items-center">
+              <Link href={uiHref("")} className="flex items-center" aria-label="CocaAPI 管理后台">
                 <div className="relative">
                   <div className="flex h-10 max-w-48 items-center justify-center overflow-hidden">
-                    <img src={imageUrl} alt="LiteLLM Brand" className={cn(NAV_LOGO_CLASS_NAME, "dark:hidden")} />
+                    <img src={imageUrl} alt="CocaAPI" className={cn(NAV_LOGO_CLASS_NAME, "dark:hidden")} />
                     <img
                       src={darkImageUrl}
                       alt=""

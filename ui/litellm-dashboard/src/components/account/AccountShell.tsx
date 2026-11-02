@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/shared/Alert";
 import { CheckCircle2, CircleAlert } from "lucide-react";
+import { CocaApiLogo } from "@/components/common_components/CocaApiLogo";
 
 export function AccountShell({
   title,
@@ -19,8 +20,8 @@ export function AccountShell({
       <Card className={`w-full shadow-md ${wide ? "max-w-2xl" : "max-w-lg"}`}>
         <CardContent className="flex flex-col gap-4">
           <div className="text-center">
-            <a href="/account/login/" className="text-3xl font-semibold text-foreground">
-              CocaAPI
+            <a href="/account/login/" aria-label="CocaAPI 登录" className="inline-flex py-2">
+              <CocaApiLogo />
             </a>
           </div>
           <div className="text-center">

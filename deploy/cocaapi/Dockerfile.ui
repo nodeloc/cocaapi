@@ -1,0 +1,11 @@
+ARG COCAAPI_RUNTIME_IMAGE
+FROM ${COCAAPI_RUNTIME_IMAGE}
+
+COPY ui/litellm-dashboard/out/ /app/cocaapi-ui/
+COPY ui/litellm-dashboard/out/assets/cocaapi/cocaapi-logo-horizontal-black.png /app/.venv/lib/python3.13/site-packages/litellm/proxy/logo.png
+COPY ui/litellm-dashboard/out/assets/cocaapi/cocaapi-logo-horizontal-white.png /app/.venv/lib/python3.13/site-packages/litellm/proxy/logo_dark.png
+COPY ui/litellm-dashboard/out/assets/cocaapi/cocaapi-mark-black.png /app/.venv/lib/python3.13/site-packages/litellm/proxy/logo_monogram.png
+COPY ui/litellm-dashboard/out/assets/cocaapi/cocaapi-mark-white.png /app/.venv/lib/python3.13/site-packages/litellm/proxy/logo_monogram_dark.png
+COPY ui/litellm-dashboard/out/favicon.ico /app/.venv/lib/python3.13/site-packages/litellm/proxy/_experimental/out/favicon.ico
+ENV LITELLM_UI_PATH=/app/cocaapi-ui \
+    LITELLM_FAVICON_URL=/app/cocaapi-ui/assets/cocaapi/favicon-32.png

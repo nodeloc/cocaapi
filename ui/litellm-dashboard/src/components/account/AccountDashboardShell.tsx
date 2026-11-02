@@ -54,6 +54,7 @@ import { Page } from "@/components/shared/Page";
 import { PageHeader, PageHeaderDescription, PageHeaderTitle } from "@/components/shared/PageHeader";
 import { AccountNotice } from "./AccountShell";
 import { accountApi, type Profile } from "./accountApi";
+import { CocaApiLogo } from "@/components/common_components/CocaApiLogo";
 
 const groups = [
   {
@@ -109,8 +110,7 @@ function AccountNavigation({
             aria-label="CocaAPI 用户中心"
             className="min-w-0 text-xl font-semibold tracking-tight"
           >
-            <span className="group-data-[collapsed=true]/sidebar:hidden">CocaAPI</span>
-            <span className="hidden group-data-[collapsed=true]/sidebar:inline">C</span>
+            <CocaApiLogo compact={collapsed} className={collapsed ? undefined : "w-[120px]"} />
           </a>
           <Button variant="ghost" size="icon-sm" aria-label={collapsed ? "展开侧栏" : "收起侧栏"} onClick={onToggle}>
             {collapsed ? <PanelLeftOpen /> : <PanelLeftClose />}

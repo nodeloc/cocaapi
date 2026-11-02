@@ -13,9 +13,9 @@ import { Toaster } from "@/components/ui/sonner";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "LiteLLM Dashboard",
+  title: "CocaAPI Dashboard",
   description: "LiteLLM Proxy Admin UI",
-  icons: { icon: "/get_favicon" },
+  icons: { icon: "/get_favicon?v=cocaapi-20261102" },
 };
 
 export default function RootLayout({
