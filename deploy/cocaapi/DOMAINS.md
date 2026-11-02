@@ -19,7 +19,7 @@
 
 `compose.yaml` 的 `PROXY_BASE_URL` 与 `auth.env` 的 `COCAAPI_PUBLIC_URL` 均设为 `https://demo.cocaapi.com`。认证、兑换码及 LiteLLM 加密密钥保持原值。公开地址由进程环境读取，修改后需要重建网关容器
 
-使用 `Caddyfile` 中两个站点块，并让两个域名解析到同一台反向代理。官网 canonical、分享图、robots 与 sitemap 继续使用根域名；官网登录、控制台链接与调用示例使用 demo。客户接入文档按当前浏览器来源生成 `/v1` 地址
+使用 `Caddyfile` 中两个站点块，并让两个域名解析到同一台反向代理。官网当前发布支持中英文的开源项目页面，robots 与 sitemap 使用根域名。在线用户中心与 API 使用 demo，官网中的自托管示例使用 localhost。客户接入文档按当前浏览器来源生成 `/v1` 地址
 
 ## OAuth 应用
 

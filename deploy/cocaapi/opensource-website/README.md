@@ -12,7 +12,9 @@ Linux 本地部署示例会将 Compose 内固定的 `PROXY_BASE_URL` 改为 `htt
 
 需要 Node.js，执行 `node build.mjs` 会将静态产物生成到忽略提交的 `dist` 目录。站点没有生产 npm 依赖，任意静态 HTTP 服务均可提供 `dist`。使用相对资源地址，可以挂载到独立域名或子目录
 
-`.openai/hosting.json` 保存独立 Sites 的身份。发布时只同步本目录的源文件，并构建静态产物，不上传仓库其他文件或环境变量。现有 `deploy/cocaapi/website` 商业站点是单独的部署
+`https://cocaapi.com/` 使用本目录的 `dist` 产物，由现有服务器上的 Caddy 提供。部署保留旧 `/site/*` 资源、robots 与 sitemap，按 [官网发布文档](../WEBSITE.md) 切换静态版本目录。账号、后台与 API 继续使用 `https://demo.cocaapi.com`
+
+`.openai/hosting.json` 保存独立 Sites 预览的身份。Sites 发布只同步本目录的源文件并构建静态产物，不上传仓库其他文件或环境变量。Sites 预览与主域名服务器是两个独立发布目标
 
 ## 交互验证
 

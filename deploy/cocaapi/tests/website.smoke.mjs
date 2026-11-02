@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { readFile } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
+import { extname } from "node:path";
 
 const base = new URL(process.argv[2] || "https://cocaapi.com");
 const application = new URL(process.argv[3] || "https://demo.cocaapi.com");
@@ -37,14 +38,43 @@ assert.doesNotMatch(
 );
 const html = await homepage.text();
 assert(html.includes('lang="zh-CN"'));
-assert(html.includes("Model") && html.includes("Infrastructure"));
-assert(html.includes("https://cocaapi.com/site/brand/og-image-1200x630.png"));
-assert(html.includes('name="twitter:card" content="summary_large_image"'));
 const digest = (bytes) => createHash("sha256").update(bytes).digest("hex");
+const website = new URL("../opensource-website/dist/", import.meta.url);
 assert.equal(
   digest(html),
-  digest(await readFile(new URL("../website/index.html", import.meta.url))),
+  digest(await readFile(new URL("index.html", website))),
+  "Homepage must match the built open-source website",
 );
+
+const currentAssets = await readdir(new URL("assets/", website));
+const assetMimeTypes = Object.freeze({
+  ".css": "text/css",
+  ".js": "javascript",
+  ".svg": "image/svg+xml",
+  ".txt": "text/plain",
+  ".woff2": "font/woff2",
+});
+for (const file of currentAssets) {
+  const path = "/assets/" + file;
+  const response = await get(path);
+  assert.equal(response.status, 200, path);
+  assert(
+    response.headers
+      .get("content-type")
+      ?.includes(assetMimeTypes[extname(file)]),
+    path,
+  );
+  assert.equal(
+    response.headers.get("cache-control"),
+    "public, max-age=86400",
+    path,
+  );
+  assert.equal(
+    digest(Buffer.from(await response.arrayBuffer())),
+    digest(await readFile(new URL("assets/" + file, website))),
+    path,
+  );
+}
 
 const assets = [
   [
@@ -139,7 +169,12 @@ for (const path of ["/robots.txt", "/sitemap.xml"]) {
   if (path === "/sitemap.xml")
     assert(response.headers.get("cache-control")?.includes("no-cache"));
 }
-for (const path of ["/site/not-found.js", "/site/.env"])
+for (const path of [
+  "/site/not-found.js",
+  "/site/.env",
+  "/assets/not-found.js",
+  "/assets/.env",
+])
   assert.equal((await get(path)).status, 404, path);
 
 const customerPages = [
@@ -205,7 +240,8 @@ console.log(
     origin: base.origin,
     application: application.origin,
     homepage: "verified",
-    assets: assets.length,
+    assets: currentAssets.length,
+    legacyAssets: assets.length,
     sourceHashes: "match",
     customerPages: customerPages.length,
     protectedReads: 6,
