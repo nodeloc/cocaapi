@@ -2,7 +2,7 @@
 
 公开入口为 `https://cocaapi.com/`，当前发布用户指定的开源官网，支持中英文与深浅主题切换。内容依据实际仓库介绍 LiteLLM 网关、用户中心、钱包和部署方式，支付接入边界明确标注，终端与控制台数据均为示意
 
-官网源码位于 `deploy/cocaapi/opensource-website`，运行 `node deploy/cocaapi/opensource-website/build.mjs` 生成 `dist` 静态产物，无 npm 生产依赖。旧商业官网源码保存在 `deploy/cocaapi/website`，不再作为首页发布。官网使用根域名 `cocaapi.com`，登录、注册、用户中心、管理后台和 API 使用 `demo.cocaapi.com`，旧应用路径跳转规则见 [DOMAINS.md](DOMAINS.md)
+官网源码位于 `deploy/cocaapi/opensource-website`，运行 `node deploy/cocaapi/opensource-website/build.mjs` 生成 `dist` 静态产物，无 npm 生产依赖。服务首页源码保存在 `deploy/cocaapi/website`，发布到 `https://demo.cocaapi.com/`，访客无需登录即可查看介绍与选择登录、注册。开源官网使用根域名 `cocaapi.com`，登录、注册、用户中心、管理后台和 API 使用 `demo.cocaapi.com`，旧应用路径跳转规则见 [DOMAINS.md](DOMAINS.md)
 
 ## 交互与资源
 
@@ -86,3 +86,11 @@ node deploy/cocaapi/tests/website.smoke.mjs https://cocaapi.com https://demo.coc
 页眉导航新增 `Try`，链接到 `https://demo.cocaapi.com/`，中英文界面保持同名，手机端位于导航菜单内。浏览器回归在新增前复现入口缺失，发布后实际点击进入 demo 域名再返回官网，原布局、语言、主题和动效检查继续通过
 
 当前静态目录为 `/var/www/cocaapi/releases/website-try-20261102T151559Z`，前一版本为 `/var/www/cocaapi/releases/website-motion-20261102T151152Z`，备份位于 `/opt/cocaapi/backups/website-try-20261102T151559Z`。公网 HTTP 检查通过，Caddy 配置、网关镜像及应用服务保持不变
+
+## 2026-11-02 demo 服务首页
+
+demo 根路径改为返回现有服务首页，保留原 Logo、界面风格、深浅主题、代码示例、登录、注册与控制台链接。原 `/account/home/` 仍是受保护的用户中心，直接访问该路径会按现有规则检查登录。根域名开源官网和其静态版本未变
+
+Caddy 仅把 demo 的 `/`、`/site/*`、robots 和 sitemap 交给独立静态目录，其余路径继续转发原网关。站点部署在 `/var/www/cocaapi/demo-current`，目录权限和 Caddy 服务账户可读性已核对；未重建网关、修改数据库或运行模型请求
+
+HTTP 回归先确认旧入口返回 302，发布后两个首页均返回 200，官网 10 个资源、两站各 21 个品牌和旧站资源的摘要一致，14 个账号页面、6 个受保护读取、原管理登录、私有响应头及 readiness 通过检查。demo 浏览器验证 375、768、1024、1440 像素的深浅主题、菜单、品牌、复制、FAQ 与无 JavaScript 降级，无页面异常、失败资源或外部请求。未运行全量测试、托管 CI 或外部审查机器人

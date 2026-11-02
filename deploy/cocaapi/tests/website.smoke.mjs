@@ -39,6 +39,19 @@ assert.doesNotMatch(
 const html = await homepage.text();
 assert(html.includes('lang="zh-CN"'));
 const digest = (bytes) => createHash("sha256").update(bytes).digest("hex");
+const demoHomepage = await get("/", application);
+assert.equal(
+  demoHomepage.status,
+  200,
+  "Demo homepage must render without a login redirect",
+);
+assert.equal(
+  digest(await demoHomepage.text()),
+  digest(await readFile(new URL("../website/index.html", import.meta.url))),
+  "Demo homepage must match the service website",
+);
+assert(demoHomepage.headers.get("cache-control")?.includes("no-transform"));
+assert.equal(demoHomepage.headers.get("location"), null);
 const website = new URL("../opensource-website/dist/", import.meta.url);
 assert.equal(
   digest(html),
@@ -161,17 +174,36 @@ for (const [path, mime, file] of assets) {
     digest(await readFile(new URL("../website/" + file, import.meta.url))),
     path,
   );
+  const demoAsset = await get(path, application);
+  assert.equal(demoAsset.status, 200, "Demo " + path);
+  assert(demoAsset.headers.get("content-type")?.includes(mime), "Demo " + path);
+  assert.equal(
+    digest(Buffer.from(await demoAsset.arrayBuffer())),
+    digest(await readFile(new URL("../website/" + file, import.meta.url))),
+    "Demo " + path,
+  );
 }
 for (const path of ["/robots.txt", "/sitemap.xml"]) {
   const response = await get(path);
   assert.equal(response.status, 200, path);
   assert.equal(
     digest(Buffer.from(await response.arrayBuffer())),
-    digest(await readFile(new URL("../website" + path, import.meta.url))),
+    digest(
+      (
+        await readFile(new URL("../website" + path, import.meta.url), "utf8")
+      ).replaceAll(application.origin, base.origin),
+    ),
     path,
   );
   if (path === "/sitemap.xml")
     assert(response.headers.get("cache-control")?.includes("no-cache"));
+  const demoDocument = await get(path, application);
+  assert.equal(demoDocument.status, 200, "Demo " + path);
+  assert.equal(
+    digest(await demoDocument.text()),
+    digest(await readFile(new URL("../website" + path, import.meta.url))),
+    "Demo " + path,
+  );
 }
 for (const path of [
   "/site/not-found.js",
@@ -244,6 +276,7 @@ console.log(
     origin: base.origin,
     application: application.origin,
     homepage: "verified",
+    demoHomepage: "verified",
     assets: currentAssets.length,
     legacyAssets: assets.length,
     sourceHashes: "match",

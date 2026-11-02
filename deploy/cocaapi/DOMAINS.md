@@ -1,10 +1,11 @@
 # 官网与应用域名
 
-官网使用 `https://cocaapi.com`，应用使用 `https://demo.cocaapi.com`。Caddy 为两个域名单独提供 HTTPS，官网静态文件由 `/var/www/cocaapi/current` 提供，应用请求转发到现有网关
+官网使用 `https://cocaapi.com`，在线演示站使用 `https://demo.cocaapi.com`。Caddy 为两个域名单独提供 HTTPS，开源官网静态文件由 `/var/www/cocaapi/current` 提供，demo 服务首页由 `/var/www/cocaapi/demo-current` 提供，账号、后台与 API 请求转发到现有网关
 
 | 用途 | 地址 |
 | --- | --- |
 | 官网 | `https://cocaapi.com/` |
+| 在线演示首页 | `https://demo.cocaapi.com/` |
 | 用户控制台 | `https://demo.cocaapi.com/account/home/` |
 | 登录与注册 | `https://demo.cocaapi.com/account/login/`、`https://demo.cocaapi.com/account/register/` |
 | 管理后台 | `https://demo.cocaapi.com/ui/` |
@@ -20,6 +21,10 @@
 `compose.yaml` 的 `PROXY_BASE_URL` 与 `auth.env` 的 `COCAAPI_PUBLIC_URL` 均设为 `https://demo.cocaapi.com`。认证、兑换码及 LiteLLM 加密密钥保持原值。公开地址由进程环境读取，修改后需要重建网关容器
 
 使用 `Caddyfile` 中两个站点块，并让两个域名解析到同一台反向代理。官网当前发布支持中英文的开源项目页面，robots 与 sitemap 使用根域名。在线用户中心与 API 使用 demo，官网中的自托管示例使用 localhost。客户接入文档按当前浏览器来源生成 `/v1` 地址
+
+demo 根路径不再跳转到受保护的 `/account/home/`，未登录访客可直接查看服务介绍，并选择登录、注册或进入控制台。`/site/*`、robots 和 sitemap 与 demo 首页一起由静态目录提供，分享图片与 canonical 使用 demo 域名；私有页面保持原有会话检查与响应头
+
+2026-11-02 发布目录为 `/var/www/cocaapi/demo-releases/demo-home-20261102T155853Z`，配置备份为 `/opt/cocaapi/backups/demo-home-20261102T155853Z/`。静态版本及其父目录为 755、文件为 644，发布后确认 caddy 服务账户可读。回退入口时恢复备份中的 Caddyfile，验证后重启 Caddy；不改网关镜像、认证配置或数据库。后续静态更新使用新版本目录及软链接切换，保留上一版本
 
 ## OAuth 应用
 

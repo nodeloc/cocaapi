@@ -43,9 +43,22 @@ demo.cocaapi.com {
         Cache-Control no-store
         defer
     }
-    @application_root path /
-    redir @application_root /account/home/ 302
-    reverse_proxy 127.0.0.1:4000 {
-        flush_interval -1
+    @demo_website path / /site/* /robots.txt /sitemap.xml
+    handle @demo_website {
+        root * /var/www/cocaapi/demo-current
+        header {
+            Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"
+            Referrer-Policy strict-origin-when-cross-origin
+        }
+        @demo_documents not path /site/*
+        header @demo_documents Cache-Control "public, no-cache, no-transform"
+        @demo_assets path /site/*
+        header @demo_assets Cache-Control "public, max-age=86400"
+        file_server
+    }
+    handle {
+        reverse_proxy 127.0.0.1:4000 {
+            flush_interval -1
+        }
     }
 }
