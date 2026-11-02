@@ -82,6 +82,43 @@ describe("wallet flows", () => {
     expect(screen.getByRole("button", { name: "确认调整" })).toBeDisabled();
   });
 
+  it("shows API charges, reserved funds and outstanding debt separately", async () => {
+    fetchMock.mockImplementation(async (input) => {
+      const request = input as Request;
+      if (request.url.endsWith("/me"))
+        return Response.json({ user_id: "user-a", email_verified: true, csrf_token: "customer-csrf" });
+      if (request.url.endsWith("/payment-methods"))
+        return Response.json({ enabled: false, redemption_enabled: true, networks: [] });
+      if (request.url.includes("transactions"))
+        return Response.json({
+          items: [
+            {
+              id: "usage-entry",
+              kind: "usage",
+              created_at: "2026-01-01T00:00:00Z",
+              reason: "test-model · API 调用",
+              delta_units: "-1000000000",
+              available_after: "0",
+            },
+          ],
+          has_more: false,
+        });
+      return Response.json({
+        ...wallet,
+        available_units: "0",
+        reserved_units: "1000000000",
+        debt_units: "1000000000",
+        credited_units: "2000000000",
+        debited_units: "2000000000",
+      });
+    });
+    render(<AccountWallet />);
+    expect(await screen.findByText("API 调用扣费")).toBeInTheDocument();
+    expect(screen.getByText("调用冻结")).toBeInTheDocument();
+    expect(screen.getByText("待补缴")).toBeInTheDocument();
+    expect(screen.getByRole("alert")).toHaveTextContent("后续充值或兑换将优先抵扣");
+  });
+
   it("ignores an old customer's slow ledger response after switching customers", async () => {
     let resolveOld: (value: Response) => void = () => {
       throw new Error("No pending request");

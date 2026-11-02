@@ -2331,6 +2331,9 @@ def _get_cors_config(
 origins, allow_cors_credentials = _get_cors_config()
 
 from litellm.proxy.commerce.account_routes import router as account_router
+from litellm.proxy.commerce.billing_hook import WalletBillingMiddleware
+
+app.add_middleware(WalletBillingMiddleware)
 
 app.include_router(account_router)
 from litellm.proxy.commerce.admin_wallet_routes import router as commerce_admin_router
@@ -10509,6 +10512,9 @@ class ProxyStartupEvent:
     ):
         """Initialize logging and alerting on startup"""
         ## COST TRACKING ##
+        from litellm.proxy.commerce.billing_hook import install_wallet_billing
+
+        install_wallet_billing()
         cost_tracking()
 
         proxy_logging_obj.startup_event(llm_router=llm_router, redis_usage_cache=redis_usage_cache)

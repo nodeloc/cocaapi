@@ -49,7 +49,7 @@ export function Pager({
   );
 }
 
-const kinds = { adjustment: "人工调整", redemption: "兑换码", recharge: "USDT 充值" };
+const kinds = { adjustment: "人工调整", redemption: "兑换码", recharge: "USDT 充值", usage: "API 调用扣费" };
 const ledgerColumns: ColumnDef<Ledger["items"][number]>[] = [
   { accessorKey: "created_at", header: "时间", cell: ({ row }) => new Date(row.original.created_at).toLocaleString() },
   {

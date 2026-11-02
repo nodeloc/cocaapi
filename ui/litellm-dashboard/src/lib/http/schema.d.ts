@@ -35800,7 +35800,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "adjustment" | "redemption" | "recharge";
+            kind: "adjustment" | "redemption" | "recharge" | "usage";
             /** Reason */
             reason: string;
             /** Reference */
@@ -52336,6 +52336,8 @@ export interface components {
             currency: "USD";
             /** Debited Units */
             debited_units: string;
+            /** Debt Units */
+            debt_units?: string;
             /** Reserved Units */
             reserved_units: string;
             /** User Id */
@@ -52355,6 +52357,8 @@ export interface components {
             currency: "USD";
             /** Debited Units */
             debited_units: string;
+            /** Debt Units */
+            debt_units?: string;
             /** Email */
             email: string | null;
             /** Reserved Units */

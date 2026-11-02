@@ -184,6 +184,16 @@ export default function CommerceAdmin({ section = "wallets" }: { section?: Secti
         ),
       },
       {
+        id: "holds",
+        header: "调用冻结 / 待补缴",
+        meta: { numeric: true },
+        cell: ({ row: { original: wallet } }) => (
+          <>
+            {formatCredits(wallet.reserved_units)} / {formatCredits(wallet.debt_units ?? "0")}
+          </>
+        ),
+      },
+      {
         id: "actions",
         header: "操作",
         cell: ({ row }) => (
@@ -263,7 +273,7 @@ export default function CommerceAdmin({ section = "wallets" }: { section?: Secti
     <CommercePage section={section}>
       <AccountNotice error={error} message={message} />
       <p className="text-sm text-muted-foreground">
-        余额按 USD 额度记账。API 调用扣费尚未接入，USDT 网关当前预留接口。
+        余额按 USD 额度记账，API 调用通过预扣和实际费用结算。USDT 网关当前预留接口。
       </p>
       {section !== "redemptions" && (
         <form className="flex flex-wrap items-center gap-2" onSubmit={applySearch}>

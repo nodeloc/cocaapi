@@ -13,6 +13,8 @@
 !litellm/proxy/commerce/**
 !litellm/proxy/proxy_server.py
 !litellm/proxy/schema.prisma
+!litellm/proxy/auth/
+!litellm/proxy/auth/user_api_key_auth.py
 !litellm-proxy-extras/
 !litellm-proxy-extras/litellm_proxy_extras/
 !litellm-proxy-extras/litellm_proxy_extras/schema.prisma
@@ -23,6 +25,8 @@
 !litellm-proxy-extras/litellm_proxy_extras/migrations/20261101140000_commerce_wallet/**
 !litellm-proxy-extras/litellm_proxy_extras/migrations/20261101150000_commerce_login_settings/
 !litellm-proxy-extras/litellm_proxy_extras/migrations/20261101150000_commerce_login_settings/**
+!litellm-proxy-extras/litellm_proxy_extras/migrations/20261102010000_commerce_api_billing/
+!litellm-proxy-extras/litellm_proxy_extras/migrations/20261102010000_commerce_api_billing/**
 !ui/
 !ui/litellm-dashboard/
 !ui/litellm-dashboard/out/

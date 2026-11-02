@@ -105,11 +105,13 @@ export default function AccountWallet({ ordersOnly = false }: { ordersOnly?: boo
       {!wallet && !error && <p role="status">正在加载钱包…</p>}
       {wallet && (
         <>
-          <div className="grid overflow-hidden rounded-xl border bg-card sm:grid-cols-3 sm:divide-x">
+          <div className="grid overflow-hidden rounded-xl border bg-card sm:grid-cols-2 lg:grid-cols-5 lg:divide-x">
             {[
               { label: "可用余额（USD 额度）", value: wallet.available_units },
               { label: "累计入账", value: wallet.credited_units },
               { label: "累计扣减", value: wallet.debited_units },
+              { label: "调用冻结", value: wallet.reserved_units },
+              { label: "待补缴", value: wallet.debt_units ?? "0" },
             ].map((item) => (
               <div key={item.label} className="min-w-0 border-b px-5 py-4 last:border-b-0 sm:border-b-0">
                 <Stat
@@ -121,7 +123,19 @@ export default function AccountWallet({ ordersOnly = false }: { ordersOnly?: boo
               </div>
             ))}
           </div>
-          <p className="text-sm text-muted-foreground">当前余额用于账户额度管理，API 密钥与调用扣费将在后续接入。</p>
+          <p className="text-sm text-muted-foreground">
+            API 调用先冻结预计费用，再按模型实际费用扣款并退回差额。余额不足时无法调用，已有模型权限与调用限额继续生效。
+          </p>
+          {wallet.debt_units && BigInt(wallet.debt_units) > BigInt(0) && (
+            <p role="alert" className="text-sm text-destructive">
+              有待补缴的调用费用，后续充值或兑换将优先抵扣，结清后可继续调用。
+            </p>
+          )}
+          {BigInt(wallet.reserved_units) > BigInt(0) && (
+            <p className="text-sm text-muted-foreground">
+              冻结额度用于进行中的调用；异常中断的请求会保留额度，待费用核对后结算。
+            </p>
+          )}
           {!profile?.email_verified && (
             <p className="text-sm text-muted-foreground">
               请先在

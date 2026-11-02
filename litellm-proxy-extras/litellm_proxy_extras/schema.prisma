@@ -2100,10 +2100,12 @@ model CommerceWallet {
   reserved_units BigInt @default(0)
   credited_units BigInt @default(0)
   debited_units BigInt @default(0)
+  debt_units BigInt @default(0)
   created_at DateTime @default(now()) @client.Timestamptz(6)
   updated_at DateTime @default(now()) @client.Timestamptz(6)
   customer CommerceCustomer @relation(fields: [user_id], references: [user_id], onDelete: Restrict, onUpdate: NoAction)
   entries CommerceLedger[]
+  calls CommerceCallReservation[]
 }
 
 model CommerceLedger {
@@ -2195,4 +2197,21 @@ model CommerceLoginConfiguration {
   revision Int
   updated_by String
   updated_at DateTime @default(now()) @client.Timestamptz(6)
+}
+
+model CommerceCallReservation {
+  request_id String @id
+  user_id String
+  model String
+  key_hash String
+  native_request_id String @default("")
+  reserved_units BigInt
+  actual_units BigInt?
+  dispatched_at DateTime? @client.Timestamptz(6)
+  status String @default("pending")
+  created_at DateTime @default(now()) @client.Timestamptz(6)
+  updated_at DateTime @default(now()) @client.Timestamptz(6)
+  wallet CommerceWallet @relation(fields: [user_id], references: [user_id], onDelete: Restrict, onUpdate: NoAction)
+  @@index([user_id, created_at(sort: Desc)])
+  @@index([status, created_at])
 }

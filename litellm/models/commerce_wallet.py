@@ -1,13 +1,12 @@
 from datetime import datetime
 from typing import Final, Literal, Protocol, TypeAlias
 
-from pydantic import Field, field_serializer
-
 from litellm.models.commerce_auth import AuthError, FrozenModel, Session
+from pydantic import Field, field_serializer
 
 UNITS_PER_USD: Final = 1_000_000_000
 MAX_UNITS: Final = 9_223_372_036_854_775_807
-LedgerKind: TypeAlias = Literal["adjustment", "redemption", "recharge"]
+LedgerKind: TypeAlias = Literal["adjustment", "redemption", "recharge", "usage"]
 
 
 class WalletSnapshot(FrozenModel):
@@ -16,9 +15,10 @@ class WalletSnapshot(FrozenModel):
     reserved_units: int = Field(ge=0, le=MAX_UNITS)
     credited_units: int = Field(ge=0, le=MAX_UNITS)
     debited_units: int = Field(ge=0, le=MAX_UNITS)
+    debt_units: int = Field(default=0, ge=0, le=MAX_UNITS)
     currency: Literal["USD"] = "USD"
 
-    @field_serializer("available_units", "reserved_units", "credited_units", "debited_units")
+    @field_serializer("available_units", "reserved_units", "credited_units", "debited_units", "debt_units")
     def serialize_units(self, value: int) -> str:
         return str(value)
 
@@ -48,6 +48,17 @@ class WalletChange(FrozenModel):
     actor_id: str
     reason: str
     now: datetime
+
+
+class CallReservation(FrozenModel):
+    request_id: str
+    user_id: str
+    model: str
+    reserved_units: int
+    actual_units: int | None
+    status: Literal["pending", "settled", "released", "review"]
+    native_request_id: str
+    created_at: datetime
 
 
 class LedgerPage(FrozenModel):

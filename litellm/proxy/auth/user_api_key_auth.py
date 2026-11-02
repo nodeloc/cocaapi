@@ -3584,6 +3584,9 @@ async def user_api_key_auth(
         # only the endpoint's post-call path releases; the endpoint never runs, since
         # the parse failure is raised below.
         if body_parse_exception is None:
+            from litellm.proxy.commerce.billing_hook import guard_wallet_route
+
+            await guard_wallet_route(user_api_key_auth_obj, route, request_data)
             recovered_auth_obj: Final = await _authorize_authenticated_request(
                 user_api_key_auth_obj=user_api_key_auth_obj,
                 request=request,

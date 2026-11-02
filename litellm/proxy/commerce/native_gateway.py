@@ -1,9 +1,8 @@
 import asyncio
+from types import MappingProxyType
 from typing import Final
 
 import httpx
-from pydantic import BaseModel, SecretStr, ValidationError
-
 from litellm.models.commerce_auth import AuthError
 from litellm.models.commerce_gateway import (
     CreateGatewayKey,
@@ -22,6 +21,7 @@ from litellm.proxy.common_utils.user_api_key_cache import (  # pyright: ignore[r
     UserApiKeyCache,
 )
 from litellm.router import Router
+from pydantic import BaseModel, SecretStr, ValidationError
 
 
 class NativeModel(BaseModel):
@@ -57,6 +57,42 @@ class NativeCompletion(BaseModel):
     model_config = {"frozen": True}
 
 
+class NativeError(BaseModel):
+    message: str = ""
+    model_config = {"frozen": True}
+
+
+class NativeErrorEnvelope(BaseModel):
+    error: NativeError | None = None
+    detail: str = ""
+    model_config = {"frozen": True}
+
+
+def billing_rejection(response: httpx.Response) -> AuthError | None:
+    codes: Final = MappingProxyType(
+        {
+            "insufficient_balance": 402,
+            "wallet_pricing_unavailable": 503,
+            "wallet_billing_unavailable": 503,
+            "wallet_request_not_supported": 400,
+            "wallet_route_not_supported": 403,
+        }
+    )
+    try:
+        envelope: Final = NativeErrorEnvelope.model_validate_json(response.content)
+    except ValidationError:
+        return None
+    message: Final = envelope.detail or (envelope.error.message if envelope.error else "")
+    return next(
+        (
+            AuthError(code, status)
+            for code, status in codes.items()
+            if response.status_code == status and code in message
+        ),
+        None,
+    )
+
+
 class LocalNativeGateway:
     def __init__(
         self,
@@ -89,6 +125,9 @@ class LocalNativeGateway:
                 )
             if response.is_success:
                 return response
+            billing_error: Final = billing_rejection(response) if key else None
+            if billing_error is not None:
+                return billing_error
             return AuthError(
                 "model_request_rejected" if key else "gateway_request_failed",
                 403 if key and response.status_code in {400, 401, 402, 403, 429} else 502,
