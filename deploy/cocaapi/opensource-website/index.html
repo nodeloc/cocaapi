@@ -1,0 +1,735 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark light" />
+    <meta
+      name="description"
+      content="CocaAPI，基于 LiteLLM 的开源模型网关与用户服务扩展。统一模型调用、自托管部署、密钥管理、用量统计与钱包计费。"
+    />
+    <meta property="og:title" content="CocaAPI | 开源模型基础设施" />
+    <meta
+      property="og:description"
+      content="一个网关，连接模型、应用和用户。基于 LiteLLM，部署在你自己的基础设施上。"
+    />
+    <meta property="og:type" content="website" />
+    <title>CocaAPI | 开源模型基础设施</title>
+    <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="./assets/website.css" />
+    <script src="./assets/theme.js"></script>
+    <script src="./assets/website.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">跳到正文</a>
+    <header class="header">
+      <div class="container header-inner">
+        <a class="brand" href="#top" aria-label="CocaAPI 首页">
+          <img
+            class="logo-dark"
+            src="./assets/logo-white.svg"
+            alt="CocaAPI"
+            width="130"
+            height="28"
+          />
+          <img
+            class="logo-light"
+            src="./assets/logo-black.svg"
+            alt="CocaAPI"
+            width="130"
+            height="28"
+          />
+        </a>
+        <span class="oss-tag">OPEN SOURCE</span>
+        <nav id="navigation" aria-label="主导航">
+          <a href="#features">项目功能</a>
+          <a href="#quickstart">快速开始</a>
+          <a href="#self-host">自托管</a>
+          <a href="#community">参与项目</a>
+          <a href="#docs">文档</a>
+        </nav>
+        <div class="header-actions">
+          <a
+            class="button button-small button-quiet github-nav"
+            href="https://github.com/kissopen/litellm"
+            >GitHub <span aria-hidden="true">↗</span></a
+          >
+          <a class="button button-small button-primary" href="#quickstart"
+            >开始部署</a
+          >
+          <button
+            class="menu-button"
+            type="button"
+            data-js-only
+            aria-label="打开导航"
+            aria-controls="navigation"
+            aria-expanded="false"
+          >
+            <span></span><span></span>
+          </button>
+        </div>
+      </div>
+    </header>
+    <main id="main" class="container">
+      <section id="top" class="hero">
+        <div class="hero-copy">
+          <a class="announcement" href="#project"
+            ><span class="status-dot"></span>基于 LiteLLM 构建
+            <span class="announcement-tail"
+              >了解项目 <span aria-hidden="true">↗</span></span
+            ></a
+          >
+          <h1>开源的<br />模型基础设施<span class="heading-dot">.</span></h1>
+          <p class="hero-english">Your models. Your infrastructure.</p>
+          <p class="hero-description">
+            把不同模型接入同一个
+            API，把密钥、用量和用户服务放在同一处管理。CocaAPI 基于 LiteLLM
+            扩展，部署在你自己的基础设施上
+          </p>
+          <div class="button-row">
+            <a class="button button-primary" href="#quickstart"
+              >快速开始 <span aria-hidden="true">↗</span></a
+            >
+            <a
+              class="button button-secondary"
+              href="https://github.com/kissopen/litellm"
+              ><svg aria-hidden="true" viewBox="0 0 24 24">
+                <path
+                  d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3 6.5 20.2l1-6.2L3 9.6l6.2-.9Z"
+                /></svg
+              >Star on GitHub</a
+            >
+          </div>
+          <a class="command-link" href="#quickstart"
+            ><span class="muted">$</span
+            ><code>docker compose -f compose.yaml up -d</code
+            ><span aria-hidden="true">↗</span></a
+          >
+          <p class="hero-note">自托管 · OpenAI 兼容 · 源码可查</p>
+        </div>
+        <div class="hero-visual">
+          <div class="aura" aria-hidden="true">
+            <span></span><span></span><span></span>
+          </div>
+          <div class="terminal">
+            <div class="window-bar">
+              <div class="window-dots" aria-hidden="true">
+                <i></i><i></i><i></i>
+              </div>
+              <span>~/litellm/deploy/cocaapi</span
+              ><span class="demo-label">流程示意</span>
+            </div>
+            <div class="terminal-content">
+              <p>
+                <span class="muted">$</span>
+                <span class="bright">docker compose -f compose.yaml up -d</span>
+              </p>
+              <p>
+                <span class="blue">✓</span> gateway
+                <span class="muted">· LiteLLM Proxy</span>
+              </p>
+              <p>
+                <span class="blue">✓</span> postgres
+                <span class="muted">· persistent storage</span>
+              </p>
+              <p>
+                <span class="blue">✓</span> redis
+                <span class="muted">· shared state</span>
+              </p>
+              <p class="terminal-break">
+                <span class="muted">›</span> API
+                <span class="bright">localhost:4000/v1</span>
+              </p>
+              <p>
+                <span class="muted">›</span> Admin
+                <span class="bright">localhost:4000/ui/</span>
+              </p>
+              <p>
+                <span class="muted">›</span> Add provider. Create key.
+                <span class="caret">▍</span>
+              </p>
+            </div>
+            <div class="terminal-footer">
+              <span class="status-dot"></span>One gateway. Your stack.<span
+                >SELF-HOSTED</span
+              >
+            </div>
+          </div>
+        </div>
+      </section>
+      <section id="providers" class="providers" aria-label="模型提供商">
+        <p>通过 LiteLLM 接入你已有的模型服务</p>
+        <div class="provider-list">
+          <span>OpenAI</span><span>Anthropic</span
+          ><span>Google <b>Gemini</b></span
+          ><span>DeepSeek</span><span>Qwen</span><span>Azure <b>AI</b></span
+          ><span>Ollama</span>
+        </div>
+        <a
+          href="https://github.com/kissopen/litellm/tree/litellm_account_auth/litellm/llms"
+          >查看提供商适配 <span aria-hidden="true">↗</span></a
+        >
+      </section>
+      <section id="features" class="section">
+        <div class="section-heading">
+          <h2>从模型调用<br />到用户服务</h2>
+          <p>
+            复用 LiteLLM
+            的网关能力，扩展独立用户中心与钱包计费。应用、管理员和用户，各有自己的入口
+          </p>
+        </div>
+        <div class="feature-grid">
+          <article class="feature">
+            <svg aria-hidden="true" viewBox="0 0 24 24">
+              <path d="m8 7-5 5 5 5m8-10 5 5-5 5" />
+            </svg>
+            <h3>一个 API，连接多种模型</h3>
+            <p>
+              沿用 OpenAI
+              SDK，通过模型别名调用已配置的上游。支持聊天、流式输出等网关端点
+            </p>
+            <span>OpenAI-compatible API</span>
+          </article>
+          <article class="feature">
+            <svg aria-hidden="true" viewBox="0 0 24 24">
+              <circle cx="5" cy="12" r="2" />
+              <path d="M7 12h4l6-6m-6 6 6 6" />
+              <circle cx="19" cy="6" r="2" />
+              <circle cx="19" cy="18" r="2" />
+            </svg>
+            <h3>路由、重试与回退</h3>
+            <p>
+              使用 LiteLLM Router
+              配置负载均衡、重试和回退模型，让应用通过同一入口访问模型部署
+            </p>
+            <span>Routing & fallbacks</span>
+          </article>
+          <article class="feature">
+            <svg aria-hidden="true" viewBox="0 0 24 24">
+              <circle cx="8" cy="15" r="4" />
+              <path d="m11 12 9-9m-5 5 3 3" />
+            </svg>
+            <h3>密钥与模型授权</h3>
+            <p>
+              为应用创建虚拟密钥，限制模型范围、调用速率和预算。用户中心只展示本人获准访问的数据
+            </p>
+            <span>Virtual keys & access</span>
+          </article>
+          <article class="feature">
+            <svg aria-hidden="true" viewBox="0 0 24 24">
+              <path d="M4 20V10m6 10V4m6 16v-7M2 20h20" />
+            </svg>
+            <h3>用量与请求日志</h3>
+            <p>
+              查看
+              Token、费用、成功率和延迟，按时间与模型筛选，跟踪个人密钥的真实调用记录
+            </p>
+            <span>Usage & observability</span>
+          </article>
+          <article class="feature">
+            <svg aria-hidden="true" viewBox="0 0 24 24">
+              <circle cx="12" cy="8" r="4" />
+              <path d="M4 21v-2a8 8 0 0 1 16 0v2" />
+            </svg>
+            <h3>独立用户中心</h3>
+            <p>
+              提供账号、个人密钥、模型目录与
+              Playground。用户服务与管理后台使用各自的权限边界
+            </p>
+            <span>Accounts & playground</span>
+          </article>
+          <article class="feature">
+            <svg aria-hidden="true" viewBox="0 0 24 24">
+              <rect x="3" y="5" width="18" height="15" rx="2" />
+              <path d="M3 9h18m-5 5h5" />
+            </svg>
+            <h3>钱包与兑换码</h3>
+            <p>
+              支持余额、兑换码、调用预扣和实际费用结算。支付网关保留适配接口，需要另行接入
+            </p>
+            <span>Wallet & metering</span>
+          </article>
+        </div>
+      </section>
+      <section id="quickstart" class="section">
+        <div class="section-heading">
+          <h2>从一次本地部署开始</h2>
+          <a
+            class="text-link"
+            href="https://github.com/kissopen/litellm/blob/litellm_account_auth/deploy/cocaapi/README.md"
+            >完整部署文档 <span aria-hidden="true">↗</span></a
+          >
+        </div>
+        <div class="quickstart-grid">
+          <article class="code-card">
+            <div class="code-heading">
+              <span class="step">1</span>
+              <h3>启动基础网关</h3>
+              <span class="code-language">Linux</span
+              ><button
+                type="button"
+                class="copy-button"
+                data-copy="deploy-code"
+                aria-label="复制部署命令"
+                data-js-only
+              >
+                复制
+              </button>
+            </div>
+            <pre><code id="deploy-code">git clone --branch litellm_account_auth \
+  https://github.com/kissopen/litellm.git
+cd litellm/deploy/cocaapi
+python3 generate_secrets.py
+sed -i 's|https://cocaapi.com|http://localhost:4000|' compose.yaml
+docker compose -f compose.yaml up -d</code></pre>
+            <p class="code-note">
+              示例用于 Linux 本地部署，需要 Docker Compose 与 Python
+              3。公网部署时，将 PROXY_BASE_URL 改为自己的 HTTPS
+              域名，首次启动后等待健康检查完成
+            </p>
+          </article>
+          <article class="code-card">
+            <div class="code-heading">
+              <span class="step">2</span>
+              <h3>添加上游与个人密钥</h3>
+              <span class="code-language">Admin UI</span>
+            </div>
+            <div class="setup-content">
+              <p>
+                打开 <code>http://localhost:4000/ui/</code>，使用生成的
+                <code>.env</code> 中的管理员账号登录
+              </p>
+              <p>
+                添加已授权的提供商与上游密钥，设置一个模型别名，例如
+                <code>my-model</code>，再创建供应用调用的虚拟密钥
+              </p>
+              <div class="setup-pills">
+                <span>配置模型</span><span>授权访问</span><span>创建 Key</span>
+              </div>
+            </div>
+            <p class="code-note">
+              初始模型列表为空。上游 API 调用由提供商计费，应用应使用虚拟密钥
+            </p>
+          </article>
+        </div>
+        <article class="code-card api-card">
+          <div class="code-heading">
+            <span class="step">3</span>
+            <h3>发送第一个请求</h3>
+            <div
+              class="tabs"
+              role="tablist"
+              aria-label="API 示例语言"
+              data-js-only
+            >
+              <button
+                id="tab-curl"
+                type="button"
+                role="tab"
+                aria-controls="api-panel"
+                aria-selected="true"
+                tabindex="0"
+                data-language="curl"
+              >
+                cURL</button
+              ><button
+                id="tab-python"
+                type="button"
+                role="tab"
+                aria-controls="api-panel"
+                aria-selected="false"
+                tabindex="-1"
+                data-language="python"
+              >
+                Python</button
+              ><button
+                id="tab-node"
+                type="button"
+                role="tab"
+                aria-controls="api-panel"
+                aria-selected="false"
+                tabindex="-1"
+                data-language="node"
+              >
+                Node.js
+              </button>
+            </div>
+            <button
+              class="copy-button"
+              type="button"
+              data-copy="api-code"
+              aria-label="复制 API 示例"
+              data-js-only
+            >
+              复制
+            </button>
+          </div>
+          <div
+            id="api-panel"
+            role="tabpanel"
+            aria-labelledby="tab-curl"
+            tabindex="0"
+          >
+            <pre><code id="api-code">curl http://localhost:4000/v1/chat/completions \
+  -H "Authorization: Bearer $COCAAPI_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"model":"my-model","messages":[{"role":"user","content":"你好，CocaAPI"}]}'</code></pre>
+          </div>
+          <p class="code-note">
+            先将虚拟密钥设置为环境变量 <code>COCAAPI_API_KEY</code>，并将
+            <code>my-model</code> 替换为你配置的模型别名。Python 与 Node.js
+            需先安装对应的 <code>openai</code> SDK
+          </p>
+        </article>
+        <p class="extension-note">
+          需要用户中心与钱包？基础网关之外，请按
+          <a
+            href="https://github.com/kissopen/litellm/blob/litellm_account_auth/deploy/cocaapi/AUTH.md"
+            >账号扩展</a
+          >
+          与
+          <a
+            href="https://github.com/kissopen/litellm/blob/litellm_account_auth/deploy/cocaapi/WALLET.md"
+            >计费扩展</a
+          >
+          文档构建对应镜像，配置 <code>auth.env</code> 并使用
+          <code>compose.auth.yaml</code>
+        </p>
+      </section>
+      <section id="self-host" class="section">
+        <div class="section-heading">
+          <h2>你的服务器<br />你的模型入口</h2>
+          <div class="stack-tags">
+            <span>Docker Compose</span><span>PostgreSQL</span><span>Redis</span>
+          </div>
+        </div>
+        <div class="architecture">
+          <div class="architecture-column">
+            <span class="eyebrow">YOUR APPLICATIONS</span>
+            <div>Web 与移动应用</div>
+            <div>Agent 与自动化工作流</div>
+            <div>OpenAI SDK 与开发工具</div>
+          </div>
+          <div class="connection" aria-hidden="true"><span></span></div>
+          <div class="gateway-box">
+            <div class="gateway-heading">
+              <img
+                class="logo-dark"
+                src="./assets/logo-white.svg"
+                alt="CocaAPI"
+                width="112"
+                height="24"
+              /><img
+                class="logo-light"
+                src="./assets/logo-black.svg"
+                alt="CocaAPI"
+                width="112"
+                height="24"
+              /><span>YOUR SERVER</span>
+            </div>
+            <div class="gateway-features">
+              <span>模型路由</span><span>密钥与限额</span><span>日志与用量</span
+              ><span>用户与钱包*</span>
+            </div>
+            <small>* 需部署 CocaAPI 扩展镜像</small>
+          </div>
+          <div class="connection" aria-hidden="true"><span></span></div>
+          <div class="architecture-column">
+            <span class="eyebrow">YOUR PROVIDERS</span>
+            <div>OpenAI · Anthropic</div>
+            <div>Google · DeepSeek · Qwen</div>
+            <div class="dashed">云服务与本地模型</div>
+          </div>
+        </div>
+        <p class="architecture-note">
+          密钥、数据库和网关由你管理。使用远程提供商时，请求内容会发送到你配置的上游模型服务
+        </p>
+      </section>
+      <section class="section dashboard-section">
+        <div class="dashboard-copy">
+          <span class="eyebrow">A CONSOLE, INCLUDED</span>
+          <h2>每一次调用<br />都有迹可循</h2>
+          <p>
+            管理后台提供模型、密钥和路由配置。部署用户扩展后，用户可在独立中心查看个人用量、日志与余额
+          </p>
+          <div class="console-capabilities">
+            <span>用量与费用统计</span><span>个人密钥与模型目录</span
+            ><span>请求日志与延迟</span><span>Playground 在线调试</span>
+          </div>
+          <a
+            class="text-link"
+            href="https://github.com/kissopen/litellm/blob/litellm_account_auth/deploy/cocaapi/GATEWAY.md"
+            >查看用户中心文档 <span aria-hidden="true">↗</span></a
+          >
+        </div>
+        <div
+          class="dashboard-demo"
+          aria-label="用户控制台布局示意，以下为演示数据"
+        >
+          <div class="dashboard-top">
+            <span class="dashboard-brand">CocaAPI</span><span>用量</span
+            ><span class="muted">日志</span><span class="muted">密钥</span
+            ><span class="demo-label">演示数据</span>
+          </div>
+          <div class="dashboard-body">
+            <div class="dashboard-title">
+              <h3>用量概览</h3>
+              <span>最近 7 天</span>
+            </div>
+            <div class="metrics">
+              <div><span>请求数</span><strong>1,248</strong></div>
+              <div><span>Tokens</span><strong>386.2K</strong></div>
+              <div><span>费用 / USD</span><strong>$2.84</strong></div>
+            </div>
+            <div class="chart" aria-hidden="true">
+              <span style="--bar: 28%"></span><span style="--bar: 40%"></span
+              ><span style="--bar: 35%"></span><span style="--bar: 55%"></span
+              ><span style="--bar: 49%"></span><span style="--bar: 66%"></span
+              ><span style="--bar: 60%"></span><span style="--bar: 75%"></span
+              ><span style="--bar: 70%"></span><span style="--bar: 87%"></span
+              ><span style="--bar: 80%"></span><span style="--bar: 100%"></span>
+            </div>
+            <div class="chart-labels">
+              <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span
+              ><span>Fri</span><span>Sat</span><span>Sun</span>
+            </div>
+            <div class="demo-request">
+              <span class="status-dot"></span
+              ><code>POST /v1/chat/completions</code><span>my-model</span
+              ><span class="blue">200</span>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section id="community" class="section">
+        <div class="center-heading">
+          <span class="eyebrow">BUILT IN THE OPEN</span>
+          <h2>读源码，也参与构建</h2>
+          <p>
+            从一个问题、一处文档修正，到新的模型适配<br />每一份改进，都可以从仓库开始
+          </p>
+        </div>
+        <div class="community-grid">
+          <a
+            class="resource-card"
+            href="https://github.com/kissopen/litellm/tree/litellm_account_auth"
+            ><span class="eyebrow">SOURCE CODE</span>
+            <h3>查看项目源码</h3>
+            <p>了解网关与扩展实现，在自己的环境里运行和修改</p>
+            <span class="resource-action"
+              >kissopen / litellm <span aria-hidden="true">↗</span></span
+            ></a
+          ><a
+            class="resource-card"
+            href="https://github.com/kissopen/litellm/issues"
+            ><span class="eyebrow">ISSUES</span>
+            <h3>反馈问题与想法</h3>
+            <p>附上复现步骤和脱敏日志，让问题更容易定位</p>
+            <span class="resource-action"
+              >打开 Issues <span aria-hidden="true">↗</span></span
+            ></a
+          ><a
+            class="resource-card"
+            href="https://github.com/kissopen/litellm/blob/litellm_account_auth/CONTRIBUTING.md"
+            ><span class="eyebrow">CONTRIBUTING</span>
+            <h3>提交你的改进</h3>
+            <p>阅读贡献指南，为功能、测试或文档提交 Pull Request</p>
+            <span class="resource-action"
+              >阅读贡献指南 <span aria-hidden="true">↗</span></span
+            ></a
+          >
+        </div>
+      </section>
+      <section id="docs" class="section docs-section">
+        <div class="section-heading">
+          <h2>从这里继续</h2>
+          <p>按你的部署目标，找到对应的说明</p>
+        </div>
+        <div class="doc-list">
+          <a
+            href="https://github.com/kissopen/litellm/blob/litellm_account_auth/deploy/cocaapi/README.md"
+            ><span class="doc-category">DEPLOYMENT</span
+            ><span
+              ><strong>基础部署</strong
+              ><span>Compose、凭据生成、健康检查与备份</span></span
+            ><span aria-hidden="true">↗</span></a
+          ><a
+            href="https://github.com/kissopen/litellm/blob/litellm_account_auth/deploy/cocaapi/AUTH.md"
+            ><span class="doc-category">ACCOUNTS</span
+            ><span
+              ><strong>账号与认证</strong
+              ><span>用户扩展、会话、邮箱与 OAuth 配置</span></span
+            ><span aria-hidden="true">↗</span></a
+          ><a
+            href="https://github.com/kissopen/litellm/blob/litellm_account_auth/deploy/cocaapi/WALLET.md"
+            ><span class="doc-category">BILLING</span
+            ><span
+              ><strong>钱包与调用计费</strong
+              ><span>兑换码、费用结算与支付适配边界</span></span
+            ><span aria-hidden="true">↗</span></a
+          ><a
+            href="https://github.com/kissopen/litellm/blob/litellm_account_auth/deploy/cocaapi/GATEWAY.md"
+            ><span class="doc-category">USER GATEWAY</span
+            ><span
+              ><strong>用户 API 网关</strong
+              ><span>个人密钥、模型目录、Playground 与日志权限</span></span
+            ><span aria-hidden="true">↗</span></a
+          >
+        </div>
+      </section>
+      <section id="project" class="section project-section">
+        <div>
+          <span class="eyebrow">GOOD TO KNOW</span>
+          <h2>部署之前<br />了解这些</h2>
+        </div>
+        <div class="faq">
+          <details>
+            <summary>CocaAPI 和 LiteLLM 是什么关系？</summary>
+            <p>
+              CocaAPI 在 LiteLLM
+              的基础上扩展用户账号、钱包、兑换码与个人网关页面。统一模型接口、路由和管理后台来自
+              LiteLLM，源码保留在当前项目仓库中
+            </p>
+          </details>
+          <details>
+            <summary>开源许可是什么？</summary>
+            <p>
+              仓库 LICENSE 将 enterprise 目录以外的内容置于 MIT
+              许可下，enterprise 目录适用独立许可。使用、修改和分发前，请阅读
+              <a
+                href="https://github.com/kissopen/litellm/blob/litellm_account_auth/LICENSE"
+                >完整 LICENSE</a
+              >
+            </p>
+          </details>
+          <details>
+            <summary>部署后就能调用所有模型吗？</summary>
+            <p>
+              需要先配置已授权的上游服务、模型和 API
+              Key。基础部署的模型列表为空，虚拟密钥的模型权限与预算也需要由管理员配置。上游服务会按其规则收费
+            </p>
+          </details>
+          <details>
+            <summary>账号、邮件和支付能直接使用吗？</summary>
+            <p>
+              用户中心和钱包需要构建并部署扩展镜像。邮件与第三方登录需要对应服务凭据，USDT
+              支付网关仍需接入具体支付适配器，不应视为已开通的收款能力
+            </p>
+          </details>
+          <details>
+            <summary>自托管时，数据会发到哪里？</summary>
+            <p>
+              网关与存储运行在你的服务器上。远程模型调用会将请求发送到你配置的提供商；如需控制日志留存、访问权限或使用本地模型，请按自己的部署要求配置
+            </p>
+          </details>
+        </div>
+      </section>
+      <section class="closing">
+        <span class="eyebrow">BUILD ON YOUR OWN TERMS</span>
+        <h2>让模型接入更简单<br /><span>让基础设施属于你</span></h2>
+        <div class="button-row">
+          <a class="button button-primary" href="#quickstart"
+            >开始自托管 <span aria-hidden="true">↗</span></a
+          ><a
+            class="button button-secondary"
+            href="https://github.com/kissopen/litellm"
+            >在 GitHub 查看源码 <span aria-hidden="true">↗</span></a
+          >
+        </div>
+        <p>基于 LiteLLM · CocaAPI 用户服务扩展</p>
+      </section>
+    </main>
+    <footer class="footer">
+      <div class="container">
+        <div class="footer-main">
+          <div class="footer-brand">
+            <a class="brand" href="#top" aria-label="CocaAPI 首页"
+              ><img
+                class="logo-dark"
+                src="./assets/logo-white.svg"
+                alt="CocaAPI"
+                width="130"
+                height="28" /><img
+                class="logo-light"
+                src="./assets/logo-black.svg"
+                alt="CocaAPI"
+                width="130"
+                height="28"
+            /></a>
+            <p>
+              Open-source model infrastructure<br />构建在你自己的基础设施上
+            </p>
+          </div>
+          <div>
+            <h3>项目</h3>
+            <a href="https://github.com/kissopen/litellm">GitHub</a
+            ><a
+              href="https://github.com/kissopen/litellm/commits/litellm_account_auth/"
+              >提交记录</a
+            ><a
+              href="https://github.com/kissopen/litellm/blob/litellm_account_auth/LICENSE"
+              >开源许可</a
+            >
+          </div>
+          <div>
+            <h3>文档</h3>
+            <a href="#quickstart">快速开始</a><a href="#self-host">架构与部署</a
+            ><a href="#docs">扩展文档</a>
+          </div>
+          <div>
+            <h3>参与</h3>
+            <a href="https://github.com/kissopen/litellm/issues">反馈问题</a
+            ><a
+              href="https://github.com/kissopen/litellm/blob/litellm_account_auth/CONTRIBUTING.md"
+              >贡献指南</a
+            ><a
+              href="https://github.com/kissopen/litellm/blob/litellm_account_auth/security.md"
+              >安全政策</a
+            >
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <span
+            >CocaAPI · Built on LiteLLM
+            <span class="footer-credit">/ 模型与商标归各自所有者</span></span
+          >
+          <div class="theme-switch" role="group" aria-label="主题" data-js-only>
+            <button
+              type="button"
+              data-theme-choice="system"
+              aria-label="系统主题"
+              aria-pressed="false"
+            >
+              <svg aria-hidden="true" viewBox="0 0 24 24">
+                <rect x="3" y="4" width="18" height="12" rx="2" />
+                <path d="M8 20h8m-4-4v4" />
+              </svg></button
+            ><button
+              type="button"
+              data-theme-choice="light"
+              aria-label="浅色主题"
+              aria-pressed="false"
+            >
+              <svg aria-hidden="true" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="4" />
+                <path
+                  d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"
+                />
+              </svg></button
+            ><button
+              type="button"
+              data-theme-choice="dark"
+              aria-label="深色主题"
+              aria-pressed="true"
+            >
+              <svg aria-hidden="true" viewBox="0 0 24 24">
+                <path d="M21 13A9 9 0 1 1 11 3a7 7 0 0 0 10 10Z" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </footer>
+    <div id="copy-status" role="status" aria-live="polite"></div>
+  </body>
+</html>
