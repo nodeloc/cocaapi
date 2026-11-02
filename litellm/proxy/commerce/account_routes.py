@@ -42,7 +42,7 @@ async def get_service() -> AccountService:
     effective: Final = await LoginSettingsService(LoginConfigurationRepository(db), settings).effective()
     if isinstance(effective, AuthError):
         raise_public(effective)
-    return AccountService(AccountRepository(db), effective)
+    return AccountService(AccountRepository(db, default_models=effective.default_models), effective)
 
 
 Service: TypeAlias = Annotated[AccountService, Depends(get_service)]

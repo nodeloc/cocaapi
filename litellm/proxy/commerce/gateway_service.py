@@ -87,12 +87,15 @@ class GatewayService:
             return access
         if access.key_creation_reason:
             return AuthError(access.key_creation_reason, 403)
-        if body.models is not None and (not body.models or not set(body.models).issubset(access.models)):
+        selected: Final = access.models if body.models == ("all-proxy-models",) else body.models
+        if selected is not None and (not selected or not set(selected).issubset(access.models)):
             return AuthError("model_access_required", 403)
         existing: Final = await self.store.keys(session.customer.user_id, 100, 0)
         if len(existing) >= 100:
             return AuthError("key_limit_reached", 409)
-        result: Final = await self.native.create_key(session.customer.user_id, body, access)
+        result: Final = await self.native.create_key(
+            session.customer.user_id, body.model_copy(update={"models": selected}), access
+        )
         if isinstance(result, AuthError):
             return result
         owned: Final = await self.store.safe_created_key(

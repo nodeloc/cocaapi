@@ -3,6 +3,7 @@ import asyncio
 from collections.abc import Awaitable, Callable
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from typing import Final
 from urllib.parse import parse_qs, urlsplit
 
 import httpx
@@ -19,10 +20,37 @@ from litellm.models.commerce_auth import AuthError, ExternalIdentity, LoginResul
 from litellm.proxy.commerce.security import AuthSecurity
 from litellm.proxy.commerce.oauth_client import ProviderClient
 from litellm.repositories.commerce_auth_repository import AccountRepository
+from litellm.proxy.commerce.gateway_service import creation_reason
 
 
 NOW = datetime(2026, 11, 1, 12, 0, tzinfo=timezone.utc)
 ORIGIN = "http://localhost:4400"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("oauth", (False, True))
+async def test_configured_registration_models_preserve_customer_role_and_verification(
+    client: tuple[httpx.AsyncClient, Prisma, AccountService], oauth: bool
+) -> None:
+    _, database, _ = client
+    store: Final = AccountRepository(database, default_models=("public-one", "public-two"))
+    identity: Final = (
+        ExternalIdentity(issuer="https://github.com", subject="default-model-test", name="test") if oauth else None
+    )
+    customer: Final = await store.create_customer(
+        None if oauth else "default-models@example.com", None, oauth, identity, "github" if oauth else None, NOW
+    )
+    assert not isinstance(customer, AuthError)
+    assert customer.email_verified is oauth
+    rows: Final = await database.query_raw(
+        'SELECT user_role,models,max_budget,spend,rpm_limit,tpm_limit FROM "LiteLLM_UserTable" WHERE user_id=$1',
+        customer.user_id,
+    )
+    assert rows[0]["models"] == ["public-one", "public-two"]
+    assert rows[0]["max_budget"] is None and rows[0]["spend"] == 0
+    assert rows[0]["user_role"] == "internal_user"
+    assert rows[0]["rpm_limit"] is None and rows[0]["tpm_limit"] is None
+    assert creation_reason(True, tuple(rows[0]["models"]), rows[0]["max_budget"], rows[0]["spend"]) is None
 
 
 def github_upstream(request: httpx2.Request) -> httpx2.Response:

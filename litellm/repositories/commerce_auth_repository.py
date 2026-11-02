@@ -37,8 +37,9 @@ def _customer(rows: Sequence[Mapping[str, object]]) -> Customer | None:
 
 
 class AccountRepository:
-    def __init__(self, database: AccountDatabase) -> None:
+    def __init__(self, database: AccountDatabase, default_models: tuple[str, ...] = ()) -> None:
         self.database = database
+        self.default_models = default_models
 
     async def find_customer(self, email: str) -> Customer | None:
         return _customer(await self.database.query_raw(_CUSTOMER_SELECT + " WHERE c.email_normalized=$1", email))
@@ -76,9 +77,11 @@ class AccountRepository:
             await tx.execute_raw(
                 """INSERT INTO "LiteLLM_UserTable"
                 (user_id,user_email,user_role,models,max_budget,metadata)
-                VALUES ($1,$2,'internal_user',ARRAY['no-default-models'],0,'{"commerce":true}'::jsonb)""",
+                VALUES ($1,$2,'internal_user',$3::text[],$4,'{"commerce":true}'::jsonb)""",
                 user_id,
                 email,
+                list(self.default_models or ("no-default-models",)),
+                None if self.default_models else 0,
             )
             await tx.execute_raw(
                 """INSERT INTO "CommerceCustomer"

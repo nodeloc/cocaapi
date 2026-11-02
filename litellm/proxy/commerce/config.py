@@ -30,6 +30,16 @@ class AccountSettings(FrozenModel):
     smtp_from: str = ""
     smtp_security: Literal["starttls", "tls"] = "starttls"
     trusted_proxies: tuple[str, ...] = ()
+    default_models: tuple[str, ...] = ()
+
+    @field_validator("default_models")
+    @classmethod
+    def validate_default_models(cls, value: tuple[str, ...]) -> tuple[str, ...]:
+        if any(
+            model in {"all-proxy-models", "all-team-models", "no-default-models"} or "*" in model for model in value
+        ):
+            raise ValueError("Registration defaults must name explicit models")
+        return tuple(dict.fromkeys(value))
 
     @field_validator("public_url")
     @classmethod
@@ -118,5 +128,8 @@ def load_settings(values: Mapping[str, str] = os.environ) -> AccountSettings | N
         ),
         trusted_proxies=tuple(
             value.strip() for value in values.get("COCAAPI_TRUSTED_PROXIES", "").split(",") if value.strip()
+        ),
+        default_models=tuple(
+            value.strip() for value in values.get("COCAAPI_DEFAULT_MODELS", "").split(",") if value.strip()
         ),
     )

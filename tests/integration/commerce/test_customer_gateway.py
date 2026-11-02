@@ -94,6 +94,24 @@ async def test_key_creation_inherits_access_and_rejects_admin_fields(gateway_cli
 
 
 @pytest.mark.asyncio
+async def test_all_models_selection_stores_only_current_customer_grants(gateway_client: WalletClient) -> None:
+    await grant(gateway_client)
+    created: Final = await gateway_client.http.post(
+        "/account/api/v1/gateway/keys", json={"name": "all-allowed", "models": ["all-proxy-models"]}
+    )
+    assert created.status_code == 201, created.text
+    rows: Final = await gateway_client.database.query_raw(
+        'SELECT models FROM "LiteLLM_VerificationToken" WHERE token=$1', hash_token(created.json()["key"])
+    )
+    assert rows[0]["models"] == ["granted-model"]
+    mixed: Final = await gateway_client.http.post(
+        "/account/api/v1/gateway/keys",
+        json={"name": "mixed", "models": ["all-proxy-models", "restricted-model"]},
+    )
+    assert mixed.status_code == 403
+
+
+@pytest.mark.asyncio
 async def test_key_creation_requires_budget_verification_and_csrf(gateway_client: WalletClient) -> None:
     blocked: Final = await gateway_client.http.post("/account/api/v1/gateway/keys", json={"name": "test"})
     assert blocked.status_code == 403

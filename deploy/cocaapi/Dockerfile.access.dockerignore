@@ -1,0 +1,9 @@
+**
+!litellm/
+!litellm/proxy/
+!litellm/proxy/commerce/
+!litellm/proxy/commerce/config.py
+!litellm/proxy/commerce/account_routes.py
+!litellm/proxy/commerce/gateway_service.py
+!litellm/repositories/
+!litellm/repositories/commerce_auth_repository.py
