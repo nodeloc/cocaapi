@@ -1,0 +1,6 @@
+**
+!litellm/
+!litellm/proxy/
+!litellm/proxy/commerce/
+!litellm/proxy/commerce/billing_hook.py
+!litellm/proxy/commerce/billing_pricing.py

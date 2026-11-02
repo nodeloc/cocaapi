@@ -1,0 +1,4 @@
+ARG COCAAPI_RUNTIME_IMAGE
+FROM ${COCAAPI_RUNTIME_IMAGE}
+
+COPY litellm/proxy/commerce/billing_hook.py litellm/proxy/commerce/billing_pricing.py /app/.venv/lib/python3.13/site-packages/litellm/proxy/commerce/

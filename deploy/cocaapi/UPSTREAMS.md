@@ -1,5 +1,53 @@
 # CocaAPI 上游接入
 
+## GPT-6 Luna Decisions，2026-11-02
+
+已修正现有 `gpt-6-luna-decisions` 部署。此前 `/v1/decisions` 返回 HTTP 400，错误为 `Unknown Decisions provider 'custom_openai'`，配置同时将完整接口路径填进了 API Base。现使用提供商 `openai`、上游模型 `openai/gpt-6-luna-decisions`、API Base `https://api.experientiallabs.ai/v1`、模式 `decisions`，支持端点为 `/v1/decisions`
+
+该模型使用 `input` 和 `questions`，不生成聊天回复，也不支持流式输出。按[上游模型页](https://platform.experientiallabs.ai/models/gpt-6-luna-decisions)当日标准价配置，输入和缓存读取均为每百万 Token $0.10，输出为 $0，不依赖 Free 促销标签。客户实际扣费继续应用其用户分组和模型分组倍率
+
+客户钱包已支持 `/decisions` 和 `/v1/decisions` 的文本请求。调用前检查余额，问题描述、选项和评分等级参与预扣估算，最终部署发送前再次检查，成功后按真实用量结算并释放差额。零余额和预扣不足返回 402，明确的上游失败释放预扣。图像、音视频、流式请求及聊天输出上限暂不支持，客户端不能夹带 `messages` 或 `prompt` 绕过输入估算
+
+模型已加入当时 180 个启用客户的模型范围，以及注册默认模型名单。原有预算、分组规则和 Key 的明确模型限制继续执行。旧 Key 未授权该模型时，在客户密钥页面新建并勾选 `gpt-6-luna-decisions`；普通聊天 Playground 不适用于这个模型
+
+客户调用示例，密钥从本地环境读取
+
+```sh
+curl --fail-with-body --max-time 45 https://cocaapi.com/v1/decisions \
+  -H "Authorization: Bearer $COCAAPI_API_KEY" \
+  -H 'Content-Type: application/json' \
+  -d '{"model":"gpt-6-luna-decisions","input":"The sky is blue.","questions":[{"type":"predicate","name":"color","instructions":"Is a color mentioned?"}]}'
+```
+
+正式 HTTPS 实测返回 HTTP 200，响应如下；三种题型的另一笔真实请求也返回了判断、选择和评分结果
+
+```json
+{"model":"gpt-6-luna-decisions","answers":[{"type":"predicate","name":"color","probability":1.0}],"usage":{"input_tokens":158,"input_tokens_details":{"cached_tokens":0,"cache_write_tokens":0},"output_tokens":0,"output_tokens_details":{"reasoning_tokens":0},"total_tokens":158}}
+```
+
+验证仅使用临时验收账户。候选与两版正式实例的四次真实调用共 842 个输入 Token，账本合计扣除 84200 纳美元，成功调用日志与账本一致，没有剩余预扣。余额为零的请求返回 402。验收后通过带审计的余额调整收回 9915800 纳美元未用额度，停用测试账户、删除会话并撤销密钥，撤销后四个新 HTTPS 连接均返回 401
+
+自动化覆盖位于原有 `test_billing_pricing.py`、`test_api_billing.py` 和 `test_group_api_billing.py`。隔离测试代理需在原计费测试配置中增加以下模型，脚本上游使用 `tests/integration/commerce/billing_upstream.py`，数据库必须是独立的 `cocaapi_wallet_test`
+
+```yaml
+- model_name: wallet-decision-model
+  litellm_params:
+    model: openai/test-decision-model
+    api_base: http://cocaapi-billing-test-upstream:9000/v1
+    api_key: billing-test-only
+  model_info:
+    mode: decisions
+    input_cost_per_token: 0.001
+    output_cost_per_token: 0
+    max_input_tokens: 8192
+```
+
+增量构建使用 `Dockerfile.decisions`，仅替换现有钱包的两个 Python 模块，不修改前端或数据库结构。备份目录为 `/opt/cocaapi/backups/decisions-20261102T134001Z/`，包含配置、此前镜像、模型与授权快照和通过目录检查的数据库归档，未做完整恢复演练。回退代码时需同时暂停该决策模型的客户访问，避免旧钱包拒绝路由；不能恢复整个数据库覆盖新账本
+
+最终 37 项定价测试、61 项钱包及 HTTP 集成测试通过，类型检查、类型纪律和测试质量检查通过，两个运行模块的严格 Ruff 规则计数与修改前一致。复查发现的聊天字段遮蔽输入问题已通过先失败后通过的单元和 HTTP 回归验证，修复后独立复查无其他待修问题。托管 CI、覆盖率和外部评审机器人未运行，不计为通过
+
+正式镜像为 `cocaapi-decisions:20261102-final`，ID 为 `sha256:3feb43d679c65846b052382fb592a55437cfb5d3f5fcf671a51da64976601eb1`。主实例双 worker 健康，Caddy 恢复指向 4000，公网真实请求返回 200，带聊天字段的决策请求返回 400
+
 ## Experiential Labs，2026-11-02
 
 通过原生 `/model/new` 接入 `https://api.experientiallabs.ai/v1`，使用 OpenAI 兼容协议。只登记用户截图指定的四个模型，没有导入上游模型列表中的其他模型，也没有改动既有用户、钱包、Key、预算或授权

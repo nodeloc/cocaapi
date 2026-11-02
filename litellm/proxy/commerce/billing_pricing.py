@@ -21,11 +21,18 @@ _MAPPING: Final = TypeAdapter(dict[str, object])
 _SEQUENCE: Final = TypeAdapter(tuple[object, ...])
 _FALLBACKS: Final = TypeAdapter(tuple[Mapping[str, tuple[str, ...]], ...])
 _OUTPUT_FIELDS: Final = ("max_tokens", "max_completion_tokens", "max_output_tokens")
+_DECISION_CALL_TYPES: Final = frozenset({"decisions", "adecisions"})
+_UNCAPPED_CALL_TYPES: Final = frozenset({"embedding", "aembedding"}) | _DECISION_CALL_TYPES
 _DEPLOYMENT_FIELDS: Final = frozenset(
     {
         "messages",
         "prompt",
         "input",
+        "questions",
+        "state",
+        "images",
+        "assets",
+        "videos",
         "system",
         "instructions",
         "tools",
@@ -168,7 +175,14 @@ def bounded_request(data: Mapping[str, object], call_type: str) -> Mapping[str, 
         return AuthError("invalid_request", 422)
     if any(not valid_multiplier(data.get(field, 1)) for field in ("n", "best_of")):
         return AuthError("invalid_request", 422)
-    if limits or call_type in {"embedding", "aembedding"}:
+    if call_type in _DECISION_CALL_TYPES and (
+        limits
+        or data.get("stream") is True
+        or any(field in data for field in ("messages", "prompt"))
+        or any(data.get(field) for field in ("state", "images", "assets", "videos"))
+    ):
+        return AuthError("wallet_request_not_supported", 400)
+    if limits or call_type in _UNCAPPED_CALL_TYPES:
         return data
     output_field: Final = "max_output_tokens" if call_type in {"responses", "aresponses"} else "max_tokens"
     return MappingProxyType({**data, output_field: 4096})
@@ -180,7 +194,7 @@ def valid_multiplier(value: object) -> bool:
 
 def deployment_request(data: Mapping[str, object], model: str, call_type: str) -> Mapping[str, object] | AuthError:
     payload: Final = {key: value for key, value in data.items() if key in _DEPLOYMENT_FIELDS and value is not None}
-    if call_type not in {"embedding", "aembedding"} and not any(field in payload for field in _OUTPUT_FIELDS):
+    if call_type not in _UNCAPPED_CALL_TYPES and not any(field in payload for field in _OUTPUT_FIELDS):
         return AuthError("wallet_request_not_supported", 400)
     return bounded_request({**payload, "model": model}, call_type)
 
@@ -209,8 +223,11 @@ def has_premium_controls(value: object) -> bool:
         if any(
             mapped.get(field)
             for field in (
-                "cache_control", "encrypted_content", "prompt_cache_retention",
-                "prompt_cache_options", "prompt_cache_breakpoint",
+                "cache_control",
+                "encrypted_content",
+                "prompt_cache_retention",
+                "prompt_cache_options",
+                "prompt_cache_breakpoint",
             )
         ):
             return True
@@ -281,7 +298,7 @@ async def single_quote(data: Mapping[str, object], route: str, router: Router | 
             return AuthError("wallet_pricing_unavailable", 503)
     request_body: Final = dict(data)
     counts: Final = await count_request_input_tokens(request_body=request_body, route=route, llm_router=router)
-    extra_fields: Final = ("system", "instructions", "functions", "response_format", "text")
+    extra_fields: Final = ("system", "instructions", "functions", "response_format", "text", "questions")
     extra: Final = {field: data[field] for field in extra_fields if data.get(field)}
     additional: Final = {**extra, **({"tools": data["tools"]} if "messages" not in data and data.get("tools") else {})}
     extra_counts: Final[Mapping[str, int]] = (

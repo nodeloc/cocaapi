@@ -21,6 +21,77 @@ from .conftest import WalletClient
 from .test_wallet_billing import fund
 
 
+@pytest.mark.asyncio
+@pytest.mark.parametrize("endpoint", ("/decisions", "/v1/decisions"))
+async def test_decisions_charge_configured_input_usage_once_and_release_the_hold(
+    wallet_client: WalletClient,
+    endpoint: str,
+) -> None:
+    key: Final = await api_key(wallet_client, "wallet-decision-model")
+    payload: Final = {
+        "model": "wallet-decision-model",
+        "input": "Screen cracked",
+        "questions": [{"type": "predicate", "name": "damaged", "instructions": "Is the item damaged?"}],
+    }
+    async with httpx.AsyncClient(base_url=os.environ["COCAAPI_NATIVE_BILLING_URL"], timeout=30) as client:
+        before: Final = await client.get("http://cocaapi-billing-test-upstream:9000")
+        denied: Final = await client.post(endpoint, headers={"Authorization": "Bearer " + key}, json=payload)
+        after: Final = await client.get("http://cocaapi-billing-test-upstream:9000")
+        assert denied.status_code == 402 and "insufficient_balance" in denied.text, denied.text
+        assert after.json() == before.json()
+        await fund(wallet_client, 1_000_000_000)
+        response: Final = await client.post(endpoint, headers={"Authorization": "Bearer " + key}, json=payload)
+        assert response.status_code == 200, response.text
+        assert response.json()["answers"] == [{"type": "predicate", "name": "damaged", "probability": 0.93}]
+    store: Final = WalletRepository(wallet_client.database)
+    balance: Final = await store.balance(wallet_client.session.customer.user_id)
+    assert not isinstance(balance, AuthError)
+    assert balance.debited_units == 7_000_000 and balance.reserved_units == 0
+    assert balance.available_units == 993_000_000 and balance.debt_units == 0
+    entries: Final = await store.transactions(wallet_client.session.customer.user_id, 100, 0)
+    assert len(tuple(entry for entry in entries.items if entry.kind == "usage")) == 1
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "decision_input,instructions,extra,expected_status",
+    (
+        ("fail-before-response", "Is the item damaged?", {}, 503),
+        ("Screen cracked", "color " * 1000, {}, 402),
+        ("billable input " * 1000, "Is a color mentioned?", {"messages": []}, 400),
+        ("billable input " * 1000, "Is a color mentioned?", {"prompt": ""}, 400),
+    ),
+    ids=("upstream-failure", "questions-exceed-balance", "shadow-messages", "shadow-prompt"),
+)
+async def test_decision_failures_and_large_questions_cannot_escape_wallet_admission(
+    wallet_client: WalletClient,
+    decision_input: str,
+    instructions: str,
+    extra: dict[str, object],
+    expected_status: int,
+) -> None:
+    key: Final = await api_key(wallet_client, "wallet-decision-model")
+    await fund(wallet_client, 500_000_000)
+    async with httpx.AsyncClient(base_url=os.environ["COCAAPI_NATIVE_BILLING_URL"], timeout=30) as client:
+        before: Final = await client.get("http://cocaapi-billing-test-upstream:9000")
+        response: Final = await client.post(
+            "/v1/decisions",
+            headers={"Authorization": "Bearer " + key},
+            json={
+                "model": "wallet-decision-model",
+                "input": decision_input,
+                "questions": [{"type": "predicate", "name": "damaged", "instructions": instructions}],
+                **extra,
+            },
+        )
+        assert response.status_code == expected_status, response.text
+        after: Final = await client.get("http://cocaapi-billing-test-upstream:9000")
+        assert after.json()["requests"] - before.json()["requests"] == (1 if expected_status == 503 else 0)
+    balance: Final = await WalletRepository(wallet_client.database).balance(wallet_client.session.customer.user_id)
+    assert not isinstance(balance, AuthError)
+    assert balance.available_units == 500_000_000 and balance.reserved_units == 0 and balance.debited_units == 0
+
+
 async def api_key(client: WalletClient, model: str = "wallet-priced-model") -> str:
     raw: Final = "sk-" + uuid.uuid4().hex
     await client.database.execute_raw(
@@ -579,11 +650,17 @@ async def test_stream_disconnect_retains_hold_instead_of_settling_estimated_part
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("prompt,expected_status", (
-    ("playground wallet billing", 200), ("invalid-playground-response", 502),
-))
+@pytest.mark.parametrize(
+    "prompt,expected_status",
+    (
+        ("playground wallet billing", 200),
+        ("invalid-playground-response", 502),
+    ),
+)
 async def test_customer_playground_uses_the_same_wallet_and_returns_insufficient_balance(
-    wallet_client: WalletClient, prompt: str, expected_status: int,
+    wallet_client: WalletClient,
+    prompt: str,
+    expected_status: int,
 ) -> None:
     key: Final = await api_key(wallet_client)
     await wallet_client.database.execute_raw('DELETE FROM "CommerceLoginConfiguration"')

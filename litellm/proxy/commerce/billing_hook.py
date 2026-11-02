@@ -45,6 +45,8 @@ _BILLED_ROUTES: Final = frozenset(
         "/v1/messages",
         "/embeddings",
         "/v1/embeddings",
+        "/decisions",
+        "/v1/decisions",
     }
 )
 _READ_ROUTES: Final = frozenset(
@@ -70,6 +72,8 @@ _CALL_TYPES: Final = frozenset(
         "aresponses",
         "anthropic_messages",
         "aanthropic_messages",
+        "decisions",
+        "adecisions",
     }
 )
 

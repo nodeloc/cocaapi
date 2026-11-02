@@ -33,7 +33,11 @@ async def api_policy(store: BillingGroupRepository, rate: str, enabled: bool = T
             rules=configured.rules,
             model_groups=(
                 PricingModelGroup(id="default", name="普通模型组"),
-                PricingModelGroup(id="premium", name="高级组", models=("wallet-priced-model", "wallet-with-fallback")),
+                PricingModelGroup(
+                    id="premium",
+                    name="高级组",
+                    models=("wallet-priced-model", "wallet-with-fallback", "wallet-decision-model"),
+                ),
             ),
             reason="HTTP 倍率测试",
         ),
@@ -102,6 +106,37 @@ async def test_http_calls_settle_at_group_rate_and_disabled_old_keys_stop(
         assert rejected.status_code == 403 and "model_group_disabled" in rejected.text
         final: Final = await store.balance(wallet_client.session.customer.user_id)
         assert not isinstance(final, AuthError) and final.debited_units == expected and final.reserved_units == 0
+
+
+@pytest.mark.asyncio
+async def test_decisions_apply_group_multiplier_and_disabled_groups_block_existing_keys(
+    wallet_client: WalletClient,
+    groups: BillingGroupRepository,
+) -> None:
+    await api_policy(groups, "2")
+    await assign_vip(groups, wallet_client)
+    key: Final = await api_key(wallet_client, "wallet-decision-model")
+    await fund(wallet_client, 1_000_000_000)
+    payload: Final = {
+        "model": "wallet-decision-model",
+        "input": "Screen cracked",
+        "questions": [{"type": "predicate", "name": "damaged", "instructions": "Is the item damaged?"}],
+    }
+    async with httpx.AsyncClient(base_url=os.environ["COCAAPI_NATIVE_BILLING_URL"], timeout=30) as client:
+        response: Final = await client.post("/v1/decisions", headers={"Authorization": "Bearer " + key}, json=payload)
+        assert response.status_code == 200, response.text
+        await api_policy(groups, "2", False)
+        rejected: Final = await client.post("/v1/decisions", headers={"Authorization": "Bearer " + key}, json=payload)
+        assert rejected.status_code == 403 and "model_group_disabled" in rejected.text, rejected.text
+    store: Final = WalletRepository(wallet_client.database)
+    balance: Final = await store.balance(wallet_client.session.customer.user_id)
+    assert not isinstance(balance, AuthError)
+    assert (
+        balance.debited_units == 14_000_000 and balance.available_units == 986_000_000 and balance.reserved_units == 0
+    )
+    entries: Final = await store.transactions(wallet_client.session.customer.user_id, 100, 0)
+    usage: Final = tuple(entry for entry in entries.items if entry.kind == "usage")
+    assert len(usage) == 1 and usage[0].base_cost_units == 7_000_000
 
 
 @pytest.mark.asyncio

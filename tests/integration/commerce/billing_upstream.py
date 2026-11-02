@@ -30,6 +30,19 @@ class BillingUpstream(BaseHTTPRequestHandler):
         if trigger == "fail-before-response":
             self.send_json(503, {"error": {"message": "Scripted provider failure", "type": "server_error"}})
             return
+        if self.path.endswith("/decisions"):
+            if set(body) != {"model", "input", "questions"} or body.get("model") != "test-decision-model":
+                self.send_json(400, {"error": {"message": "Unexpected decision body"}})
+                return
+            self.send_json(
+                200,
+                {
+                    "model": "test-decision-model",
+                    "answers": [{"type": "predicate", "name": "damaged", "probability": 0.93}],
+                    "usage": {"input_tokens": 7, "output_tokens": 0, "total_tokens": 7, "cost": 0},
+                },
+            )
+            return
         created: Final = int(time.time())
         request_id: Final = str(time.time_ns())
         if self.path.endswith("/embeddings"):
@@ -101,10 +114,13 @@ class BillingUpstream(BaseHTTPRequestHandler):
                 }
             ],
             "usage": {
-                "prompt_tokens": 7, "completion_tokens": 5, "total_tokens": 12,
+                "prompt_tokens": 7,
+                "completion_tokens": 5,
+                "total_tokens": 12,
                 "prompt_tokens_details": {"cached_tokens": 0},
                 "completion_tokens_details": {"reasoning_tokens": 0},
-                "cost": 0.0025 if trigger == "priced-provider-cost" else 0, "is_byok": False,
+                "cost": 0.0025 if trigger == "priced-provider-cost" else 0,
+                "is_byok": False,
             },
         }
         if self.path.endswith("/completions") and not self.path.endswith("/chat/completions"):
@@ -188,12 +204,16 @@ class BillingUpstream(BaseHTTPRequestHandler):
 
 
 def request_trigger(body: Mapping[str, JsonValue]) -> str:
+    decision_input: Final = body.get("input")
+    if isinstance(decision_input, str):
+        return decision_input
     messages: Final = body.get("messages")
     if not isinstance(messages, list):
         return ""
     return next(
         (
-            text for message in messages
+            text
+            for message in messages
             if (text := message_text(message)).startswith(("fail-", "delayed-", "invalid-", "priced-"))
         ),
         "",

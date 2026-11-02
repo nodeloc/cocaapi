@@ -148,3 +148,76 @@ def test_final_deployment_cannot_silently_reinsert_a_removed_output_cap() -> Non
         {"messages": [{"role": "user", "content": "hello"}]}, "priced-model", "acompletion"
     )
     assert isinstance(result, AuthError) and result.code == "wallet_request_not_supported"
+
+
+@pytest.mark.parametrize("call_type", ("decisions", "adecisions"))
+def test_decisions_preserve_questions_without_adding_chat_output_limits(call_type: str) -> None:
+    request: Final = {
+        "model": "priced-model",
+        "input": "Screen cracked",
+        "questions": [{"type": "predicate", "instructions": "Is the item damaged?"}],
+    }
+    assert bounded_request(request, call_type) == request
+    assert deployment_request(request, "priced-model", call_type) == request
+
+
+@pytest.mark.parametrize(
+    "extra",
+    (
+        {"stream": True},
+        {"max_tokens": 1},
+        {"videos": [{"url": "https://example.test/video"}]},
+        {"images": {"photo": "https://example.test/image"}},
+        {"input": [{"role": "user", "content": [{"type": "input_image", "image_url": "data:image/png;base64,AA=="}]}]},
+    ),
+)
+def test_decisions_cannot_admit_streaming_or_unpriced_media(extra: dict[str, object]) -> None:
+    result: Final = bounded_request({"model": "priced-model", "input": "hello", "questions": [], **extra}, "adecisions")
+    assert isinstance(result, AuthError) and result.code == "wallet_request_not_supported"
+
+
+@pytest.mark.asyncio
+async def test_decision_question_instructions_increase_the_reserved_input_cost() -> None:
+    router: Final = Router(
+        model_list=[
+            {
+                "model_name": "priced-decision-model",
+                "litellm_params": {"model": "openai/test-model", "api_key": "offline-test-only"},
+                "model_info": {"input_cost_per_token": 0.001, "output_cost_per_token": 0},
+            }
+        ]
+    )
+    short: Final = await single_quote(
+        {
+            "model": "priced-decision-model",
+            "input": "hello",
+            "questions": [{"type": "predicate", "instructions": "color?"}],
+        },
+        "/v1/decisions",
+        router,
+    )
+    long: Final = await single_quote(
+        {
+            "model": "priced-decision-model",
+            "input": "hello",
+            "questions": [{"type": "predicate", "instructions": "color " * 1000}],
+        },
+        "/v1/decisions",
+        router,
+    )
+    assert isinstance(short, int) and isinstance(long, int)
+    assert long > short + 500_000_000
+
+
+@pytest.mark.parametrize("extra", ({"messages": []}, {"prompt": ""}))
+def test_chat_fields_cannot_hide_decision_input_from_reservation(extra: dict[str, object]) -> None:
+    request: Final = {
+        "model": "priced-model",
+        "input": "billable input " * 1000,
+        "questions": [{"type": "predicate", "instructions": "Is a color mentioned?"}],
+        **extra,
+    }
+    result: Final = bounded_request(request, "adecisions")
+    assert isinstance(result, AuthError) and result.code == "wallet_request_not_supported"
+    deployment: Final = deployment_request(request, "priced-model", "adecisions")
+    assert isinstance(deployment, AuthError) and deployment.code == "wallet_request_not_supported"
