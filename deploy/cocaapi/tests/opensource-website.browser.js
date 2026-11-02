@@ -3,6 +3,116 @@ async function verifyOpenSourceWebsite(page, options = {}) {
   const ensure = (condition, message) => {
     if (!condition) throw new Error(message);
   };
+  const sourceCard = page.locator(".resource-card").first();
+  const repository = new URL(await sourceCard.getAttribute("href"));
+  const repositoryPath = repository.pathname.split("/").slice(1, 3).join("/");
+  const repositoryBase = repository.origin + "/" + repositoryPath;
+  ensure(
+    (await sourceCard.locator(".resource-action").textContent()).includes(
+      repositoryPath.replace("/", " / "),
+    ),
+    "Repository label does not match its destination",
+  );
+  ensure(
+    (await page.locator("#deploy-code").textContent()).includes(
+      repositoryBase + ".git",
+    ),
+    "Clone command does not match the source repository",
+  );
+  const repositoryLinks = await page
+    .locator('a[href^="https://github.com/"]')
+    .evaluateAll((links) => links.map((link) => link.href));
+  ensure(
+    repositoryLinks.every(
+      (href) =>
+        href === repositoryBase || href.startsWith(repositoryBase + "/"),
+    ),
+    "Repository links disagree",
+  );
+  ensure(
+    (await page
+      .getByRole("button", { name: "English", exact: true })
+      .count()) === 1,
+    "Language switch is missing",
+  );
+  await page.getByRole("button", { name: "English", exact: true }).click();
+  await page.reload();
+  ensure(
+    (await page.locator("html").getAttribute("lang")) === "en",
+    "English preference did not survive reload",
+  );
+  ensure(
+    (await page.locator("h1").textContent()).includes("model infrastructure"),
+    "English heading is missing",
+  );
+  ensure(
+    !/[\u3400-\u9fff]/.test(
+      (await page.locator("body").textContent()).replaceAll("中文", ""),
+    ),
+    "English page contains untranslated text",
+  );
+  const labels = await page
+    .locator("[aria-label]")
+    .evaluateAll((items) =>
+      items.map((item) => item.getAttribute("aria-label")).join(" "),
+    );
+  ensure(
+    !/[\u3400-\u9fff]/.test(labels),
+    "English accessibility labels contain untranslated text",
+  );
+  ensure(
+    !/[\u3400-\u9fff]/.test(await page.title()),
+    "English page title is untranslated",
+  );
+  await page.getByRole("tab", { name: "Python", exact: true }).click();
+  const selectedExample = await page.locator("#api-code").textContent();
+  await page
+    .getByRole("button", { name: "Copy API example", exact: true })
+    .click();
+  await page.waitForFunction(
+    () =>
+      document.getElementById("copy-status").textContent ===
+      "Copied to clipboard",
+  );
+  for (const theme of ["light", "dark"]) {
+    await page
+      .getByRole("button", {
+        name: theme === "dark" ? "Dark theme" : "Light theme",
+        exact: true,
+      })
+      .click();
+    for (const width of [320, 375, 768, 1024, 1440]) {
+      await page.setViewportSize({ width, height: 1000 });
+      ensure(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth <= innerWidth,
+        ),
+        "English overflow at " + width + " in " + theme,
+      );
+    }
+  }
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page
+    .getByRole("button", { name: "Open navigation", exact: true })
+    .click();
+  await page.getByRole("button", { name: "中文", exact: true }).click();
+  ensure(
+    (await page
+      .getByRole("button", { name: "关闭导航", exact: true })
+      .getAttribute("aria-expanded")) === "true",
+    "Changing language reset the open menu",
+  );
+  await page.keyboard.press("Escape");
+  ensure(
+    (await page.locator("#api-code").textContent()) === selectedExample,
+    "Changing language reset the selected API example",
+  );
+  ensure(
+    (await page
+      .getByRole("tab", { name: "Python", exact: true })
+      .getAttribute("aria-selected")) === "true",
+    "Changing language reset the selected SDK",
+  );
   ensure(
     (await page.locator("h1").textContent())?.includes("模型基础设施"),
     "Open-source landing page is missing",
@@ -176,11 +286,18 @@ async function verifyOpenSourceWebsite(page, options = {}) {
     "Theme fails when storage is blocked",
   );
   await fallbackPage
-    .getByRole("button", { name: "复制 API 示例", exact: true })
+    .getByRole("button", { name: "English", exact: true })
+    .click();
+  ensure(
+    (await fallbackPage.locator("html").getAttribute("lang")) === "en",
+    "Language switch fails when storage is blocked",
+  );
+  await fallbackPage
+    .getByRole("button", { name: "Copy API example", exact: true })
     .click();
   ensure(
     (await fallbackPage.locator("#copy-status").textContent()).includes(
-      "手动复制",
+      "copy the selected code manually",
     ),
     "Clipboard fallback is missing",
   );
@@ -200,6 +317,7 @@ async function verifyOpenSourceWebsite(page, options = {}) {
   }
   return {
     themes: 2,
+    languages: 2,
     viewportWidths: 5,
     clipboard: "passed",
     keyboard: "passed",

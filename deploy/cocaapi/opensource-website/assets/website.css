@@ -205,6 +205,31 @@ nav a:hover,
   align-items: center;
   margin-left: auto;
 }
+.language-switch {
+  align-items: center;
+  gap: 1px;
+  padding: 2px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+}
+.language-switch button {
+  background: transparent;
+  color: var(--subtle);
+  border-radius: 4px;
+  padding: 3px 6px;
+  min-height: 26px;
+  font-size: 10px;
+  line-height: 20px;
+}
+.language-switch button[aria-pressed="true"] {
+  background: var(--surface-2);
+  color: var(--text);
+}
+html[lang="en"] .hero h1 {
+  font-size: clamp(36px, 4.3vw, 62px);
+  line-height: 1.15;
+}
 .button {
   display: inline-flex;
   justify-content: center;
@@ -1716,6 +1741,39 @@ details[open] summary:after {
     gap: 10px;
   }
   .footer-credit {
+    display: none;
+  }
+}
+@media (max-width: 1000px) {
+  .header-inner {
+    height: auto;
+    min-height: 65px;
+    flex-wrap: wrap;
+  }
+  nav {
+    order: 3;
+    width: 100%;
+    padding: 12px 0 17px;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+  .js nav {
+    display: none;
+  }
+  .js nav.is-open {
+    display: flex;
+  }
+  html.js .menu-button {
+    display: inline-flex !important;
+  }
+}
+@media (max-width: 650px) {
+  html[lang="en"] .hero h1 {
+    font-size: clamp(36px, 9vw, 52px);
+  }
+}
+@media (max-width: 400px) {
+  .header-actions > .button-primary {
     display: none;
   }
 }

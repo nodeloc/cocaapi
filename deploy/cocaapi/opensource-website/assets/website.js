@@ -1,3 +1,5 @@
+import { translate } from "./language.js";
+
 (function () {
   "use strict";
   const root = document.documentElement;
@@ -31,8 +33,8 @@
   const examples = Object.freeze({
     curl: document.getElementById("api-code").textContent,
     python:
-      'import os\nfrom openai import OpenAI\n\nclient = OpenAI(\n    base_url="http://localhost:4000/v1",\n    api_key=os.environ["COCAAPI_API_KEY"],\n)\nresponse = client.chat.completions.create(\n    model="my-model",\n    messages=[{"role": "user", "content": "你好，CocaAPI"}],\n)\nprint(response.choices[0].message.content)',
-    node: 'import OpenAI from "openai";\n\nconst client = new OpenAI({\n  baseURL: "http://localhost:4000/v1",\n  apiKey: process.env.COCAAPI_API_KEY,\n});\nconst response = await client.chat.completions.create({\n  model: "my-model",\n  messages: [{ role: "user", content: "你好，CocaAPI" }],\n});\nconsole.log(response.choices[0].message.content);',
+      'import os\nfrom openai import OpenAI\n\nclient = OpenAI(\n    base_url="http://localhost:4000/v1",\n    api_key=os.environ["COCAAPI_API_KEY"],\n)\nresponse = client.chat.completions.create(\n    model="my-model",\n    messages=[{"role": "user", "content": "Hello, CocaAPI"}],\n)\nprint(response.choices[0].message.content)',
+    node: 'import OpenAI from "openai";\n\nconst client = new OpenAI({\n  baseURL: "http://localhost:4000/v1",\n  apiKey: process.env.COCAAPI_API_KEY,\n});\nconst response = await client.chat.completions.create({\n  model: "my-model",\n  messages: [{ role: "user", content: "Hello, CocaAPI" }],\n});\nconsole.log(response.choices[0].message.content);',
   });
   const tabs = Array.from(document.querySelectorAll("[data-language]"));
   const selectTab = (selected) => {
@@ -68,14 +70,14 @@
       const code = document.getElementById(button.dataset.copy);
       try {
         await navigator.clipboard.writeText(code.textContent);
-        status.textContent = "已复制到剪贴板";
+        status.textContent = translate("copySuccess");
       } catch {
         const range = document.createRange();
         range.selectNodeContents(code);
         const selection = window.getSelection();
         selection.removeAllRanges();
         selection.addRange(range);
-        status.textContent = "请手动复制已选中的代码";
+        status.textContent = translate("copyFallback");
       }
       setTimeout(() => {
         status.textContent = "";
@@ -88,7 +90,7 @@
   const setMenu = (open) => {
     navigation.classList.toggle("is-open", open);
     menu.setAttribute("aria-expanded", String(open));
-    menu.setAttribute("aria-label", open ? "关闭导航" : "打开导航");
+    menu.setAttribute("aria-label", translate(open ? "closeMenu" : "openMenu"));
   };
   menu.addEventListener("click", () =>
     setMenu(menu.getAttribute("aria-expanded") !== "true"),
@@ -102,7 +104,12 @@
     setMenu(false);
     menu.focus();
   });
-  matchMedia("(min-width: 651px)").addEventListener("change", () =>
+  document.addEventListener("cocaapi:languagechange", () => {
+    setMenu(menu.getAttribute("aria-expanded") === "true");
+    status.textContent = "";
+  });
+  setMenu(false);
+  matchMedia("(min-width: 1001px)").addEventListener("change", () =>
     setMenu(false),
   );
 })();

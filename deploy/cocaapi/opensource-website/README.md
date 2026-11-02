@@ -20,4 +20,6 @@ Linux 本地部署示例会将 Compose 内固定的 `PROXY_BASE_URL` 改为 `htt
 
 检查深浅主题下 320、375、768、1024 和 1440px 无横向溢出，主题持久化，cURL、Python 与 Node.js 标签，方向键与 Home，实际剪贴板内容，手机导航与 Escape，FAQ，关闭 JavaScript，以及存储和剪贴板不可用时的降级。浏览器复制的换行统一后与当前代码内容比较，以兼容 Windows 剪贴板
 
-`cocaapi-opensource-theme` 只保存主题偏好。页面不读取账号、模型密钥、钱包或后台主题状态。导航、正文、默认 cURL 和 FAQ 在关闭 JavaScript 后仍可使用，相关动态控件隐藏；动画遵循系统减弱动画设置
+页眉提供中文与 English 切换，翻译覆盖导航、功能说明、部署指引、FAQ、复制提示、无障碍标签、页面标题和描述。中文正文直接存在 HTML 中，英文翻译位于 `assets/language.js`。切换语言保留选中的 SDK、主题和菜单状态，语言偏好使用 `cocaapi-opensource-language` 保存，存储不可用时仍可切换当前页面
+
+`cocaapi-opensource-theme` 只保存主题偏好。页面不读取账号、模型密钥、钱包或后台主题状态。导航、中文正文、默认 cURL 和 FAQ 在关闭 JavaScript 后仍可使用，相关动态控件隐藏；动画遵循系统减弱动画设置。浏览器检查覆盖两种语言与两种主题，验证仓库展示名称、克隆地址和项目链接的一致性，以及英文页面和标签的完整翻译
