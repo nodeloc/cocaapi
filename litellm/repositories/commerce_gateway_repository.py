@@ -55,7 +55,16 @@ _OWNED_LOGS: Final = """WITH owned AS (
     SELECT token FROM "LiteLLM_VerificationToken" WHERE user_id=$1 AND team_id IS NULL
     UNION SELECT token FROM "LiteLLM_DeletedVerificationToken" WHERE user_id=$1 AND team_id IS NULL
 ), scoped AS (
-    SELECT s.* FROM "LiteLLM_SpendLogs" s JOIN owned o ON s.api_key=o.token
+    SELECT s.*,CASE WHEN c.actual_units IS NOT NULL THEN
+        CASE WHEN s.metadata->>'litellm_call_id'=c.native_request_id THEN c.actual_units::float8/1000000000 ELSE 0 END
+    WHEN c.pricing_snapshot IS NOT NULL THEN
+        s.spend*(c.pricing_snapshot->>'multiplier_millionths')::float8/1000000
+    ELSE s.spend END AS billed_spend
+    FROM "LiteLLM_SpendLogs" s JOIN owned o ON s.api_key=o.token
+    LEFT JOIN "CommerceCallReservation" c
+    ON c.request_id=s.metadata->'spend_logs_metadata'->>'cocaapi_wallet_request_id'
+    AND c.spend_log_token=s.metadata->'spend_logs_metadata'->>'cocaapi_wallet_log_token'
+    AND c.user_id=$1 AND c.key_hash=s.api_key
     WHERE s."startTime">=$2::timestamptz AND s."startTime"<$3::timestamptz
     AND COALESCE(NULLIF(s.model_group,''),s.model)<>''
 ) """
@@ -63,7 +72,7 @@ _TOTALS: Final = """count(*)::bigint AS requests,
     COALESCE(sum(prompt_tokens),0)::bigint AS prompt_tokens,
     COALESCE(sum(completion_tokens),0)::bigint AS completion_tokens,
     COALESCE(sum(total_tokens),0)::bigint AS total_tokens,
-    COALESCE(sum(spend),0)::float8 AS spend_usd,
+    COALESCE(sum(billed_spend),0)::float8 AS spend_usd,
     count(*) FILTER (WHERE status='success')::bigint AS successful_requests,
     count(*) FILTER (WHERE status='failure')::bigint AS failed_requests,
     COALESCE(sum(GREATEST(0,EXTRACT(EPOCH FROM ("endTime"-"startTime"))*1000)),0)::float8 AS response_time_ms,
@@ -72,7 +81,7 @@ _PUBLIC_MODEL: Final = "COALESCE(NULLIF(model_group,''),model)"
 _LOG_SORT_COLUMNS: Final[Mapping[str, LiteralString]] = MappingProxyType(
     {
         "startTime": '"startTime"',
-        "spend": "spend",
+        "spend": "billed_spend",
         "total_tokens": "total_tokens",
         "request_duration_ms": 'EXTRACT(EPOCH FROM ("endTime"-"startTime"))',
         "model": _PUBLIC_MODEL,
@@ -198,7 +207,7 @@ class GatewayRepository:
             + "SELECT request_id,"
             + _PUBLIC_MODEL
             + """ AS model,status,"startTime" AS started_at,
-            "endTime" AS ended_at,prompt_tokens,completion_tokens,total_tokens,spend AS spend_usd
+            "endTime" AS ended_at,prompt_tokens,completion_tokens,total_tokens,billed_spend AS spend_usd
             FROM scoped WHERE ($6::text IS NULL OR """
             + _PUBLIC_MODEL
             + """=$6)

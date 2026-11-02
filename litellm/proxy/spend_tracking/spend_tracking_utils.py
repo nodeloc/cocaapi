@@ -1757,7 +1757,19 @@ def spend_log_row_with_retained_metadata(
         return row
     metadata: Final = _SPEND_LOGS_METADATA_ADAPTER.validate_json(metadata_json)
     retained: Final = {name: value for name, value in metadata.items() if fields.keeps(name)}
-    return {**row, "metadata": safe_dumps(retained)}
+    wallet: Final = metadata.get("spend_logs_metadata")
+    required: Final = {
+        name: wallet[name] for name in ("cocaapi_wallet_request_id", "cocaapi_wallet_log_token")
+        if isinstance(wallet.get(name), str)
+    } if isinstance(wallet, dict) else {}
+    native_id: Final = metadata.get("litellm_call_id")
+    if len(required) != 2 or not isinstance(native_id, str):
+        return {**row, "metadata": safe_dumps(retained)}
+    nested: Final = retained.get("spend_logs_metadata")
+    return {**row, "metadata": safe_dumps({
+        **retained, "litellm_call_id": native_id,
+        "spend_logs_metadata": {**(nested if isinstance(nested, dict) else {}), **required},
+    })}
 
 
 def _get_status_for_spend_log(

@@ -33,6 +33,7 @@ from litellm.repositories.commerce_payment_repository import PaymentRepository
 from litellm.proxy.commerce.admin_login_routes import get_login_settings_service, router as login_settings_router
 from litellm.proxy.commerce.login_settings_service import LoginSettingsService
 from litellm.repositories.commerce_login_settings_repository import LoginConfigurationRepository
+from litellm.proxy.commerce.admin_billing_group_routes import router as billing_groups_router
 
 
 @dataclass(frozen=True)
@@ -77,6 +78,7 @@ async def wallet_client() -> AsyncIterator[WalletClient]:
     app.include_router(payment_admin_router)
     app.include_router(webhook_router)
     app.include_router(login_settings_router)
+    app.include_router(billing_groups_router)
     app.dependency_overrides[get_login_settings_service] = lambda: LoginSettingsService(LoginConfigurationRepository(database), service.settings)
     app.dependency_overrides[get_service] = lambda: service
     app.dependency_overrides[get_wallet_store] = lambda: WalletRepository(database)

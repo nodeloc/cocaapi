@@ -2349,6 +2349,9 @@ app.include_router(payment_webhook_router)
 from litellm.proxy.commerce.admin_login_routes import router as login_settings_router
 
 app.include_router(login_settings_router)
+from litellm.proxy.commerce.admin_billing_group_routes import router as billing_groups_router
+
+app.include_router(billing_groups_router)
 
 # get current directory
 try:

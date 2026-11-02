@@ -3303,6 +3303,75 @@ export interface paths {
         patch: operations["cohere_proxy_route_cohere__endpoint__patch"];
         trace?: never;
     };
+    "/commerce/admin/v1/billing-groups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Configuration */
+        get: operations["configuration_commerce_admin_v1_billing_groups_get"];
+        /** Save Configuration */
+        put: operations["save_configuration_commerce_admin_v1_billing_groups_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/commerce/admin/v1/billing-groups/catalog": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Catalog */
+        get: operations["catalog_commerce_admin_v1_billing_groups_catalog_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/commerce/admin/v1/billing-groups/members": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Members */
+        get: operations["members_commerce_admin_v1_billing_groups_members_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/commerce/admin/v1/billing-groups/members/{user_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Assign */
+        post: operations["assign_commerce_admin_v1_billing_groups_members__user_id__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/commerce/admin/v1/login-settings": {
         parameters: {
             query?: never;
@@ -28252,6 +28321,113 @@ export interface components {
             /** Entities */
             entities: components["schemas"]["BedrockChecksSensitiveInformationEntityItem"][];
         };
+        /** BillingGroupAssignment */
+        BillingGroupAssignment: {
+            /** Expected Version */
+            expected_version: number;
+            /** Group Id */
+            group_id: string;
+            /** Reason */
+            reason: string;
+        };
+        /** BillingGroupCatalog */
+        BillingGroupCatalog: {
+            /** Models */
+            models: string[];
+        };
+        /** BillingGroupMember */
+        BillingGroupMember: {
+            /** Email */
+            email: string | null;
+            /** Enabled */
+            enabled: boolean;
+            /** Group Id */
+            group_id: string;
+            /** Group Name */
+            group_name: string;
+            /** User Id */
+            user_id: string;
+            /** Version */
+            version: number;
+        };
+        /** BillingGroupMembers */
+        BillingGroupMembers: {
+            /** Has More */
+            has_more: boolean;
+            /** Items */
+            items: components["schemas"]["BillingGroupMember"][];
+        };
+        /** BillingGroupsUpdate */
+        BillingGroupsUpdate: {
+            /**
+             * Model Groups
+             * @default [
+             *       {
+             *         "id": "default",
+             *         "models": [],
+             *         "name": "普通模型组"
+             *       }
+             *     ]
+             */
+            model_groups: components["schemas"]["PricingModelGroup"][];
+            /** Reason */
+            reason: string;
+            /** Revision */
+            revision: number;
+            /**
+             * Rules
+             * @default []
+             */
+            rules: components["schemas"]["PricingRule"][];
+            /**
+             * User Groups
+             * @default [
+             *       {
+             *         "id": "default",
+             *         "name": "普通组"
+             *       }
+             *     ]
+             */
+            user_groups: components["schemas"]["PricingUserGroup"][];
+        };
+        /** BillingGroupsView */
+        BillingGroupsView: {
+            /**
+             * Model Groups
+             * @default [
+             *       {
+             *         "id": "default",
+             *         "models": [],
+             *         "name": "普通模型组"
+             *       }
+             *     ]
+             */
+            model_groups: components["schemas"]["PricingModelGroup"][];
+            /** Revision */
+            revision: number;
+            /**
+             * Rules
+             * @default []
+             */
+            rules: components["schemas"]["PricingRule"][];
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Updated By */
+            updated_by: string;
+            /**
+             * User Groups
+             * @default [
+             *       {
+             *         "id": "default",
+             *         "name": "普通组"
+             *       }
+             *     ]
+             */
+            user_groups: components["schemas"]["PricingUserGroup"][];
+        };
         /** Binding */
         Binding: {
             /** Id */
@@ -35809,6 +35985,8 @@ export interface components {
             actor_id: string;
             /** Available After */
             available_after: string;
+            /** Base Cost Units */
+            base_cost_units?: string | null;
             /**
              * Created At
              * Format: date-time
@@ -35823,6 +36001,7 @@ export interface components {
              * @enum {string}
              */
             kind: "adjustment" | "redemption" | "recharge" | "usage";
+            pricing_snapshot?: components["schemas"]["PricingSnapshot"] | null;
             /** Reason */
             reason: string;
             /** Reference */
@@ -43574,6 +43753,61 @@ export interface components {
              */
             offset: number;
             selection: components["schemas"]["ActivitySelection"];
+        };
+        /** PricingModelGroup */
+        PricingModelGroup: {
+            /** Id */
+            id: string;
+            /**
+             * Models
+             * @default []
+             */
+            models: string[];
+            /** Name */
+            name: string;
+        };
+        /** PricingRule */
+        PricingRule: {
+            /**
+             * Enabled
+             * @default true
+             */
+            enabled: boolean;
+            /** Model Group Id */
+            model_group_id: string;
+            /**
+             * Multiplier
+             * @default 1
+             */
+            multiplier: string;
+            /** User Group Id */
+            user_group_id: string;
+        };
+        /** PricingSnapshot */
+        PricingSnapshot: {
+            /** Membership Version */
+            membership_version: number;
+            /** Model */
+            model: string;
+            /** Model Group Id */
+            model_group_id: string;
+            /** Model Group Name */
+            model_group_name: string;
+            /** Multiplier Millionths */
+            multiplier_millionths: number;
+            /** Revision */
+            revision: number;
+            /** User Group Id */
+            user_group_id: string;
+            /** User Group Name */
+            user_group_name: string;
+        };
+        /** PricingUserGroup */
+        PricingUserGroup: {
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
         };
         /** ProfileView */
         ProfileView: {
@@ -60953,6 +61187,391 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    configuration_commerce_admin_v1_billing_groups_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BillingGroupsView"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountErrorView"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountErrorView"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountErrorView"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountErrorView"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountErrorView"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountErrorView"];
+                };
+            };
+        };
+    };
+    save_configuration_commerce_admin_v1_billing_groups_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BillingGroupsUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BillingGroupsView"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountErrorView"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountErrorView"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountErrorView"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountErrorView"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountErrorView"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountErrorView"];
+                };
+            };
+        };
+    };
+    catalog_commerce_admin_v1_billing_groups_catalog_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BillingGroupCatalog"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountErrorView"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountErrorView"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountErrorView"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountErrorView"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountErrorView"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountErrorView"];
+                };
+            };
+        };
+    };
+    members_commerce_admin_v1_billing_groups_members_get: {
+        parameters: {
+            query?: {
+                search?: string;
+                group_id?: string | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BillingGroupMembers"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountErrorView"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountErrorView"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountErrorView"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountErrorView"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountErrorView"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountErrorView"];
+                };
+            };
+        };
+    };
+    assign_commerce_admin_v1_billing_groups_members__user_id__post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BillingGroupAssignment"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BillingGroupMember"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountErrorView"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountErrorView"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountErrorView"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountErrorView"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountErrorView"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountErrorView"];
                 };
             };
         };

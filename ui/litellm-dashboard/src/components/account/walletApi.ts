@@ -20,6 +20,13 @@ const client = createClient<paths>({
   fetch: (request: Request) => globalThis.fetch(request),
 });
 const messages: Readonly<Record<string, string>> = {
+  billing_config_conflict: "分组配置已被修改，请刷新后重试。",
+  billing_membership_conflict: "用户分组已被修改，请刷新后重试。",
+  billing_group_in_use: "该用户组仍有用户，先调整这些用户的分组后再删除。",
+  billing_group_not_found: "用户组已不存在，请刷新后重试。",
+  billing_model_not_found: "模型不存在，请刷新模型列表后重试。",
+  billing_groups_unavailable: "分组配置暂不可用，请稍后重试。",
+  model_group_disabled: "当前用户组不能调用该模型组，请联系管理员。",
   invalid_request: "请检查金额、数量和填写的信息。",
   balance_limit_reached: "金额超过余额上限。",
   invalid_redemption: "兑换码无效、已失效或已被使用。",

@@ -3,8 +3,7 @@ from datetime import datetime
 from typing import Final, Literal
 
 from litellm.models.commerce_auth import AuthError, Session
-from litellm.repositories.commerce_auth_repository import AccountDatabase
-
+from litellm.models.commerce_billing_groups import RATIO_SCALE, scaled_units
 from litellm.models.commerce_wallet import (
     MAX_UNITS,
     CallReservation,
@@ -15,6 +14,8 @@ from litellm.models.commerce_wallet import (
     WalletSnapshot,
     WalletSummary,
 )
+from litellm.repositories.commerce_auth_repository import AccountDatabase
+from litellm.repositories.commerce_billing_group_repository import BillingGroupRepository
 
 
 async def lock_customer(tx: AccountDatabase, user_id: str) -> bool:
@@ -134,9 +135,11 @@ class WalletRepository:
 
     async def transactions(self, user_id: str, limit: int, offset: int) -> LedgerPage:
         rows: Final = await self.database.query_raw(
-            """SELECT id,user_id,delta_units,available_after,kind,
-            reference,actor_id,reason,created_at FROM "CommerceLedger" WHERE user_id=$1
-            ORDER BY created_at DESC,id DESC LIMIT $2 OFFSET $3""",
+            """SELECT l.id,l.user_id,l.delta_units,l.available_after,l.kind,
+            l.reference,l.actor_id,l.reason,l.created_at,c.pricing_snapshot,c.base_actual_units AS base_cost_units
+            FROM "CommerceLedger" l LEFT JOIN "CommerceCallReservation" c
+            ON l.kind='usage' AND c.request_id=l.reference AND c.user_id=l.user_id WHERE l.user_id=$1
+            ORDER BY l.created_at DESC,l.id DESC LIMIT $2 OFFSET $3""",
             user_id,
             limit + 1,
             offset,
@@ -183,8 +186,15 @@ class WalletRepository:
         async with self.database.tx() as tx:
             if not await lock_customer(tx, user_id):
                 return AuthError("account_unavailable", 403)
+            snapshot: Final = await BillingGroupRepository(tx).snapshot(user_id, model)
+            if isinstance(snapshot, AuthError):
+                return snapshot
+            scaled: Final = scaled_units(reserved_units, snapshot.multiplier_millionths)
+            if isinstance(scaled, AuthError):
+                return scaled
+            hold: Final = max(scaled, 1)
             wallet: Final = await ensure_wallet(tx, user_id)
-            if wallet.debt_units or wallet.available_units < reserved_units:
+            if wallet.debt_units or wallet.available_units < hold:
                 return AuthError("insufficient_balance", 402)
             existing: Final = await tx.query_raw(
                 'SELECT request_id FROM "CommerceCallReservation" WHERE request_id=$1', request_id
@@ -195,21 +205,26 @@ class WalletRepository:
                 """UPDATE "CommerceWallet" SET available_units=available_units-$2::bigint,
                 reserved_units=reserved_units+$2::bigint,updated_at=$3::timestamptz WHERE user_id=$1""",
                 user_id,
-                reserved_units,
+                hold,
                 now,
             )
             rows: Final = await tx.query_raw(
                 """INSERT INTO "CommerceCallReservation"
-                (request_id,user_id,model,key_hash,reserved_units,native_request_id,created_at,updated_at)
-                VALUES ($1,$2,$3,$4,$5::bigint,$6,$7::timestamptz,$7::timestamptz)
-                RETURNING request_id,user_id,model,reserved_units,actual_units,status,native_request_id,created_at""",
+                (request_id,user_id,model,key_hash,reserved_units,native_request_id,created_at,updated_at,
+                base_reserved_units,pricing_snapshot,spend_log_token)
+                VALUES ($1,$2,$3,$4,$5::bigint,$6,$7::timestamptz,$7::timestamptz,$8::bigint,$9::jsonb,$10)
+                RETURNING request_id,user_id,model,reserved_units,actual_units,status,native_request_id,created_at,
+                base_reserved_units,base_actual_units,pricing_snapshot,spend_log_token""",
                 request_id,
                 user_id,
                 model,
                 key_hash,
-                reserved_units,
+                hold,
                 native_request_id,
                 now,
+                reserved_units,
+                snapshot.model_dump_json(),
+                uuid.uuid4().hex,
             )
             return CallReservation.model_validate(rows[0])
 
@@ -220,7 +235,8 @@ class WalletRepository:
             if not await lock_customer(tx, user_id):
                 return AuthError("account_unavailable", 403)
             rows: Final = await tx.query_raw(
-                """SELECT request_id,user_id,model,reserved_units,actual_units,status,native_request_id,created_at
+                """SELECT request_id,user_id,model,reserved_units,actual_units,status,native_request_id,created_at,
+                base_reserved_units,base_actual_units,pricing_snapshot
                 FROM "CommerceCallReservation" WHERE request_id=$1 AND user_id=$2 FOR UPDATE""",
                 request_id,
                 user_id,
@@ -230,8 +246,15 @@ class WalletRepository:
             reservation: Final = CallReservation.model_validate(rows[0])
             if reservation.status not in {"pending", "review"}:
                 return AuthError("idempotency_conflict", 409)
+            scaled: Final = scaled_units(
+                units,
+                reservation.pricing_snapshot.multiplier_millionths if reservation.pricing_snapshot else RATIO_SCALE,
+            )
+            if isinstance(scaled, AuthError):
+                return scaled
+            hold: Final = max(scaled, 1)
             wallet: Final = await ensure_wallet(tx, user_id)
-            additional: Final = max(units - reservation.reserved_units, 0)
+            additional: Final = max(hold - reservation.reserved_units, 0)
             if wallet.debt_units or wallet.available_units < additional:
                 return AuthError("insufficient_balance", 402)
             if additional:
@@ -244,11 +267,13 @@ class WalletRepository:
                 )
             await tx.execute_raw(
                 """UPDATE "CommerceCallReservation" SET reserved_units=GREATEST(reserved_units,$2::bigint),
-                dispatched_at=COALESCE(dispatched_at,$3::timestamptz),updated_at=$3::timestamptz
+                dispatched_at=COALESCE(dispatched_at,$3::timestamptz),updated_at=$3::timestamptz,
+                base_reserved_units=GREATEST(COALESCE(base_reserved_units,reserved_units),$4::bigint)
                 WHERE request_id=$1""",
                 request_id,
-                units,
+                hold,
                 now,
+                units,
             )
             return None
 
@@ -263,7 +288,7 @@ class WalletRepository:
         if actual_units < 0 or actual_units > MAX_UNITS or (outcome == "failure" and actual_units != 0):
             return AuthError("invalid_call_charge", 422)
         async with self.database.tx() as tx:
-            return await settle_reserved_call(tx, user_id, request_id, actual_units, outcome, now)
+            return await settle_reserved_call(tx, user_id, request_id, actual_units, outcome, now, "base")
 
     async def mark_call_dispatched(self, user_id: str, request_id: str, now: datetime) -> None:
         await self.database.execute_raw(
@@ -303,10 +328,12 @@ async def settle_reserved_call(
     actual_units: int,
     outcome: Literal["success", "failure"],
     now: datetime,
+    cost_basis: Literal["base", "final"] = "final",
 ) -> LedgerEntry | AuthError:
     await tx.query_raw('SELECT user_id FROM "CommerceCustomer" WHERE user_id=$1 FOR UPDATE', user_id)
     rows: Final = await tx.query_raw(
-        """SELECT request_id,user_id,model,reserved_units,actual_units,status,native_request_id,created_at
+        """SELECT request_id,user_id,model,reserved_units,actual_units,status,native_request_id,created_at,
+        base_reserved_units,base_actual_units,pricing_snapshot
         FROM "CommerceCallReservation" WHERE request_id=$1 AND user_id=$2 FOR UPDATE""",
         request_id,
         user_id,
@@ -314,20 +341,43 @@ async def settle_reserved_call(
     if not rows:
         return AuthError("call_reservation_not_found", 404)
     reservation: Final = CallReservation.model_validate(rows[0])
+    charged: Final = scaled_units(
+        actual_units,
+        reservation.pricing_snapshot.multiplier_millionths
+        if cost_basis == "base" and reservation.pricing_snapshot
+        else RATIO_SCALE,
+    )
+    if isinstance(charged, AuthError):
+        return charged
+    base_cost: Final = actual_units if cost_basis == "base" or outcome == "failure" else None
     status: Final = "settled" if outcome == "success" else "released"
     business_key: Final = "usage:" + request_id
     if reservation.status in {"settled", "released"}:
-        if reservation.actual_units != actual_units or reservation.status != status:
+        if (
+            reservation.actual_units != charged
+            or reservation.status != status
+            or (
+                cost_basis == "base"
+                and reservation.pricing_snapshot is not None
+                and reservation.base_actual_units != base_cost
+            )
+        ):
             return AuthError("idempotency_conflict", 409)
         previous: Final = await tx.query_raw(
             """SELECT id,user_id,delta_units,available_after,kind,reference,actor_id,reason,created_at
             FROM "CommerceLedger" WHERE business_key=$1""",
             business_key,
         )
-        return LedgerEntry.model_validate(previous[0])
+        return LedgerEntry.model_validate(
+            {
+                **previous[0],
+                "pricing_snapshot": reservation.pricing_snapshot,
+                "base_cost_units": reservation.base_actual_units,
+            }
+        )
     wallet: Final = await ensure_wallet(tx, user_id)
-    net: Final = wallet.available_units + reservation.reserved_units - wallet.debt_units - actual_units
-    debited: Final = wallet.debited_units + actual_units
+    net: Final = wallet.available_units + reservation.reserved_units - wallet.debt_units - charged
+    debited: Final = wallet.debited_units + charged
     if max(abs(net), debited) > MAX_UNITS or wallet.reserved_units < reservation.reserved_units:
         return AuthError("balance_limit_reached", 409)
     await tx.execute_raw(
@@ -348,7 +398,7 @@ async def settle_reserved_call(
         RETURNING id,user_id,delta_units,available_after,kind,reference,actor_id,reason,created_at""",
         uuid.uuid4().hex,
         user_id,
-        -actual_units,
+        -charged,
         max(net, 0),
         business_key,
         request_id,
@@ -357,10 +407,17 @@ async def settle_reserved_call(
     )
     await tx.execute_raw(
         """UPDATE "CommerceCallReservation" SET status=$2,actual_units=$3::bigint,
-        updated_at=$4::timestamptz WHERE request_id=$1""",
+        updated_at=$4::timestamptz,base_actual_units=$5::bigint WHERE request_id=$1""",
         request_id,
         status,
-        actual_units,
+        charged,
         now,
+        base_cost,
     )
-    return LedgerEntry.model_validate(entry[0])
+    return LedgerEntry.model_validate(
+        {
+            **entry[0],
+            "pricing_snapshot": reservation.pricing_snapshot,
+            "base_cost_units": base_cost,
+        }
+    )

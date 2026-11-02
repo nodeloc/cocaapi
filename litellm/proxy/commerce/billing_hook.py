@@ -7,6 +7,11 @@ from datetime import datetime
 from typing import Final
 
 from fastapi import HTTPException
+from openai import APIStatusError
+from prisma.errors import PrismaError
+from starlette.types import ASGIApp, Receive, Scope, Send
+
+import litellm
 from litellm._logging import verbose_proxy_logger
 from litellm.integrations.custom_logger import CustomLogger
 from litellm.litellm_core_utils.core_helpers import get_metadata_variable_name_from_kwargs
@@ -14,12 +19,6 @@ from litellm.litellm_core_utils.litellm_logging import Logging
 from litellm.models.commerce_auth import AuthError
 from litellm.proxy._types import UserAPIKeyAuth
 from litellm.proxy.commerce.auth_service import utcnow
-from litellm.repositories.commerce_auth_repository import AccountDatabase, AccountRepository
-from openai import APIStatusError
-from prisma.errors import PrismaError
-from starlette.types import ASGIApp, Receive, Scope, Send
-
-import litellm
 from litellm.proxy.commerce.billing_pricing import (
     bounded_request,
     client_overrides,
@@ -29,6 +28,7 @@ from litellm.proxy.commerce.billing_pricing import (
     quote_units,
     selected_model,
 )
+from litellm.repositories.commerce_auth_repository import AccountDatabase, AccountRepository
 from litellm.repositories.commerce_wallet_repository import WalletRepository
 
 _TOKEN: Final = "_cocaapi_wallet_request"
@@ -201,6 +201,8 @@ class WalletBillingHook(CustomLogger):
             )
             if isinstance(result, AuthError):
                 raise HTTPException(result.status, detail=result.code)
+            if result.spend_log_token is None:
+                raise HTTPException(503, detail="wallet_billing_unavailable")
             _CONTEXT.set(
                 BillingContext(
                     user_id,
@@ -213,7 +215,19 @@ class WalletBillingHook(CustomLogger):
                 )
             )
             metadata_key: Final = get_metadata_variable_name_from_kwargs(prepared)
-            return {**prepared, metadata_key: {**object_mapping(prepared.get(metadata_key)), _TOKEN: request_id}}
+            metadata: Final = object_mapping(prepared.get(metadata_key))
+            return {
+                **prepared,
+                metadata_key: {
+                    **metadata,
+                    _TOKEN: request_id,
+                    "spend_logs_metadata": {
+                        **object_mapping(metadata.get("spend_logs_metadata")),
+                        "cocaapi_wallet_request_id": request_id,
+                        "cocaapi_wallet_log_token": result.spend_log_token.get_secret_value(),
+                    },
+                },
+            }
         except HTTPException:
             raise
         except _BILLING_ERRORS:
@@ -270,9 +284,8 @@ class WalletBillingHook(CustomLogger):
                 0
                 if cached
                 else logged_cost
-                if logged_cost is not None and not (
-                    isinstance(logging_obj, Logging) and logging_obj.custom_pricing_for(response)
-                )
+                if logged_cost is not None
+                and not (isinstance(logging_obj, Logging) and logging_obj.custom_pricing_for(response))
                 else logging_obj.response_cost_calculator(result=response)
                 if isinstance(logging_obj, Logging)
                 else None

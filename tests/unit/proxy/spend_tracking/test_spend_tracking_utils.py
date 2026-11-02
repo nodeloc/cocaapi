@@ -5842,6 +5842,30 @@ def test_spend_log_row_keeps_every_metadata_field_when_unconfigured() -> None:
     assert spend_log_row_with_retained_metadata(row, None) is row
 
 
+@pytest.mark.parametrize("fields", (
+    SpendLogsMetadataFields(include=("usage_object",)),
+    SpendLogsMetadataFields(exclude=("litellm_call_id", "spend_logs_metadata")),
+))
+def test_wallet_receipt_association_survives_optional_metadata_retention(fields: SpendLogsMetadataFields) -> None:
+    metadata: Final = {
+        **_STORED_METADATA,
+        "litellm_call_id": "server-call-id",
+        "spend_logs_metadata": {
+            "cocaapi_wallet_request_id": "wallet-receipt-id",
+            "cocaapi_wallet_log_token": "server-private-token",
+            "optional_diagnostic": "discard-this",
+        },
+    }
+    stored: Final = spend_log_row_with_retained_metadata(_spend_log_row(metadata), fields)
+    serialized: Final = stored["metadata"]
+    assert isinstance(serialized, str)
+    retained: Final = TypeAdapter(dict[str, object]).validate_json(serialized)
+    assert retained["litellm_call_id"] == metadata["litellm_call_id"]
+    assert retained["spend_logs_metadata"] == {
+        "cocaapi_wallet_request_id": "wallet-receipt-id", "cocaapi_wallet_log_token": "server-private-token",
+    }
+
+
 def test_spend_log_row_drops_excluded_metadata_fields_only() -> None:
     row: Final = _spend_log_row(_STORED_METADATA)
 

@@ -9,6 +9,7 @@ const sections = [
   { id: "wallets", href: "/ui/commerce/", label: "用户余额" },
   { id: "redemptions", href: "/ui/commerce/redemptions/", label: "兑换码" },
   { id: "orders", href: "/ui/commerce/orders/", label: "充值订单" },
+  { id: "groups", href: "/ui/commerce/groups/", label: "分组与倍率" },
   { id: "settings", href: "/ui/commerce/settings/", label: "登录与注册" },
 ] as const;
 
@@ -23,7 +24,7 @@ export function CommercePage({ section, children }: { section: (typeof sections)
             {settings ? "登录与注册" : "账户与充值"}
           </PageHeaderTitle>
           <PageHeaderDescription>
-            {settings ? "配置用户中心的第三方登录与新用户注册" : "管理用户额度、兑换码批次和充值订单"}
+            {settings ? "配置用户中心的第三方登录与新用户注册" : "管理用户额度、分组倍率、兑换码批次和充值订单"}
           </PageHeaderDescription>
           <PageHeaderControls>
             <PageTabsList aria-label="账户管理导航">

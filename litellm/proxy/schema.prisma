@@ -2011,6 +2011,8 @@ model CommerceCustomer {
   email_verified Boolean @default(false)
   password_hash String?
   enabled Boolean @default(true)
+  billing_group_id String @default("default")
+  billing_group_version Int @default(1)
   created_at DateTime @default(now()) @client.Timestamptz(6)
   user LiteLLM_UserTable @relation(fields: [user_id], references: [user_id], onDelete: Restrict, onUpdate: NoAction)
   sessions CommerceSession[]
@@ -2021,6 +2023,14 @@ model CommerceCustomer {
   wallet CommerceWallet?
   redeemed_codes CommerceRedeemCode[]
   recharge_orders CommerceRechargeOrder[]
+  @@index([billing_group_id, created_at(sort: Desc)])
+}
+
+model CommerceBillingConfiguration {
+  revision Int @id
+  payload String
+  updated_by String
+  created_at DateTime @default(now()) @client.Timestamptz(6)
 }
 
 model CommerceSession {
@@ -2129,6 +2139,7 @@ model CommerceAuditEvent {
   action String
   target_id String
   reason String
+  details Json?
   created_at DateTime @default(now()) @client.Timestamptz(6)
   @@index([target_id, created_at])
 }
@@ -2209,6 +2220,10 @@ model CommerceCallReservation {
   native_request_id String @default("")
   reserved_units BigInt
   actual_units BigInt?
+  base_reserved_units BigInt?
+  base_actual_units BigInt?
+  pricing_snapshot Json?
+  spend_log_token String?
   dispatched_at DateTime? @client.Timestamptz(6)
   status String @default("pending")
   created_at DateTime @default(now()) @client.Timestamptz(6)

@@ -1,8 +1,10 @@
 from datetime import datetime
 from typing import Final, Literal, Protocol, TypeAlias
 
+from pydantic import Field, SecretStr, field_serializer
+
 from litellm.models.commerce_auth import AuthError, FrozenModel, Session
-from pydantic import Field, field_serializer
+from litellm.models.commerce_billing_groups import PricingSnapshot
 
 UNITS_PER_USD: Final = 1_000_000_000
 MAX_UNITS: Final = 9_223_372_036_854_775_807
@@ -33,10 +35,16 @@ class LedgerEntry(FrozenModel):
     actor_id: str
     reason: str
     created_at: datetime
+    pricing_snapshot: PricingSnapshot | None = None
+    base_cost_units: int | None = None
 
     @field_serializer("delta_units", "available_after")
     def serialize_units(self, value: int) -> str:
         return str(value)
+
+    @field_serializer("base_cost_units")
+    def serialize_base_cost(self, value: int | None) -> str | None:
+        return str(value) if value is not None else None
 
 
 class WalletChange(FrozenModel):
@@ -59,6 +67,10 @@ class CallReservation(FrozenModel):
     status: Literal["pending", "settled", "released", "review"]
     native_request_id: str
     created_at: datetime
+    pricing_snapshot: PricingSnapshot | None = None
+    base_reserved_units: int | None = None
+    base_actual_units: int | None = None
+    spend_log_token: SecretStr | None = Field(default=None, exclude=True)
 
 
 class LedgerPage(FrozenModel):

@@ -14,6 +14,7 @@ from litellm.models.commerce_gateway import (
 )
 from litellm.proxy._types import hash_token
 from litellm.proxy.commerce.security import AuthSecurity
+from litellm.repositories.commerce_billing_group_repository import BillingGroupRepository
 from litellm.repositories.commerce_gateway_repository import GatewayRepository, StoredKey
 
 
@@ -42,7 +43,12 @@ class GatewayService:
         available: Final = await self.native.models(stored.models)
         if isinstance(available, AuthError):
             return available
-        allowed: Final = tuple(sorted(set(available)))
+        filtered: Final = await BillingGroupRepository(self.store.database).allowed_models(
+            session.customer.user_id, available
+        )
+        if isinstance(filtered, AuthError):
+            return filtered
+        allowed: Final = tuple(sorted(set(filtered)))
         reason: Final = creation_reason(session.customer.email_verified, allowed, stored.max_budget, stored.spend)
         return GatewayAccess(
             models=allowed,

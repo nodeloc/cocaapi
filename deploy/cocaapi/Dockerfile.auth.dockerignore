@@ -25,6 +25,7 @@
 !litellm/proxy/auth/user_api_key_auth.py
 !litellm/proxy/spend_tracking/
 !litellm/proxy/spend_tracking/budget_reservation.py
+!litellm/proxy/spend_tracking/spend_tracking_utils.py
 !litellm-proxy-extras/
 !litellm-proxy-extras/litellm_proxy_extras/
 !litellm-proxy-extras/litellm_proxy_extras/schema.prisma
@@ -39,6 +40,8 @@
 !litellm-proxy-extras/litellm_proxy_extras/migrations/20261102010000_commerce_api_billing/**
 !litellm-proxy-extras/litellm_proxy_extras/migrations/20261102160000_commerce_redemption_policy/
 !litellm-proxy-extras/litellm_proxy_extras/migrations/20261102160000_commerce_redemption_policy/**
+!litellm-proxy-extras/litellm_proxy_extras/migrations/20261102200000_commerce_billing_groups/
+!litellm-proxy-extras/litellm_proxy_extras/migrations/20261102200000_commerce_billing_groups/**
 !ui/
 !ui/litellm-dashboard/
 !ui/litellm-dashboard/out/

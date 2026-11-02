@@ -59,6 +59,14 @@ const ledgerColumns: ColumnDef<Ledger["items"][number]>[] = [
       <div>
         <p>{kinds[entry.kind]}</p>
         <p className="max-w-sm whitespace-normal break-words text-xs text-muted-foreground">{entry.reason}</p>
+        {entry.pricing_snapshot && (
+          <p className="max-w-sm whitespace-normal text-xs text-muted-foreground">
+            {entry.pricing_snapshot.user_group_name} / {entry.pricing_snapshot.model_group_name}
+            {" · "}
+            {entry.pricing_snapshot.multiplier_millionths / 1_000_000} 倍
+            {entry.base_cost_units != null && <> · 基础费用 {formatCredits(entry.base_cost_units)}</>}
+          </p>
+        )}
       </div>
     ),
   },

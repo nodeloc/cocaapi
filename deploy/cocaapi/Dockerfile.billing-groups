@@ -1,0 +1,11 @@
+ARG COCAAPI_RUNTIME_IMAGE
+FROM ${COCAAPI_RUNTIME_IMAGE}
+
+COPY litellm/models/commerce_billing_groups.py litellm/models/commerce_wallet.py /app/.venv/lib/python3.13/site-packages/litellm/models/
+COPY litellm/repositories/commerce_billing_group_repository.py litellm/repositories/commerce_wallet_repository.py litellm/repositories/commerce_gateway_repository.py /app/.venv/lib/python3.13/site-packages/litellm/repositories/
+COPY litellm/proxy/commerce/admin_billing_group_routes.py litellm/proxy/commerce/gateway_service.py litellm/proxy/commerce/billing_hook.py /app/.venv/lib/python3.13/site-packages/litellm/proxy/commerce/
+COPY litellm/proxy/proxy_server.py litellm/proxy/schema.prisma /app/.venv/lib/python3.13/site-packages/litellm/proxy/
+COPY litellm/proxy/spend_tracking/spend_tracking_utils.py /app/.venv/lib/python3.13/site-packages/litellm/proxy/spend_tracking/
+COPY litellm-proxy-extras/litellm_proxy_extras/schema.prisma /app/.venv/lib/python3.13/site-packages/litellm_proxy_extras/schema.prisma
+COPY litellm-proxy-extras/litellm_proxy_extras/migrations/20261102200000_commerce_billing_groups/ /app/.venv/lib/python3.13/site-packages/litellm_proxy_extras/migrations/20261102200000_commerce_billing_groups/
+COPY ui/litellm-dashboard/out/ /app/cocaapi-ui/
