@@ -1,6 +1,6 @@
 # 用户组、模型组与调用倍率
 
-管理员入口为 [账户与充值 / 分组与倍率](https://cocaapi.com/ui/commerce/groups/)，复用原后台的 Page、Card、DataTable、Select、MultiSelect 和 Checkbox 组件
+管理员入口为 [账户与充值 / 分组与倍率](https://demo.cocaapi.com/ui/commerce/groups/)，复用原后台的 Page、Card、DataTable、Select、MultiSelect 和 Checkbox 组件
 
 在“用户组”添加组并命名，在“模型组”选择已有的公开模型，再在“组间倍率与禁用”选择两组、填写倍率和是否允许调用。先点击“应用规则”，填写配置变更原因，再点击“保存分组配置”。下方“用户归组”可按邮箱或用户 ID 查询用户，选择目标用户组并填写原因后保存
 

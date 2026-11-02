@@ -19,7 +19,7 @@ services:
       LITELLM_SALT_KEY: ${LITELLM_SALT_KEY:?Set LITELLM_SALT_KEY}
       UI_USERNAME: ${UI_USERNAME:?Set UI_USERNAME}
       UI_PASSWORD: ${UI_PASSWORD:?Set UI_PASSWORD}
-      PROXY_BASE_URL: https://cocaapi.com
+      PROXY_BASE_URL: https://demo.cocaapi.com
       STORE_MODEL_IN_DB: "True"
       REDIS_HOST: redis
       REDIS_PORT: "6379"

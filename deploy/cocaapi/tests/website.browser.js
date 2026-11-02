@@ -37,6 +37,7 @@ async function verifyWebsite(page, options = {}) {
         .filter((href) => !document.getElementById(href.slice(1))),
     );
   ensure(anchors.length === 0, "Broken anchors: " + anchors);
+  const application = options.applicationOrigin || "https://demo.cocaapi.com";
   const expected = [
     "/account/login/",
     "/account/register/",
@@ -46,7 +47,7 @@ async function verifyWebsite(page, options = {}) {
     "/account/wallet/",
     "/account/usage/",
     "/account/docs/",
-  ];
+  ].map((path) => new URL(path, application).href);
   const destinations = await page
     .locator("a")
     .evaluateAll((items) => items.map((item) => item.getAttribute("href")));
@@ -69,7 +70,7 @@ async function verifyWebsite(page, options = {}) {
   await page.getByRole("tab", { name: "Python", exact: true }).click();
   ensure(
     (await page.locator("#code-example").textContent()).includes(
-      'base_url="https://cocaapi.com/v1"',
+      `base_url="${application}/v1"`,
     ),
     "Python sample did not switch",
   );

@@ -37,9 +37,9 @@ Authlib、joserfc 固定版本并校验 wheel SHA-256，版本及摘要与 `uv.l
 三个应用均使用授权码流程，回调 URL 分别为：
 
 ```text
-https://cocaapi.com/account/api/v1/oauth/github/callback
-https://cocaapi.com/account/api/v1/oauth/google/callback
-https://cocaapi.com/account/api/v1/oauth/nodeloc/callback
+https://demo.cocaapi.com/account/api/v1/oauth/github/callback
+https://demo.cocaapi.com/account/api/v1/oauth/google/callback
+https://demo.cocaapi.com/account/api/v1/oauth/nodeloc/callback
 ```
 
 GitHub 权限为 `read:user user:email`，Google 与 NodeLoc 为 `openid profile email`。三个平台均发送 PKCE S256，OIDC 验证 RS256 签名、issuer、audience、有效期、nonce 和 userinfo 的 sub。OIDC 再验证请求还要求近期 auth_time。NodeLoc 的发现地址为 `https://www.nodeloc.com/oauth-provider/.well-known/openid-configuration`，未声明 PKCE 支持，必须以真实应用验收，不会失败后自动移除安全参数重试
@@ -62,7 +62,7 @@ curl --fail http://127.0.0.1:4000/health/readiness
 docker compose -f compose.yaml -f compose.auth.yaml --profile mail up -d gateway mail
 ```
 
-用户入口为 `https://cocaapi.com/account/login/`，注册页为 `/account/register/`，账号安全页为 `/account/security/`。OAuth 注册无需 SMTP，但没有已验证邮箱的 OAuth 用户需要补充并验证邮箱才能修改安全设置。注册关闭仍允许已有账号登录
+用户入口为 `https://demo.cocaapi.com/account/login/`，注册页为 `/account/register/`，账号安全页为 `/account/security/`。OAuth 注册无需 SMTP，但没有已验证邮箱的 OAuth 用户需要补充并验证邮箱才能修改安全设置。注册关闭仍允许已有账号登录
 
 用户中心已复用现有管理后台模板，账号、余额、订单和安全设置的布局及发布验证见 [ACCOUNT_UI.md](ACCOUNT_UI.md)
 

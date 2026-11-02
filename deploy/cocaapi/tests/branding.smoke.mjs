@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { readFile, readdir } from "node:fs/promises";
 
-const base = new URL(process.argv[2] || "https://cocaapi.com");
+const base = new URL(process.argv[2] || "https://demo.cocaapi.com");
 const source = new URL(
   "../../../ui/litellm-dashboard/public/assets/cocaapi/",
   import.meta.url,
@@ -59,8 +59,8 @@ for (const path of pages) {
   const response = await get(path);
   assert.equal(response.status, 200, path);
   const html = await response.text();
-  assert(html.includes("cocaapi-logo-horizontal-black.svg"), path);
-  assert(html.includes("cocaapi-logo-horizontal-white.svg"), path);
+  assert(html.includes("CocaAPI"), path);
+  assert(/<script[^>]+src=/.test(html), path);
   assert(html.includes("/get_favicon?v=cocaapi-20261102"), path);
   if (path.startsWith("/account/")) {
     assert.equal(response.headers.get("cache-control"), "no-store", path);

@@ -67,8 +67,8 @@
   const examples = Object.freeze({
     curl: code.textContent,
     python:
-      'import os\nfrom openai import OpenAI\n\nclient = OpenAI(\n    api_key=os.environ["COCAAPI_API_KEY"],\n    base_url="https://cocaapi.com/v1",\n)\n\nresponse = client.chat.completions.create(\n    model="YOUR_MODEL_NAME",\n    messages=[{"role": "user", "content": "你好，CocaAPI"}],\n    max_tokens=128,\n)\nprint(response.choices[0].message.content)',
-    node: 'import OpenAI from "openai";\n\nconst client = new OpenAI({\n  apiKey: process.env.COCAAPI_API_KEY,\n  baseURL: "https://cocaapi.com/v1",\n});\n\nconst response = await client.chat.completions.create({\n  model: "YOUR_MODEL_NAME",\n  messages: [{ role: "user", content: "你好，CocaAPI" }],\n  max_tokens: 128,\n});\nconsole.log(response.choices[0].message.content);',
+      'import os\nfrom openai import OpenAI\n\nclient = OpenAI(\n    api_key=os.environ["COCAAPI_API_KEY"],\n    base_url="https://demo.cocaapi.com/v1",\n)\n\nresponse = client.chat.completions.create(\n    model="YOUR_MODEL_NAME",\n    messages=[{"role": "user", "content": "你好，CocaAPI"}],\n    max_tokens=128,\n)\nprint(response.choices[0].message.content)',
+    node: 'import OpenAI from "openai";\n\nconst client = new OpenAI({\n  apiKey: process.env.COCAAPI_API_KEY,\n  baseURL: "https://demo.cocaapi.com/v1",\n});\n\nconst response = await client.chat.completions.create({\n  model: "YOUR_MODEL_NAME",\n  messages: [{ role: "user", content: "你好，CocaAPI" }],\n  max_tokens: 128,\n});\nconsole.log(response.choices[0].message.content);',
   });
   const tabs = Array.from(document.querySelectorAll("[data-language]"));
   const panel = document.getElementById("code-panel");

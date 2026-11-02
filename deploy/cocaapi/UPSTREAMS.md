@@ -13,7 +13,7 @@
 客户调用示例，密钥从本地环境读取
 
 ```sh
-curl --fail-with-body --max-time 45 https://cocaapi.com/v1/decisions \
+curl --fail-with-body --max-time 45 https://demo.cocaapi.com/v1/decisions \
   -H "Authorization: Bearer $COCAAPI_API_KEY" \
   -H 'Content-Type: application/json' \
   -d '{"model":"gpt-6-luna-decisions","input":"The sky is blue.","questions":[{"type":"predicate","name":"color","instructions":"Is a color mentioned?"}]}'

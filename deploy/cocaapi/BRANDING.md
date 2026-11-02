@@ -22,8 +22,15 @@ docker image inspect --format '{{.Id}}' cocaapi-wallet-billing:20261102
 docker build --pull=false -f deploy/cocaapi/Dockerfile.ui \
   --build-arg COCAAPI_RUNTIME_IMAGE=cocaapi-wallet-billing:20261102 \
   -t cocaapi-dashboard-brand:20261102 .
-node deploy/cocaapi/tests/branding.smoke.mjs https://cocaapi.com
-node deploy/cocaapi/tests/website.smoke.mjs https://cocaapi.com
+node deploy/cocaapi/tests/branding.smoke.mjs https://demo.cocaapi.com
+node deploy/cocaapi/tests/website.smoke.mjs https://cocaapi.com https://demo.cocaapi.com
+```
+
+当前官网与应用分域部署，见 [DOMAINS.md](DOMAINS.md)。HTTP smoke 检查品牌资源字节、页面响应、favicon 和私有响应头；中英文语言 Provider 在浏览器端激活页面后才挂载 Logo，因此实际图片加载、比例和来源通过浏览器验证
+
+```sh
+playwright-cli -s=branding open https://demo.cocaapi.com/account/login/
+playwright-cli -s=branding run-code --filename=deploy/cocaapi/tests/branding.browser.js
 ```
 
 本次基础镜像 ID 为 `sha256:819831d0f24335af6c16734c86001cb374033168e285d8adb0721e1502200a60`，最终品牌镜像为 `cocaapi-dashboard-brand:20261102`，ID 为 `sha256:469c6b6c42f163bb0292893ed0ab10a33cbbe3affa8d21c2715f29cff04fee22`

@@ -332,7 +332,7 @@
   https://github.com/nodeloc/cocaapi.git
 cd cocaapi/deploy/cocaapi
 python3 generate_secrets.py
-sed -i 's|https://cocaapi.com|http://localhost:4000|' compose.yaml
+sed -i 's|https://demo.cocaapi.com|http://localhost:4000|' compose.yaml
 docker compose -f compose.yaml up -d</code></pre>
             <p class="code-note" data-i18n="deployNote">
               示例用于 Linux 本地部署，需要 Docker Compose 与 Python

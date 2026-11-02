@@ -3,11 +3,12 @@ import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 
 const base = new URL(process.argv[2] || "https://cocaapi.com");
-const get = async (path) => {
-  const target = new URL(path, base);
+const application = new URL(process.argv[3] || "https://demo.cocaapi.com");
+const get = async (path, origin = base) => {
+  const target = new URL(path, origin);
   assert.equal(
     target.origin,
-    base.origin,
+    origin.origin,
     "Smoke check must stay on its configured origin",
   );
   return fetch(target, {
@@ -96,10 +97,10 @@ const assets = [
     "site/brand/og-image-1200x630.png",
   ],
   ["/site/brand/manifest.json", "application/json", "site/brand/manifest.json"],
-  ["/site/website.css?v=20261102-2", "text/css", "site/website.css"],
-  ["/site/website.js?v=20261102-2", "javascript", "site/website.js"],
-  ["/site/theme.js?v=20261102-2", "javascript", "site/theme.js"],
-  ["/site/icon.svg?v=20261102-2", "image/svg+xml", "site/icon.svg"],
+  ["/site/website.css?v=20261102-3", "text/css", "site/website.css"],
+  ["/site/website.js?v=20261102-3", "javascript", "site/website.js"],
+  ["/site/theme.js?v=20261102-3", "javascript", "site/theme.js"],
+  ["/site/icon.svg?v=20261102-3", "image/svg+xml", "site/icon.svg"],
   [
     "/site/fonts/geist-latin.woff2",
     "font/woff2",
@@ -159,7 +160,7 @@ const customerPages = [
 ];
 for (const name of customerPages) {
   const path = "/account/" + name + "/";
-  const response = await get(path);
+  const response = await get(path, application);
   assert.equal(response.status, 200, path);
   assert.equal(response.headers.get("cache-control"), "no-store", path);
   assert.equal(response.headers.get("referrer-policy"), "no-referrer", path);
@@ -177,8 +178,8 @@ for (const path of [
   "/commerce/admin/v1/login-settings",
   "/v1/models",
 ])
-  assert.equal((await get(path)).status, 401, path);
-const login = await get("/ui/login/");
+  assert.equal((await get(path, application)).status, 401, path);
+const login = await get("/ui/login/", application);
 assert.equal(login.status, 200);
 const scriptPaths = [
   ...(await login.text()).matchAll(/<script[^>]+src="([^"]+)"/g),
@@ -187,11 +188,22 @@ const scriptPaths = [
   .map((match) => match[1]);
 assert(scriptPaths.length > 0, "Original admin scripts must still be present");
 for (const path of scriptPaths)
-  assert.equal((await get(path)).status, 200, path);
-assert.equal((await get("/health/readiness")).status, 200);
+  assert.equal((await get(path, application)).status, 200, path);
+assert.equal((await get("/health/readiness", application)).status, 200);
+for (const path of ["/account/login/", "/ui/login/", "/v1/models"]) {
+  const legacy = await get(path);
+  assert.equal(legacy.status, 308, path);
+  assert.equal(
+    legacy.headers.get("location"),
+    new URL(path, application).href,
+    path,
+  );
+  assert.equal(legacy.headers.get("cache-control"), "no-store", path);
+}
 console.log(
   JSON.stringify({
     origin: base.origin,
+    application: application.origin,
     homepage: "verified",
     assets: assets.length,
     sourceHashes: "match",

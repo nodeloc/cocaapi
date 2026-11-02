@@ -2,6 +2,7 @@ import { fireEvent, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import AccountGatewayKeys from "./AccountGatewayKeys";
 import AccountGatewayCatalog from "./AccountGatewayCatalog";
+import AccountGatewayDocs from "./AccountGatewayDocs";
 import { renderWithProviders } from "../../../tests/test-utils";
 import { switchToWorkerUrl } from "@/components/networking";
 
@@ -90,4 +91,12 @@ it("opens original model details with redacted customer data", async () => {
   renderWithProviders(<AccountGatewayCatalog />, { searchParams: "model=granted-model" });
   expect(await screen.findByRole("heading", { name: "Public Model Name: granted-model", exact: true })).toBeVisible();
   expect(screen.queryByRole("button", { name: "Test Connection", exact: true })).not.toBeInTheDocument();
+});
+
+it("shows the current application origin in customer API examples instead of an administrator worker", async () => {
+  switchToWorkerUrl("https://admin-worker.example");
+  renderWithProviders(<AccountGatewayDocs />);
+  const panel = await screen.findByRole("tabpanel", { name: "OpenAI Python SDK" });
+  expect(panel).toHaveTextContent(`base_url="${window.location.origin}/v1"`);
+  expect(panel).not.toHaveTextContent("https://admin-worker.example");
 });

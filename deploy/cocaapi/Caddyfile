@@ -1,4 +1,31 @@
 cocaapi.com {
+    encode zstd gzip
+    header X-Content-Type-Options nosniff
+
+    @legacy_application path /ui /ui/* /account /account/* /commerce /commerce/* /v1 /v1/* /chat/completions /decisions /responses /messages /embeddings /models /health/* /login /v2/login /get_image
+    handle @legacy_application {
+        header {
+            Cache-Control no-store
+            Referrer-Policy no-referrer
+        }
+        redir https://demo.cocaapi.com{uri} 308
+    }
+
+    handle {
+        root * /var/www/cocaapi/current
+        header {
+            Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"
+            Referrer-Policy strict-origin-when-cross-origin
+        }
+        @website_documents not path /site/* /assets/*
+        header @website_documents Cache-Control "public, no-cache, no-transform"
+        @website_assets path /site/* /assets/*
+        header @website_assets Cache-Control "public, max-age=86400"
+        file_server
+    }
+}
+
+demo.cocaapi.com {
     @compressible not path /v1/chat/completions /chat/completions
     encode @compressible zstd gzip
     @chat path /v1/chat/completions /chat/completions
@@ -7,9 +34,7 @@ cocaapi.com {
         X-Accel-Buffering no
         defer
     }
-    header {
-        X-Content-Type-Options nosniff
-    }
+    header X-Content-Type-Options nosniff
     @other not path /account/* /commerce/*
     header @other Referrer-Policy strict-origin-when-cross-origin
     @account path /account/* /commerce/*
@@ -18,21 +43,9 @@ cocaapi.com {
         Cache-Control no-store
         defer
     }
-    @website path / /site/* /robots.txt /sitemap.xml
-    handle @website {
-        root * /var/www/cocaapi/current
-        header {
-            Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"
-        }
-        @website_documents not path /site/*
-        header @website_documents Cache-Control "public, no-cache, no-transform"
-        @website_assets path /site/*
-        header @website_assets Cache-Control "public, max-age=86400"
-        file_server
-    }
-    handle {
-        reverse_proxy 127.0.0.1:4000 {
-            flush_interval -1
-        }
+    @application_root path /
+    redir @application_root /account/home/ 302
+    reverse_proxy 127.0.0.1:4000 {
+        flush_interval -1
     }
 }

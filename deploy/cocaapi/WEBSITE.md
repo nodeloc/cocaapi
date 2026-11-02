@@ -2,7 +2,7 @@
 
 公开入口为 `https://cocaapi.com/`，采用用户提供的 CocaAPI Website.html 深浅两版设计作为视觉参考。中文文案保留 CocaAPI、Model Infrastructure 与开发者术语，复用参考稿的留白、柔和彩色光晕、字体和产品界面示意布局。演示数据明确标注，不包含虚构客户案例、套餐价格或 SLA
 
-官网源码位于 `deploy/cocaapi/website`，为独立静态 HTML、CSS 和 JavaScript，无构建依赖。Caddy 仅对 `/`、`/site/*`、`/robots.txt`、`/sitemap.xml` 提供公开文件，其余路径继续转发原网关。登录、注册、用户中心、管理后台和 API 路由保持原有地址，不修改认证、余额或调用计费实现
+官网源码位于 `deploy/cocaapi/website`，为独立静态 HTML、CSS 和 JavaScript，无构建依赖。官网使用根域名 `cocaapi.com`，登录、注册、用户中心、管理后台和 API 使用 `demo.cocaapi.com`，旧应用路径跳转规则见 [DOMAINS.md](DOMAINS.md)。两者复用原有网关数据与计费实现
 
 ## 交互与资源
 
@@ -27,7 +27,7 @@ Cloudflare 在公网为 robots.txt 使用边缘缓存，当前观测到 max-age=
 ```sh
 playwright-cli -s=website open https://cocaapi.com/
 playwright-cli -s=website run-code --filename=deploy/cocaapi/tests/website.browser.js
-node deploy/cocaapi/tests/website.smoke.mjs https://cocaapi.com
+node deploy/cocaapi/tests/website.smoke.mjs https://cocaapi.com https://demo.cocaapi.com
 ```
 
 浏览器函数接受可选第二参数 `{ screenshotDirectory: "/absolute/existing/directory" }`，默认不写截图。HTTP smoke 使用 Node.js 内置 fetch，核对首页及 21 个资源的实际字节与本地文件一致、robots 与 sitemap 内容、14 个用户页面、6 个受保护读取、原管理登录与脚本资源，以及 readiness。所有网络检查仅访问给定源站，不执行充值、注册或模型调用

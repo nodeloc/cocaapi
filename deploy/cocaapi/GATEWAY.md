@@ -1,6 +1,6 @@
 # 客户 API 网关
 
-客户入口为 [用户概览](https://cocaapi.com/account/home/)。账号、余额、充值和安全设置保留。网关页面直接导入现有管理后台组件，复用原页面布局、表格、弹窗、图表、聊天界面和 CSS，不维护另一套网关页面设计。原后台功能到客户页面的完整映射见[实施计划](../../docs/superpowers/plans/2026-11-01-customer-gateway.md)
+客户入口为 [用户概览](https://demo.cocaapi.com/account/home/)。账号、余额、充值和安全设置保留。网关页面直接导入现有管理后台组件，复用原页面布局、表格、弹窗、图表、聊天界面和 CSS，不维护另一套网关页面设计。原后台功能到客户页面的完整映射见[实施计划](../../docs/superpowers/plans/2026-11-01-customer-gateway.md)
 
 ## 原页面复用
 
