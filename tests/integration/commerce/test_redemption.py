@@ -28,6 +28,68 @@ async def generate(client: WalletClient) -> GeneratedBatch:
 
 
 @pytest.mark.asyncio
+async def test_batch_defaults_to_one_redemption_per_customer_and_retries_keep_the_receipt(wallet_client: WalletClient) -> None:
+    service: Final = redemption(wallet_client)
+    batch: Final = await service.generate(
+        BatchInput(name="每人一次", amount_usd="5.50", count=2), "integration-admin", uuid.uuid4().hex
+    )
+    assert isinstance(batch, GeneratedBatch)
+    first: Final = await service.redeem(wallet_client.session, batch.codes[0])
+    assert not isinstance(first, AuthError)
+    denied: Final = await service.redeem(wallet_client.session, batch.codes[1])
+    assert isinstance(denied, AuthError) and denied.code == "redemption_limit_reached"
+    assert await service.redeem(wallet_client.session, batch.codes[0]) == first
+    other: Final = await service.redeem(wallet_client.other_session, batch.codes[1])
+    assert not isinstance(other, AuthError)
+    balance: Final = await WalletRepository(wallet_client.database).balance(wallet_client.session.customer.user_id)
+    assert not isinstance(balance, AuthError) and balance.available_units == 5_500_000_000
+
+
+@pytest.mark.asyncio
+async def test_repeat_enabled_batch_credits_distinct_codes_but_never_credits_a_code_twice(wallet_client: WalletClient) -> None:
+    service: Final = redemption(wallet_client)
+    batch: Final = await service.generate(
+        BatchInput(name="允许重复", amount_usd="5.50", count=2, allow_repeat_redemption=True),
+        "integration-admin", uuid.uuid4().hex,
+    )
+    assert isinstance(batch, GeneratedBatch) and batch.batch.allow_repeat_redemption
+    for code in batch.codes:
+        receipt: Final = await service.redeem(wallet_client.session, code)
+        assert not isinstance(receipt, AuthError)
+        assert await service.redeem(wallet_client.session, code) == receipt
+    listed: Final = await service.store.batches(100, 0)
+    assert next(item for item in listed.items if item.id == batch.batch.id).allow_repeat_redemption
+    balance: Final = await WalletRepository(wallet_client.database).balance(wallet_client.session.customer.user_id)
+    assert not isinstance(balance, AuthError) and balance.available_units == 11_000_000_000
+
+
+@pytest.mark.asyncio
+async def test_concurrent_codes_in_one_batch_cannot_bypass_the_per_customer_limit(wallet_client: WalletClient) -> None:
+    service: Final = redemption(wallet_client)
+    batch: Final = await service.generate(
+        BatchInput(name="并发每人一次", amount_usd="5.50", count=2), "integration-admin", uuid.uuid4().hex
+    )
+    assert isinstance(batch, GeneratedBatch)
+    results: Final = await asyncio.gather(*(service.redeem(wallet_client.session, code) for code in batch.codes))
+    assert sum(not isinstance(result, AuthError) for result in results) == 1
+    assert sum(isinstance(result, AuthError) and result.code == "redemption_limit_reached" for result in results) == 1
+    untouched: Final = await wallet_client.database.query_raw(
+        'SELECT id FROM "CommerceRedeemCode" WHERE batch_id=$1 AND redeemed_by IS NULL', batch.batch.id
+    )
+    assert len(untouched) == 1
+
+
+@pytest.mark.asyncio
+async def test_redemption_limit_is_per_batch_instead_of_per_account(wallet_client: WalletClient) -> None:
+    service: Final = redemption(wallet_client)
+    for _ in range(2):
+        batch: Final = await generate(wallet_client)
+        assert not isinstance(await service.redeem(wallet_client.session, batch.codes[0]), AuthError)
+    balance: Final = await WalletRepository(wallet_client.database).balance(wallet_client.session.customer.user_id)
+    assert not isinstance(balance, AuthError) and balance.available_units == 11_000_000_000
+
+
+@pytest.mark.asyncio
 async def test_invalid_redemption_cannot_credit_a_wallet(wallet_client: WalletClient) -> None:
     response: Final = await wallet_client.http.post("/account/api/v1/redemptions", json={"code": "COCA-THIS-CODE-DOES-NOT-EXIST"})
     assert response.status_code == 400, response.text
@@ -120,6 +182,7 @@ async def test_admin_generation_is_once_only_and_lists_do_not_reveal_codes(walle
     body: Final = {"name": "后台测试批次", "amount_usd": "12.34", "count": 2}
     first: Final = await wallet_client.http.post("/commerce/admin/v1/redeem-batches", json=body, headers=headers)
     assert first.status_code == 201, first.text
+    assert first.json()["batch"]["allow_repeat_redemption"] is False
     replay: Final = await wallet_client.http.post("/commerce/admin/v1/redeem-batches", json=body, headers=headers)
     assert replay.status_code == 409
     listed: Final = await wallet_client.http.get("/commerce/admin/v1/redeem-batches", headers=headers)
@@ -130,3 +193,18 @@ async def test_admin_generation_is_once_only_and_lists_do_not_reveal_codes(walle
         assert code not in str(stored)
     assert first.headers["cache-control"] == "no-store"
     assert first.headers["referrer-policy"] == "no-referrer"
+
+
+@pytest.mark.asyncio
+async def test_admin_can_enable_repeat_redemption_and_rejects_a_string_switch(wallet_client: WalletClient) -> None:
+    wallet_client.app.dependency_overrides[user_api_key_auth] = lambda: UserAPIKeyAuth(
+        user_role=LitellmUserRoles.PROXY_ADMIN, user_id="integration-admin"
+    )
+    headers: Final = {"Authorization": "Bearer test-native-admin", "Idempotency-Key": str(uuid.uuid4())}
+    body: Final = {"name": "多次兑换批次", "amount_usd": "1", "count": 2, "allow_repeat_redemption": True}
+    created: Final = await wallet_client.http.post("/commerce/admin/v1/redeem-batches", json=body, headers=headers)
+    assert created.status_code == 201 and created.json()["batch"]["allow_repeat_redemption"] is True
+    invalid: Final = await wallet_client.http.post(
+        "/commerce/admin/v1/redeem-batches", json={**body, "allow_repeat_redemption": "false"}, headers=headers
+    )
+    assert invalid.status_code == 422

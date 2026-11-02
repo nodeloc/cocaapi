@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { DataTable } from "@/components/shared/DataTable";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RefreshCw, Search } from "lucide-react";
@@ -53,6 +54,7 @@ export default function CommerceAdmin({ section = "wallets" }: { section?: Secti
   const [amount, setAmount] = useState("10.00");
   const [count, setCount] = useState("1");
   const [expiry, setExpiry] = useState("");
+  const [allowRepeatRedemption, setAllowRepeatRedemption] = useState(false);
   const [direction, setDirection] = useState<Adjustment["direction"]>("credit");
   const [reason, setReason] = useState("");
   const [disableId, setDisableId] = useState("");
@@ -120,10 +122,12 @@ export default function CommerceAdmin({ section = "wallets" }: { section?: Secti
       amount_usd: amount,
       count: Number(count),
       expires_at: expiry ? new Date(expiry).toISOString() : null,
+      allow_repeat_redemption: allowRepeatRedemption,
     };
     const key = keyFor(JSON.stringify(body));
     void run(async () => {
       setGenerated(await walletApi.generate(accessToken, body, key));
+      setAllowRepeatRedemption(false);
       request.current = null;
       setMessage("批次已创建。请立即导出兑换码，离开或关闭后无法再次查看。");
     });
@@ -232,6 +236,13 @@ export default function CommerceAdmin({ section = "wallets" }: { section?: Secti
           <>
             {batch.redeemed_count} / {batch.count}
           </>
+        ),
+      },
+      {
+        id: "repeat_policy",
+        header: "每人兑换限制",
+        cell: ({ row: { original: batch } }) => (
+          <Badge variant="secondary">{batch.allow_repeat_redemption ? "允许多次" : "每人一次"}</Badge>
         ),
       },
       {
@@ -447,6 +458,24 @@ export default function CommerceAdmin({ section = "wallets" }: { section?: Secti
                       value={expiry}
                       onChange={(event) => setExpiry(event.target.value)}
                     />
+                  </div>
+                  <div className="flex items-start gap-2 sm:col-span-2">
+                    <Checkbox
+                      id="batch-repeat"
+                      checked={allowRepeatRedemption}
+                      onCheckedChange={(checked) => setAllowRepeatRedemption(checked)}
+                      disabled={busy}
+                      aria-describedby="batch-repeat-help"
+                      className="mt-0.5"
+                    />
+                    <div className="space-y-1">
+                      <Label htmlFor="batch-repeat" className="cursor-pointer">
+                        允许同一用户多次兑换
+                      </Label>
+                      <p id="batch-repeat-help" className="text-xs text-muted-foreground">
+                        默认每位用户在本批次只能兑换一个码。开启后可兑换多个不同码，每个码仍只入账一次。
+                      </p>
+                    </div>
                   </div>
                   <Button type="submit" disabled={busy || !name.trim()}>
                     生成兑换码

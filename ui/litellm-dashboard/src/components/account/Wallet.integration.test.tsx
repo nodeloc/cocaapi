@@ -22,6 +22,60 @@ const wallet = {
 const empty = { items: [], has_more: false };
 
 describe("wallet flows", () => {
+  it.each([false, true])("creates a batch with the per-customer repeat setting %s", async (repeat) => {
+    let created = false;
+    const batch = {
+      id: "policy-batch",
+      name: "限制测试",
+      face_units: "10000000000",
+      count: 1,
+      redeemed_count: 0,
+      disabled: false,
+      expires_at: null,
+      created_at: "2026-11-02T00:00:00Z",
+      created_by: "admin",
+      allow_repeat_redemption: repeat,
+    };
+    fetchMock.mockImplementation(async (input) => {
+      const request = input as Request;
+      if (request.method === "POST") {
+        expect(request.headers.get("Authorization")).toBe("Bearer native-admin");
+        expect(await request.json()).toMatchObject({ name: "限制测试", allow_repeat_redemption: repeat });
+        created = true;
+        return Response.json({ batch, codes: ["COCA1-1234567890ABCDEF1234567890ABCDEF"] });
+      }
+      return Response.json({ items: created ? [batch] : [], has_more: false });
+    });
+    render(<CommerceAdmin section="redemptions" />);
+    const policy = await screen.findByRole("checkbox", { name: "允许同一用户多次兑换" });
+    expect(policy).not.toBeChecked();
+    if (repeat) fireEvent.click(policy);
+    fireEvent.change(screen.getByLabelText("批次名称"), { target: { value: "限制测试" } });
+    fireEvent.click(screen.getByRole("button", { name: "生成兑换码" }));
+    expect(await screen.findByRole("status")).toHaveTextContent("批次已创建");
+    expect(await screen.findByText(repeat ? "允许多次" : "每人一次")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "已保存，关闭" }));
+    expect(screen.getByRole("checkbox", { name: "允许同一用户多次兑换" })).not.toBeChecked();
+  });
+
+  it("explains a per-batch redemption limit without announcing a credit", async () => {
+    fetchMock.mockImplementation(async (input) => {
+      const request = input as Request;
+      if (request.method === "POST") return Response.json({ detail: "redemption_limit_reached" }, { status: 409 });
+      if (request.url.endsWith("/me"))
+        return Response.json({ user_id: "user-a", email_verified: true, csrf_token: "customer-csrf" });
+      if (request.url.endsWith("/payment-methods"))
+        return Response.json({ enabled: false, redemption_enabled: true, networks: [] });
+      return Response.json(request.url.includes("transactions") ? empty : wallet);
+    });
+    render(<AccountWallet />);
+    await screen.findAllByText("$5.50");
+    fireEvent.change(screen.getByLabelText("兑换码"), { target: { value: "COCA1-1234567890ABCDEF1234567890ABCDEF" } });
+    fireEvent.click(screen.getByRole("button", { name: "兑换" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("该批次每位用户只能兑换一次，你已兑换过。");
+    expect(screen.queryByText(/兑换成功/)).not.toBeInTheDocument();
+  });
+
   it("links administrators to login and registration settings", async () => {
     fetchMock.mockResolvedValue(Response.json(empty));
     render(<CommerceAdmin />);

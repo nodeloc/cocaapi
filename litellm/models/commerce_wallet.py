@@ -99,6 +99,7 @@ class RedeemBatch(FrozenModel):
     count: int
     redeemed_count: int
     disabled: bool
+    allow_repeat_redemption: bool = False
     expires_at: datetime | None
     created_at: datetime
     created_by: str
@@ -118,6 +119,7 @@ class BatchInput(FrozenModel):
     amount_usd: str = Field(min_length=1, max_length=16)
     count: int = Field(ge=1, le=100, strict=True)
     expires_at: datetime | None = None
+    allow_repeat_redemption: bool = Field(default=False, strict=True)
 
 
 class DisableBatchInput(FrozenModel):
@@ -139,6 +141,7 @@ class BatchCommand(FrozenModel):
     expires_at: datetime | None
     actor_id: str
     now: datetime
+    allow_repeat_redemption: bool = False
 
 
 class GeneratedBatch(FrozenModel):

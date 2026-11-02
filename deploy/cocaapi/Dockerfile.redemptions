@@ -1,0 +1,10 @@
+ARG COCAAPI_RUNTIME_IMAGE
+FROM ${COCAAPI_RUNTIME_IMAGE}
+
+COPY litellm/models/commerce_wallet.py /app/.venv/lib/python3.13/site-packages/litellm/models/
+COPY litellm/proxy/commerce/redemption_service.py /app/.venv/lib/python3.13/site-packages/litellm/proxy/commerce/
+COPY litellm/repositories/commerce_redemption_repository.py /app/.venv/lib/python3.13/site-packages/litellm/repositories/
+COPY litellm/proxy/schema.prisma /app/.venv/lib/python3.13/site-packages/litellm/proxy/schema.prisma
+COPY litellm-proxy-extras/litellm_proxy_extras/schema.prisma /app/.venv/lib/python3.13/site-packages/litellm_proxy_extras/schema.prisma
+COPY litellm-proxy-extras/litellm_proxy_extras/migrations/20261102160000_commerce_redemption_policy/ /app/.venv/lib/python3.13/site-packages/litellm_proxy_extras/migrations/20261102160000_commerce_redemption_policy/
+COPY ui/litellm-dashboard/out/ /app/cocaapi-ui/

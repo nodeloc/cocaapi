@@ -9,7 +9,8 @@ from litellm.models.commerce_wallet import BatchCommand, BatchPage, LedgerEntry,
 from litellm.repositories.commerce_auth_repository import AccountDatabase
 from litellm.repositories.commerce_wallet_repository import apply_wallet_change, valid_financial_session
 
-_BATCH_SELECT: Final = """SELECT b.id,b.name,b.face_units,b.count,b.disabled,b.expires_at,b.created_at,b.created_by,
+_BATCH_SELECT: Final = """SELECT b.id,b.name,b.face_units,b.count,b.disabled,
+    b.allow_repeat_redemption,b.expires_at,b.created_at,b.created_by,
     (SELECT count(*)::int FROM "CommerceRedeemCode" c WHERE c.batch_id=b.id AND c.redeemed_by IS NOT NULL) AS redeemed_count
     FROM "CommerceRedeemBatch" b"""
 
@@ -43,8 +44,8 @@ class RedemptionRepository:
                 return AuthError("batch_already_created", 409)
             await tx.execute_raw(
                 """INSERT INTO "CommerceRedeemBatch"
-                (id,request_key,name,face_units,count,expires_at,created_by,created_at)
-                VALUES ($1,$2,$3,$4::bigint,$5,$6::text::timestamptz,$7,$8::timestamptz)""",
+                (id,request_key,name,face_units,count,expires_at,created_by,created_at,allow_repeat_redemption)
+                VALUES ($1,$2,$3,$4::bigint,$5,$6::text::timestamptz,$7,$8::timestamptz,$9)""",
                 command.id,
                 command.request_key,
                 command.name,
@@ -53,6 +54,7 @@ class RedemptionRepository:
                 command.expires_at,
                 command.actor_id,
                 command.now,
+                command.allow_repeat_redemption,
             )
             for code in command.codes:
                 await tx.execute_raw(
@@ -116,6 +118,14 @@ class RedemptionRepository:
                 return LedgerEntry.model_validate(receipt[0]) if receipt else AuthError("invalid_redemption")
             if batch.disabled or (batch.expires_at is not None and batch.expires_at <= now):
                 return AuthError("invalid_redemption")
+            if not batch.allow_repeat_redemption:
+                prior: Final = await tx.query_raw(
+                    'SELECT id FROM "CommerceRedeemCode" WHERE batch_id=$1 AND redeemed_by=$2 LIMIT 1',
+                    batch_id,
+                    session.customer.user_id,
+                )
+                if prior:
+                    return AuthError("redemption_limit_reached", 409)
             result: Final = await apply_wallet_change(
                 tx,
                 WalletChange(

@@ -2140,6 +2140,7 @@ model CommerceRedeemBatch {
   face_units BigInt
   count Int
   disabled Boolean @default(false)
+  allow_repeat_redemption Boolean @default(false)
   expires_at DateTime? @client.Timestamptz(6)
   created_by String
   created_at DateTime @default(now()) @client.Timestamptz(6)
@@ -2156,6 +2157,7 @@ model CommerceRedeemCode {
   batch CommerceRedeemBatch @relation(fields: [batch_id], references: [id], onDelete: Restrict, onUpdate: NoAction)
   customer CommerceCustomer? @relation(fields: [redeemed_by], references: [user_id], onDelete: Restrict, onUpdate: NoAction)
   @@index([batch_id])
+  @@index([batch_id, redeemed_by])
 }
 
 model CommerceRechargeOrder {

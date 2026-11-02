@@ -37,6 +37,8 @@
 !litellm-proxy-extras/litellm_proxy_extras/migrations/20261101150000_commerce_login_settings/**
 !litellm-proxy-extras/litellm_proxy_extras/migrations/20261102010000_commerce_api_billing/
 !litellm-proxy-extras/litellm_proxy_extras/migrations/20261102010000_commerce_api_billing/**
+!litellm-proxy-extras/litellm_proxy_extras/migrations/20261102160000_commerce_redemption_policy/
+!litellm-proxy-extras/litellm_proxy_extras/migrations/20261102160000_commerce_redemption_policy/**
 !ui/
 !ui/litellm-dashboard/
 !ui/litellm-dashboard/out/

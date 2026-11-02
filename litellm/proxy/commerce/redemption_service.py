@@ -40,6 +40,7 @@ class RedemptionService:
             request_key=actor_id + ":" + request_id,
             name=body.name.strip(),
             face_units=amount,
+            allow_repeat_redemption=body.allow_repeat_redemption,
             expires_at=body.expires_at,
             actor_id=actor_id,
             now=now,

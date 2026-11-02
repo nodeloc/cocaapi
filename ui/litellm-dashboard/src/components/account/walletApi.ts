@@ -23,6 +23,7 @@ const messages: Readonly<Record<string, string>> = {
   invalid_request: "请检查金额、数量和填写的信息。",
   balance_limit_reached: "金额超过余额上限。",
   invalid_redemption: "兑换码无效、已失效或已被使用。",
+  redemption_limit_reached: "该批次每位用户只能兑换一次，你已兑换过。",
   invalid_expiry: "到期时间须晚于当前时间。",
   reason_required: "请填写操作原因。",
   invalid_amount: "金额须为 0.01 至 100000 美元，最多两位小数。",

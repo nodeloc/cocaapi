@@ -28164,6 +28164,11 @@ export interface components {
         BaseModel: Record<string, never>;
         /** BatchInput */
         BatchInput: {
+            /**
+             * Allow Repeat Redemption
+             * @default false
+             */
+            allow_repeat_redemption: boolean;
             /** Amount Usd */
             amount_usd: string;
             /** Count */
@@ -44181,6 +44186,11 @@ export interface components {
         };
         /** RedeemBatch */
         RedeemBatch: {
+            /**
+             * Allow Repeat Redemption
+             * @default false
+             */
+            allow_repeat_redemption: boolean;
             /** Count */
             count: number;
             /**
