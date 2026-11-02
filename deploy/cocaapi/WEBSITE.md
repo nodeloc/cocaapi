@@ -80,3 +80,9 @@ node deploy/cocaapi/tests/website.smoke.mjs https://cocaapi.com https://demo.coc
 新增回归在修复前通过提供商位置始终不变复现问题，修复后验证实际位移、悬停和聚焦暂停、循环衔接、首屏透明度、终端行顺序、图表变换、滚动入场与减弱动画降级。公网浏览器在两种语言的 320、375、768、1024、1440px 正常动画模式下逐一验证滚动和无横向溢出，原语言、主题、复制、导航与无 JavaScript 检查继续通过
 
 公网 HTTP 再次通过首页、10 个新版资源和 21 个保留资源的摘要验证，14 个用户页面、6 个受保护读取、管理后台、旧路径跳转及 readiness 正常。新版资源使用统一版本参数，浏览器不会复用先前未带版本参数的 CSS 和脚本
+
+## 2026-11-02 Try 入口
+
+页眉导航新增 `Try`，链接到 `https://demo.cocaapi.com/`，中英文界面保持同名，手机端位于导航菜单内。浏览器回归在新增前复现入口缺失，发布后实际点击进入 demo 域名再返回官网，原布局、语言、主题和动效检查继续通过
+
+当前静态目录为 `/var/www/cocaapi/releases/website-try-20261102T151559Z`，前一版本为 `/var/www/cocaapi/releases/website-motion-20261102T151152Z`，备份位于 `/opt/cocaapi/backups/website-try-20261102T151559Z`。公网 HTTP 检查通过，Caddy 配置、网关镜像及应用服务保持不变

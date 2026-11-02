@@ -6,6 +6,10 @@ async function verifyOpenSourceWebsite(page, options = {}) {
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.reload();
+  const websiteURL = page.url();
+  await page.getByRole("link", { name: "Try", exact: true }).click();
+  await page.waitForURL((url) => url.origin === "https://demo.cocaapi.com");
+  await page.goto(websiteURL);
   await page.locator("#providers").scrollIntoViewIfNeeded();
   await page.mouse.move(0, 0);
   const providerX = await page
