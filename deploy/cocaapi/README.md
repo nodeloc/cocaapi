@@ -10,6 +10,8 @@
 
 `config.yaml` 初始模型列表为空，可通过后台添加已授权的上游模型和 API Key。在配置真实上游之前，只能验证网关、管理后台和鉴权，无法验证模型推理
 
+已登记的上游、模型映射、调用验证及开放状态见 [UPSTREAMS.md](UPSTREAMS.md)
+
 服务器 `.env` 保存数据库密码、Redis 密码、master key、盐和后台登录信息，文件权限为 `600`。本地备份为 `E:\key\greencloud\cocaapi-production.env`。登录用户名为 `UI_USERNAME`，密码为 `UI_PASSWORD`。不要提交 `.env` 或在日志中输出它
 
 `LITELLM_SALT_KEY` 用于已保存凭据的加密，添加模型后不能随意更改。备份数据库时同时保存 `.env`，并将备份存放在受控位置
