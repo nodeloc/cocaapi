@@ -2,7 +2,7 @@
 
 独立静态站点，参考用户提供的 Home · Dark 开源版 HTML，使用中文介绍当前仓库的网关、用户中心与计费扩展。品牌 SVG、Geist 和 Geist Mono 字体沿用现有官网的本地资源，字体许可位于 `assets/OFL.txt`
 
-项目基于 LiteLLM，页面链接指向 `kissopen/litellm` 的 `litellm_account_auth` 分支。功能文案依据 `deploy/cocaapi/README.md`、`AUTH.md`、`WALLET.md`、`GATEWAY.md` 和根目录 `LICENSE`。基础 Compose 只启动网关、PostgreSQL 与 Redis，账号和计费需要按对应文档部署扩展镜像，支付网关仍需接入
+项目基于 LiteLLM，页面链接指向 `nodeloc/cocaapi` 的 `litellm_account_auth` 分支。功能文案依据 `deploy/cocaapi/README.md`、`AUTH.md`、`WALLET.md`、`GATEWAY.md` 和根目录 `LICENSE`。基础 Compose 只启动网关、PostgreSQL 与 Redis，账号和计费需要按对应文档部署扩展镜像，支付网关仍需接入
 
 Linux 本地部署示例会将 Compose 内固定的 `PROXY_BASE_URL` 改为 `http://localhost:4000`，使后台登录后留在本地实例。公网部署需要改为自己的 HTTPS 域名，保持管理入口与网关的公开地址一致
 
