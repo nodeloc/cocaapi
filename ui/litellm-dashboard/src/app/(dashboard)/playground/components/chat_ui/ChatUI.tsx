@@ -71,7 +71,7 @@ import SessionManagement from "./SessionManagement";
 import RealtimePlayground from "./RealtimePlayground";
 import { MessageType } from "@/components/chat_ui/types";
 import { useCodeInterpreter } from "../../hooks/useCodeInterpreter";
-import { useChatHistory } from "../../hooks/useChatHistory";
+import { chatRequestMessages, useChatHistory } from "../../hooks/useChatHistory";
 import { getSecureItem, setSecureItem } from "@/utils/secureStorage";
 import { MultiSelect, type MultiSelectOption } from "@/components/shared/MultiSelect";
 import { SearchSelect } from "@/components/shared/SearchSelect";
@@ -173,6 +173,7 @@ const ChatUI: React.FC<ChatUIProps> = ({
     updateReasoningContent,
     updateTimingData,
     updateUsageData,
+    updateFinishReason,
     updateA2AMetadata,
     updateTotalLatency,
     updateSearchResults,
@@ -284,7 +285,7 @@ const ChatUI: React.FC<ChatUIProps> = ({
   const [generatedCode, setGeneratedCode] = useState("");
   const [selectedSdk, setSelectedSdk] = useState<"openai" | "azure">("openai");
   const [temperature, setTemperature] = useState<number>(1.0);
-  const [maxTokens, setMaxTokens] = useState<number>(2048);
+  const [maxTokens, setMaxTokens] = useState<number>(4096);
   const [useAdvancedParams, setUseAdvancedParams] = useState<boolean>(false);
   const [mockTestFallbacks, setMockTestFallbacks] = useState<boolean>(false);
   const [streamingEnabled, setStreamingEnabled] = useState<boolean>(() => {
@@ -905,15 +906,7 @@ const ChatUI: React.FC<ChatUIProps> = ({
         if (endpointType === EndpointType.CHAT) {
           // Create chat history for API call - strip out model field and isImage field
           // For chat completions, we preserve the multimodal content structure
-          const apiChatHistory = [
-            ...chatHistory
-              .filter((msg) => !msg.isImage && !msg.isAudio)
-              .map(({ role, content }) => ({
-                role,
-                content: typeof content === "string" ? content : "",
-              })),
-            newUserMessage,
-          ];
+          const apiChatHistory = [...chatRequestMessages(chatHistory), newUserMessage];
 
           const requestProxyBaseUrl =
             simplified && proxySettings
@@ -947,6 +940,7 @@ const ChatUI: React.FC<ChatUIProps> = ({
             mcpToolsets,
             streamingEnabled,
             customHeaders,
+            updateFinishReason,
           );
         } else if (endpointType === EndpointType.IMAGE) {
           // For image generation
@@ -1409,7 +1403,7 @@ const ChatUI: React.FC<ChatUIProps> = ({
                       <span className="flex items-center">
                         <Bot className="mr-2 size-4" aria-hidden="true" /> Select Model
                       </span>
-                      {!customer && (isChatModel() || supportsStreamingToggle) ? (
+                      {isChatModel() || (!customer && supportsStreamingToggle) ? (
                         <Popover>
                           <PopoverTrigger
                             render={
@@ -1429,6 +1423,7 @@ const ChatUI: React.FC<ChatUIProps> = ({
                             <div className="border-b border-border px-4 py-2 text-sm font-medium">Model Settings</div>
                             <AdditionalModelSettings
                               showAdvancedParams={isChatModel()}
+                              showTemperature={!customer}
                               temperature={temperature}
                               maxTokens={maxTokens}
                               useAdvancedParams={useAdvancedParams}
@@ -1436,9 +1431,9 @@ const ChatUI: React.FC<ChatUIProps> = ({
                               onMaxTokensChange={setMaxTokens}
                               onUseAdvancedParamsChange={setUseAdvancedParams}
                               mockTestFallbacks={mockTestFallbacks}
-                              onMockTestFallbacksChange={setMockTestFallbacks}
+                              onMockTestFallbacksChange={customer ? undefined : setMockTestFallbacks}
                               streamingEnabled={streamingEnabled}
-                              onStreamingChange={supportsStreamingToggle ? setStreamingEnabled : undefined}
+                              onStreamingChange={!customer && supportsStreamingToggle ? setStreamingEnabled : undefined}
                             />
                           </PopoverContent>
                         </Popover>

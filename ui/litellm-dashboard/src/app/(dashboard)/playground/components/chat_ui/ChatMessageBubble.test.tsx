@@ -73,6 +73,18 @@ const defaultProps = {
 };
 
 describe("ChatMessageBubble", () => {
+  it("shows a clear output-limit notice without changing the answer", () => {
+    render(
+      <ChatMessageBubble
+        {...defaultProps}
+        message={{ role: "assistant", content: "partial answer", finishReason: "length" }}
+      />,
+    );
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "输出达到本次 Token 上限，回答尚未完成。可在高级设置中提高 Max Tokens，或发送“继续”。",
+    );
+    expect(screen.getByTestId("react-markdown")).toHaveTextContent("partial answer");
+  });
   it("should render a user message with right-aligned text", () => {
     render(<ChatMessageBubble {...defaultProps} message={{ role: "user", content: "Hello" }} />);
 

@@ -1,8 +1,26 @@
 import { renderHook, act } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { useChatHistory } from "./useChatHistory";
+import { chatRequestMessages, useChatHistory } from "./useChatHistory";
 
 describe("useChatHistory", () => {
+  it.each(["partial", ""])("keeps output-limit status separate from assistant content: %s", (content) => {
+    const { result } = renderHook(() => useChatHistory({ simplified: true }));
+    act(() => result.current.updateTextUI("user", "question"));
+    if (content) act(() => result.current.updateTextUI("assistant", content, "model-a"));
+    act(() => result.current.updateFinishReason("length", "model-a"));
+    expect(result.current.chatHistory.at(-1)).toMatchObject({
+      role: "assistant",
+      content,
+      finishReason: "length",
+      model: "model-a",
+    });
+    expect(result.current.chatHistory[0]).toMatchObject({ role: "user", content: "question" });
+    expect(chatRequestMessages([...result.current.chatHistory, { role: "user", content: "continue" }])).toEqual([
+      { role: "user", content: "question" },
+      ...(content ? [{ role: "assistant", content }] : []),
+      { role: "user", content: "continue" },
+    ]);
+  });
   beforeEach(() => {
     sessionStorage.clear();
   });

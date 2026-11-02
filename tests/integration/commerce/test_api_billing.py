@@ -490,6 +490,9 @@ async def test_customer_playground_uses_the_same_wallet_and_returns_insufficient
         denied: Final = await client.post("/account/api/v1/gateway/playground", headers=headers, json=payload)
         assert denied.status_code == 402 and "insufficient_balance" in denied.text, denied.text
         await fund(wallet_client, 2_000_000_000)
+        insufficient: Final = await client.post("/account/api/v1/gateway/playground", headers=headers, json=payload)
+        assert insufficient.status_code == 402 and "insufficient_balance" in insufficient.text, insufficient.text
+        await fund(wallet_client, 8_000_000_000)
         response: Final = await client.post("/account/api/v1/gateway/playground", headers=headers, json=payload)
         assert response.status_code == expected_status, response.text
     balance: Final = await WalletRepository(wallet_client.database).balance(wallet_client.session.customer.user_id)
@@ -499,4 +502,4 @@ async def test_customer_playground_uses_the_same_wallet_and_returns_insufficient
     else:
         assert balance.debited_units > 0
         assert response.json()["content"] == "Billing test response"
-    assert balance.available_units + balance.debited_units == 2_000_000_000
+    assert balance.available_units + balance.debited_units == 10_000_000_000

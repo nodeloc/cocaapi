@@ -51,6 +51,7 @@ export async function makeOpenAIChatCompletionRequest(
   mcpToolsets?: MCPToolset[],
   streamingEnabled: boolean = true,
   customHeaders?: CustomHeaders,
+  onFinishReason?: (reason: string, model?: string) => void,
 ) {
   // base url should be the current base_url
   const isLocal = process.env.NODE_ENV === "development";
@@ -222,6 +223,9 @@ export async function makeOpenAIChatCompletionRequest(
           mcpMetadata.mcp_call_results = providerFields.mcp_call_results;
         }
       }
+
+      const finishReason = chunk.choices[0]?.finish_reason;
+      if (finishReason) onFinishReason?.(finishReason, chunk.model);
 
       // Check for usage data using type assertion
       const chunkWithUsage = chunk as any;

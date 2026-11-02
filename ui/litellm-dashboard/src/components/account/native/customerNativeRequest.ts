@@ -275,13 +275,24 @@ export function createCustomerTransport(profile: Profile): CustomerTransport {
         const messages = z
           .array(z.object({ role: z.enum(["system", "user", "assistant"]), content: z.string() }))
           .parse(data.messages);
-        const answer = await gatewayApi.chat({ api_key: rawKey, model, messages, prompt: "" }, profile.csrf_token);
+        const maxTokens =
+          data.max_tokens === undefined ? 4096 : z.number().int().min(1).max(32768).parse(data.max_tokens);
+        const answer = await gatewayApi.chat(
+          { api_key: rawKey, model, messages, prompt: "", max_tokens: maxTokens },
+          profile.csrf_token,
+        );
         return Response.json({
           object: "chat.completion",
           id: answer.request_id,
           created: answer.created,
           model,
-          choices: [{ index: 0, message: { role: "assistant", content: answer.content }, finish_reason: "stop" }],
+          choices: [
+            {
+              index: 0,
+              message: { role: "assistant", content: answer.content },
+              finish_reason: answer.finish_reason ?? null,
+            },
+          ],
           usage: answer.usage,
         });
       }

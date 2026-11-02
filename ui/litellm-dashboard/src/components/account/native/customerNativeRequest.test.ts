@@ -184,7 +184,13 @@ it("preserves conversation and actual usage with a configurable auth header", as
   const answer = await transport.request(req);
   expect((await answer.json()).usage.total_tokens).toBe(5);
   const submitted = fetchMock.mock.calls.at(-1)?.[0] as Request;
-  expect(await submitted.json()).toEqual({ api_key: "sk-owned-secret", model: "model-a", messages, prompt: "" });
+  expect(await submitted.json()).toEqual({
+    api_key: "sk-owned-secret",
+    model: "model-a",
+    messages,
+    prompt: "",
+    max_tokens: 4096,
+  });
   expect(submitted.headers.get("X-CSRF-Token")).toBe(profile.csrf_token);
 });
 
@@ -199,6 +205,24 @@ it("loads owned failure details without prompt, upstream or other customer data"
   const nativeRequest = fetchMock.mock.calls.at(-1)?.[0] as Request;
   expect(new URL(nativeRequest.url).searchParams.get("request_id")).toBe("failed-own");
   expect(new URL(nativeRequest.url).searchParams.get("start_time")).toBe("2026-01-01T00:00:00.000Z");
+});
+
+it("forwards the selected output limit and preserves a truncated completion", async () => {
+  fetchMock.mockResolvedValueOnce(Response.json({ content: "partial", finish_reason: "length" }));
+  const req = request("/v1/chat/completions", {
+    model: "model-a",
+    messages: [{ role: "user", content: "hello" }],
+    stream: false,
+    max_tokens: 8192,
+  });
+  req.headers.set("Authorization", "Bearer sk-owned-secret");
+  const response = await createCustomerTransport(profile).request(req);
+  expect((await response.json()).choices[0]).toMatchObject({
+    message: { content: "partial" },
+    finish_reason: "length",
+  });
+  const submitted = fetchMock.mock.calls.at(-1)?.[0] as Request;
+  expect(await submitted.json()).toMatchObject({ max_tokens: 8192 });
 });
 
 it("converts native local-day filters to UTC bounds", () => {

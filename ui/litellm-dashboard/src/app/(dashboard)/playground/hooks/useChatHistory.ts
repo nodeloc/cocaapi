@@ -7,6 +7,15 @@ import { truncateString } from "@/utils/textUtils";
 
 const CHAT_HISTORY_PERSIST_WAIT_MS = 500;
 
+export function chatRequestMessages(history: MessageType[]) {
+  return history
+    .filter((message) => !message.isImage && !message.isAudio)
+    .filter(
+      (message) => message.role !== "assistant" || (typeof message.content === "string" && message.content.trim()),
+    )
+    .map(({ role, content }) => ({ role, content: typeof content === "string" ? content : "" }));
+}
+
 export interface UseChatHistoryReturn {
   // State
   chatHistory: MessageType[];
@@ -25,6 +34,7 @@ export interface UseChatHistoryReturn {
   updateReasoningContent: (chunk: string) => void;
   updateTimingData: (timeToFirstToken: number) => void;
   updateUsageData: (usage: TokenUsage, toolName?: string) => void;
+  updateFinishReason: (reason: string, model?: string) => void;
   updateA2AMetadata: (a2aMetadata: A2ATaskMetadata) => void;
   updateTotalLatency: (totalLatency: number) => void;
   updateSearchResults: (searchResults: any[]) => void;
@@ -200,6 +210,16 @@ export function useChatHistory({ simplified }: { simplified: boolean }): UseChat
       }
 
       return prevHistory;
+    });
+  };
+
+  const updateFinishReason = (finishReason: string, model?: string) => {
+    setChatHistory((previous) => {
+      const last = previous.at(-1);
+      if (last?.role === "assistant") {
+        return [...previous.slice(0, -1), { ...last, finishReason }];
+      }
+      return [...previous, { role: "assistant", content: "", model, finishReason }];
     });
   };
 
@@ -379,6 +399,7 @@ export function useChatHistory({ simplified }: { simplified: boolean }): UseChat
     updateReasoningContent,
     updateTimingData,
     updateUsageData,
+    updateFinishReason,
     updateA2AMetadata,
     updateTotalLatency,
     updateSearchResults,

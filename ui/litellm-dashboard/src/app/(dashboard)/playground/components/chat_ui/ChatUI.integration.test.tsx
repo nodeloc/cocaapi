@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import ChatUI from "./ChatUI";
 import * as fetchModelsModule from "@/components/llm_calls/fetch_models";
 import { makeOpenAIChatCompletionRequest } from "@/components/llm_calls/chat_completion";
+import { CustomerNativeContext } from "@/components/account/native/CustomerNativeContext";
 import { makeAnthropicMessagesRequest } from "../../llm_calls/anthropic_messages";
 
 vi.mock("@/components/llm_calls/fetch_models", () => ({
@@ -35,7 +36,7 @@ beforeEach(() => {
   Element.prototype.scrollIntoView = () => {};
 });
 
-const CHAT_REQUEST_ARG_COUNT = 27;
+const CHAT_REQUEST_ARG_COUNT = 28;
 const STREAMING_ENABLED_ARG_INDEX = 25;
 const CHAT_CUSTOM_HEADERS_ARG_INDEX = 26;
 const MESSAGES_REQUEST_ARG_COUNT = 20;
@@ -57,6 +58,61 @@ async function selectComboboxOption(placeholder: string, optionLabel: string) {
 }
 
 describe("ChatUI", () => {
+  it("lets a customer change the output limit through native model settings", async () => {
+    const user = userEvent.setup();
+    render(
+      <CustomerNativeContext.Provider
+        value={{
+          marker: "customer-ui:customer-a",
+          profile: {
+            user_id: "customer-a",
+            email: "a@example.com",
+            email_verified: true,
+            has_password: true,
+            bindings: [],
+            csrf_token: "csrf-test",
+            reauthentication_required: false,
+          },
+        }}
+      >
+        <ChatUI
+          accessToken="customer-ui:customer-a"
+          token="customer-ui:customer-a"
+          userRole="Internal User"
+          userID="customer-a"
+          disabledPersonalKeyCreation={false}
+        />
+      </CustomerNativeContext.Provider>,
+    );
+    fireEvent.change(screen.getByPlaceholderText("Enter custom Virtual Key"), {
+      target: { value: "sk-test-owned-key" },
+    });
+    await selectComboboxOption("Select a Model", "Model 1");
+    await user.click(screen.getByRole("button", { name: "Model Settings", exact: true }));
+    expect(screen.queryByLabelText("Temperature value")).not.toBeInTheDocument();
+    expect(screen.queryByRole("checkbox", { name: "Stream responses", exact: true })).not.toBeInTheDocument();
+    await user.click(screen.getByRole("checkbox", { name: "Use Advanced Parameters", exact: true }));
+    const input = screen.getByRole("textbox", { name: "Max tokens value", exact: true });
+    fireEvent.change(input, { target: { value: "8192" } });
+    expect(input).toHaveValue("8192");
+    await user.keyboard("{Escape}");
+    vi.mocked(makeOpenAIChatCompletionRequest).mockImplementationOnce(async (...args) => {
+      args[27]?.("length", "Model 1");
+    });
+    const message = screen.getByPlaceholderText("Type your message... (Shift+Enter for new line)");
+    fireEvent.change(message, { target: { value: "hello" } });
+    fireEvent.keyDown(message, { key: "Enter", code: "Enter" });
+    expect(await screen.findByRole("status")).toHaveTextContent("回答尚未完成");
+    fireEvent.change(message, { target: { value: "continue" } });
+    fireEvent.keyDown(message, { key: "Enter", code: "Enter" });
+    await waitFor(() => expect(makeOpenAIChatCompletionRequest).toHaveBeenCalledTimes(2));
+    const submitted = vi.mocked(makeOpenAIChatCompletionRequest).mock.calls[1];
+    expect(submitted[0]).toEqual([
+      { role: "user", content: "hello" },
+      { role: "user", content: "continue" },
+    ]);
+    expect(submitted[17]).toBe(8192);
+  });
   beforeEach(() => {
     vi.clearAllMocks();
     sessionStorage.clear();

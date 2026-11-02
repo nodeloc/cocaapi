@@ -1,0 +1,11 @@
+**
+!litellm/
+!litellm/models/
+!litellm/models/commerce_gateway.py
+!litellm/proxy/
+!litellm/proxy/commerce/
+!litellm/proxy/commerce/native_gateway.py
+!ui/
+!ui/litellm-dashboard/
+!ui/litellm-dashboard/out/
+!ui/litellm-dashboard/out/**

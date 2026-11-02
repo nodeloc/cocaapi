@@ -41,12 +41,13 @@ class NativeCreatedKey(BaseModel):
 
 
 class NativeMessage(BaseModel):
-    content: str
+    content: str | None
     model_config = {"frozen": True}
 
 
 class NativeChoice(BaseModel):
     message: NativeMessage
+    finish_reason: str | None = None
     model_config = {"frozen": True}
 
 
@@ -72,8 +73,11 @@ def playground_output(payload: object) -> PlaygroundOutput | AuthError:
         return AuthError("model_request_rejected", 502)
     if not result.choices:
         return AuthError("model_request_rejected", 502)
+    if result.choices[0].message.content is None and result.choices[0].finish_reason != "length":
+        return AuthError("model_request_rejected", 502)
     return PlaygroundOutput(
-        content=result.choices[0].message.content,
+        content=result.choices[0].message.content or "",
+        finish_reason=result.choices[0].finish_reason,
         request_id=result.id,
         created=result.created,
         usage=PlaygroundUsage(
@@ -232,7 +236,7 @@ class LocalNativeGateway:
                         if body.messages
                         else [{"role": "user", "content": body.prompt}]
                     ),
-                    "max_tokens": 512,
+                    "max_tokens": body.max_tokens,
                     "stream": False,
                 },
                 key=body.api_key,

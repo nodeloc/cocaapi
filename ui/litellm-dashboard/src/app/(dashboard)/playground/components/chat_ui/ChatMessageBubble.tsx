@@ -184,6 +184,15 @@ function ChatMessageBubble({
             </>
           )}
 
+          {message.role === "assistant" && message.finishReason === "length" && (
+            <div
+              role="status"
+              className="mt-3 rounded-md border border-border bg-muted p-3 text-sm text-muted-foreground"
+            >
+              输出达到本次 Token 上限，回答尚未完成。可在高级设置中提高 Max Tokens，或发送“继续”。
+            </div>
+          )}
+
           {/* Response metrics */}
           {message.role === "assistant" &&
             (message.timeToFirstToken || message.totalLatency || message.usage) &&

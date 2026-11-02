@@ -70,6 +70,48 @@ describe("chat_completion", () => {
     vi.clearAllMocks();
   });
 
+  it.each([true, false])("reports output-limit endings to the conversation for streaming=%s", async (streaming) => {
+    const completion = { model: "model-a", choices: [{ message: { content: "partial" }, finish_reason: "length" }] };
+    mockCreate.mockReturnValueOnce(
+      streaming
+        ? [{ model: "model-a", choices: [{ delta: { content: "partial" }, finish_reason: "length" }] }]
+        : nonStreamingResponse(completion),
+    );
+    const onFinishReason = vi.fn();
+    await makeOpenAIChatCompletionRequest(
+      mockChatHistory,
+      mockUpdateUI,
+      "model-a",
+      "test-token",
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      streaming,
+      undefined,
+      onFinishReason,
+    );
+    expect(mockUpdateUI).toHaveBeenCalledWith("partial", "model-a");
+    expect(onFinishReason).toHaveBeenCalledWith("length", "model-a");
+  });
+
   it("should make a basic chat completion request", async () => {
     await makeOpenAIChatCompletionRequest(mockChatHistory, mockUpdateUI, "gpt-4", "test-token");
 

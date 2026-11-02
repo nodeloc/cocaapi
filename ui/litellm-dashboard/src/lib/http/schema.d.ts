@@ -42713,6 +42713,11 @@ export interface components {
              */
             api_key: string;
             /**
+             * Max Tokens
+             * @default 4096
+             */
+            max_tokens: number;
+            /**
              * Messages
              * @default []
              */
@@ -42741,6 +42746,8 @@ export interface components {
             content: string;
             /** Created */
             created?: number | null;
+            /** Finish Reason */
+            finish_reason?: string | null;
             /** Request Id */
             request_id?: string | null;
             usage?: components["schemas"]["PlaygroundUsage"] | null;

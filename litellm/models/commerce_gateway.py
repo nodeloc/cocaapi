@@ -116,19 +116,26 @@ class PlaygroundInput(FrozenModel):
     model: str = Field(min_length=1, max_length=256)
     prompt: str = Field(default="", max_length=8000)
     messages: tuple["PlaygroundMessage", ...] = Field(default=(), max_length=50)
+    max_tokens: int = Field(default=4096, ge=1, le=32768, strict=True)
 
     @model_validator(mode="after")
     def bounded_conversation(self) -> Self:
         if not self.prompt.strip() and not self.messages:
             raise ValueError("A message is required")
-        if sum(len(message.content) for message in self.messages) > 32000:
+        if sum(len(message.content) for message in self.messages) > 262144:
             raise ValueError("Conversation is too long")
         return self
 
 
 class PlaygroundMessage(FrozenModel):
     role: Literal["system", "user", "assistant"]
-    content: str = Field(min_length=1, max_length=8000)
+    content: str = Field(min_length=1, max_length=131072)
+
+    @model_validator(mode="after")
+    def bounded_user_message(self) -> Self:
+        if self.role != "assistant" and len(self.content) > 8000:
+            raise ValueError("User and system messages cannot exceed 8000 characters")
+        return self
 
 
 class PlaygroundUsage(FrozenModel):
@@ -139,6 +146,7 @@ class PlaygroundUsage(FrozenModel):
 
 class PlaygroundOutput(FrozenModel):
     content: str
+    finish_reason: str | None = None
     request_id: str | None = None
     created: int | None = None
     usage: PlaygroundUsage | None = None

@@ -33,6 +33,7 @@ export interface MessageType {
   isAudio?: boolean;
   isEmbeddings?: boolean;
   reasoningContent?: string;
+  finishReason?: string;
   timeToFirstToken?: number;
   totalLatency?: number;
   usage?: TokenUsage;

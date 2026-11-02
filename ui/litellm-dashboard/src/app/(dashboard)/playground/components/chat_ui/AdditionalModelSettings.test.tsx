@@ -4,6 +4,21 @@ import { describe, expect, it, vi } from "vitest";
 import AdditionalModelSettings from "./AdditionalModelSettings";
 
 describe("AdditionalModelSettings", () => {
+  it("allows output-limit changes without offering temperature controls", () => {
+    const changed = vi.fn();
+    render(
+      <AdditionalModelSettings
+        maxTokens={4096}
+        showTemperature={false}
+        useAdvancedParams
+        onMaxTokensChange={changed}
+      />,
+    );
+    expect(screen.queryByLabelText("Temperature value")).not.toBeInTheDocument();
+    const input = screen.getByLabelText("Max tokens value");
+    fireEvent.change(input, { target: { value: "8192" } });
+    expect(changed).toHaveBeenCalledWith(8192);
+  });
   it("should render correctly", () => {
     const { container } = render(<AdditionalModelSettings />);
     expect(container).toBeTruthy();

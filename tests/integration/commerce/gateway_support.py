@@ -51,7 +51,7 @@ async def gateway_client(wallet_client: WalletClient, request: pytest.FixtureReq
             return httpx.Response(200, json={"deleted_keys": body["keys"]})
         assert request.url.path == "/v1/chat/completions"
         assert request.headers["Authorization"].startswith("Bearer sk-")
-        assert body["max_tokens"] == 512 and body["stream"] is False
+        assert body["max_tokens"] == 4096 and body["stream"] is False
         if len(body["messages"]) > 1:
             assert body["messages"] == [
                 {"role": "system", "content": "Keep answers short"},

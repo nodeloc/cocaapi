@@ -18,6 +18,7 @@ interface AdditionalModelSettingsProps {
   streamingEnabled?: boolean;
   onStreamingChange?: (value: boolean) => void;
   showAdvancedParams?: boolean;
+  showTemperature?: boolean;
 }
 
 function clamp(value: number, min: number, max: number): number {
@@ -36,6 +37,7 @@ const AdditionalModelSettings: React.FC<AdditionalModelSettingsProps> = ({
   streamingEnabled = true,
   onStreamingChange,
   showAdvancedParams = true,
+  showTemperature = true,
 }) => {
   const [internalUseAdvancedParams, setInternalUseAdvancedParams] = useState(false);
   const useAdvancedParams =
@@ -182,51 +184,53 @@ const AdditionalModelSettings: React.FC<AdditionalModelSettingsProps> = ({
         <div
           className={cn("space-y-4 transition-opacity duration-200", useAdvancedParams ? "opacity-100" : "opacity-40")}
         >
-          <div>
-            <div className="mb-2 flex items-center justify-between">
-              <div className="flex items-center gap-1">
-                <label htmlFor={temperatureId} className={cn("text-sm", disabledTextColor)}>
-                  Temperature
-                </label>
-                <Tooltip>
-                  <TooltipTrigger aria-label="Help: Temperature">
-                    <Info className={cn("size-3 cursor-help", disabledTextColor)} />
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-xs">
-                    Controls randomness. Lower values make output more deterministic, higher values more creative.
-                  </TooltipContent>
-                </Tooltip>
+          {showTemperature && (
+            <div>
+              <div className="mb-2 flex items-center justify-between">
+                <div className="flex items-center gap-1">
+                  <label htmlFor={temperatureId} className={cn("text-sm", disabledTextColor)}>
+                    Temperature
+                  </label>
+                  <Tooltip>
+                    <TooltipTrigger aria-label="Help: Temperature">
+                      <Info className={cn("size-3 cursor-help", disabledTextColor)} />
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      Controls randomness. Lower values make output more deterministic, higher values more creative.
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
+                <Input
+                  id={`${temperatureId}-number`}
+                  type="text"
+                  inputMode="decimal"
+                  aria-label="Temperature value"
+                  value={temperatureText}
+                  disabled={!useAdvancedParams}
+                  className="h-8 w-20"
+                  onChange={(event) => handleTemperatureTyped(event.target.value)}
+                  onBlur={() => handleTemperatureChange(Number(temperatureText))}
+                />
               </div>
-              <Input
-                id={`${temperatureId}-number`}
-                type="text"
-                inputMode="decimal"
-                aria-label="Temperature value"
-                value={temperatureText}
+              <input
+                id={temperatureId}
+                type="range"
+                min={0}
+                max={2}
+                step={0.1}
+                value={localTemperature}
                 disabled={!useAdvancedParams}
-                className="h-8 w-20"
-                onChange={(event) => handleTemperatureTyped(event.target.value)}
-                onBlur={() => handleTemperatureChange(Number(temperatureText))}
+                aria-label="Temperature"
+                className="w-full accent-primary disabled:cursor-not-allowed"
+                onChange={(event) => handleTemperatureChange(Number(event.target.value))}
               />
+              <div className="mt-1 flex justify-between text-xs text-muted-foreground">
+                <span>0</span>
+                <span>1.0</span>
+                <span>2.0</span>
+              </div>
             </div>
-            <input
-              id={temperatureId}
-              type="range"
-              min={0}
-              max={2}
-              step={0.1}
-              value={localTemperature}
-              disabled={!useAdvancedParams}
-              aria-label="Temperature"
-              className="w-full accent-primary disabled:cursor-not-allowed"
-              onChange={(event) => handleTemperatureChange(Number(event.target.value))}
-            />
-            <div className="mt-1 flex justify-between text-xs text-muted-foreground">
-              <span>0</span>
-              <span>1.0</span>
-              <span>2.0</span>
-            </div>
-          </div>
+          )}
 
           <div>
             <div className="mb-2 flex items-center justify-between">
