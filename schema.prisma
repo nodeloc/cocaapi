@@ -2193,6 +2193,14 @@ model CommercePaymentEvent {
   @@unique([provider, event_id])
 }
 
+model CommercePaymentConfiguration {
+  id String @id
+  payload String
+  revision Int
+  updated_by String
+  updated_at DateTime @default(now()) @client.Timestamptz(6)
+}
+
 model CommerceLoginConfiguration {
   id String @id
   payload String

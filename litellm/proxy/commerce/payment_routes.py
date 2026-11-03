@@ -6,6 +6,7 @@ from fastapi.responses import PlainTextResponse
 
 from litellm.models.commerce_auth import AuthError
 from litellm.models.commerce_payment import OrderPage, PaymentGateway, PaymentMethods, RechargeInput, RechargeOrder
+from litellm.models.commerce_payment_settings import PaymentConfigurationInput, PaymentConfigurationView
 from litellm.proxy.commerce.account_routes import (
     AccountRoute,
     CurrentSession,
@@ -16,44 +17,62 @@ from litellm.proxy.commerce.account_routes import (
 )
 from litellm.proxy.commerce.admin_wallet_routes import AdminDep
 from litellm.proxy.commerce.billing_config import redemption_security
+from litellm.proxy.commerce.config import load_settings
 from litellm.proxy.commerce.payment_gateway import UnconfiguredGateway
 from litellm.proxy.commerce.payment_service import PaymentService
+from litellm.proxy.commerce.payment_settings_service import PaymentSettingsService, payment_signature
+from litellm.repositories.commerce_auth_repository import AccountDatabase
 from litellm.repositories.commerce_payment_repository import PaymentRepository
+from litellm.repositories.commerce_payment_settings_repository import PaymentConfigurationRepository
 
 
-def get_gateway(accounts: Service) -> PaymentGateway:
-    from litellm.proxy.commerce.goepay_config import goepay_settings, goepay_signature
+def get_payment_database() -> AccountDatabase:
+    from litellm.proxy.proxy_server import prisma_client
+
+    if prisma_client is None:
+        raise_public(AuthError("account_service_unavailable", 503))
+    db: Final[AccountDatabase] = prisma_client.writer_db  # pyright: ignore[reportAssignmentType]  # Native database proxy
+    return db
+
+
+PaymentDatabaseDep: TypeAlias = Annotated[AccountDatabase, Depends(get_payment_database)]
+
+
+def get_payment_settings_service(db: PaymentDatabaseDep) -> PaymentSettingsService:
+    base: Final = load_settings()
+    if base is None:
+        raise_public(AuthError("account_service_unavailable", 503))
+    return PaymentSettingsService(PaymentConfigurationRepository(db), base)
+
+
+PaymentSettingsDep: TypeAlias = Annotated[PaymentSettingsService, Depends(get_payment_settings_service)]
+
+
+async def get_gateway(accounts: Service, configuration: PaymentSettingsDep, db: PaymentDatabaseDep) -> PaymentGateway:
+    import os
+
     from litellm.proxy.commerce.goepay_gateway import GoepayGateway
     from litellm.proxy.commerce.goepay_protocol import GoepayClient
-    from litellm.proxy.proxy_server import prisma_client
-    from litellm.repositories.commerce_auth_repository import AccountDatabase
     from litellm.repositories.commerce_exchange_repository import ExchangeRateRepository
 
-    settings: Final = goepay_settings()
-    if settings is None or prisma_client is None:
+    settings: Final = await configuration.effective()
+    if isinstance(settings, AuthError) or not settings.enabled:
         return UnconfiguredGateway()
-    signature: Final = goepay_signature(settings.private_key_file, settings.public_key_file)
+    signature: Final = payment_signature(settings.private_key, settings.public_key)
     if isinstance(signature, AuthError):
         return UnconfiguredGateway()
-    db: Final[AccountDatabase] = prisma_client.writer_db  # pyright: ignore[reportAssignmentType]  # __getattr__ proxy
     return GoepayGateway(
         GoepayClient(settings.origin, settings.merchant_id, signature),
         ExchangeRateRepository(db).latest,
         accounts.settings.public_url,
-        recover_checkout=settings.recover_checkout,
+        recover_checkout=os.environ.get("COCAAPI_GOEPAY_RECOVER_CHECKOUT", "").lower() == "true",
     )
 
 
 GatewayDep: TypeAlias = Annotated[PaymentGateway, Depends(get_gateway)]
 
 
-def get_payment_service(accounts: Service, gateway: GatewayDep) -> PaymentService:
-    from litellm.proxy.proxy_server import prisma_client
-    from litellm.repositories.commerce_auth_repository import AccountDatabase
-
-    if prisma_client is None:
-        raise_public(AuthError("account_service_unavailable", 503))
-    db: Final[AccountDatabase] = prisma_client.writer_db  # pyright: ignore[reportAssignmentType]  # __getattr__ proxy
+def get_payment_service(accounts: Service, gateway: GatewayDep, db: PaymentDatabaseDep) -> PaymentService:
     return PaymentService(PaymentRepository(db), gateway)
 
 
@@ -61,6 +80,24 @@ PaymentDep: TypeAlias = Annotated[PaymentService, Depends(get_payment_service)]
 router: Final = APIRouter(dependencies=[Depends(guard)], route_class=AccountRoute)
 admin_router: Final = APIRouter(prefix="/commerce/admin/v1", tags=["Commerce management"], route_class=AccountRoute)
 webhook_router: Final = APIRouter(prefix="/commerce/webhooks", tags=["Payment notifications"], route_class=AccountRoute)
+
+
+@admin_router.get("/payment-settings", response_model=PaymentConfigurationView)
+async def read_payment_settings(admin: AdminDep, settings: PaymentSettingsDep) -> PaymentConfigurationView:
+    result: Final = await settings.read()
+    if isinstance(result, AuthError):
+        raise_public(result)
+    return result
+
+
+@admin_router.put("/payment-settings", response_model=PaymentConfigurationView)
+async def save_payment_settings(
+    body: PaymentConfigurationInput, admin: AdminDep, settings: PaymentSettingsDep
+) -> PaymentConfigurationView:
+    result: Final = await settings.save(body, admin.user_id)
+    if isinstance(result, AuthError):
+        raise_public(result)
+    return result
 
 
 @router.get("/payment-methods", response_model=PaymentMethods)

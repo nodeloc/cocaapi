@@ -3390,6 +3390,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/commerce/admin/v1/payment-settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Payment Settings */
+        get: operations["read_payment_settings_commerce_admin_v1_payment_settings_get"];
+        /** Save Payment Settings */
+        put: operations["save_payment_settings_commerce_admin_v1_payment_settings_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/commerce/admin/v1/recharge-orders": {
         parameters: {
             query?: never;
@@ -42763,6 +42781,52 @@ export interface components {
             /** Tpm Limit */
             tpm_limit?: number | null;
         };
+        /** PaymentConfigurationInput */
+        PaymentConfigurationInput: {
+            /**
+             * Clear Private Key
+             * @default false
+             */
+            clear_private_key: boolean;
+            /**
+             * Clear Public Key
+             * @default false
+             */
+            clear_public_key: boolean;
+            /** Enabled */
+            enabled: boolean;
+            /** Merchant Id */
+            merchant_id: string;
+            /** Origin */
+            origin: string;
+            /** Private Key */
+            private_key?: string | null;
+            /** Public Key */
+            public_key?: string | null;
+            /** Revision */
+            revision: number;
+        };
+        /** PaymentConfigurationView */
+        PaymentConfigurationView: {
+            /** Enabled */
+            enabled: boolean;
+            /** Merchant Id */
+            merchant_id: string;
+            /** Notify Url */
+            notify_url: string;
+            /** Origin */
+            origin: string;
+            /** Private Key Configured */
+            private_key_configured: boolean;
+            /** Public Key Configured */
+            public_key_configured: boolean;
+            /** Return Url */
+            return_url: string;
+            /** Revision */
+            revision: number;
+            /** Updated At */
+            updated_at: string | null;
+        };
         /** PaymentMethods */
         PaymentMethods: {
             /**
@@ -61652,6 +61716,59 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LoginConfigurationView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_payment_settings_commerce_admin_v1_payment_settings_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaymentConfigurationView"];
+                };
+            };
+        };
+    };
+    save_payment_settings_commerce_admin_v1_payment_settings_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PaymentConfigurationInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaymentConfigurationView"];
                 };
             };
             /** @description Validation Error */
