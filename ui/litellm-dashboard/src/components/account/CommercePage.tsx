@@ -13,6 +13,7 @@ const sections = [
   markUiCopy({ id: "groups", href: "/ui/commerce/groups/", label: "分组与倍率" }, { label: "分组与倍率" }),
   markUiCopy({ id: "settings", href: "/ui/commerce/settings/", label: "登录与注册" }, { label: "登录与注册" }),
   markUiCopy({ id: "payments", href: "/ui/commerce/payments/", label: "易支付" }, { label: "易支付" }),
+  markUiCopy({ id: "referrals", href: "/ui/commerce/referrals/", label: "邀请有礼" }, { label: "邀请有礼" }),
 ] as const;
 
 export function CommercePage({ section, children }: { section: (typeof sections)[number]["id"]; children: ReactNode }) {

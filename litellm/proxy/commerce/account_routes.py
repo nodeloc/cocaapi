@@ -14,7 +14,6 @@ from litellm.models.commerce_auth import (
     Credentials,
     EmailInput,
     FrozenModel,
-    LoginResult,
     OAuthStart,
     PasswordInput,
     ProviderID,
@@ -31,8 +30,8 @@ from litellm.repositories.commerce_auth_repository import AccountDatabase, Accou
 
 
 async def get_service() -> AccountService:
-    from litellm.proxy.proxy_server import prisma_client
     from litellm.proxy.commerce.login_settings_service import LoginSettingsService
+    from litellm.proxy.proxy_server import prisma_client
     from litellm.repositories.commerce_login_settings_repository import LoginConfigurationRepository
 
     settings: Final = load_settings()
@@ -191,7 +190,7 @@ async def methods(request: Request, response: Response, service: Service) -> Met
 
 @protected.post("/register", response_model=MessageView, status_code=201)
 async def register(body: Registration, service: Service) -> MessageView:
-    result: Final = await service.register(str(body.email), body.password.get_secret_value())
+    result: Final = await service.register(str(body.email), body.password.get_secret_value(), body.referral_code)
     if isinstance(result, AuthError):
         raise_public(result)
     return MessageView(message="verification_email_queued")
@@ -202,8 +201,6 @@ async def login(body: Credentials, request: Request, response: Response, service
     result: Final = await service.login(str(body.email), body.password.get_secret_value())
     if isinstance(result, AuthError):
         raise_public(result)
-    if not isinstance(result, LoginResult):
-        raise HTTPException(500)
     old: Final = request.cookies.get(cookie_name(service, "session"))
     if old:
         await service.logout(old)
@@ -311,6 +308,7 @@ async def start_authorization(
         "link" if link else body.intent,
         session,
         body.return_path,
+        body.referral_code,
     )
     if isinstance(result, AuthError):
         raise HTTPException(result.status, detail=result.code)

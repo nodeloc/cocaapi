@@ -2352,6 +2352,10 @@ app.include_router(login_settings_router)
 from litellm.proxy.commerce.admin_billing_group_routes import router as billing_groups_router
 
 app.include_router(billing_groups_router)
+from litellm.proxy.commerce.referral_routes import admin_router as referral_admin_router, router as referral_router
+
+app.include_router(referral_router)
+app.include_router(referral_admin_router)
 
 # get current directory
 try:

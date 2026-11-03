@@ -56,8 +56,8 @@ export function Pager({
 }
 
 const kinds = markUiCopy(
-  { adjustment: "人工调整", redemption: "兑换码", recharge: "在线充值", usage: "API 调用扣费" },
-  { adjustment: "人工调整", redemption: "兑换码", recharge: "在线充值", usage: "API 调用扣费" },
+  { adjustment: "人工调整", redemption: "兑换码", recharge: "在线充值", usage: "API 调用扣费", referral: "邀请奖励" },
+  { adjustment: "人工调整", redemption: "兑换码", recharge: "在线充值", usage: "API 调用扣费", referral: "邀请奖励" },
 );
 const ledgerColumns: ColumnDef<Ledger["items"][number]>[] = [
   markUiCopy(

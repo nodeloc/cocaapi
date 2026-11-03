@@ -39,7 +39,7 @@ class AccountService:
             self.security.digest(subject, purpose), now.replace(second=0, microsecond=0), limit
         )
 
-    async def register(self, email: str, password: str) -> Customer | AuthError:
+    async def register(self, email: str, password: str, referral_code: str | None = None) -> Customer | AuthError:
         if not self.settings.registration_enabled:
             return AuthError("registration_closed", 403)
         if not self.settings.email_ready:
@@ -48,7 +48,14 @@ class AccountService:
             return AuthError("too_many_attempts", 429)
         password_hash: Final = await asyncio.to_thread(hash_password, password)
         result: Final = await self.store.create_customer(
-            email, password_hash, False, None, None, self.clock(), self.email_action(email, "verify")
+            email,
+            password_hash,
+            False,
+            None,
+            None,
+            self.clock(),
+            self.email_action(email, "verify"),
+            referral_code=referral_code,
         )
         if isinstance(result, AuthError):
             return result
@@ -159,7 +166,13 @@ class AccountService:
         return None if saved else AuthError("reauthentication_required", 403)
 
     async def start_flow(
-        self, provider: ProviderID, browser: str, intent: str, session: Session | None, return_path: str
+        self,
+        provider: ProviderID,
+        browser: str,
+        intent: str,
+        session: Session | None,
+        return_path: str,
+        referral_code: str | None = None,
     ) -> tuple[str, OAuthFlow] | AuthError:
         if not browser or len(browser) > 256:
             return AuthError("invalid_authorization")
@@ -188,6 +201,7 @@ class AccountService:
                 "expires_at": self.clock() + timedelta(minutes=10),
                 "user_id": session.customer.user_id if session and intent != "login" else None,
                 "session_hash": session.token_hash if session and intent != "login" else None,
+                "referral_code": referral_code if intent == "login" else None,
             }
         )
         await self.store.save_flow(flow)
@@ -240,7 +254,13 @@ class AccountService:
         if not self.settings.registration_enabled:
             return AuthError("registration_closed", 403)
         customer: Final = await self.store.create_customer(
-            identity.email, None, identity.email_verified, identity, flow.provider, self.clock()
+            identity.email,
+            None,
+            identity.email_verified,
+            identity,
+            flow.provider,
+            self.clock(),
+            referral_code=flow.referral_code,
         )
         if isinstance(customer, AuthError):
             return customer

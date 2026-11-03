@@ -31,6 +31,7 @@ const errors: Readonly<Record<string, string>> = markUiCopy(
     registration_closed: "暂未开放新用户注册。",
     email_unavailable: "邮件服务尚未配置，暂时无法发送邮件。",
     email_in_use: "该邮箱已被使用。请登录原账号后绑定第三方账号。",
+    invalid_referral_code: "邀请码无效或邀请人已停用，请检查邀请链接。",
     too_many_attempts: "操作过于频繁，请一分钟后重试。",
     invalid_or_expired_token: "链接已失效或已使用，请重新申请。",
     invalid_authorization: "授权已过期或浏览器不匹配，请重新登录。",
@@ -69,6 +70,7 @@ const errors: Readonly<Record<string, string>> = markUiCopy(
     registration_closed: "暂未开放新用户注册。",
     email_unavailable: "邮件服务尚未配置，暂时无法发送邮件。",
     email_in_use: "该邮箱已被使用。请登录原账号后绑定第三方账号。",
+    invalid_referral_code: "邀请码无效或邀请人已停用，请检查邀请链接。",
     too_many_attempts: "操作过于频繁，请一分钟后重试。",
     invalid_or_expired_token: "链接已失效或已使用，请重新申请。",
     invalid_authorization: "授权已过期或浏览器不匹配，请重新登录。",
@@ -123,8 +125,13 @@ export const accountApi = {
   profile: async () => unwrap(await client.GET("/account/api/v1/me")),
   login: async (email: string, password: string, csrf: string) =>
     unwrap(await client.POST("/account/api/v1/login", { body: { email, password }, headers: headers(csrf) })),
-  register: async (email: string, password: string, csrf: string) =>
-    unwrap(await client.POST("/account/api/v1/register", { body: { email, password }, headers: headers(csrf) })),
+  register: async (email: string, password: string, csrf: string, referral_code?: string) =>
+    unwrap(
+      await client.POST("/account/api/v1/register", {
+        body: { email, password, referral_code },
+        headers: headers(csrf),
+      }),
+    ),
   forgot: async (email: string, csrf: string) =>
     unwrap(await client.POST("/account/api/v1/forgot-password", { body: { email }, headers: headers(csrf) })),
   verify: async (token: string, csrf: string) =>
@@ -147,10 +154,16 @@ export const accountApi = {
         headers: headers(csrf),
       }),
     ),
-  oauth: async (provider: Provider["id"], csrf: string, intent: "login" | "link" | "reauth" = "login") => {
+  oauth: async (
+    provider: Provider["id"],
+    csrf: string,
+    intent: "login" | "link" | "reauth" = "login",
+    referral_code?: string,
+  ) => {
     const body = {
       return_path: intent === "login" ? "/account/profile/" : "/account/security/",
       intent: intent === "reauth" ? ("reauth" as const) : ("login" as const),
+      referral_code: intent === "login" ? referral_code : undefined,
     };
     const params = { params: { path: { provider } }, body, headers: headers(csrf) };
     return unwrap(

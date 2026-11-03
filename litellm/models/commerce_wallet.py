@@ -8,7 +8,7 @@ from litellm.models.commerce_billing_groups import PricingSnapshot
 
 UNITS_PER_USD: Final = 1_000_000_000
 MAX_UNITS: Final = 9_223_372_036_854_775_807
-LedgerKind: TypeAlias = Literal["adjustment", "redemption", "recharge", "usage"]
+LedgerKind: TypeAlias = Literal["adjustment", "redemption", "recharge", "usage", "referral"]
 
 
 class WalletSnapshot(FrozenModel):

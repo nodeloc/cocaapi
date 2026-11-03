@@ -1141,6 +1141,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/account/api/v1/referrals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Overview */
+        get: operations["overview_account_api_v1_referrals_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/account/api/v1/referrals/code": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Issue Code */
+        post: operations["issue_code_account_api_v1_referrals_code_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/account/api/v1/register": {
         parameters: {
             query?: never;
@@ -3471,6 +3505,41 @@ export interface paths {
         put?: never;
         /** Disable */
         post: operations["disable_commerce_admin_v1_redeem_batches__batch_id__disable_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/commerce/admin/v1/referral-settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Settings */
+        get: operations["settings_commerce_admin_v1_referral_settings_get"];
+        /** Save Settings */
+        put: operations["save_settings_commerce_admin_v1_referral_settings_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/commerce/admin/v1/referrals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Records */
+        get: operations["records_commerce_admin_v1_referrals_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -36035,7 +36104,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "adjustment" | "redemption" | "recharge" | "usage";
+            kind: "adjustment" | "redemption" | "recharge" | "usage" | "referral";
             pricing_snapshot?: components["schemas"]["PricingSnapshot"] | null;
             /** Reason */
             reason: string;
@@ -41874,6 +41943,8 @@ export interface components {
              * @enum {string}
              */
             intent: "login" | "reauth";
+            /** Referral Code */
+            referral_code?: string | null;
             /**
              * Return Path
              * @default /account/profile/
@@ -44578,6 +44649,103 @@ export interface components {
             /** Code */
             code: string;
         };
+        /** ReferralCodeView */
+        ReferralCodeView: {
+            /** Code */
+            code: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /** ReferralItem */
+        ReferralItem: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Id */
+            id: string;
+            /** Invitee Label */
+            invitee_label: string;
+            /** Invitee Units */
+            invitee_units: string;
+            /** Inviter Label */
+            inviter_label?: string | null;
+            /** Inviter Units */
+            inviter_units: string;
+            /** Rewarded At */
+            rewarded_at: string | null;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "pending" | "granted" | "inactive" | "ineligible";
+        };
+        /** ReferralOverview */
+        ReferralOverview: {
+            /** Earned Units */
+            earned_units: string;
+            /** Eligible */
+            eligible: boolean;
+            /** Enabled */
+            enabled: boolean;
+            /** Has More */
+            has_more: boolean;
+            /** Invite Code */
+            invite_code: string | null;
+            /** Invite Url */
+            invite_url: string | null;
+            /** Invited Count */
+            invited_count: number;
+            /** Invitee Units */
+            invitee_units: string;
+            /** Inviter Units */
+            inviter_units: string;
+            /** Items */
+            items: components["schemas"]["ReferralItem"][];
+            /** Signup Bonus Units */
+            signup_bonus_units: string;
+        };
+        /** ReferralPage */
+        ReferralPage: {
+            /** Has More */
+            has_more: boolean;
+            /** Items */
+            items: components["schemas"]["ReferralItem"][];
+        };
+        /** ReferralSettingsInput */
+        ReferralSettingsInput: {
+            /** Enabled */
+            enabled: boolean;
+            /** Invitee Amount Usd */
+            invitee_amount_usd: string;
+            /** Inviter Amount Usd */
+            inviter_amount_usd: string;
+            /** Revision */
+            revision: number;
+        };
+        /** ReferralSettingsView */
+        ReferralSettingsView: {
+            /**
+             * Enabled
+             * @default false
+             */
+            enabled: boolean;
+            /** Invitee Units */
+            invitee_units?: string;
+            /** Inviter Units */
+            inviter_units?: string;
+            /**
+             * Revision
+             * @default 0
+             */
+            revision: number;
+            /** Updated At */
+            updated_at?: string | null;
+        };
         /** RegenerateKeyRequest */
         RegenerateKeyRequest: {
             /** Access Group Ids */
@@ -44870,6 +45038,8 @@ export interface components {
              * Format: password
              */
             password: string;
+            /** Referral Code */
+            referral_code?: string | null;
         };
         /** RejectMCPServerRequest */
         RejectMCPServerRequest: {
@@ -57212,6 +57382,58 @@ export interface operations {
             };
         };
     };
+    overview_account_api_v1_referrals_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReferralOverview"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    issue_code_account_api_v1_referrals_code_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReferralCodeView"];
+                };
+            };
+        };
+    };
     register_account_api_v1_register_post: {
         parameters: {
             query?: never;
@@ -62135,6 +62357,91 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AccountErrorView"];
+                };
+            };
+        };
+    };
+    settings_commerce_admin_v1_referral_settings_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReferralSettingsView"];
+                };
+            };
+        };
+    };
+    save_settings_commerce_admin_v1_referral_settings_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReferralSettingsInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReferralSettingsView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    records_commerce_admin_v1_referrals_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReferralPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

@@ -56,7 +56,15 @@ class AccountRepository:
         provider: ProviderID | None,
         now: datetime,
         action: PendingAction | None = None,
+        *,
+        referral_code: str | None = None,
     ) -> Customer | AuthError:
+        from litellm.repositories.commerce_referral_rewards_repository import (
+            bind_referral,
+            referral_snapshot,
+            settle_referral,
+        )
+
         async with self.database.tx() as tx:
             if identity is not None:
                 await tx.query_raw(
@@ -73,6 +81,9 @@ class AccountRepository:
                 )
                 if taken:
                     return AuthError("email_in_use", 409)
+            referral: Final = await referral_snapshot(tx, referral_code)
+            if isinstance(referral, AuthError):
+                return referral
             user_id: Final = "commerce-" + uuid.uuid4().hex
             await tx.execute_raw(
                 """INSERT INTO "LiteLLM_UserTable"
@@ -106,6 +117,9 @@ class AccountRepository:
                 )
             if action is not None:
                 await _insert_action(tx, user_id, action, now)
+            if referral is not None:
+                await bind_referral(tx, user_id, referral, now)
+                await settle_referral(tx, user_id, now)
             return Customer(
                 user_id=user_id,
                 email=email,
@@ -122,6 +136,8 @@ class AccountRepository:
         auth_at: datetime,
         identity: ExternalIdentity | None = None,
     ) -> bool:
+        from litellm.repositories.commerce_referral_rewards_repository import settle_referral
+
         async with self.database.tx() as tx:
             await tx.query_raw('SELECT user_id FROM "CommerceCustomer" WHERE user_id=$1 FOR UPDATE', customer.user_id)
             current: Final = await AccountRepository(tx).get_customer(customer.user_id)
@@ -144,6 +160,7 @@ class AccountRepository:
                 expires_at,
                 auth_at,
             )
+            await settle_referral(tx, customer.user_id, auth_at)
             return True
 
     async def get_session(self, token_hash: str, now: datetime) -> Session | None:
@@ -206,6 +223,8 @@ class AccountRepository:
     async def consume_action(
         self, token_hash: str, purpose: ActionPurpose, now: datetime, password_hash: str | None = None
     ) -> bool:
+        from litellm.repositories.commerce_referral_rewards_repository import settle_referral
+
         if purpose == "reset" and password_hash is None:
             return False
         async with self.database.tx() as tx:
@@ -236,6 +255,7 @@ class AccountRepository:
                     password_hash,
                 )
                 await tx.execute_raw('DELETE FROM "CommerceSession" WHERE user_id=$1', user_id)
+            await settle_referral(tx, user_id, now)
             return True
 
     async def set_email(self, session: Session, email: str, now: datetime) -> Customer | AuthError:
@@ -289,34 +309,50 @@ class AccountRepository:
         return TypeAdapter(int).validate_python(rows[0]["attempts"]) <= limit
 
     async def save_flow(self, flow: OAuthFlow) -> None:
-        await self.database.execute_raw(
-            """INSERT INTO "CommerceOAuthFlow"
+        async with self.database.tx() as tx:
+            await tx.execute_raw(
+                """INSERT INTO "CommerceOAuthFlow"
             (state_hash,browser_hash,provider,intent,nonce,verifier,return_path,expires_at,user_id,session_hash)
             VALUES ($1,$2,$3,$4,$5,$6,$7,$8::timestamptz,$9,$10)""",
-            flow.state_hash,
-            flow.browser_hash,
-            flow.provider,
-            flow.intent,
-            flow.nonce,
-            flow.verifier,
-            flow.return_path,
-            flow.expires_at,
-            flow.user_id,
-            flow.session_hash,
-        )
+                flow.state_hash,
+                flow.browser_hash,
+                flow.provider,
+                flow.intent,
+                flow.nonce,
+                flow.verifier,
+                flow.return_path,
+                flow.expires_at,
+                flow.user_id,
+                flow.session_hash,
+            )
+            if flow.referral_code is not None:
+                await tx.execute_raw(
+                    'INSERT INTO "CommerceReferralOAuthFlow" (state_hash,referral_code) VALUES ($1,$2)',
+                    flow.state_hash,
+                    flow.referral_code,
+                )
 
     async def consume_flow(
         self, state_hash: str, browser_hash: str, provider: ProviderID, now: datetime
     ) -> OAuthFlow | None:
-        rows: Final = await self.database.query_raw(
-            """DELETE FROM "CommerceOAuthFlow"
+        async with self.database.tx() as tx:
+            context: Final = await tx.query_raw(
+                'SELECT referral_code FROM "CommerceReferralOAuthFlow" WHERE state_hash=$1 FOR UPDATE',
+                state_hash,
+            )
+            rows: Final = await tx.query_raw(
+                """DELETE FROM "CommerceOAuthFlow"
             WHERE state_hash=$1 AND browser_hash=$2 AND provider=$3 AND expires_at>$4::timestamptz RETURNING *""",
-            state_hash,
-            browser_hash,
-            provider,
-            now,
-        )
-        return OAuthFlow.model_validate(rows[0]) if rows else None
+                state_hash,
+                browser_hash,
+                provider,
+                now,
+            )
+            return (
+                OAuthFlow.model_validate({**rows[0], "referral_code": context[0]["referral_code"] if context else None})
+                if rows
+                else None
+            )
 
     async def find_external(self, identity: ExternalIdentity) -> Customer | None:
         return _customer(
@@ -453,7 +489,7 @@ class MailRepository:
             """UPDATE "CommerceMailOutbox" SET claimed_until=NULL,
             next_attempt_at=$2::timestamptz,payload=CASE WHEN attempts>=8 THEN '' ELSE payload END WHERE id=$1""",
             job.id,
-            now + timedelta(seconds=min(3600, 30 * 2**job.attempts)),
+            now + timedelta(seconds=min(3600, 30 << min(7, max(0, job.attempts)))),
         )
 
     async def cleanup(self, now: datetime) -> None:

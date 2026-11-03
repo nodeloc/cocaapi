@@ -2021,6 +2021,9 @@ model CommerceCustomer {
   wallet CommerceWallet?
   redeemed_codes CommerceRedeemCode[]
   recharge_orders CommerceRechargeOrder[]
+  referral_code CommerceReferralCode?
+  referral CommerceReferral? @relation("ReferralInvitee")
+  referrals CommerceReferral[] @relation("ReferralInviter")
 }
 
 model CommerceSession {
@@ -2071,6 +2074,7 @@ model CommerceOAuthFlow {
   session_hash String?
   @@index([expires_at])
   customer CommerceCustomer? @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction)
+  referral_context CommerceReferralOAuthFlow?
 }
 
 model CommerceMailOutbox {
@@ -2231,4 +2235,42 @@ model CommerceExchangeRate {
   rate String
   rate_date DateTime @client.Date
   fetched_at DateTime @client.Timestamptz(6)
+}
+
+
+model CommerceReferralConfiguration {
+  id String @id
+  revision Int
+  enabled Boolean @default(false)
+  inviter_units BigInt
+  invitee_units BigInt
+  updated_by String
+  updated_at DateTime @default(now()) @client.Timestamptz(6)
+}
+
+model CommerceReferralCode {
+  user_id String @id
+  code String @unique
+  created_at DateTime @default(now()) @client.Timestamptz(6)
+  customer CommerceCustomer @relation(fields: [user_id], references: [user_id], onDelete: Restrict, onUpdate: NoAction)
+}
+
+model CommerceReferral {
+  invitee_id String @id
+  inviter_id String
+  inviter_units BigInt
+  invitee_units BigInt
+  state String
+  created_at DateTime @default(now()) @client.Timestamptz(6)
+  rewarded_at DateTime? @client.Timestamptz(6)
+  failure_code String?
+  invitee CommerceCustomer @relation("ReferralInvitee", fields: [invitee_id], references: [user_id], onDelete: Restrict, onUpdate: NoAction)
+  inviter CommerceCustomer @relation("ReferralInviter", fields: [inviter_id], references: [user_id], onDelete: Restrict, onUpdate: NoAction)
+  @@index([inviter_id, created_at(sort: Desc)])
+}
+
+model CommerceReferralOAuthFlow {
+  state_hash String @id
+  referral_code String
+  flow CommerceOAuthFlow @relation(fields: [state_hash], references: [state_hash], onDelete: Cascade, onUpdate: NoAction)
 }

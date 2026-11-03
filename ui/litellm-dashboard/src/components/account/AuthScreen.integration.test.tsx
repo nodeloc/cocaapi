@@ -35,6 +35,7 @@ describe("customer account forms", () => {
     ).toBeInTheDocument();
   });
   beforeEach(() => {
+    sessionStorage.clear();
     window.history.replaceState(null, "", "/account/register/");
     fetchMock.mockReset();
     vi.stubGlobal("fetch", fetchMock);
@@ -57,6 +58,52 @@ describe("customer account forms", () => {
     fireEvent.change(screen.getByLabelText("确认密码"), { target: { value: "Account-password-123!" } });
     fireEvent.click(submit);
     expect(await screen.findByRole("status")).toHaveTextContent("注册成功，请查收验证邮件");
+  });
+
+  it("passes an invitation through email registration and clears it only after successful registration", async () => {
+    const code = "valid-referral-code-12345";
+    window.history.replaceState(null, "", `/account/register/?ref=${code}`);
+    fetchMock.mockImplementation(async (input) => {
+      const request = input as Request;
+      if (request.method === "GET") return Response.json(methods);
+      expect(await request.json()).toMatchObject({ referral_code: code, email: "invited@example.com" });
+      return Response.json({ message: "verification_email_queued" }, { status: 201 });
+    });
+    render(<AuthScreen mode="register" />);
+    const submit = await screen.findByRole("button", { name: "注册并发送验证邮件" });
+    fireEvent.change(screen.getByLabelText("邮箱"), { target: { value: "invited@example.com" } });
+    fireEvent.change(screen.getByLabelText("密码", { exact: true }), { target: { value: "Account-password-123!" } });
+    fireEvent.change(screen.getByLabelText("确认密码"), { target: { value: "Account-password-123!" } });
+    fireEvent.click(submit);
+    expect(await screen.findByRole("status")).toHaveTextContent("注册成功");
+    expect(sessionStorage.getItem("cocaapi.referral")).toBeNull();
+  });
+
+  it("passes the invitation into OAuth start and preserves it when authorization fails", async () => {
+    const code = "valid-referral-code-12345";
+    window.history.replaceState(null, "", `/account/register/?ref=${code}`);
+    fetchMock.mockImplementation(async (input) => {
+      const request = input as Request;
+      if (request.method === "GET")
+        return Response.json({ ...methods, providers: [{ id: "github", label: "GitHub" }] });
+      expect(new URL(request.url).pathname).toBe("/account/api/v1/oauth/github/start");
+      expect(await request.json()).toMatchObject({ referral_code: code, intent: "login" });
+      return Response.json({ detail: "provider_credentials_invalid" }, { status: 503 });
+    });
+    render(<AuthScreen mode="register" />);
+    fireEvent.click(await screen.findByRole("button", { name: "GitHub 登录" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("第三方登录的应用凭据无效");
+    expect(sessionStorage.getItem("cocaapi.referral")).toBe(code);
+  });
+
+  it("lets a user remove an invitation before registration", async () => {
+    window.history.replaceState(null, "", "/account/register/?ref=unknown-referral-code");
+    fetchMock.mockResolvedValue(Response.json(methods));
+    render(<AuthScreen mode="register" />);
+    fireEvent.click(await screen.findByRole("button", { name: "取消邀请" }));
+    expect(sessionStorage.getItem("cocaapi.referral")).toBeNull();
+    expect(new URLSearchParams(window.location.search).has("ref")).toBe(false);
+    expect(screen.queryByRole("button", { name: "取消邀请" })).not.toBeInTheDocument();
   });
 
   it("requires an explicit click before consuming a verification link and removes its token from the URL", async () => {

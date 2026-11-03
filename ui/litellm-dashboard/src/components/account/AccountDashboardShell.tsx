@@ -22,6 +22,7 @@ import {
   ScrollText,
   Gauge,
   BookOpen,
+  Gift,
 } from "lucide-react";
 import {
   Sidebar,
@@ -90,6 +91,7 @@ const groups = [
         markUiCopy({ label: "我的账号", href: "/account/profile/", icon: House }, { label: "我的账号" }),
         markUiCopy({ label: "余额与充值", href: "/account/wallet/", icon: Wallet }, { label: "余额与充值" }),
         markUiCopy({ label: "充值订单", href: "/account/orders/", icon: ReceiptText }, { label: "充值订单" }),
+        markUiCopy({ label: "邀请有礼", href: "/account/referrals/", icon: Gift }, { label: "邀请有礼" }),
       ],
     },
     { label: "用户中心" },

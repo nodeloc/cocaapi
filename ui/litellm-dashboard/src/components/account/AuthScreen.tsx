@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/shared/PasswordInput";
 import { accountApi, errorMessage, type Methods, type Provider } from "./accountApi";
 import { AccountNotice, AccountShell } from "./AccountShell";
+import { clearReferral, rememberReferral } from "./referralCode";
 
 type Mode = "login" | "register" | "forgot" | "verify" | "reset";
 const copy: Record<Mode, readonly [string, string, string]> = {
@@ -24,13 +25,16 @@ function useAuthSetup(setError: Dispatch<SetStateAction<string>>) {
   useUiLocale();
   const [methods, setMethods] = useState<Methods | null>(null);
   const [token, setToken] = useState("");
+  const [referralCode, setReferralCode] = useState<string | undefined>();
   useEffect(() => {
     let active = true;
+    const referral = rememberReferral();
     accountApi
       .methods()
       .then((value) => {
         if (!active) return;
         setMethods(value);
+        setReferralCode(referral);
         const callbackError = new URLSearchParams(window.location.search).get("error");
         if (callbackError) setError(errorMessage(callbackError));
         const linkToken = new URLSearchParams(window.location.hash.slice(1)).get("token");
@@ -51,7 +55,14 @@ function useAuthSetup(setError: Dispatch<SetStateAction<string>>) {
       active = false;
     };
   }, [setError]);
-  return { methods, token };
+  const forgetReferral = () => {
+    clearReferral();
+    setReferralCode(undefined);
+    const url = new URL(window.location.href);
+    url.searchParams.delete("ref");
+    window.history.replaceState(null, "", url.pathname + url.search + url.hash);
+  };
+  return { methods, token, referralCode, forgetReferral };
 }
 
 function SecretField({
@@ -154,7 +165,7 @@ export default function AuthScreen({ mode }: { mode: Mode }) {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [done, setDone] = useState(false);
-  const { methods, token } = useAuthSetup(setError);
+  const { methods, token, referralCode, forgetReferral } = useAuthSetup(setError);
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
@@ -174,7 +185,8 @@ export default function AuthScreen({ mode }: { mode: Mode }) {
           router.push("/account/profile/");
           break;
         case "register":
-          await accountApi.register(email, password, csrf);
+          await accountApi.register(email, password, csrf, referralCode);
+          clearReferral();
           setMessage(translateMessage("注册成功，请查收验证邮件。你也可以先登录查看账号。"));
           setDone(true);
           break;
@@ -210,7 +222,7 @@ export default function AuthScreen({ mode }: { mode: Mode }) {
     setBusy(true);
     setError("");
     try {
-      const result = await accountApi.oauth(provider.id, methods.csrf_token);
+      const result = await accountApi.oauth(provider.id, methods.csrf_token, "login", referralCode);
       window.location.assign(result.authorization_url);
     } catch (reason) {
       setError(
@@ -237,6 +249,14 @@ export default function AuthScreen({ mode }: { mode: Mode }) {
   return (
     <AccountShell title={translateMessage(copy[mode][0])} description={translateMessage(copy[mode][1])}>
       <AccountNotice error={error} message={message} />
+      {mode === "register" && referralCode && !done && (
+        <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+          <LocalizedText text="已记录邀请链接" />
+          <Button type="button" variant="link" size="sm" disabled={busy} onClick={forgetReferral}>
+            <LocalizedText text="取消邀请" />
+          </Button>
+        </div>
+      )}
       {!methods && !error && (
         <p role="status" className="text-center text-sm text-muted-foreground">
           <LocalizedText text={"正在加载登录方式…"} />

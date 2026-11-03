@@ -12,7 +12,7 @@ import pytest_asyncio
 from fastapi import FastAPI
 from prisma import Prisma
 from prisma.types import DatasourceOverride
-from pydantic import SecretStr
+from pydantic import SecretStr, TypeAdapter
 
 from litellm.models.commerce_auth import AuthError, LoginResult, Session
 from litellm.proxy.commerce.account_routes import get_service, router
@@ -55,7 +55,11 @@ async def wallet_client() -> AsyncIterator[WalletClient]:
     database: Final = Prisma(datasource=DatasourceOverride(url=url))
     await database.connect()
     migrations: Final = Path(os.environ["COCAAPI_TEST_MIGRATIONS"])
+    history: Final = await database.query_raw('SELECT migration_name FROM "_prisma_migrations" WHERE finished_at IS NOT NULL')
+    applied: Final = frozenset(TypeAdapter(str).validate_python(row["migration_name"]) for row in history)
     for migration in sorted(migrations.glob("*commerce*/migration.sql")):
+        if migration.parent.name in applied:
+            continue
         for statement in migration.read_text().split(";"):
             if statement.strip():
                 await database.execute_raw(statement)

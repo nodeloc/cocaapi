@@ -1,11 +1,12 @@
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Literal, Protocol, TypeAlias
+from typing import Annotated, Literal, Protocol, TypeAlias
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, SecretStr, field_validator
 
 ProviderID: TypeAlias = Literal["github", "google", "nodeloc"]
 ActionPurpose: TypeAlias = Literal["verify", "reset"]
+ReferralCode: TypeAlias = Annotated[str, Field(pattern=r"^[A-Za-z0-9_-]{16,64}$")]
 
 
 class FrozenModel(BaseModel):
@@ -52,6 +53,7 @@ class OAuthFlow(FrozenModel):
     expires_at: datetime
     user_id: str | None = None
     session_hash: str | None = None
+    referral_code: ReferralCode | None = None
 
 
 class MailPayload(FrozenModel):
@@ -102,6 +104,7 @@ class Credentials(EmailInput):
 
 class Registration(Credentials):
     password: SecretStr = Field(min_length=12, max_length=256)
+    referral_code: ReferralCode | None = None
 
 
 class TokenInput(FrozenModel):
@@ -120,6 +123,7 @@ class PasswordInput(FrozenModel):
 class OAuthStart(FrozenModel):
     return_path: str = "/account/profile/"
     intent: Literal["login", "reauth"] = "login"
+    referral_code: ReferralCode | None = None
 
 
 class AccountStore(Protocol):
@@ -134,6 +138,8 @@ class AccountStore(Protocol):
         provider: ProviderID | None,
         now: datetime,
         action: PendingAction | None = None,
+        *,
+        referral_code: str | None = None,
     ) -> Customer | AuthError: ...
     async def save_session(
         self,
