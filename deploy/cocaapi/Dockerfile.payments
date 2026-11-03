@@ -1,0 +1,11 @@
+ARG COCAAPI_RUNTIME_IMAGE
+FROM ${COCAAPI_RUNTIME_IMAGE}
+
+COPY litellm/models/commerce_payment.py /app/.venv/lib/python3.13/site-packages/litellm/models/commerce_payment.py
+COPY litellm/proxy/commerce/goepay*.py litellm/proxy/commerce/payment_*.py /app/.venv/lib/python3.13/site-packages/litellm/proxy/commerce/
+COPY litellm/repositories/commerce_payment_repository.py litellm/repositories/commerce_exchange_repository.py /app/.venv/lib/python3.13/site-packages/litellm/repositories/
+COPY schema.prisma /app/schema.prisma
+COPY litellm/proxy/schema.prisma /app/.venv/lib/python3.13/site-packages/litellm/proxy/schema.prisma
+COPY litellm-proxy-extras/litellm_proxy_extras/schema.prisma /app/.venv/lib/python3.13/site-packages/litellm_proxy_extras/schema.prisma
+COPY litellm-proxy-extras/litellm_proxy_extras/migrations/20261103000000_commerce_goepay/ /app/.venv/lib/python3.13/site-packages/litellm_proxy_extras/migrations/20261103000000_commerce_goepay/
+COPY ui/litellm-dashboard/out/ /app/cocaapi-ui/

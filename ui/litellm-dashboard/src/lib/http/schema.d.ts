@@ -3510,6 +3510,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/commerce/webhooks/goepay": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Goepay Notify */
+        get: operations["goepay_notify_commerce_webhooks_goepay_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/commerce/webhooks/{provider}": {
         parameters: {
             query?: never;
@@ -42751,9 +42768,9 @@ export interface components {
             /**
              * Asset
              * @default USDT
-             * @constant
+             * @enum {string}
              */
-            asset: "USDT";
+            asset: "USDT" | "CNY";
             /** Enabled */
             enabled: boolean;
             /** Networks */
@@ -42767,9 +42784,25 @@ export interface components {
              * Id
              * @enum {string}
              */
-            id: "tron" | "ethereum" | "bsc";
+            id: "tron" | "ethereum" | "bsc" | "alipay" | "wxpay";
             /** Label */
             label: string;
+        };
+        /** PaymentQuote */
+        PaymentQuote: {
+            /** Amount */
+            amount: string;
+            /**
+             * Asset
+             * @enum {string}
+             */
+            asset: "USDT" | "CNY";
+            /** Fetched At */
+            fetched_at?: string | null;
+            /** Rate */
+            rate?: string | null;
+            /** Rate Date */
+            rate_date?: string | null;
         };
         /**
          * PendingSafetyCheck
@@ -44396,7 +44429,7 @@ export interface components {
              * Network
              * @enum {string}
              */
-            network: "tron" | "ethereum" | "bsc";
+            network: "tron" | "ethereum" | "bsc" | "alipay" | "wxpay";
         };
         /** RechargeOrder */
         RechargeOrder: {
@@ -44405,9 +44438,9 @@ export interface components {
             /**
              * Asset
              * @default USDT
-             * @constant
+             * @enum {string}
              */
-            asset: "USDT";
+            asset: "USDT" | "CNY";
             /** Checkout Url */
             checkout_url: string | null;
             /**
@@ -44427,11 +44460,14 @@ export interface components {
              * Network
              * @enum {string}
              */
-            network: "tron" | "ethereum" | "bsc";
+            network: "tron" | "ethereum" | "bsc" | "alipay" | "wxpay";
             /** Paid At */
             paid_at: string | null;
+            /** Payment Amount */
+            payment_amount?: string | null;
             /** Provider */
             provider: string;
+            quote?: components["schemas"]["PaymentQuote"] | null;
             /** Review Reason */
             review_reason: string | null;
             /**
@@ -62273,6 +62309,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AccountErrorView"];
+                };
+            };
+        };
+    };
+    goepay_notify_commerce_webhooks_goepay_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain": string;
                 };
             };
         };

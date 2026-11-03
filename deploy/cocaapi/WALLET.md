@@ -18,7 +18,9 @@ API 调用已接入钱包预扣与结算。注册客户的个人 Key 和 Playgro
 
 ## USDT 网关适配
 
-生产默认 `UnconfiguredGateway`，网络列表为空，下单及回调返回 503。没有模拟支付或手工标记已支付的接口。选定网关后，实现 `litellm/models/commerce_payment.py` 的 `PaymentGateway`，通过 `payment_routes.get_gateway` 注入。适配器必须使用真实官方文档及商户凭据，实现创建支付、主动查单和原始请求验签，凭据仅保存在服务器受限环境文件
+已增加 [GoEpay V2 支付适配](PAYMENTS.md)，用于支付宝和微信人民币支付，再按下单时锁定的汇率计入 USD 余额。当前商户通道未开通，用户确认先部署代码，生产支付开关保持关闭，`rates` 服务每小时更新参考汇率。USDT 仍保留接口，没有启用的 USDT 收款通道
+
+支付关闭时使用 `UnconfiguredGateway`，支付方式列表为空，下单及回调返回 503。没有模拟支付或手工标记已支付的接口。其他网关需实现 `litellm/models/commerce_payment.py` 的 `PaymentGateway` 并通过 `payment_routes.get_gateway` 注入，使用真实文档完成下单、主动查单及验签，凭据仅保存在服务器受限文件
 
 网络标识预留 `tron`、`ethereum`、`bsc`，仅向用户开放实际支持的网络。适配器返回明确的商户账户、商户订单号、外部支付 ID、USDT 报价、网络、到期时间及允许的 HTTPS 支付域名。服务端校验这些字段和支付时间，发生不匹配时进入待核查状态，不入账。付款页面返回和客户端参数均不能确认到账
 

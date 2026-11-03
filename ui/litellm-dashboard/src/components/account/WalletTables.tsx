@@ -54,8 +54,8 @@ export function Pager({
 }
 
 const kinds = markUiCopy(
-  { adjustment: "人工调整", redemption: "兑换码", recharge: "USDT 充值", usage: "API 调用扣费" },
-  { adjustment: "人工调整", redemption: "兑换码", recharge: "USDT 充值", usage: "API 调用扣费" },
+  { adjustment: "人工调整", redemption: "兑换码", recharge: "在线充值", usage: "API 调用扣费" },
+  { adjustment: "人工调整", redemption: "兑换码", recharge: "在线充值", usage: "API 调用扣费" },
 );
 const ledgerColumns: ColumnDef<Ledger["items"][number]>[] = [
   markUiCopy(
@@ -166,9 +166,16 @@ export function OrdersTable({
           <div>
             <p className="tabular-nums">{formatCredits(order.credit_units)}</p>
             <p className="text-xs text-muted-foreground">
-              {order.amount_usdt ? translateMessage("%{0} USDT · ", [order.amount_usdt]) : ""}
+              {order.payment_amount ?? order.amount_usdt
+                ? `${order.payment_amount ?? order.amount_usdt} ${order.asset} · `
+                : ""}
               {localizedProperty(networkLabels, order.network, networkLabels[order.network])}
             </p>
+            {order.quote?.rate && (
+              <p className="text-xs text-muted-foreground">
+                {translateMessage("下单汇率：1 USD = %{0} CNY", [order.quote.rate])}
+              </p>
+            )}
           </div>
         ),
       },

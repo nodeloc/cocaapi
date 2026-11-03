@@ -2182,6 +2182,8 @@ model CommerceRechargeOrder {
   request_key String @unique
   status String @default("creating")
   amount_usdt String?
+  payment_amount String?
+  quote_snapshot Json?
   checkout_url String?
   external_id String?
   expires_at DateTime? @client.Timestamptz(6)
@@ -2231,4 +2233,11 @@ model CommerceCallReservation {
   wallet CommerceWallet @relation(fields: [user_id], references: [user_id], onDelete: Restrict, onUpdate: NoAction)
   @@index([user_id, created_at(sort: Desc)])
   @@index([status, created_at])
+}
+
+model CommerceExchangeRate {
+  pair String @id
+  rate String
+  rate_date DateTime @client.Date
+  fetched_at DateTime @client.Timestamptz(6)
 }

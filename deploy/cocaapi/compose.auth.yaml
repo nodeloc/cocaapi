@@ -3,6 +3,27 @@ services:
     image: ${COCAAPI_IMAGE:?Set COCAAPI_IMAGE to the tested account image}
     env_file:
       - ./auth.env
+    volumes:
+      - ./payments:/run/cocaapi-payments:ro
+
+  rates:
+    profiles: [payments]
+    image: ${COCAAPI_IMAGE:?Set COCAAPI_IMAGE to the tested account image}
+    restart: unless-stopped
+    init: true
+    entrypoint: [python3, -m, litellm.proxy.commerce.payment_rate_worker]
+    command: []
+    environment:
+      DATABASE_URL: postgresql://cocaapi:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@postgres:5432/cocaapi
+    depends_on:
+      gateway:
+        condition: service_healthy
+    mem_limit: 512m
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
 
   mail:
     profiles: [mail]

@@ -46,6 +46,9 @@ class PaymentService:
             enabled=self.enabled,
             networks=self.gateway.available_networks() if self.enabled else (),
             redemption_enabled=redemption_enabled,
+            asset="CNY"
+            if any(item.id in {"alipay", "wxpay"} for item in self.gateway.available_networks())
+            else "USDT",
         )
 
     def public(self, order: StoredOrder) -> RechargeOrder:
@@ -55,9 +58,12 @@ class PaymentService:
             user_id=order.user_id,
             credit_units=order.credit_units,
             network=order.network,
+            asset=order.asset,
             provider=order.provider,
             status="expired" if expired else order.status,
             amount_usdt=order.amount_usdt,
+            payment_amount=order.payment_amount or order.amount_usdt,
+            quote=order.quote,
             checkout_url=order.checkout_url,
             external_id=order.external_id,
             expires_at=order.expires_at,
@@ -76,6 +82,19 @@ class PaymentService:
         units: Final = parse_usd(body.amount_usd)
         if isinstance(units, AuthError):
             return units
+        request_key: Final = session.customer.user_id + ":" + request_id
+        previous: Final = await self.store.request_order(session, request_key, self.clock())
+        if isinstance(previous, AuthError):
+            return previous
+        if previous is not None:
+            if (previous.credit_units, previous.network) != (units, body.network):
+                return AuthError("idempotency_conflict", 409)
+            if previous.provider == "goepay" and previous.status == "creating":
+                return await self.refresh(previous.id, session.customer.user_id, session.customer.user_id)
+            return self.public(previous)
+        quote: Final = await self.gateway.quote_payment(units, body.network)
+        if isinstance(quote, AuthError):
+            return quote
         created: Final = await self.store.create_order(
             session,
             OrderIntent(
@@ -85,8 +104,9 @@ class PaymentService:
                 network=body.network,
                 provider=self.gateway.provider_id,
                 merchant_account_id=self.gateway.merchant_account_id,
-                request_key=session.customer.user_id + ":" + request_id,
+                request_key=request_key,
                 now=self.clock(),
+                quote=quote,
             ),
         )
         if isinstance(created, AuthError):
@@ -109,8 +129,10 @@ class PaymentService:
         ):
             return AuthError("gateway_invalid_response", 502)
         if (
-            usdt_amount(invoice.amount_usdt) is None
-            or invoice.expires_at <= self.clock()
+            usdt_amount(invoice.amount) is None
+            or (order.payment_amount is not None and usdt_amount(invoice.amount) != usdt_amount(order.payment_amount))
+            or (invoice.expires_at is not None and invoice.expires_at <= self.clock())
+            or (invoice.expires_at is None and order.provider != "goepay")
             or parsed.scheme != "https"
             or parsed.username
             or parsed.fragment
@@ -129,22 +151,23 @@ class PaymentService:
         return OrderPage(items=tuple(self.public(order) for order in page.items), has_more=page.has_more)
 
     def review_reason(self, order: StoredOrder, receipt: VerifiedPayment) -> str | None:
-        if (receipt.merchant_order_id, receipt.merchant_account_id, receipt.external_id) != (
+        if (receipt.merchant_order_id, receipt.merchant_account_id) != (
             order.id,
             order.merchant_account_id,
-            order.external_id,
-        ):
+        ) or (order.external_id is not None and receipt.external_id != order.external_id):
             return "payment_identity_mismatch"
         if receipt.asset != order.asset or receipt.network != order.network:
             return "payment_asset_mismatch"
         if (
-            order.amount_usdt is None
-            or usdt_amount(receipt.amount_usdt) is None
-            or usdt_amount(receipt.amount_usdt) != usdt_amount(order.amount_usdt)
+            (order.payment_amount or order.amount_usdt) is None
+            or usdt_amount(receipt.amount) is None
+            or usdt_amount(receipt.amount) != usdt_amount(order.payment_amount or order.amount_usdt or "")
         ):
             return "payment_amount_mismatch"
         if receipt.status == "paid" and (
-            receipt.paid_at is None or order.expires_at is None or receipt.paid_at > order.expires_at
+            receipt.paid_at is None
+            or (order.expires_at is not None and receipt.paid_at > order.expires_at)
+            or (order.expires_at is None and order.provider != "goepay")
         ):
             return "payment_time_mismatch"
         return None
@@ -163,7 +186,7 @@ class PaymentService:
             or order.merchant_account_id != self.gateway.merchant_account_id
         ):
             return AuthError("payment_unavailable", 503)
-        receipt: Final = await self.gateway.fetch_payment(order)
+        receipt: Final = await self.gateway.fetch_payment(order, recover_checkout=notification is None)
         if isinstance(receipt, AuthError):
             return receipt
         if isinstance(receipt, GatewayInvoice):
@@ -179,4 +202,16 @@ class PaymentService:
         notification: Final = await self.gateway.verify_notification(body, headers)
         if isinstance(notification, AuthError):
             return notification
+        original: Final = await self.store.get_order(notification.merchant_order_id, None)
+        if original is None:
+            return AuthError("order_not_found", 404)
+        if provider == "goepay" and (
+            original.provider != provider
+            or notification.merchant_account_id != original.merchant_account_id
+            or (original.external_id is not None and notification.external_id != original.external_id)
+            or notification.network != original.network
+            or usdt_amount(notification.amount or "")
+            != usdt_amount(original.payment_amount or original.amount_usdt or "")
+        ):
+            return AuthError("gateway_invalid_response", 502)
         return await self.refresh(notification.merchant_order_id, None, "payment:" + provider, notification)

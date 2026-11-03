@@ -359,5 +359,17 @@
   "%{0} 个第三方账号已绑定，%{1}": "%{0} connected accounts, %{1}",
   "已设置密码": "password set",
   "尚未设置密码": "password not set",
-  "第 %{0} 页": "Page %{0}"
+  "第 %{0} 页": "Page %{0}",
+  "在线充值": "Online recharge",
+  "在线支付尚未开放，仍可使用兑换码充值。": "Online payments are not available yet. You can still redeem a code.",
+  "支付方式": "Payment method",
+  "支付宝": "Alipay",
+  "微信支付": "WeChat Pay",
+  "使用人民币支付，按下单时汇率锁定应付金额。订单中可查看报价，服务端查单确认后计入 USD 余额。USDT 暂未开放。": "Pay in CNY at the exchange rate locked when the order is created. Review the quoted amount in your order. Your USD balance is credited after server verification. USDT is not available yet.",
+  "下单汇率：1 USD = %{0} CNY": "Order rate: 1 USD = %{0} CNY",
+  "在线支付尚未开放。": "Online payments are not available yet.",
+  "充值汇率暂不可用，请稍后重试。已有订单的报价不变。": "Recharge exchange rates are temporarily unavailable. Please try again later. Existing order quotes remain unchanged.",
+  "支付状态尚待核实，请稍后查单或联系管理员。": "Payment is under review. Check again later or contact an administrator.",
+  "尚未确认支付到账，请稍后查单。": "Payment has not been confirmed. Check the order again later.",
+  "支付通道尚未开通，请联系管理员。": "The payment channel is not enabled. Please contact an administrator."
 }

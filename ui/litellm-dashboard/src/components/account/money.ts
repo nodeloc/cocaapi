@@ -24,6 +24,14 @@ export const networkLabels = markUiCopy(
     tron: "TRON (TRC20)",
     ethereum: "Ethereum (ERC20)",
     bsc: "BNB Smart Chain (BEP20)",
+    alipay: "支付宝",
+    wxpay: "微信支付",
   } as const,
-  { tron: "TRON (TRC20)", ethereum: "Ethereum (ERC20)", bsc: "BNB Smart Chain (BEP20)" },
+  {
+    tron: "TRON (TRC20)",
+    ethereum: "Ethereum (ERC20)",
+    bsc: "BNB Smart Chain (BEP20)",
+    alipay: "支付宝",
+    wxpay: "微信支付",
+  },
 );

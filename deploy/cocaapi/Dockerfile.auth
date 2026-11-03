@@ -25,6 +25,7 @@ COPY litellm-proxy-extras/litellm_proxy_extras/migrations/20261101150000_commerc
 COPY litellm-proxy-extras/litellm_proxy_extras/migrations/20261102010000_commerce_api_billing/ /app/.venv/lib/python3.13/site-packages/litellm_proxy_extras/migrations/20261102010000_commerce_api_billing/
 COPY litellm-proxy-extras/litellm_proxy_extras/migrations/20261102160000_commerce_redemption_policy/ /app/.venv/lib/python3.13/site-packages/litellm_proxy_extras/migrations/20261102160000_commerce_redemption_policy/
 COPY litellm-proxy-extras/litellm_proxy_extras/migrations/20261102200000_commerce_billing_groups/ /app/.venv/lib/python3.13/site-packages/litellm_proxy_extras/migrations/20261102200000_commerce_billing_groups/
+COPY litellm-proxy-extras/litellm_proxy_extras/migrations/20261103000000_commerce_goepay/ /app/.venv/lib/python3.13/site-packages/litellm_proxy_extras/migrations/20261103000000_commerce_goepay/
 COPY ui/litellm-dashboard/out/ /app/cocaapi-ui/
 COPY ui/litellm-dashboard/out/assets/cocaapi/cocaapi-logo-horizontal-black.png /app/.venv/lib/python3.13/site-packages/litellm/proxy/logo.png
 COPY ui/litellm-dashboard/out/assets/cocaapi/cocaapi-logo-horizontal-white.png /app/.venv/lib/python3.13/site-packages/litellm/proxy/logo_dark.png

@@ -42,6 +42,8 @@
 !litellm-proxy-extras/litellm_proxy_extras/migrations/20261102160000_commerce_redemption_policy/**
 !litellm-proxy-extras/litellm_proxy_extras/migrations/20261102200000_commerce_billing_groups/
 !litellm-proxy-extras/litellm_proxy_extras/migrations/20261102200000_commerce_billing_groups/**
+!litellm-proxy-extras/litellm_proxy_extras/migrations/20261103000000_commerce_goepay/
+!litellm-proxy-extras/litellm_proxy_extras/migrations/20261103000000_commerce_goepay/**
 !ui/
 !ui/litellm-dashboard/
 !ui/litellm-dashboard/out/

@@ -2,9 +2,11 @@ import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import AccountWallet from "./AccountWallet";
 import CommerceAdmin from "./CommerceAdmin";
+const push = vi.fn();
+const replace = vi.fn();
 
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
+  useRouter: () => ({ push, replace }),
   usePathname: () => "/account/wallet/",
 }));
 vi.mock("@/app/(dashboard)/hooks/useAuthorized", () => ({
@@ -22,6 +24,36 @@ const wallet = {
 const empty = { items: [], has_more: false };
 
 describe("wallet flows", () => {
+  it("creates a CNY Alipay order with customer CSRF without presenting it as paid", async () => {
+    fetchMock.mockImplementation(async (input) => {
+      const request = input as Request;
+      if (request.url.endsWith("/me"))
+        return Response.json({ user_id: "user-a", email_verified: true, csrf_token: "customer-csrf" });
+      if (request.url.endsWith("/payment-methods"))
+        return Response.json({
+          enabled: true,
+          asset: "CNY",
+          redemption_enabled: true,
+          networks: [
+            { id: "alipay", label: "支付宝" },
+            { id: "wxpay", label: "微信支付" },
+          ],
+        });
+      if (request.method === "POST") {
+        expect(request.headers.get("X-CSRF-Token")).toBe("customer-csrf");
+        expect(request.headers.has("Authorization")).toBe(false);
+        expect(await request.json()).toEqual({ amount_usd: "10.00", network: "alipay" });
+        return Response.json({ id: "pending-cny-order", status: "pending", asset: "CNY", payment_amount: "71.24" });
+      }
+      return Response.json(request.url.includes("transactions") ? empty : wallet);
+    });
+    render(<AccountWallet />);
+    const submit = await screen.findByRole("button", { name: "创建充值订单" });
+    expect(screen.getByText(/人民币/)).toBeVisible();
+    fireEvent.click(submit);
+    await vi.waitFor(() => expect(push).toHaveBeenCalledWith("/account/orders/"));
+    expect(screen.queryByText(/充值成功/)).not.toBeInTheDocument();
+  });
   it.each([false, true])("creates a batch with the per-customer repeat setting %s", async (repeat) => {
     let created = false;
     const batch = {
@@ -104,7 +136,7 @@ describe("wallet flows", () => {
     });
     render(<AccountWallet />);
     expect(await screen.findAllByText("$5.50")).toHaveLength(2);
-    expect(screen.getByText(/USDT 支付尚未开放/)).toBeInTheDocument();
+    expect(screen.getByText(/在线支付尚未开放/)).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "创建充值订单" })).not.toBeInTheDocument();
     fireEvent.change(screen.getByLabelText("兑换码"), { target: { value: "COCA1-1234567890ABCDEF1234567890ABCDEF" } });
     fireEvent.click(screen.getByRole("button", { name: "兑换" }));

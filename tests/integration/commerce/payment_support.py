@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 
 from litellm.models.commerce_auth import AuthError
-from litellm.models.commerce_payment import GatewayInvoice, PaymentNetwork, PaymentNotification, StoredOrder, VerifiedPayment
+from litellm.models.commerce_payment import GatewayInvoice, NetworkId, PaymentNetwork, PaymentNotification, PaymentQuote, StoredOrder, VerifiedPayment
 
 
 class TestGateway:
@@ -25,6 +25,9 @@ class TestGateway:
     def available_networks(self) -> tuple[PaymentNetwork, ...]:
         return (PaymentNetwork(id="tron", label="TRON"),)
 
+    async def quote_payment(self, credit_units: int, network: NetworkId) -> PaymentQuote:
+        return PaymentQuote(amount=str(Decimal(credit_units)/Decimal(1_000_000_000)), asset="USDT")
+
     def invoice(self, order: StoredOrder) -> GatewayInvoice:
         return GatewayInvoice(merchant_order_id=order.id, merchant_account_id=self.merchant_account_id,
             external_id="payment-"+order.id, amount_usdt=str(Decimal(order.credit_units)/Decimal(1_000_000_000)),
@@ -35,13 +38,13 @@ class TestGateway:
         self.create_calls += 1
         return AuthError("gateway_timeout", 503) if self.timeout else self.invoice(order)
 
-    async def fetch_payment(self, order: StoredOrder) -> VerifiedPayment | GatewayInvoice:
+    async def fetch_payment(self, order: StoredOrder, *, recover_checkout: bool = False) -> VerifiedPayment | GatewayInvoice:
         self.fetch_calls += 1
         if self.recover_invoice:
             return self.invoice(order)
         values = self.invoice(order).model_dump(exclude={"checkout_url", "expires_at"})
         if self.mismatch:
-            values[self.mismatch] = "999" if self.mismatch == "amount_usdt" else "wrong"
+            values["amount" if self.mismatch == "amount_usdt" else self.mismatch] = "999" if self.mismatch == "amount_usdt" else "wrong"
         return VerifiedPayment.model_validate({**values, "status": "paid", "paid_at": self.paid_at})
 
     async def verify_notification(self, raw_body: bytes, headers: Mapping[str, str]) -> PaymentNotification | AuthError:

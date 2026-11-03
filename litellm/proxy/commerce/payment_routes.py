@@ -2,6 +2,7 @@ from typing import Annotated, Final, TypeAlias
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Header, Query, Request
+from fastapi.responses import PlainTextResponse
 
 from litellm.models.commerce_auth import AuthError
 from litellm.models.commerce_payment import OrderPage, PaymentGateway, PaymentMethods, RechargeInput, RechargeOrder
@@ -20,8 +21,27 @@ from litellm.proxy.commerce.payment_service import PaymentService
 from litellm.repositories.commerce_payment_repository import PaymentRepository
 
 
-def get_gateway() -> PaymentGateway:
-    return UnconfiguredGateway()
+def get_gateway(accounts: Service) -> PaymentGateway:
+    from litellm.proxy.commerce.goepay_config import goepay_settings, goepay_signature
+    from litellm.proxy.commerce.goepay_gateway import GoepayGateway
+    from litellm.proxy.commerce.goepay_protocol import GoepayClient
+    from litellm.proxy.proxy_server import prisma_client
+    from litellm.repositories.commerce_auth_repository import AccountDatabase
+    from litellm.repositories.commerce_exchange_repository import ExchangeRateRepository
+
+    settings: Final = goepay_settings()
+    if settings is None or prisma_client is None:
+        return UnconfiguredGateway()
+    signature: Final = goepay_signature(settings.private_key_file, settings.public_key_file)
+    if isinstance(signature, AuthError):
+        return UnconfiguredGateway()
+    db: Final[AccountDatabase] = prisma_client.writer_db  # pyright: ignore[reportAssignmentType]  # __getattr__ proxy
+    return GoepayGateway(
+        GoepayClient(settings.origin, settings.merchant_id, signature),
+        ExchangeRateRepository(db).latest,
+        accounts.settings.public_url,
+        recover_checkout=settings.recover_checkout,
+    )
 
 
 GatewayDep: TypeAlias = Annotated[PaymentGateway, Depends(get_gateway)]
@@ -126,3 +146,16 @@ async def notify(provider: str, request: Request, payments: PaymentDep) -> Messa
     if isinstance(result, AuthError):
         raise_public(result)
     return MessageView()
+
+
+@webhook_router.get("/goepay", response_class=PlainTextResponse)
+async def goepay_notify(request: Request, payments: PaymentDep) -> PlainTextResponse:
+    query: Final = request.url.query.encode("utf-8")
+    if len(query) > 8192:
+        raise_public(AuthError("notification_too_large", 413))
+    result: Final = await payments.notify("goepay", query, request.headers)
+    if isinstance(result, AuthError):
+        raise_public(result)
+    if result.status != "paid":
+        raise_public(AuthError("payment_not_confirmed", 503))
+    return PlainTextResponse("success")

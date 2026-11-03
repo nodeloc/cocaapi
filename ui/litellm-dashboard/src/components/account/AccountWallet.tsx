@@ -215,7 +215,7 @@ function AccountWalletContent({ ordersOnly, session }: { ordersOnly: boolean; se
                   <CardHeader>
                     <CardTitle>
                       <h2>
-                        <LocalizedText text={"USDT 充值"} />
+                        <LocalizedText text={"在线充值"} />
                       </h2>
                     </CardTitle>
                   </CardHeader>
@@ -223,7 +223,7 @@ function AccountWalletContent({ ordersOnly, session }: { ordersOnly: boolean; se
                     <form onSubmit={create} className="space-y-4">
                       {!methods?.enabled ? (
                         <p className="text-sm text-muted-foreground">
-                          <LocalizedText text={"USDT 支付尚未开放，网关接入后可选择网络并创建订单。"} />
+                          <LocalizedText text={"在线支付尚未开放，仍可使用兑换码充值。"} />
                         </p>
                       ) : (
                         <fieldset disabled={busy || !profile?.email_verified} className="space-y-3">
@@ -239,7 +239,7 @@ function AccountWalletContent({ ordersOnly, session }: { ordersOnly: boolean; se
                             pattern="[0-9]+(\.[0-9]{1,2})?"
                           />
                           <Label htmlFor="recharge-network">
-                            <LocalizedText text={"支付网络"} />
+                            <LocalizedText text={"支付方式"} />
                           </Label>
                           <Select
                             value={network}
@@ -268,7 +268,11 @@ function AccountWalletContent({ ordersOnly, session }: { ordersOnly: boolean; se
                           </Select>
                           <p className="text-xs text-muted-foreground">
                             <LocalizedText
-                              text={"以支付页面显示的 USDT 数量和网络为准，支付后由服务端查单确认入账。"}
+                              text={
+                                methods.asset === "CNY"
+                                  ? "使用人民币支付，按下单时汇率锁定应付金额。订单中可查看报价，服务端查单确认后计入 USD 余额。USDT 暂未开放。"
+                                  : "以支付页面显示的 USDT 数量和网络为准，支付后由服务端查单确认入账。"
+                              }
                             />
                           </p>
                           <Button type="submit">
