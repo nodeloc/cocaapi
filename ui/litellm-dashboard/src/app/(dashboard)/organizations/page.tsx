@@ -1,9 +1,13 @@
 "use client";
 
-import OrganizationsPanel from "./_components/OrganizationsPanel";
-import useAuthorized from "@/app/(dashboard)/hooks/useAuthorized";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { uiHref } from "@/utils/uiHref";
 
 export default function OrganizationsPage() {
-  const { accessToken, userRole, premiumUser } = useAuthorized();
-  return <OrganizationsPanel userRole={userRole ?? ""} accessToken={accessToken} premiumUser={premiumUser ?? false} />;
+  const router = useRouter();
+  useEffect(() => {
+    router.replace(uiHref("users"));
+  }, [router]);
+  return null;
 }

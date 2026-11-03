@@ -260,6 +260,17 @@ describe("wallet flows", () => {
     fetchMock.mockResolvedValue(Response.json(empty));
     render(<CommerceAdmin />);
     expect(await screen.findByRole("tab", { name: "登录与注册" })).toHaveAttribute("href", "/ui/commerce/settings/");
+    expect(screen.getByRole("tab", { name: "用户", exact: true })).toHaveAttribute("href", "/ui/users/?userTab=wallets");
+  });
+
+  it("embeds wallet management without a second finance navigation and links the same user's permissions", async () => {
+    fetchMock.mockResolvedValue(Response.json({ items: [{ ...wallet, email: "customer@example.test" }], has_more: false }));
+    render(<CommerceAdmin embedded />);
+    expect(await screen.findByText("customer@example.test")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "用户权限" })).toHaveAttribute("href", "/ui/users?user=user-a");
+    expect(screen.queryByRole("tablist", { name: "账户管理导航" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "查看与调整" }));
+    expect(screen.getByRole("heading", { name: "余额调整" })).toBeInTheDocument();
   });
   beforeEach(() => {
     fetchMock.mockReset();

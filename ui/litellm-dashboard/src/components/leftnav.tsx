@@ -33,7 +33,6 @@ import {
   Blocks,
   Bot,
   BookOpen,
-  Building2,
   Boxes,
   ChevronRight,
   Code2,
@@ -138,7 +137,7 @@ export interface MenuVisibilityContext {
 }
 
 const adminPageVisibility = (item: MenuItem, context: MenuVisibilityContext, isAdmin: boolean): boolean | null => {
-  if (item.key !== "organizations" && item.key !== "users") return null;
+  if (item.key !== "users") return null;
   const hasRoleAccess = !item.roles || item.roles.includes(context.userRole) || context.isOrgAdmin;
   if (!hasRoleAccess) return false;
   if (!isAdmin && context.enabledPagesInternalUsers != null) {
@@ -350,14 +349,7 @@ const menuGroups: MenuGroup[] = [
         icon: <Folder {...ICON} />,
         roles: [...projectReaderRoles],
       },
-      markUiCopy({ key: "users", page: "users", label: "Internal Users", icon: <User {...ICON} />, roles: all_admin_roles }, {"label": "Internal Users"}),
-      markUiCopy({
-        key: "organizations",
-        page: "organizations",
-        label: "Organizations",
-        icon: <Building2 {...ICON} />,
-        roles: all_admin_roles,
-      }, {"label": "Organizations"}),
+      markUiCopy({ key: "users", page: "users", label: "Users", icon: <User {...ICON} />, roles: all_admin_roles }, {"label": "Users"}),
       markUiCopy({
         key: "access-groups",
         page: "access-groups",
@@ -369,6 +361,7 @@ const menuGroups: MenuGroup[] = [
       markUiCopy({
         key: "commerce",
         page: "commerce",
+        route: "commerce/orders",
         label: "账户与充值",
         icon: <Wallet {...ICON} />,
         roles: ["Admin", "proxy_admin"],
@@ -490,6 +483,8 @@ const HOME_ROUTE = "home";
 
 export const routeOf = (item: MenuItem): string => item.route ?? item.page;
 
+const topLevelRouteOf = (item: MenuItem): string => routeOf(item).split("/")[0];
+
 const routeForPathname = (pathname: string): string => routeSegmentForPathname(pathname) || HOME_ROUTE;
 
 const findParentKey = (route: string): string | null => {
@@ -504,7 +499,7 @@ const findParentKey = (route: string): string | null => {
 const findMenuItemKey = (route: string): string => {
   for (const group of menuGroups) {
     for (const item of group.items) {
-      if (routeOf(item) === route) return item.key;
+      if (topLevelRouteOf(item) === route) return item.key;
       const child = item.children?.find((c) => routeOf(c) === route);
       if (child) return child.key;
     }
@@ -536,7 +531,7 @@ export const getBreadcrumb = (pathname: string): { section: string | null; title
   for (const group of menuGroups) {
     for (const item of group.items) {
       const section = sectionText(group.groupLabel);
-      if (routeOf(item) === route) return { section, title: labelText(item) };
+      if (topLevelRouteOf(item) === route) return { section, title: labelText(item) };
       const child = item.children?.find((c) => routeOf(c) === route);
       if (child) return { section, title: labelText(child) };
     }

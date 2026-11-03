@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState, useMemo, type FormEvent } fro
 import type { ColumnDef } from "@tanstack/react-table";
 import useAuthorized from "@/app/(dashboard)/hooks/useAuthorized";
 import { isProxyAdminRole } from "@/utils/roles";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,6 +27,8 @@ import {
 } from "./walletApi";
 import { formatCredits } from "./money";
 import { LedgerTable, OrdersTable, Pager } from "./WalletTables";
+import Link from "next/link";
+import { uiHref } from "@/utils/uiHref";
 
 type Section = "wallets" | "redemptions" | "orders";
 
@@ -35,7 +37,7 @@ function batchStatus(disabled: boolean, expiry: string | null): string {
   return expiry && new Date(expiry) <= new Date() ? "已到期" : "有效";
 }
 
-export default function CommerceAdmin({ section = "wallets" }: { section?: Section }) {
+export default function CommerceAdmin({ section = "wallets", embedded = false }: { section?: Section; embedded?: boolean }) {
   useUiLocale();
   const { accessToken, userRole, isViewOnly, isAuthorized } = useAuthorized();
   const allowed = isAuthorized && !isViewOnly && isProxyAdminRole(userRole);
@@ -221,9 +223,17 @@ export default function CommerceAdmin({ section = "wallets" }: { section?: Secti
           id: "actions",
           header: "操作",
           cell: ({ row }) => (
-            <Button variant="outline" size="sm" disabled={busy} onClick={() => selectWallet(row.original.user_id)}>
-              <LocalizedText text={"查看与调整"} />
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <Button variant="outline" size="sm" disabled={busy} onClick={() => selectWallet(row.original.user_id)}>
+                <LocalizedText text={"查看与调整"} />
+              </Button>
+              <Link
+                className={buttonVariants({ variant: "outline", size: "sm" })}
+                href={`${uiHref("users")}?user=${encodeURIComponent(row.original.user_id)}`}
+              >
+                <LocalizedText text={"用户权限"} />
+              </Link>
+            </div>
           ),
         },
         { header: "操作" },
@@ -328,8 +338,8 @@ export default function CommerceAdmin({ section = "wallets" }: { section?: Secti
         <LocalizedText text={"仅完整代理管理员可以管理余额、充值和兑换码。"} />
       </div>
     );
-  return (
-    <CommercePage section={section}>
+  const content = (
+    <div className="space-y-6">
       <AccountNotice error={error} message={message} />
       <p className="text-sm text-muted-foreground">
         <LocalizedText text={"余额按 USD 额度记账，API 调用通过预扣和实际费用结算。USDT 网关当前预留接口。"} />
@@ -640,6 +650,7 @@ export default function CommerceAdmin({ section = "wallets" }: { section?: Secti
           <Pager offset={offset} hasMore={orders.has_more} busy={busy} onPage={setOffset} />
         </div>
       )}
-    </CommercePage>
+    </div>
   );
+  return embedded ? content : <CommercePage section={section}>{content}</CommercePage>;
 }

@@ -216,7 +216,7 @@ function UserIdFilterField({
         hasNextPage={hasNextPage}
         isLoading={isLoading}
         isFetchingNextPage={isFetchingNextPage}
-        placeholder={translateMessage("Search an internal user")}
+        placeholder={translateMessage("Search a user")}
         emptyText={translateMessage("No users found")}
       />
     </DataTableFilterField>

@@ -10,6 +10,12 @@ import ViewUserDashboard from "./view_users";
 
 const userListCall = vi.fn();
 
+vi.mock("@/components/account/CommerceAdmin", () => ({
+  default: function WalletPanel() {
+    return <section aria-label="User balances">Wallet management</section>;
+  },
+}));
+
 // Mock the networking module
 vi.mock("@/components/networking", () => ({
   userListCall: (...args: unknown[]) => userListCall(...args),
@@ -138,6 +144,39 @@ describe("ViewUserDashboard", () => {
     await user.click(settingsTab);
 
     expect(screen.getByRole("textbox", { name: "Default setting" })).toHaveValue("unsaved change");
+  });
+
+  it("opens wallet management beside user permissions and returns to the user list", async () => {
+    const user = userEvent.setup();
+    renderDashboard();
+    expect(await screen.findByText("test@example.com")).toBeInTheDocument();
+    await user.click(screen.getByRole("tab", { name: "用户余额" }));
+    expect(screen.getByRole("region", { name: "User balances" })).toBeVisible();
+    await user.click(screen.getByRole("tab", { name: "Users" }));
+    expect(screen.getByText("test@example.com")).toBeVisible();
+  });
+
+  it("restores the wallet tab from a deep link", async () => {
+    renderWithProviders(
+      <QueryClientProvider client={createQueryClient()}>
+        <ViewUserDashboard {...defaultProps} />
+      </QueryClientProvider>,
+      { searchParams: "?userTab=wallets" },
+    );
+    expect(await screen.findByRole("region", { name: "User balances" })).toBeVisible();
+    expect(screen.getByRole("tab", { name: "用户余额" })).toHaveAttribute("aria-selected", "true");
+  });
+
+  it("does not expose wallet management to a view-only admin through a deep link", async () => {
+    renderWithProviders(
+      <QueryClientProvider client={createQueryClient()}>
+        <ViewUserDashboard {...defaultProps} userRole="proxy_admin_viewer" />
+      </QueryClientProvider>,
+      { searchParams: "?userTab=wallets" },
+    );
+    expect(await screen.findByText("test@example.com")).toBeInTheDocument();
+    expect(screen.queryByRole("tab", { name: "用户余额" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "User balances" })).not.toBeInTheDocument();
   });
 
   it("renders invite and bulk invite as toolbar actions alongside the other admin controls", async () => {

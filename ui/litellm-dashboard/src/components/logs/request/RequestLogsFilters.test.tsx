@@ -127,7 +127,7 @@ describe("RequestLogsFilters", () => {
     const user = userEvent.setup();
     const { set } = renderFilters();
 
-    await chooseSelectOption(user, await screen.findByPlaceholderText("Search an internal user"), "alice@example.com");
+    await chooseSelectOption(user, await screen.findByPlaceholderText("Search a user"), "alice@example.com");
 
     expect(set).toHaveBeenCalledWith(LOG_FILTER_IDS.USER_ID, "alice@example.com");
   });
@@ -136,7 +136,7 @@ describe("RequestLogsFilters", () => {
     const user = userEvent.setup();
     renderFilters();
 
-    const input = await screen.findByPlaceholderText("Search an internal user");
+    const input = await screen.findByPlaceholderText("Search a user");
     await user.click(input);
     fireEvent.change(input, { target: { value: "alice@example.com" } });
 
@@ -163,7 +163,7 @@ describe("RequestLogsFilters", () => {
     const user = userEvent.setup();
     renderFilters();
 
-    await user.click(await screen.findByPlaceholderText("Search an internal user"));
+    await user.click(await screen.findByPlaceholderText("Search a user"));
     const list = await screen.findByTestId("paginated-search-select-list");
     Object.defineProperty(list, "scrollTop", { value: 90, configurable: true });
     Object.defineProperty(list, "clientHeight", { value: 10, configurable: true });

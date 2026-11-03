@@ -263,8 +263,7 @@ describe("Sidebar (leftnav)", () => {
       "Logs",
       "Guardrails Monitor",
       "Teams",
-      "Internal Users",
-      "Organizations",
+      "Users",
       "Access Groups",
       "Budgets",
       "API Reference",
@@ -547,7 +546,7 @@ describe("Sidebar (leftnav)", () => {
     });
   });
 
-  it("should show Organizations tab for organization admins", () => {
+  it("does not show the unavailable Organizations page to organization admins", () => {
     mockUseAuthorized.mockReturnValue({
       userId: "org-admin-user-id",
       accessToken: "test-access-token",
@@ -584,7 +583,23 @@ describe("Sidebar (leftnav)", () => {
 
     renderWithProviders(<Sidebar {...defaultProps} />);
 
-    expect(screen.getByText("Organizations")).toBeInTheDocument();
+    expect(screen.queryByText("Organizations")).not.toBeInTheDocument();
+  });
+
+  it("uses a single Users entry and removes Organizations for proxy admins", () => {
+    renderWithProviders(<Sidebar {...defaultProps} />);
+    expect(screen.getByRole("link", { name: "Users", exact: true })).toHaveAttribute("href", "/ui/users");
+    expect(screen.queryByText("Internal Users")).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Organizations" })).not.toBeInTheDocument();
+  });
+
+  it("opens finance orders and keeps the finance section active", () => {
+    mockUseAuthorized.mockReturnValue({ ...teamAdminAuthorization, userRole: "proxy_admin" });
+    navState.pathname = "/ui/commerce/orders/";
+    renderWithProviders(<Sidebar {...defaultProps} />);
+    const finance = screen.getByRole("link", { name: "账户与充值", exact: true });
+    expect(finance).toHaveAttribute("href", "/ui/commerce/orders");
+    expect(finance).toHaveAttribute("data-active", "true");
   });
 
   it("shows Projects to an internal user who administers a team", () => {

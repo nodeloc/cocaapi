@@ -1,6 +1,6 @@
 "use client";
 import { LocalizedText, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
-import { parseAsString, useQueryState } from "nuqs";
+import { parseAsString, parseAsStringLiteral, useQueryState } from "nuqs";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 
 import BulkEditUserModal from "./BulkEditUsers";
@@ -36,6 +36,7 @@ import { DefaultUserSettingsForm } from "./default-user-settings/DefaultUserSett
 import { UsersTable } from "./view_users/UsersTable";
 import UserInfoView from "./view_users/user_info_view";
 import { UserInfo } from "@/components/networking";
+import CommerceAdmin from "@/components/account/CommerceAdmin";
 
 interface ViewUserDashboardProps {
   accessToken: string | null;
@@ -62,6 +63,12 @@ const ViewUserDashboard: React.FC<ViewUserDashboardProps> = ({
 }) => {
   useUiLocale();
   const isProxyAdmin = userRole ? isProxyAdminRole(userRole) : false;
+  const [activeTab, setActiveTab] = useQueryState(
+    "userTab",
+    parseAsStringLiteral(["users", "wallets", "default-settings"] as const)
+      .withDefault("users")
+      .withOptions({ history: "push" }),
+  );
   const queryClient = useQueryClient();
 
   const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: DEFAULT_PAGE_SIZE });
@@ -320,7 +327,7 @@ const ViewUserDashboard: React.FC<ViewUserDashboardProps> = ({
 
   return (
     <div className="w-full overflow-hidden p-8">
-      <div className="mb-4 flex items-center justify-between">
+      <div className={activeTab === "wallets" ? "hidden" : "mb-4 flex items-center justify-between"}>
         <div className="flex space-x-3">
           {userListQuery.isLoading && (
             <>
@@ -368,10 +375,19 @@ const ViewUserDashboard: React.FC<ViewUserDashboardProps> = ({
       </div>
 
       {isProxyAdmin ? (
-        <Tabs defaultValue="users" className="gap-0">
+        <Tabs
+          value={activeTab}
+          onValueChange={(value) => {
+            if (value === "users" || value === "wallets" || value === "default-settings") void setActiveTab(value);
+          }}
+          className="gap-0"
+        >
           <TabsList variant="line" className="mb-4">
             <TabsTrigger value="users" className="flex-none data-active:text-primary after:bg-primary">
               <LocalizedText text={"Users"} />
+            </TabsTrigger>
+            <TabsTrigger value="wallets" className="flex-none data-active:text-primary after:bg-primary">
+              <LocalizedText text={"用户余额"} />
             </TabsTrigger>
             <TabsTrigger value="default-settings" className="flex-none data-active:text-primary after:bg-primary">
               <LocalizedText text={"Default User Settings"} />
@@ -380,6 +396,10 @@ const ViewUserDashboard: React.FC<ViewUserDashboardProps> = ({
 
           <TabsContent value="users" keepMounted>
             {usersTable}
+          </TabsContent>
+
+          <TabsContent value="wallets">
+            <CommerceAdmin embedded />
           </TabsContent>
 
           <TabsContent value="default-settings" keepMounted>

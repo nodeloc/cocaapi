@@ -484,7 +484,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ proxySettings }) => {
         <LocalizedText text={"Admin Access"} />
       </h2>
       <p className="mb-4 text-sm text-foreground">
-        <LocalizedText text={"Go to 'Internal Users' page to add other admins."} />
+        <LocalizedText text={"Go to 'Users' page to add other admins."} />
       </p>
       <Tabs defaultValue={tabItems[0].key}>
         <TabsList variant="line" className="mb-4 h-auto flex-wrap">
