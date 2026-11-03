@@ -47,7 +47,7 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllGlobals());
 
 it("saves multiplier and deny settings with version and reason using the native administration page", async () => {
-  render(<BillingGroupsAdmin />);
+  render(<BillingGroupsAdmin embedded />);
   const row = await screen.findByRole("row", { name: /普通组.*普通模型组.*1/ });
   fireEvent.click(within(row).getByRole("button", { name: "编辑" }));
   fireEvent.change(screen.getByLabelText("调用倍率"), { target: { value: "0.8" } });

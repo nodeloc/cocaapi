@@ -1,4 +1,7 @@
 {
+  "统一管理用户分组、模型组倍率与资源权限，保留现有账户和 Key 授权": "Manage user groups, model group multipliers and resource permissions while preserving existing account and Key access",
+  "管理 Key 和团队的资源权限，不修改账户分组与计费倍率": "Manage resource permissions for Keys and teams without changing account groups or billing multipliers",
+  "资源权限": "Resource Permissions",
   "用户权限": "User permissions",
   "已记录邀请链接": "Invitation link recorded",
   "取消邀请": "Remove Invitation",

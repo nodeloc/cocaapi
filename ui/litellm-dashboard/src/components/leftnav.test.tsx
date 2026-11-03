@@ -264,7 +264,7 @@ describe("Sidebar (leftnav)", () => {
       "Guardrails Monitor",
       "Teams",
       "Users",
-      "Access Groups",
+      "User Groups",
       "Budgets",
       "API Reference",
       "AI Hub",

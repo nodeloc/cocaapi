@@ -33,7 +33,7 @@ function mapResponseToAccessGroup(r: AccessGroupResponse): AccessGroup {
   };
 }
 
-export function AccessGroupsPage() {
+export function AccessGroupsPage({ embedded = false }: { embedded?: boolean }) {
   useUiLocale();
   const { userRole } = useAuthorized();
   // Admin Viewer follows the read-parity rule: see access groups, no writes.
@@ -63,14 +63,14 @@ export function AccessGroupsPage() {
   }
 
   return (
-    <Page>
+    <Page className={embedded ? "p-0 sm:p-0" : undefined}>
       <PageHeader>
         <PageHeaderTitle>
           <Boxes />
-          <LocalizedText text={"Access Groups"} />
+          <LocalizedText text={embedded ? "Resource Permissions" : "Access Groups"} />
         </PageHeaderTitle>
         <PageHeaderDescription>
-          <LocalizedText text={"Manage resource permissions for your organization"} />
+          <LocalizedText text={embedded ? "管理 Key 和团队的资源权限，不修改账户分组与计费倍率" : "Manage resource permissions for your organization"} />
         </PageHeaderDescription>
         {canModify && (
           <PageHeaderControls>

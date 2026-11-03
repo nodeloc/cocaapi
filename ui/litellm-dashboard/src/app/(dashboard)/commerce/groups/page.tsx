@@ -1,3 +1,13 @@
-import BillingGroupsAdmin from "@/components/account/BillingGroupsAdmin";
+"use client";
 
-export default BillingGroupsAdmin;
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { uiHref } from "@/utils/uiHref";
+
+export default function BillingGroupsPage() {
+  const router = useRouter();
+  useEffect(() => {
+    router.replace(`${uiHref("access-groups")}?groupTab=billing`);
+  }, [router]);
+  return null;
+}

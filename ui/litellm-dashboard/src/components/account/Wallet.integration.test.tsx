@@ -259,8 +259,13 @@ describe("wallet flows", () => {
   it("links administrators to login and registration settings", async () => {
     fetchMock.mockResolvedValue(Response.json(empty));
     render(<CommerceAdmin />);
-    expect(await screen.findByRole("tab", { name: "登录与注册" })).toHaveAttribute("href", "/ui/commerce/settings/");
-    expect(screen.getByRole("tab", { name: "用户", exact: true })).toHaveAttribute("href", "/ui/users/?userTab=wallets");
+    const settings = await screen.findByRole("tab", { name: "登录与注册" });
+    const users = screen.getByRole("tab", { name: "用户", exact: true });
+    const settingsUrl = new URL(settings.getAttribute("href") ?? "", "http://localhost");
+    const usersUrl = new URL(users.getAttribute("href") ?? "", "http://localhost");
+    expect(settingsUrl.pathname.replace(/\/$/, "")).toBe("/ui/commerce/settings");
+    expect(usersUrl.pathname.replace(/\/$/, "")).toBe("/ui/users");
+    expect(usersUrl.searchParams.get("userTab")).toBe("wallets");
   });
 
   it("embeds wallet management without a second finance navigation and links the same user's permissions", async () => {

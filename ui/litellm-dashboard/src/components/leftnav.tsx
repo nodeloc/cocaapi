@@ -353,10 +353,10 @@ const menuGroups: MenuGroup[] = [
       markUiCopy({
         key: "access-groups",
         page: "access-groups",
-        label: "Access Groups",
+        label: "User Groups",
         icon: <Boxes {...ICON} />,
         roles: all_admin_roles,
-      }, {"label": "Access Groups"}),
+      }, {"label": "User Groups"}),
       markUiCopy({ key: "budgets", page: "budgets", label: "Budgets", icon: <Wallet {...ICON} />, roles: all_admin_roles }, {"label": "Budgets"}),
       markUiCopy({
         key: "commerce",

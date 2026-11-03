@@ -2,6 +2,7 @@ import { render } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import CommercePage from "@/app/(dashboard)/commerce/page";
 import OrganizationsPage from "@/app/(dashboard)/organizations/page";
+import BillingGroupsPage from "@/app/(dashboard)/commerce/groups/page";
 
 const replace = vi.fn();
 const router = { replace };
@@ -19,5 +20,10 @@ describe("consolidated user routes", () => {
   it("redirects the unavailable organization screen to Users", () => {
     render(<OrganizationsPage />);
     expect(replace).toHaveBeenCalledWith("/ui/users");
+  });
+
+  it("redirects the old billing groups page to User Groups", () => {
+    render(<BillingGroupsPage />);
+    expect(replace).toHaveBeenCalledWith("/ui/access-groups?groupTab=billing");
   });
 });

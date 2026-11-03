@@ -1,4 +1,7 @@
 {
+  "User Groups": "用户组",
+  "Resource Permissions": "资源权限",
+  "Manage user groups, billing multipliers and resource permissions": "管理用户分组、计费倍率和资源权限",
   "- \"what is the capital of France?\" -> SIMPLE": "- “法国的首都是哪里？” -> SIMPLE",
   "- All message contents": "- 所有消息内容",
   "- All text in documents array": "- documents 数组中的所有文本",

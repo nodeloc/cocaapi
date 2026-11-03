@@ -1,9 +1,7 @@
 "use client";
 
-import { AccessGroupsPage } from "./_components/AccessGroupsPage";
-import useAuthorized from "@/app/(dashboard)/hooks/useAuthorized";
+import UserGroupsPage from "@/components/account/UserGroupsPage";
 
 export default function AccessGroups() {
-  useAuthorized();
-  return <AccessGroupsPage />;
+  return <UserGroupsPage />;
 }

@@ -27,7 +27,7 @@ const defaultRule: BillingRule = {
 const samePair = (left: BillingRule, right: BillingRule) =>
   left.user_group_id === right.user_group_id && left.model_group_id === right.model_group_id;
 
-export default function BillingGroupsAdmin() {
+export default function BillingGroupsAdmin({ embedded = false }: { embedded?: boolean }) {
   useUiLocale();
   const { accessToken, userRole, isViewOnly, isAuthorized } = useAuthorized();
   const allowed = isAuthorized && !isViewOnly && isProxyAdminRole(userRole);
@@ -165,8 +165,8 @@ export default function BillingGroupsAdmin() {
         <LocalizedText text={"仅完整代理管理员可以配置分组与倍率。"} />
       </div>
     );
-  return (
-    <CommercePage section="groups">
+  const content = (
+    <div className="space-y-6">
       <AccountNotice error={error} message={message} />
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-muted-foreground">
@@ -488,6 +488,7 @@ export default function BillingGroupsAdmin() {
         </>
       )}
       {saved && accessToken && <BillingGroupMembers token={accessToken} config={saved} />}
-    </CommercePage>
+    </div>
   );
+  return embedded ? content : <CommercePage section="groups">{content}</CommercePage>;
 }

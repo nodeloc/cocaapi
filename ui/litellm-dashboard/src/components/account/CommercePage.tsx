@@ -2,6 +2,7 @@
 import { localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import type { ReactNode } from "react";
+import Link from "next/link";
 import { Settings2, Wallet } from "lucide-react";
 import { Page, PageTabs, PageTabsContent, PageTabsList, PageTabsTrigger } from "@/components/shared/Page";
 import { PageHeader, PageHeaderControls, PageHeaderDescription, PageHeaderTitle } from "@/components/shared/PageHeader";
@@ -10,7 +11,7 @@ const sections = [
   markUiCopy({ id: "wallets", href: "/ui/users/?userTab=wallets", label: "用户" }, { label: "用户" }),
   markUiCopy({ id: "redemptions", href: "/ui/commerce/redemptions/", label: "兑换码" }, { label: "兑换码" }),
   markUiCopy({ id: "orders", href: "/ui/commerce/orders/", label: "充值订单" }, { label: "充值订单" }),
-  markUiCopy({ id: "groups", href: "/ui/commerce/groups/", label: "分组与倍率" }, { label: "分组与倍率" }),
+  markUiCopy({ id: "groups", href: "/ui/access-groups/?groupTab=billing", label: "用户组" }, { label: "用户组" }),
   markUiCopy({ id: "settings", href: "/ui/commerce/settings/", label: "登录与注册" }, { label: "登录与注册" }),
   markUiCopy({ id: "payments", href: "/ui/commerce/payments/", label: "易支付" }, { label: "易支付" }),
   markUiCopy({ id: "referrals", href: "/ui/commerce/referrals/", label: "邀请有礼" }, { label: "邀请有礼" }),
@@ -42,7 +43,7 @@ export function CommercePage({ section, children }: { section: (typeof sections)
                   key={item.id}
                   value={item.id}
                   nativeButton={false}
-                  render={<a href={item.href} aria-current={section === item.id ? "page" : undefined} />}
+                  render={<Link href={item.href} aria-current={section === item.id ? "page" : undefined} />}
                 >
                   {localizedProperty(item, "label", item.label)}
                 </PageTabsTrigger>
