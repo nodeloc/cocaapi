@@ -44505,6 +44505,8 @@ export interface components {
              * @enum {string}
              */
             asset: "USDT" | "CNY";
+            /** Checkout Expires At */
+            checkout_expires_at?: string | null;
             /** Checkout Url */
             checkout_url: string | null;
             /**

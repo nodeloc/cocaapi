@@ -15,6 +15,7 @@ from litellm.models.commerce_auth import AuthError
 from litellm.models.commerce_payment import ExchangeRate, RechargeInput, RechargeOrder
 from litellm.proxy.commerce.goepay_gateway import GoepayGateway
 from litellm.proxy.commerce.goepay_protocol import GoepayClient, GoepaySignature, canonical_fields
+from litellm.proxy.commerce.payment_checkout import CHECKOUT_LIFETIME
 from litellm.proxy.commerce.payment_routes import get_payment_service
 from litellm.proxy.commerce.payment_service import PaymentService
 from litellm.repositories.commerce_exchange_repository import ExchangeRateRepository
@@ -130,6 +131,63 @@ async def service(customer: WalletClient) -> tuple[PaymentService, Provider]:
     payments: Final = PaymentService(PaymentRepository(customer.database), gateway, lambda: customer.now)
     customer.app.dependency_overrides[get_payment_service] = lambda: payments
     return payments, provider
+
+
+@pytest.mark.asyncio
+async def test_expired_checkout_is_hidden_but_verified_late_payment_still_credits_once(
+    wallet_client: WalletClient,
+) -> None:
+    payments, provider = await service(wallet_client)
+    created: Final = await payments.create(
+        wallet_client.session, RechargeInput(amount_usd="10", network="alipay"), uuid4().hex
+    )
+    assert isinstance(created, RechargeOrder)
+    deadline: Final = wallet_client.now + timedelta(seconds=5)
+    await wallet_client.database.execute_raw(
+        'UPDATE "CommerceRechargeOrder" SET checkout_url=$2 WHERE id=$1',
+        created.id,
+        "https://payments.example.test/checkout/test?expires=" + str(int(deadline.timestamp())),
+    )
+    later: Final = PaymentService(payments.store, payments.gateway, lambda: wallet_client.now + timedelta(minutes=2))
+    expired: Final = await later.get(created.id, created.user_id)
+    assert isinstance(expired, RechargeOrder) and expired.status == "expired" and expired.checkout_url is None
+    assert expired.checkout_expires_at is not None and expired.checkout_expires_at <= later.clock()
+    provider.paid = True
+    provider.query_fields = {
+        "endtime": (wallet_client.now + timedelta(seconds=30))
+        .astimezone(timezone(timedelta(hours=8)))
+        .strftime("%Y-%m-%d %H:%M:%S")
+    }
+    paid: Final = await later.refresh(created.id, created.user_id, created.user_id)
+    assert isinstance(paid, RechargeOrder) and paid.status == "paid" and paid.checkout_url is None
+    assert paid.paid_at is not None and paid.paid_at > expired.checkout_expires_at
+    repeated: Final = await later.refresh(created.id, created.user_id, created.user_id)
+    assert isinstance(repeated, RechargeOrder) and repeated.status == "paid"
+    balance: Final = await wallet_client.http.get("/account/api/v1/wallet")
+    assert balance.json()["available_units"] == str(created.credit_units)
+
+
+@pytest.mark.asyncio
+async def test_expired_uncertain_creation_is_queried_without_reissuing_checkout(wallet_client: WalletClient) -> None:
+    payments, provider = await service(wallet_client)
+    provider.timeout_create = True
+    result: Final = await payments.create(
+        wallet_client.session, RechargeInput(amount_usd="10", network="alipay"), uuid4().hex
+    )
+    assert isinstance(result, AuthError)
+    assert isinstance(payments.gateway, GoepayGateway)
+    later_time: Final = wallet_client.now + CHECKOUT_LIFETIME + timedelta(seconds=1)
+    later_gateway: Final = GoepayGateway(
+        payments.gateway.client,
+        payments.gateway.rates,
+        payments.gateway.public_url,
+        lambda: later_time,
+        recover_checkout=True,
+    )
+    later: Final = PaymentService(payments.store, later_gateway, lambda: later_time)
+    checked: Final = await later.refresh(provider.order_id, wallet_client.session.customer.user_id, "test")
+    assert isinstance(checked, RechargeOrder) and checked.status == "expired" and checked.checkout_url is None
+    assert provider.create_calls == 1
 
 
 @pytest.mark.asyncio

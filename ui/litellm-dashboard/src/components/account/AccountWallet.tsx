@@ -16,6 +16,7 @@ import { Stat } from "@/app/(dashboard)/usage/_components/components/overview/Pr
 import { RefreshCw } from "lucide-react";
 import { formatCredits } from "./money";
 import { LedgerTable, OrdersTable, Pager } from "./WalletTables";
+import { payableCheckout } from "./paymentCheckout";
 import { CustomerSessionBoundary } from "./native/CustomerSessionProvider";
 import type { CustomerSession } from "./native/CustomerSessionContext";
 
@@ -102,8 +103,13 @@ function AccountWalletContent({ ordersOnly, session }: { ordersOnly: boolean; se
     if (request.current?.body !== body) request.current = { body, key: crypto.randomUUID() };
     const key = request.current.key;
     void run(async () => {
-      await walletApi.create({ amount_usd: amount, network }, profile.csrf_token, key);
+      const order = await walletApi.create({ amount_usd: amount, network }, profile.csrf_token, key);
       request.current = null;
+      const checkout = payableCheckout(order);
+      if (checkout) {
+        location.assign(checkout);
+        return;
+      }
       push("/account/orders/");
     });
   };
@@ -276,7 +282,7 @@ function AccountWalletContent({ ordersOnly, session }: { ordersOnly: boolean; se
                             />
                           </p>
                           <Button type="submit">
-                            <LocalizedText text={"创建充值订单"} />
+                            <LocalizedText text={"去支付"} />
                           </Button>
                         </fieldset>
                       )}
@@ -312,6 +318,22 @@ function AccountWalletContent({ ordersOnly, session }: { ordersOnly: boolean; se
                 orders={orders}
                 busy={busy}
                 checkout
+                onCheckout={(id) => {
+                  if (profile)
+                    void run(async () => {
+                      const order = await walletApi.refresh(id, profile.csrf_token);
+                      const checkout = payableCheckout(order);
+                      if (checkout) {
+                        location.assign(checkout);
+                        return;
+                      }
+                      setMessage(
+                        order.status === "paid"
+                          ? translateMessage("充值已到账。")
+                          : translateMessage("支付链接已过期或不可用，请重新发起充值。"),
+                      );
+                    });
+                }}
                 onRefresh={(id) => {
                   if (profile)
                     void run(async () => {

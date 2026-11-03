@@ -21,6 +21,7 @@ from litellm.models.commerce_payment import (
     VerifiedPayment,
 )
 from litellm.proxy.commerce.auth_service import utcnow
+from litellm.proxy.commerce.payment_checkout import checkout_deadline
 from litellm.proxy.commerce.wallet_service import parse_usd
 
 
@@ -52,7 +53,8 @@ class PaymentService:
         )
 
     def public(self, order: StoredOrder) -> RechargeOrder:
-        expired: Final = order.status == "pending" and order.expires_at is not None and order.expires_at <= self.clock()
+        deadline: Final = checkout_deadline(order)
+        expired: Final = order.status == "pending" and deadline is not None and deadline <= self.clock()
         return RechargeOrder(
             id=order.id,
             user_id=order.user_id,
@@ -64,7 +66,8 @@ class PaymentService:
             amount_usdt=order.amount_usdt,
             payment_amount=order.payment_amount or order.amount_usdt,
             quote=order.quote,
-            checkout_url=order.checkout_url,
+            checkout_url=order.checkout_url if order.status == "pending" and not expired else None,
+            checkout_expires_at=deadline,
             external_id=order.external_id,
             expires_at=order.expires_at,
             paid_at=order.paid_at,

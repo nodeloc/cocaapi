@@ -2,12 +2,14 @@
 import { LocalizedText, getIntlLocale, localizedProperty, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 
 import type { ColumnDef } from "@tanstack/react-table";
+import { useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { DataTable } from "@/components/shared/DataTable";
 import { formatCredits, networkLabels, orderLabels } from "./money";
 import type { Ledger, Orders } from "./walletApi";
+import { checkoutDeadline, checkoutExpired, payableCheckout } from "./paymentCheckout";
 
 export function Pager({
   offset,
@@ -131,14 +133,27 @@ export function OrdersTable({
   orders,
   busy,
   onRefresh,
+  onCheckout,
   checkout = false,
 }: {
   orders: Orders;
   busy: boolean;
   onRefresh: (id: string) => void;
+  onCheckout?: (id: string) => void;
   checkout?: boolean;
 }) {
   useUiLocale();
+  const [now, setNow] = useState(Date.now);
+  useEffect(() => {
+    const until = Math.min(
+      ...orders.items
+        .map((order) => (order.status === "pending" ? checkoutDeadline(order) : null))
+        .filter((value): value is number => value !== null && Number.isFinite(value) && value > now),
+    );
+    if (!Number.isFinite(until)) return;
+    const timer = setTimeout(() => setNow(Date.now()), Math.min(Math.max(until - Date.now(), 0), 2_147_483_647));
+    return () => clearTimeout(timer);
+  }, [orders.items, now]);
   const columns: ColumnDef<Orders["items"][number]>[] = [
     markUiCopy(
       {
@@ -188,11 +203,20 @@ export function OrdersTable({
         cell: ({ row: { original: order } }) => (
           <div>
             <Badge variant={order.status === "paid" ? "default" : "secondary"}>
-              {localizedProperty(orderLabels, order.status, orderLabels[order.status])}
+              {checkoutExpired(order, now)
+                ? translateMessage("已过期")
+                : localizedProperty(orderLabels, order.status, orderLabels[order.status])}
             </Badge>
             {order.status === "review" && (
               <p className="mt-1 text-xs text-muted-foreground">
                 <LocalizedText text={"请联系管理员核查"} />
+              </p>
+            )}
+            {order.status === "pending" && !checkoutExpired(order, now) && order.checkout_expires_at && (
+              <p className="mt-1 text-xs text-muted-foreground">
+                {translateMessage("支付有效期至 %{0}", [
+                  new Date(order.checkout_expires_at).toLocaleString(getIntlLocale()),
+                ])}
               </p>
             )}
           </div>
@@ -206,13 +230,9 @@ export function OrdersTable({
         header: "操作",
         cell: ({ row: { original: order } }) => (
           <div className="flex items-center gap-2">
-            {checkout && order.status === "pending" && order.checkout_url && (
-              <Button
-                variant="outline"
-                size="sm"
-                render={<a href={order.checkout_url} target="_blank" rel="noopener noreferrer" />}
-              >
-                <LocalizedText text={"前往支付"} />
+            {checkout && onCheckout && payableCheckout(order, now) && (
+              <Button variant="outline" size="sm" disabled={busy} onClick={() => onCheckout(order.id)}>
+                <LocalizedText text={"去支付"} />
               </Button>
             )}
             {order.status !== "paid" && (

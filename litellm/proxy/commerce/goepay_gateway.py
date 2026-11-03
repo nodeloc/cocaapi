@@ -19,6 +19,7 @@ from litellm.models.commerce_payment import (
 )
 from litellm.proxy.commerce.auth_service import utcnow
 from litellm.proxy.commerce.goepay_protocol import GoepayClient
+from litellm.proxy.commerce.payment_checkout import checkout_deadline
 from litellm.proxy.commerce.payment_rates import quote_cny
 
 _BUSINESS_ZONE: Final = timezone(timedelta(hours=8))
@@ -108,6 +109,9 @@ class GoepayGateway:
             return AuthError("gateway_invalid_response", 502)
 
     async def create_payment(self, order: StoredOrder) -> GatewayInvoice | AuthError:
+        deadline: Final = checkout_deadline(order)
+        if deadline is not None and deadline <= self.clock():
+            return AuthError("checkout_expired", 409)
         if order.payment_amount is None or order.asset != "CNY" or order.network not in {"alipay", "wxpay"}:
             return AuthError("gateway_invalid_response", 502)
         result: Final = await self.client.call(
@@ -158,7 +162,14 @@ class GoepayGateway:
         receipt: Final = self._receipt(order, result)
         if isinstance(receipt, AuthError):
             return receipt
-        if receipt.status == "pending" and not order.checkout_url and self.recover_checkout and recover_checkout:
+        deadline: Final = checkout_deadline(order)
+        if (
+            receipt.status == "pending"
+            and not order.checkout_url
+            and self.recover_checkout
+            and recover_checkout
+            and (deadline is None or deadline > self.clock())
+        ):
             invoice: Final = await self.create_payment(order)
             if isinstance(invoice, AuthError):
                 return invoice

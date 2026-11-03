@@ -1,4 +1,7 @@
 {
+  "去支付": "Pay Now",
+  "支付有效期至 %{0}": "Pay before %{0}",
+  "支付链接已过期或不可用，请重新发起充值。": "The payment link has expired or is unavailable. Start a new top-up.",
   "易支付": "易支付",
   "启用易支付": "Enable 易支付",
   "配置易支付网关、商户号与签名密钥": "Configure the 易支付 gateway, merchant ID and signing keys",

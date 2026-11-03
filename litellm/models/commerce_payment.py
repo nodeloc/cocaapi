@@ -55,6 +55,7 @@ class RechargeOrder(FrozenModel):
     payment_amount: str | None = None
     quote: PaymentQuote | None = None
     checkout_url: str | None
+    checkout_expires_at: datetime | None = None
     external_id: str | None
     expires_at: datetime | None
     paid_at: datetime | None
