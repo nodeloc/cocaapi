@@ -1,7 +1,7 @@
 from datetime import datetime
-from typing import Final, Literal, Protocol, TypeAlias
+from typing import Annotated, Final, Literal, Protocol, TypeAlias
 
-from pydantic import Field, SecretStr, field_serializer
+from pydantic import Field, SecretStr, field_serializer, field_validator
 
 from litellm.models.commerce_auth import AuthError, FrozenModel, Session
 from litellm.models.commerce_billing_groups import PricingSnapshot
@@ -87,6 +87,19 @@ class WalletPage(FrozenModel):
     has_more: bool
 
 
+class WalletLookup(FrozenModel):
+    user_ids: tuple[Annotated[str, Field(min_length=1, max_length=256, pattern=r"\S")], ...] = Field(
+        min_length=1, max_length=100
+    )
+
+    @field_validator("user_ids")
+    @classmethod
+    def unique_user_ids(cls, value: tuple[str, ...]) -> tuple[str, ...]:
+        if len(value) != len(frozenset(value)):
+            raise ValueError("User IDs must be unique")
+        return value
+
+
 class AdjustmentInput(FrozenModel):
     amount_usd: str = Field(min_length=1, max_length=16)
     direction: Literal["credit", "debit"]
@@ -102,6 +115,7 @@ class WalletStore(Protocol):
     async def transactions(self, user_id: str, limit: int, offset: int) -> LedgerPage: ...
     async def adjust(self, change: WalletChange) -> LedgerEntry | AuthError: ...
     async def wallets(self, search: str, limit: int, offset: int) -> WalletPage: ...
+    async def lookup_wallets(self, user_ids: tuple[str, ...]) -> WalletPage: ...
 
 
 class RedeemBatch(FrozenModel):

@@ -470,5 +470,14 @@
   "充值汇率暂不可用，请稍后重试。已有订单的报价不变。": "Recharge exchange rates are temporarily unavailable. Please try again later. Existing order quotes remain unchanged.",
   "支付状态尚待核实，请稍后查单或联系管理员。": "Payment is under review. Check again later or contact an administrator.",
   "尚未确认支付到账，请稍后查单。": "Payment has not been confirmed. Check the order again later.",
-  "支付通道尚未开通，请联系管理员。": "The payment channel is not enabled. Please contact an administrator."
+  "支付通道尚未开通，请联系管理员。": "The payment channel is not enabled. Please contact an administrator.",
+  "余额与流水": "Balance and transactions",
+  "余额与流水 %{0}": "Balance and transactions for %{0}",
+  "余额流水": "Transactions",
+  "调整余额": "Adjust balance",
+  "冻结 %{0}": "Reserved %{0}",
+  "待补缴 %{0}": "Outstanding %{0}",
+  "余额暂不可用，请刷新后重试。": "Balance is unavailable. Refresh and try again.",
+  "调整将直接影响用户可用额度，请核对用户并填写原因。": "This changes the user’s available credit. Check the account and provide a reason.",
+  "账户已不存在，请刷新用户列表。": "The account no longer exists. Refresh the user list."
 }

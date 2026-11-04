@@ -8,6 +8,7 @@ import BulkCreateUsersButton from "@/components/bulk_create_users_button";
 import { CreateUserButton } from "@/components/CreateUserButton";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { RefreshCw } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   getPossibleUserRoles,
@@ -36,7 +37,8 @@ import { DefaultUserSettingsForm } from "./default-user-settings/DefaultUserSett
 import { UsersTable } from "./view_users/UsersTable";
 import UserInfoView from "./view_users/user_info_view";
 import { UserInfo } from "@/components/networking";
-import CommerceAdmin from "@/components/account/CommerceAdmin";
+import UserWalletDialog, { type WalletAdjustmentRequests } from "@/components/account/UserWalletDialog";
+import { useUserWallets } from "@/components/account/UserWalletCells";
 import { useUserGroupMemberships } from "@/components/account/useUserGroupMemberships";
 import UserGroupChangeDialog from "@/components/account/UserGroupChangeDialog";
 import type { BillingMember } from "@/components/account/billingGroupsApi";
@@ -75,6 +77,11 @@ const ViewUserDashboard: React.FC<ViewUserDashboardProps> = ({
       .withOptions({ history: "push" }),
   );
   const queryClient = useQueryClient();
+  useEffect(() => {
+    if (activeTab === "wallets") void setActiveTab(null, { history: "replace" });
+  }, [activeTab, setActiveTab]);
+  const [walletTarget, setWalletTarget] = useState<{ userId: string; email: string | null } | null>(null);
+  const [walletRequests] = useState<WalletAdjustmentRequests>(() => new Map());
 
   const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: DEFAULT_PAGE_SIZE });
   const [sorting, setSorting] = useState<SortingState>(DEFAULT_SORTING);
@@ -294,6 +301,18 @@ const ViewUserDashboard: React.FC<ViewUserDashboardProps> = ({
   const possibleUIRoles = userRolesQuery.data;
 
   const users = useMemo<UserInfo[]>(() => userListQuery.data?.users ?? [], [userListQuery.data]);
+  const finances = useUserWallets(
+    users.map((user) => user.user_id),
+    accessToken,
+    isProxyAdmin,
+  );
+  const openWallet = useCallback(
+    (userId: string) => {
+      const user = users.find((candidate) => candidate.user_id === userId);
+      setWalletTarget({ userId, email: user?.user_email ?? null });
+    },
+    [users],
+  );
   const totalUserCount = userListQuery.data?.total ?? 0;
   const groupMemberships = useUserGroupMemberships(
     users.map((user) => user.user_id),
@@ -307,6 +326,13 @@ const ViewUserDashboard: React.FC<ViewUserDashboardProps> = ({
     toast.success(translateMessage("已调整 %{0} 个用户的用户组", [String(members.length)]));
     setRowSelection({});
     setSelectionMode(false);
+  };
+  const refreshUsers = async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["userList"] }),
+      queryClient.invalidateQueries({ queryKey: ["userGroupMemberships"] }),
+      queryClient.invalidateQueries({ queryKey: ["adminUserWallets"] }),
+    ]);
   };
 
   if (selectedUserId) {
@@ -325,6 +351,9 @@ const ViewUserDashboard: React.FC<ViewUserDashboardProps> = ({
 
   const usersTable = (
     <UsersTable
+      wallets={finances.wallets}
+      walletStatus={finances.status}
+      onOpenWallet={isProxyAdmin ? openWallet : undefined}
       groupMembers={groupMemberships.members}
       groupStatus={groupMemberships.status}
       onChangeUserGroup={isProxyAdmin ? changeUserGroup : undefined}
@@ -352,8 +381,8 @@ const ViewUserDashboard: React.FC<ViewUserDashboardProps> = ({
 
   return (
     <div className="w-full overflow-hidden p-8">
-      <div className={activeTab === "wallets" ? "hidden" : "mb-4 flex items-center justify-between"}>
-        <div className="flex space-x-3">
+      <div className="mb-4 flex items-center justify-between">
+        <div className="flex flex-wrap gap-3">
           {userListQuery.isLoading && (
             <>
               <Skeleton className="h-9 w-28" />
@@ -363,11 +392,11 @@ const ViewUserDashboard: React.FC<ViewUserDashboardProps> = ({
           )}
           {!userListQuery.isLoading && userID && accessToken && (
             <>
-              {isProxyAdmin && (
+              {isProxyAdmin && !selectionMode && (
                 <CreateUserButton userID={userID} accessToken={accessToken} possibleUIRoles={possibleUIRoles} />
               )}
 
-              {isProxyAdmin && (
+              {isProxyAdmin && !selectionMode && (
                 <BulkCreateUsersButton accessToken={accessToken} teams={teams} possibleUIRoles={possibleUIRoles} />
               )}
 
@@ -382,6 +411,11 @@ const ViewUserDashboard: React.FC<ViewUserDashboardProps> = ({
                 </Button>
               )}
 
+              {isProxyAdmin && selectionMode && (
+                <span className="self-center text-sm text-muted-foreground">
+                  {translateMessage("已选择 %{0} 个用户", [String(selectedUsers.length)])}
+                </span>
+              )}
               {isProxyAdmin && selectionMode && (
                 <Button
                   type="button"
@@ -410,6 +444,15 @@ const ViewUserDashboard: React.FC<ViewUserDashboardProps> = ({
             </>
           )}
         </div>
+        <Button
+          variant="outline"
+          size="icon-sm"
+          disabled={userListQuery.isFetching}
+          aria-label={translateMessage("刷新用户")}
+          onClick={() => void refreshUsers()}
+        >
+          <RefreshCw />
+        </Button>
       </div>
 
       {isProxyAdmin ? (
@@ -424,9 +467,6 @@ const ViewUserDashboard: React.FC<ViewUserDashboardProps> = ({
             <TabsTrigger value="users" className="flex-none data-active:text-primary after:bg-primary">
               <LocalizedText text={"Users"} />
             </TabsTrigger>
-            <TabsTrigger value="wallets" className="flex-none data-active:text-primary after:bg-primary">
-              <LocalizedText text={"用户余额"} />
-            </TabsTrigger>
             <TabsTrigger value="default-settings" className="flex-none data-active:text-primary after:bg-primary">
               <LocalizedText text={"Default User Settings"} />
             </TabsTrigger>
@@ -434,10 +474,6 @@ const ViewUserDashboard: React.FC<ViewUserDashboardProps> = ({
 
           <TabsContent value="users" keepMounted>
             {usersTable}
-          </TabsContent>
-
-          <TabsContent value="wallets">
-            <CommerceAdmin embedded />
           </TabsContent>
 
           <TabsContent value="default-settings" keepMounted>
@@ -470,6 +506,16 @@ const ViewUserDashboard: React.FC<ViewUserDashboardProps> = ({
           skippedCount={skippedGroupTargets}
           onClose={() => setGroupTargets([])}
           onSaved={handleGroupSaved}
+        />
+      )}
+      {accessToken && isProxyAdmin && walletTarget && (
+        <UserWalletDialog
+          key={walletTarget.userId}
+          token={accessToken}
+          userId={walletTarget.userId}
+          email={walletTarget.email}
+          requests={walletRequests}
+          onClose={() => setWalletTarget(null)}
         />
       )}
 

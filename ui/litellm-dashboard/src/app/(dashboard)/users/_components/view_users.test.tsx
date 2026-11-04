@@ -11,12 +11,6 @@ import ViewUserDashboard from "./view_users";
 const userListCall = vi.fn();
 const groupFetch = vi.fn<typeof fetch>();
 
-vi.mock("@/components/account/CommerceAdmin", () => ({
-  default: function WalletPanel() {
-    return <section aria-label="User balances">Wallet management</section>;
-  },
-}));
-
 // Mock the networking module
 vi.mock("@/components/networking", () => ({
   userListCall: (...args: unknown[]) => userListCall(...args),
@@ -104,6 +98,25 @@ describe("ViewUserDashboard", () => {
     vi.clearAllMocks();
     groupFetch.mockImplementation(async (input) => {
       const request = input as Request;
+      if (request.url.includes("/transactions")) return Response.json({ items: [], has_more: false });
+      if (request.url.endsWith("/wallets/lookup")) {
+        const value = (await request.json()) as { user_ids: string[] };
+        return Response.json({
+          items: value.user_ids
+            .filter((id) => id !== "system-user")
+            .map((user_id) => ({
+              user_id,
+              email: "test@example.com",
+              available_units: "12340000000",
+              reserved_units: "0",
+              credited_units: "15000000000",
+              debited_units: "2660000000",
+              debt_units: "0",
+              currency: "USD",
+            })),
+          has_more: false,
+        });
+      }
       if (request.url.endsWith("/lookup")) {
         const value = (await request.json()) as { user_ids: string[] };
         return Response.json({
@@ -137,6 +150,25 @@ describe("ViewUserDashboard", () => {
     });
   });
   afterEach(() => vi.unstubAllGlobals());
+
+  it("shows identity, group and balance in one selectable directory and keeps its state after closing the wallet", async () => {
+    const user = userEvent.setup();
+    renderDashboard();
+    expect(await screen.findByRole("button", { name: "余额与流水 test@example.com" })).toHaveTextContent("$12.34");
+    expect(screen.getByText("普通组", { exact: true })).toBeInTheDocument();
+    expect(screen.getAllByRole("table")).toHaveLength(1);
+    expect(screen.queryByRole("tab", { name: "用户余额" })).not.toBeInTheDocument();
+    const search = screen.getByPlaceholderText("Search by email or ID…");
+    fireEvent.change(search, { target: { value: "test@example.com" } });
+    await waitFor(() => expect(userListCall.mock.calls.at(-1)?.[11]).toBe("test@example.com"));
+    await user.click(screen.getByTestId("toggle-user-selection"));
+    await user.click(screen.getByRole("checkbox", { name: "Select test@example.com", exact: true }));
+    await user.click(screen.getByRole("button", { name: "余额与流水 test@example.com" }));
+    expect(await screen.findByRole("dialog", { name: "余额与流水" })).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Close", exact: true }));
+    expect(search).toHaveValue("test@example.com");
+    expect(screen.getByRole("checkbox", { name: "Select test@example.com", exact: true })).toBeChecked();
+  });
 
   it("should render the ViewUserDashboard component", async () => {
     renderDashboard();
@@ -259,25 +291,15 @@ describe("ViewUserDashboard", () => {
     expect(screen.getByRole("textbox", { name: "Default setting" })).toHaveValue("unsaved change");
   });
 
-  it("opens wallet management beside user permissions and returns to the user list", async () => {
-    const user = userEvent.setup();
-    renderDashboard();
-    expect(await screen.findByText("test@example.com")).toBeInTheDocument();
-    await user.click(screen.getByRole("tab", { name: "用户余额" }));
-    expect(screen.getByRole("region", { name: "User balances" })).toBeVisible();
-    await user.click(screen.getByRole("tab", { name: "Users" }));
-    expect(screen.getByText("test@example.com")).toBeVisible();
-  });
-
-  it("restores the wallet tab from a deep link", async () => {
+  it("opens legacy wallet bookmarks in the unified directory", async () => {
     renderWithProviders(
       <QueryClientProvider client={createQueryClient()}>
         <ViewUserDashboard {...defaultProps} />
       </QueryClientProvider>,
       { searchParams: "?userTab=wallets" },
     );
-    expect(await screen.findByRole("region", { name: "User balances" })).toBeVisible();
-    expect(screen.getByRole("tab", { name: "用户余额" })).toHaveAttribute("aria-selected", "true");
+    expect(await screen.findByRole("button", { name: "余额与流水 test@example.com" })).toBeVisible();
+    expect(screen.queryByRole("tab", { name: "用户余额" })).not.toBeInTheDocument();
   });
 
   it("does not expose wallet management to a view-only admin through a deep link", async () => {
@@ -293,6 +315,44 @@ describe("ViewUserDashboard", () => {
     expect(await screen.findByText("普通组", { exact: true })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /调整用户组/ })).not.toBeInTheDocument();
     expect(screen.queryByTestId("toggle-user-selection")).not.toBeInTheDocument();
+    expect(groupFetch.mock.calls.some(([input]) => (input as Request).url.includes("/wallets/"))).toBe(false);
+  });
+
+  it("shows unavailable instead of a zero balance when financial lookup fails", async () => {
+    const initialNetwork = groupFetch.getMockImplementation();
+    groupFetch.mockImplementation(async (input, init) => {
+      if ((input as Request).url.endsWith("/wallets/lookup"))
+        return Response.json({ detail: "unavailable" }, { status: 503 });
+      return initialNetwork!(input, init);
+    });
+    renderDashboard();
+    expect(await screen.findByText("暂不可用", { exact: true })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "余额与流水 test@example.com" })).not.toBeInTheDocument();
+    expect(screen.queryByText("$0.00", { exact: true })).not.toBeInTheDocument();
+  });
+
+  it("shows a disabled customer as inactive even when the native user has no SCIM status", async () => {
+    const initialNetwork = groupFetch.getMockImplementation();
+    groupFetch.mockImplementation(async (input, init) => {
+      if ((input as Request).url.endsWith("/members/lookup"))
+        return Response.json({
+          items: [
+            {
+              user_id: "user-1",
+              email: "test@example.com",
+              enabled: false,
+              group_id: "default",
+              group_name: "普通组",
+              version: 2,
+            },
+          ],
+          has_more: false,
+        });
+      return initialNetwork!(input, init);
+    });
+    renderDashboard();
+    expect(await screen.findByText("Inactive", { exact: true })).toBeInTheDocument();
+    expect(screen.queryByText("Active", { exact: true })).not.toBeInTheDocument();
   });
 
   it("renders invite and bulk invite as toolbar actions alongside the other admin controls", async () => {

@@ -171,6 +171,18 @@ class WalletRepository:
             items=tuple(WalletSummary.model_validate(row) for row in rows[:limit]), has_more=len(rows) > limit
         )
 
+    async def lookup_wallets(self, user_ids: tuple[str, ...]) -> WalletPage:
+        rows: Final = await self.database.query_raw(
+            """SELECT c.user_id,c.email_normalized AS email,
+            COALESCE(w.available_units,0)::bigint AS available_units, COALESCE(w.reserved_units,0)::bigint AS reserved_units,
+            COALESCE(w.credited_units,0)::bigint AS credited_units,COALESCE(w.debited_units,0)::bigint AS debited_units,
+            COALESCE(w.debt_units,0)::bigint AS debt_units
+            FROM "CommerceCustomer" c LEFT JOIN "CommerceWallet" w ON w.user_id=c.user_id
+            WHERE c.user_id=ANY($1::text[]) ORDER BY c.user_id""",
+            list(user_ids),
+        )
+        return WalletPage(items=tuple(WalletSummary.model_validate(row) for row in rows), has_more=False)
+
     async def reserve_call(
         self,
         user_id: str,

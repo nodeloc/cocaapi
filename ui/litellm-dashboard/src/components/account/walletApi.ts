@@ -128,6 +128,13 @@ export const walletApi = {
         params: { query: { search, offset, limit: 25 } },
       }),
     ),
+  lookupWallets: async (token: string, user_ids: string[]) =>
+    unwrapWallet(
+      await client.POST("/commerce/admin/v1/wallets/lookup", {
+        headers: admin(token),
+        body: { user_ids },
+      }),
+    ),
   adminLedger: async (token: string, user_id: string, offset: number) =>
     unwrapWallet(
       await client.GET("/commerce/admin/v1/wallets/{user_id}/transactions", {

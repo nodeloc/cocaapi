@@ -7,7 +7,7 @@ import { uiHref } from "@/utils/uiHref";
 export default function CommercePage() {
   const router = useRouter();
   useEffect(() => {
-    router.replace(`${uiHref("users")}?userTab=wallets`);
+    router.replace(uiHref("users"));
   }, [router]);
   return null;
 }

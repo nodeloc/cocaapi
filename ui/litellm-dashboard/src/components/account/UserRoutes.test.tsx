@@ -12,9 +12,9 @@ vi.mock("next/navigation", () => ({ useRouter: () => router }));
 describe("consolidated user routes", () => {
   beforeEach(() => replace.mockReset());
 
-  it("redirects legacy wallet bookmarks to the Users wallet tab", () => {
+  it("redirects legacy wallet bookmarks to the unified Users directory", () => {
     render(<CommercePage />);
-    expect(replace).toHaveBeenCalledWith("/ui/users?userTab=wallets");
+    expect(replace).toHaveBeenCalledWith("/ui/users");
   });
 
   it("redirects the unavailable organization screen to Users", () => {

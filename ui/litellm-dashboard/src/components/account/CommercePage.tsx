@@ -8,7 +8,7 @@ import { Page, PageTabs, PageTabsContent, PageTabsList, PageTabsTrigger } from "
 import { PageHeader, PageHeaderControls, PageHeaderDescription, PageHeaderTitle } from "@/components/shared/PageHeader";
 
 const sections = [
-  markUiCopy({ id: "wallets", href: "/ui/users/?userTab=wallets", label: "用户" }, { label: "用户" }),
+  markUiCopy({ id: "wallets", href: "/ui/users/", label: "用户" }, { label: "用户" }),
   markUiCopy({ id: "redemptions", href: "/ui/commerce/redemptions/", label: "兑换码" }, { label: "兑换码" }),
   markUiCopy({ id: "orders", href: "/ui/commerce/orders/", label: "充值订单" }, { label: "充值订单" }),
   markUiCopy({ id: "groups", href: "/ui/access-groups/?groupTab=billing", label: "用户组" }, { label: "用户组" }),

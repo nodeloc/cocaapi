@@ -25,6 +25,7 @@ import { getUsersTableColumns } from "./UsersTableColumns";
 import type { BillingMember } from "@/components/account/billingGroupsApi";
 import type { MembershipStatus } from "@/components/account/useUserGroupMemberships";
 import { UserGroupMembershipContext } from "@/components/account/UserGroupCell";
+import { UserWalletContext, type UserWallet } from "@/components/account/UserWalletCells";
 
 export interface UsersTableTeamOption {
   team_id: string;
@@ -32,6 +33,9 @@ export interface UsersTableTeamOption {
 }
 
 interface UsersTableProps {
+  wallets?: ReadonlyMap<string, UserWallet>;
+  walletStatus?: "disabled" | "loading" | "ready" | "error";
+  onOpenWallet?: (userId: string) => void;
   groupMembers?: ReadonlyMap<string, BillingMember>;
   groupStatus?: MembershipStatus;
   onChangeUserGroup?: (userId: string) => void;
@@ -84,6 +88,9 @@ function EmptyState() {
 }
 
 export function UsersTable({
+  wallets,
+  walletStatus = "disabled",
+  onOpenWallet,
   groupMembers,
   groupStatus = "disabled",
   onChangeUserGroup,
@@ -110,9 +117,11 @@ export function UsersTable({
   useUiLocale();
   const [filtersOpen, setFiltersOpen] = useState(false);
   const includeUserGroups = groupStatus !== "disabled";
+  const includeWallets = walletStatus !== "disabled";
 
   const columns = useMemo(() => {
     const columnDeps = {
+      includeWallets,
       includeUserGroups,
       possibleUIRoles,
       includeSelection: selectionEnabled,
@@ -121,7 +130,15 @@ export function UsersTable({
       onResetPassword,
     };
     return getUsersTableColumns(columnDeps);
-  }, [possibleUIRoles, selectionEnabled, onUserClick, onDeleteUser, onResetPassword, includeUserGroups]);
+  }, [
+    possibleUIRoles,
+    selectionEnabled,
+    onUserClick,
+    onDeleteUser,
+    onResetPassword,
+    includeUserGroups,
+    includeWallets,
+  ]);
 
   const roleOptions = useMemo(
     () =>
@@ -153,89 +170,103 @@ export function UsersTable({
   };
 
   return (
-    <UserGroupMembershipContext.Provider
-      value={{ members: groupMembers ?? new Map(), status: groupStatus, onChange: onChangeUserGroup }}
-    >
-      <DataTable
-        data={data}
-        columns={columns}
-        getRowId={(row) => row.user_id}
-        sortingMode="server"
-        sorting={sorting}
-        onSortingChange={onSortingChange}
-        paginationMode="server"
-        pagination={pagination}
-        onPaginationChange={onPaginationChange}
-        rowCount={rowCount}
-        filterMode="server"
-        columnFilters={columnFilters}
-        onColumnFiltersChange={onColumnFiltersChange}
-        rowSelection={rowSelection}
-        onRowSelectionChange={onRowSelectionChange}
-        isLoading={isLoading}
-        loadingMessage={translateMessage("Loading users…")}
-        noDataMessage={<EmptyState />}
-        size="compact"
-        toolbar={(table) => (
-          <>
-            <DataTableToolbar
-              table={table}
-              searchValue={searchValue}
-              onSearchChange={onSearchChange}
-              searchPlaceholder={translateMessage("Search by email or ID…")}
-              onOpenFilters={() => setFiltersOpen(true)}
-              filterLabels={FILTER_LABELS}
-              formatFilterValue={formatFilterValue}
-            />
-            <DataTableFilterDrawer
-              table={table}
-              open={filtersOpen}
-              onOpenChange={setFiltersOpen}
-              title={translateMessage("Filters")}
-              description={translateMessage("Narrow down your users")}
-            >
-              {({ get, set }) => (
-                <>
-                  <DataTableFilterField label={translateMessage("User ID")}>
-                    <Input
-                      value={(get("user_id") as string) ?? ""}
-                      onChange={(event) => set("user_id", event.target.value)}
-                      placeholder={translateMessage("Enter user ID…")}
-                      data-testid="users-filter-user-id"
-                    />
-                  </DataTableFilterField>
-                  <DataTableFilterField label={translateMessage("SSO ID")}>
-                    <Input
-                      value={(get("sso_user_id") as string) ?? ""}
-                      onChange={(event) => set("sso_user_id", event.target.value)}
-                      placeholder={translateMessage("Enter SSO ID…")}
-                      data-testid="users-filter-sso-id"
-                    />
-                  </DataTableFilterField>
-                  <DataTableFilterField label={translateMessage("Role")}>
-                    <SearchSelect
-                      options={roleOptions}
-                      value={(get("user_role") as string) || undefined}
-                      onValueChange={(value) => set("user_role", value ?? undefined)}
-                      placeholder={translateMessage("Select a role…")}
-                      emptyText={translateMessage("No roles found")}
-                    />
-                  </DataTableFilterField>
-                  <DataTableFilterField label={translateMessage("Team")}>
-                    <SearchSelect
-                      options={teamOptions}
-                      value={(get("team") as string) || undefined}
-                      onValueChange={(value) => set("team", value ?? undefined)}
-                      placeholder={translateMessage("Select a team…")}
-                      emptyText={translateMessage("No teams found")}
-                    />
-                  </DataTableFilterField>
-                </>
-              )}
-            </DataTableFilterDrawer>
-          </>
-        )}
-      />
-    </UserGroupMembershipContext.Provider>
+    <UserWalletContext.Provider value={{ wallets: wallets ?? new Map(), status: walletStatus, onOpen: onOpenWallet }}>
+      <UserGroupMembershipContext.Provider
+        value={{ members: groupMembers ?? new Map(), status: groupStatus, onChange: onChangeUserGroup }}
+      >
+        <DataTable
+          data={data}
+          columns={columns}
+          getRowId={(row) => row.user_id}
+          sortingMode="server"
+          sorting={sorting}
+          onSortingChange={onSortingChange}
+          paginationMode="server"
+          pagination={pagination}
+          onPaginationChange={onPaginationChange}
+          rowCount={rowCount}
+          filterMode="server"
+          columnFilters={columnFilters}
+          onColumnFiltersChange={onColumnFiltersChange}
+          rowSelection={rowSelection}
+          onRowSelectionChange={onRowSelectionChange}
+          isLoading={isLoading}
+          loadingMessage={translateMessage("Loading users…")}
+          noDataMessage={<EmptyState />}
+          size="compact"
+          defaultColumnVisibility={
+            includeWallets
+              ? {
+                  user_id: false,
+                  user_alias: false,
+                  max_budget: false,
+                  sso_user_id: false,
+                  updated_at: false,
+                  wallet_totals: false,
+                }
+              : undefined
+          }
+          toolbar={(table) => (
+            <>
+              <DataTableToolbar
+                table={table}
+                searchValue={searchValue}
+                onSearchChange={onSearchChange}
+                searchPlaceholder={translateMessage("Search by email or ID…")}
+                onOpenFilters={() => setFiltersOpen(true)}
+                filterLabels={FILTER_LABELS}
+                formatFilterValue={formatFilterValue}
+              />
+              <DataTableFilterDrawer
+                table={table}
+                open={filtersOpen}
+                onOpenChange={setFiltersOpen}
+                title={translateMessage("Filters")}
+                description={translateMessage("Narrow down your users")}
+              >
+                {({ get, set }) => (
+                  <>
+                    <DataTableFilterField label={translateMessage("User ID")}>
+                      <Input
+                        value={(get("user_id") as string) ?? ""}
+                        onChange={(event) => set("user_id", event.target.value)}
+                        placeholder={translateMessage("Enter user ID…")}
+                        data-testid="users-filter-user-id"
+                      />
+                    </DataTableFilterField>
+                    <DataTableFilterField label={translateMessage("SSO ID")}>
+                      <Input
+                        value={(get("sso_user_id") as string) ?? ""}
+                        onChange={(event) => set("sso_user_id", event.target.value)}
+                        placeholder={translateMessage("Enter SSO ID…")}
+                        data-testid="users-filter-sso-id"
+                      />
+                    </DataTableFilterField>
+                    <DataTableFilterField label={translateMessage("Role")}>
+                      <SearchSelect
+                        options={roleOptions}
+                        value={(get("user_role") as string) || undefined}
+                        onValueChange={(value) => set("user_role", value ?? undefined)}
+                        placeholder={translateMessage("Select a role…")}
+                        emptyText={translateMessage("No roles found")}
+                      />
+                    </DataTableFilterField>
+                    <DataTableFilterField label={translateMessage("Team")}>
+                      <SearchSelect
+                        options={teamOptions}
+                        value={(get("team") as string) || undefined}
+                        onValueChange={(value) => set("team", value ?? undefined)}
+                        placeholder={translateMessage("Select a team…")}
+                        emptyText={translateMessage("No teams found")}
+                      />
+                    </DataTableFilterField>
+                  </>
+                )}
+              </DataTableFilterDrawer>
+            </>
+          )}
+        />
+      </UserGroupMembershipContext.Provider>
+    </UserWalletContext.Provider>
   );
 }

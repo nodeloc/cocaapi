@@ -1,7 +1,5 @@
 import { act, fireEvent, screen } from "@testing-library/react";
 import { renderWithProviders as render, testQueryClient } from "@/../tests/test-utils";
-import { chooseSelectOption } from "@/../tests/test-utils";
-import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import AccountWallet from "./AccountWallet";
 import CommerceAdmin from "./CommerceAdmin";
@@ -29,89 +27,6 @@ const wallet = {
 const empty = { items: [], has_more: false };
 
 describe("wallet flows", () => {
-  it("refreshes group membership when another admin changes the group without changing the wallet list", async () => {
-    const user = userEvent.setup();
-    let groupName = "普通组";
-    vi.stubGlobal(
-      "fetch",
-      vi.fn<typeof fetch>().mockImplementation(async (input) => {
-        const request = input as Request;
-        if (request.url.endsWith("/lookup"))
-          return Response.json({
-            items: [
-              {
-                user_id: wallet.user_id,
-                email: "a@example.test",
-                enabled: true,
-                group_id: groupName,
-                group_name: groupName,
-                version: 1,
-              },
-            ],
-            has_more: false,
-          });
-        return Response.json({ items: [{ ...wallet, email: "a@example.test" }], has_more: false });
-      }),
-    );
-    render(<CommerceAdmin embedded />);
-    expect(await screen.findByText("普通组", { exact: true })).toBeInTheDocument();
-    groupName = "VIP";
-    await user.click(screen.getByRole("button", { name: "刷新", exact: true }));
-    expect(await screen.findByText("VIP", { exact: true })).toBeInTheDocument();
-    expect(screen.queryByText("普通组", { exact: true })).not.toBeInTheDocument();
-  });
-  it("shows wallet user groups and submits the checked wallets as one versioned batch", async () => {
-    const user = userEvent.setup();
-    const wallets = [
-      { ...wallet, email: "a@example.test" },
-      { ...wallet, user_id: "user-b", email: "b@example.test" },
-    ];
-    const members = wallets.map((value) => ({
-      user_id: value.user_id,
-      email: value.email,
-      enabled: true,
-      group_id: "default",
-      group_name: "普通组",
-      version: 1,
-    }));
-    const groups = {
-      user_groups: [
-        { id: "default", name: "普通组" },
-        { id: "vip", name: "VIP" },
-      ],
-    };
-    const network = vi.fn<typeof fetch>().mockImplementation(async (input) => {
-      const request = input as Request;
-      if (request.url.endsWith("/lookup")) return Response.json({ items: members, has_more: false });
-      if (request.url.endsWith("/billing-groups")) return Response.json(groups);
-      return Response.json({ items: wallets, has_more: false });
-    });
-    vi.stubGlobal("fetch", network);
-    render(<CommerceAdmin embedded />);
-    expect(await screen.findAllByText("普通组", { exact: true })).toHaveLength(2);
-    await user.click(screen.getByRole("button", { name: "Select Users", exact: true }));
-    await user.click(screen.getByRole("checkbox", { name: "Select all rows", exact: true }));
-    await user.click(screen.getByRole("button", { name: "批量调整用户组", exact: true }));
-    await chooseSelectOption(user, await screen.findByRole("combobox", { name: "目标用户组" }), "VIP");
-    fireEvent.change(screen.getByLabelText("调整原因"), { target: { value: "钱包用户归组" } });
-    const updated = members.map((member) => ({ ...member, group_id: "vip", group_name: "VIP", version: 2 }));
-    network.mockImplementation(async (input) => {
-      const request = input as Request;
-      if (request.url.endsWith("/batch"))
-        expect(await request.json()).toEqual({
-          group_id: "vip",
-          reason: "钱包用户归组",
-          members: [
-            { user_id: "user-a", expected_version: 1 },
-            { user_id: "user-b", expected_version: 1 },
-          ],
-        });
-      return Response.json({ items: updated, has_more: false });
-    });
-    await user.click(screen.getByRole("button", { name: "保存用户组" }));
-    expect(await screen.findAllByText("VIP", { exact: true })).toHaveLength(2);
-    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-  });
   it("removes payment when the link expires while the order table stays open", async () => {
     vi.useFakeTimers();
     const now = new Date("2030-01-01T00:00:00Z");
@@ -344,27 +259,16 @@ describe("wallet flows", () => {
 
   it("links administrators to login and registration settings", async () => {
     fetchMock.mockResolvedValue(Response.json(empty));
-    render(<CommerceAdmin />);
+    render(<CommerceAdmin section="orders" />);
     const settings = await screen.findByRole("tab", { name: "登录与注册" });
     const users = screen.getByRole("tab", { name: "用户", exact: true });
     const settingsUrl = new URL(settings.getAttribute("href") ?? "", "http://localhost");
     const usersUrl = new URL(users.getAttribute("href") ?? "", "http://localhost");
     expect(settingsUrl.pathname.replace(/\/$/, "")).toBe("/ui/commerce/settings");
     expect(usersUrl.pathname.replace(/\/$/, "")).toBe("/ui/users");
-    expect(usersUrl.searchParams.get("userTab")).toBe("wallets");
+    expect(usersUrl.searchParams.get("userTab")).toBeNull();
   });
 
-  it("embeds wallet management without a second finance navigation and links the same user's permissions", async () => {
-    fetchMock.mockResolvedValue(
-      Response.json({ items: [{ ...wallet, email: "customer@example.test" }], has_more: false }),
-    );
-    render(<CommerceAdmin embedded />);
-    expect(await screen.findByText("customer@example.test")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "用户权限" })).toHaveAttribute("href", "/ui/users?user=user-a");
-    expect(screen.queryByRole("tablist", { name: "账户管理导航" })).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "查看与调整" }));
-    expect(screen.getByRole("heading", { name: "余额调整" })).toBeInTheDocument();
-  });
   beforeEach(() => {
     testQueryClient.clear();
     fetchMock.mockReset();
@@ -426,30 +330,6 @@ describe("wallet flows", () => {
     expect(screen.getByLabelText("兑换码")).toHaveValue("");
   });
 
-  it("keeps successful adjustments visible and clears the form if the later ledger read fails", async () => {
-    let adjusted = false;
-    fetchMock.mockImplementation(async (input) => {
-      const request = input as Request;
-      expect(request.headers.get("Authorization")).toBe("Bearer native-admin");
-      if (request.method === "POST") {
-        expect(request.headers.get("Idempotency-Key")).toMatch(/^[0-9a-f-]{36}$/);
-        expect(await request.json()).toEqual({ amount_usd: "10.00", direction: "credit", reason: "补发额度" });
-        adjusted = true;
-        return Response.json({ id: "entry" });
-      }
-      if (request.url.includes("transactions"))
-        return adjusted ? Response.json({ detail: "unavailable" }, { status: 503 }) : Response.json(empty);
-      return Response.json({ items: [{ ...wallet, email: "user@example.test" }], has_more: false });
-    });
-    render(<CommerceAdmin />);
-    fireEvent.click(await screen.findByRole("button", { name: "查看与调整" }));
-    fireEvent.change(screen.getByLabelText("调整原因"), { target: { value: "补发额度" } });
-    fireEvent.click(screen.getByRole("button", { name: "确认调整" }));
-    expect(await screen.findByRole("status")).toHaveTextContent("余额已调整");
-    expect(await screen.findByRole("alert")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "确认调整" })).toBeDisabled();
-  });
-
   it("shows API charges, reserved funds and outstanding debt separately", async () => {
     fetchMock.mockImplementation(async (input) => {
       const request = input as Request;
@@ -485,49 +365,5 @@ describe("wallet flows", () => {
     expect(screen.getByText("调用冻结")).toBeInTheDocument();
     expect(screen.getByText("待补缴")).toBeInTheDocument();
     expect(screen.getByRole("alert")).toHaveTextContent("后续充值或兑换将优先抵扣");
-  });
-
-  it("ignores an old customer's slow ledger response after switching customers", async () => {
-    let resolveOld: (value: Response) => void = () => {
-      throw new Error("No pending request");
-    };
-    const old = new Promise<Response>((resolve) => {
-      resolveOld = resolve;
-    });
-    fetchMock.mockImplementation(async (input) => {
-      const request = input as Request;
-      if (request.url.includes("user-a/transactions")) return old;
-      if (request.url.includes("user-b/transactions")) return Response.json(empty);
-      return Response.json({
-        items: [
-          { ...wallet, email: "a@example.test" },
-          { ...wallet, user_id: "user-b", email: "b@example.test" },
-        ],
-        has_more: false,
-      });
-    });
-    render(<CommerceAdmin />);
-    const actions = await screen.findAllByRole("button", { name: "查看与调整" });
-    fireEvent.click(actions[0]);
-    fireEvent.click(actions[1]);
-    expect(await screen.findByText("暂无余额变动")).toBeInTheDocument();
-    await act(async () => {
-      resolveOld(
-        Response.json({
-          items: [
-            {
-              id: "old",
-              created_at: "2026-01-01T00:00:00Z",
-              kind: "adjustment",
-              reason: "旧账户流水",
-              delta_units: "1",
-              available_after: "1",
-            },
-          ],
-          has_more: false,
-        }),
-      );
-    });
-    expect(screen.queryByText("旧账户流水")).not.toBeInTheDocument();
   });
 });

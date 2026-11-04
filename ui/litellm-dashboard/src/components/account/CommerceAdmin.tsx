@@ -3,66 +3,35 @@ import { LocalizedText, getIntlLocale, localizedProperty, markUiCopy, translateM
 
 import { useCallback, useEffect, useRef, useState, useMemo, type FormEvent } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
-import type { RowSelectionState } from "@tanstack/react-table";
 import useAuthorized from "@/app/(dashboard)/hooks/useAuthorized";
 import { isProxyAdminRole } from "@/utils/roles";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { createSelectionColumn, DataTable } from "@/components/shared/DataTable";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DataTable } from "@/components/shared/DataTable";
 import { RefreshCw, Search } from "lucide-react";
-import { useQueryClient } from "@tanstack/react-query";
 import { CommercePage } from "./CommercePage";
 import { AccountNotice } from "./AccountShell";
-import {
-  walletApi,
-  type Wallets,
-  type Batches,
-  type GeneratedBatch,
-  type Orders,
-  type Ledger,
-  type Adjustment,
-} from "./walletApi";
+import { walletApi, type Batches, type GeneratedBatch, type Orders } from "./walletApi";
 import { formatCredits } from "./money";
-import { LedgerTable, OrdersTable, Pager } from "./WalletTables";
-import Link from "next/link";
-import { uiHref } from "@/utils/uiHref";
-import { useUserGroupMemberships } from "./useUserGroupMemberships";
-import { UserGroupColumnCell, UserGroupMembershipContext } from "./UserGroupCell";
-import UserGroupChangeDialog from "./UserGroupChangeDialog";
-import type { BillingMember } from "./billingGroupsApi";
+import { OrdersTable, Pager } from "./WalletTables";
 
-type Section = "wallets" | "redemptions" | "orders";
+type Section = "redemptions" | "orders";
 
 function batchStatus(disabled: boolean, expiry: string | null): string {
   if (disabled) return "已停用";
   return expiry && new Date(expiry) <= new Date() ? "已到期" : "有效";
 }
 
-export default function CommerceAdmin({
-  section = "wallets",
-  embedded = false,
-}: {
-  section?: Section;
-  embedded?: boolean;
-}) {
+export default function CommerceAdmin({ section }: { section: Section }) {
   useUiLocale();
   const { accessToken, userRole, isViewOnly, isAuthorized } = useAuthorized();
   const allowed = isAuthorized && !isViewOnly && isProxyAdminRole(userRole);
-  const queryClient = useQueryClient();
-  const [wallets, setWallets] = useState<Wallets | null>(null);
-  const [walletSelection, setWalletSelection] = useState<RowSelectionState>({});
-  const [walletSelectionMode, setWalletSelectionMode] = useState(false);
-  const [groupTargets, setGroupTargets] = useState<string[]>([]);
   const [batches, setBatches] = useState<Batches | null>(null);
   const [orders, setOrders] = useState<Orders | null>(null);
-  const [ledger, setLedger] = useState<Ledger | null>(null);
-  const [ledgerOffset, setLedgerOffset] = useState(0);
-  const [selected, setSelected] = useState("");
   const [offset, setOffset] = useState(0);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("");
@@ -75,25 +44,9 @@ export default function CommerceAdmin({
   const [count, setCount] = useState("1");
   const [expiry, setExpiry] = useState("");
   const [allowRepeatRedemption, setAllowRepeatRedemption] = useState(false);
-  const [direction, setDirection] = useState<Adjustment["direction"]>("credit");
-  const [reason, setReason] = useState("");
   const [disableId, setDisableId] = useState("");
   const [disableReason, setDisableReason] = useState("");
   const request = useRef<{ body: string; key: string } | null>(null);
-  const groupMemberships = useUserGroupMemberships(
-    (wallets?.items ?? []).map((wallet) => wallet.user_id),
-    accessToken,
-    allowed && section === "wallets",
-  );
-  const selectedWalletIds = (wallets?.items ?? [])
-    .filter((wallet) => walletSelection[wallet.user_id])
-    .map((wallet) => wallet.user_id);
-  const selectedGroupIds = selectedWalletIds.filter((id) => groupMemberships.members.has(id));
-  const handleGroupSaved = (members: readonly BillingMember[]) => {
-    setMessage(translateMessage("已调整 %{0} 个用户的用户组", [String(members.length)]));
-    setWalletSelection({});
-    setWalletSelectionMode(false);
-  };
   const showError = (cause: unknown) =>
     setError(
       cause instanceof Error
@@ -102,28 +55,12 @@ export default function CommerceAdmin({
     );
   const load = useCallback(async () => {
     if (!allowed || !accessToken) return;
-    if (section === "wallets") setWallets(await walletApi.wallets(accessToken, filter, offset));
     if (section === "redemptions") setBatches(await walletApi.batches(accessToken, offset));
     if (section === "orders") setOrders(await walletApi.adminOrders(accessToken, filter, offset));
   }, [allowed, accessToken, section, filter, offset]);
   useEffect(() => {
     void Promise.resolve().then(load).catch(showError);
   }, [load]);
-  useEffect(() => {
-    let active = true;
-    if (selected && accessToken && allowed)
-      void walletApi
-        .adminLedger(accessToken, selected, ledgerOffset)
-        .then((value) => {
-          if (active) setLedger(value);
-        })
-        .catch((cause) => {
-          if (active) showError(cause);
-        });
-    return () => {
-      active = false;
-    };
-  }, [selected, accessToken, allowed, ledgerOffset]);
   const run = async (action: () => Promise<void>) => {
     if (!accessToken || busy) return;
     setBusy(true);
@@ -142,15 +79,8 @@ export default function CommerceAdmin({
     if (request.current?.body !== body) request.current = { body, key: crypto.randomUUID() };
     return request.current.key;
   };
-  const selectWallet = useCallback((userId: string) => {
-    setSelected(userId);
-    setReason("");
-    setLedger(null);
-    setLedgerOffset(0);
-  }, []);
   const applySearch = (event: FormEvent) => {
     event.preventDefault();
-    setWalletSelection({});
     setOffset(0);
     setFilter(search.trim());
   };
@@ -172,20 +102,6 @@ export default function CommerceAdmin({
       setMessage(translateMessage("批次已创建。请立即导出兑换码，离开或关闭后无法再次查看。"));
     });
   };
-  const adjust = (event: FormEvent) => {
-    event.preventDefault();
-    if (!accessToken || !selected) return;
-    const body = { amount_usd: amount, direction, reason };
-    const key = keyFor(JSON.stringify({ selected, ...body }));
-    void run(async () => {
-      await walletApi.adjust(accessToken, selected, body, key);
-      setReason("");
-      request.current = null;
-      setMessage(translateMessage("余额已调整，已记录操作人和原因。"));
-      setLedger(await walletApi.adminLedger(accessToken, selected, 0));
-      setLedgerOffset(0);
-    });
-  };
   const download = () => {
     if (!generated) return;
     const url = URL.createObjectURL(
@@ -197,94 +113,6 @@ export default function CommerceAdmin({
     link.click();
     URL.revokeObjectURL(url);
   };
-  const walletColumns = useMemo<ColumnDef<Wallets["items"][number]>[]>(
-    () => [
-      ...(walletSelectionMode
-        ? [
-            createSelectionColumn<Wallets["items"][number]>({
-              rowAriaLabel: (row) => translateMessage("选择用户 %{0}", [row.original.email ?? row.original.user_id]),
-            }),
-          ]
-        : []),
-      markUiCopy(
-        {
-          id: "user",
-          header: "用户",
-          cell: ({ row: { original: wallet } }) => (
-            <div>
-              <p>{wallet.email ?? translateMessage("未设置邮箱")}</p>
-              <p className="max-w-64 whitespace-normal break-all font-mono text-xs text-muted-foreground">
-                {wallet.user_id}
-              </p>
-            </div>
-          ),
-        },
-        { header: "用户" },
-      ),
-      {
-        id: "user_group",
-        header: () => <LocalizedText text="用户组" />,
-        cell: ({ row }) => <UserGroupColumnCell userId={row.original.user_id} />,
-      },
-      markUiCopy(
-        {
-          accessorKey: "available_units",
-          header: "可用余额",
-          meta: { numeric: true },
-          cell: ({ row }) => formatCredits(row.original.available_units),
-        },
-        { header: "可用余额" },
-      ),
-      markUiCopy(
-        {
-          id: "totals",
-          header: "累计入账 / 扣减",
-          meta: { numeric: true },
-          cell: ({ row: { original: wallet } }) => (
-            <>
-              {formatCredits(wallet.credited_units)} / {formatCredits(wallet.debited_units)}
-            </>
-          ),
-        },
-        { header: "累计入账 / 扣减" },
-      ),
-      markUiCopy(
-        {
-          id: "holds",
-          header: "调用冻结 / 待补缴",
-          meta: { numeric: true },
-          cell: ({ row: { original: wallet } }) => (
-            <>
-              {formatCredits(wallet.reserved_units)} / {formatCredits(wallet.debt_units ?? "0")}
-            </>
-          ),
-        },
-        { header: "调用冻结 / 待补缴" },
-      ),
-      markUiCopy(
-        {
-          id: "actions",
-          header: "操作",
-          cell: ({ row }) => (
-            <div className="flex flex-wrap gap-2">
-              <Button variant="outline" size="sm" disabled={busy} onClick={() => selectWallet(row.original.user_id)}>
-                <LocalizedText text={"查看与调整"} />
-              </Button>
-              <Link
-                className={buttonVariants({ variant: "outline", size: "sm" })}
-                href={`${uiHref("users")}?user=${encodeURIComponent(row.original.user_id)}`}
-              >
-                <LocalizedText text={"用户权限"} />
-              </Link>
-            </div>
-          ),
-        },
-        { header: "操作" },
-      ),
-    ],
-    [busy, selectWallet, walletSelectionMode],
-  );
-
   const batchColumns = useMemo<ColumnDef<Batches["items"][number]>[]>(
     () => [
       markUiCopy(
@@ -395,161 +223,20 @@ export default function CommerceAdmin({
           <Input
             className="w-full sm:max-w-xs"
             id="commerce-search"
-            placeholder={
-              section === "wallets" ? translateMessage("邮箱或用户 ID") : translateMessage("订单 ID 或用户 ID")
-            }
+            placeholder={translateMessage("订单 ID 或用户 ID")}
             value={search}
-            maxLength={section === "wallets" ? 254 : 128}
+            maxLength={128}
             onChange={(event) => setSearch(event.target.value)}
           />
           <Button type="submit" variant="outline" disabled={busy}>
             <Search />
             <LocalizedText text={"搜索"} />
           </Button>
-          <Button
-            type="button"
-            variant="outline"
-            disabled={busy}
-            onClick={() =>
-              run(async () => {
-                await queryClient.invalidateQueries({ queryKey: ["userGroupMemberships"] });
-              })
-            }
-          >
+          <Button type="button" variant="outline" disabled={busy} onClick={() => run(async () => {})}>
             <RefreshCw />
             <LocalizedText text={"刷新"} />
           </Button>
-          {section === "wallets" && (
-            <>
-              <Button
-                type="button"
-                variant={walletSelectionMode ? "default" : "outline"}
-                onClick={() => {
-                  setWalletSelectionMode((value) => !value);
-                  setWalletSelection({});
-                }}
-              >
-                <LocalizedText text={walletSelectionMode ? "Cancel Selection" : "Select Users"} />
-              </Button>
-              {walletSelectionMode && (
-                <Button
-                  type="button"
-                  disabled={groupMemberships.status !== "ready" || selectedGroupIds.length === 0}
-                  onClick={() => setGroupTargets(selectedGroupIds)}
-                >
-                  <LocalizedText text="批量调整用户组" />
-                </Button>
-              )}
-            </>
-          )}
         </form>
-      )}
-      {section === "wallets" && wallets && (
-        <div>
-          <UserGroupMembershipContext.Provider
-            value={{
-              members: groupMemberships.members,
-              status: groupMemberships.status,
-              onChange: (id) => setGroupTargets([id]),
-            }}
-          >
-            <DataTable
-              data={wallets.items}
-              getRowId={(wallet) => wallet.user_id}
-              paginationMode="none"
-              sortingMode="none"
-              noDataMessage={translateMessage("暂无用户")}
-              columns={walletColumns}
-              rowSelection={walletSelection}
-              onRowSelectionChange={setWalletSelection}
-            />
-          </UserGroupMembershipContext.Provider>
-          <Pager
-            offset={offset}
-            hasMore={wallets.has_more}
-            busy={busy}
-            onPage={(next) => {
-              setWalletSelection({});
-              setOffset(next);
-            }}
-          />
-        </div>
-      )}
-      {section === "wallets" && selected && (
-        <Card>
-          <CardHeader>
-            <CardTitle>
-              <h2>
-                <LocalizedText text={"余额调整"} />
-              </h2>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-xs font-mono break-all">{selected}</p>
-            <form className="grid gap-3 sm:grid-cols-2" onSubmit={adjust}>
-              <div className="space-y-2">
-                <Label htmlFor="adjust-direction">
-                  <LocalizedText text={"调整类型"} />
-                </Label>
-                <Select
-                  value={direction}
-                  onValueChange={(value) => {
-                    if (value === "credit" || value === "debit") setDirection(value);
-                  }}
-                  items={[
-                    markUiCopy({ value: "credit", label: "增加额度" }, { label: "增加额度" }),
-                    markUiCopy({ value: "debit", label: "扣减额度" }, { label: "扣减额度" }),
-                  ]}
-                >
-                  <SelectTrigger id="adjust-direction" className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="credit">
-                      <LocalizedText text={"增加额度"} />
-                    </SelectItem>
-                    <SelectItem value="debit">
-                      <LocalizedText text={"扣减额度"} />
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="adjust-amount">
-                  <LocalizedText text={"金额（USD）"} />
-                </Label>
-                <Input
-                  id="adjust-amount"
-                  required
-                  inputMode="decimal"
-                  value={amount}
-                  onChange={(event) => setAmount(event.target.value)}
-                />
-              </div>
-              <div className="sm:col-span-2 space-y-2">
-                <Label htmlFor="adjust-reason">
-                  <LocalizedText text={"调整原因"} />
-                </Label>
-                <Input
-                  id="adjust-reason"
-                  required
-                  maxLength={500}
-                  value={reason}
-                  onChange={(event) => setReason(event.target.value)}
-                />
-              </div>
-              <Button type="submit" disabled={busy || !reason.trim()}>
-                <LocalizedText text={"确认调整"} />
-              </Button>
-            </form>
-            {ledger && (
-              <>
-                <LedgerTable ledger={ledger} />
-                <Pager offset={ledgerOffset} hasMore={ledger.has_more} busy={busy} onPage={setLedgerOffset} />
-              </>
-            )}
-          </CardContent>
-        </Card>
       )}
       {section === "redemptions" && (
         <>
@@ -743,15 +430,7 @@ export default function CommerceAdmin({
           <Pager offset={offset} hasMore={orders.has_more} busy={busy} onPage={setOffset} />
         </div>
       )}
-      {section === "wallets" && accessToken && groupTargets.length > 0 && (
-        <UserGroupChangeDialog
-          token={accessToken}
-          userIds={groupTargets}
-          onClose={() => setGroupTargets([])}
-          onSaved={handleGroupSaved}
-        />
-      )}
     </div>
   );
-  return embedded ? content : <CommercePage section={section}>{content}</CommercePage>;
+  return <CommercePage section={section}>{content}</CommercePage>;
 }

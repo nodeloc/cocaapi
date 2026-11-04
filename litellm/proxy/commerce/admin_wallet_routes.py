@@ -14,6 +14,7 @@ from litellm.models.commerce_wallet import (
     LedgerPage,
     RedeemBatch,
     WalletChange,
+    WalletLookup,
     WalletPage,
 )
 from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
@@ -64,6 +65,11 @@ async def wallets(
     offset: Annotated[int, Query(ge=0, le=1_000_000)] = 0,
 ) -> WalletPage:
     return await store.wallets(search.strip(), limit, offset)
+
+
+@router.post("/wallets/lookup", response_model=WalletPage)
+async def lookup_wallets(body: WalletLookup, admin: AdminDep, store: WalletDep) -> WalletPage:
+    return await store.lookup_wallets(body.user_ids)
 
 
 @router.get("/wallets/{user_id}/transactions", response_model=LedgerPage)

@@ -18,7 +18,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/cva.config";
 import { copyToClipboard } from "@/utils/dataUtils";
-import { UserGroupColumnCell } from "@/components/account/UserGroupCell";
+import { UserGroupColumnCell, UserGroupMembershipContext } from "@/components/account/UserGroupCell";
+import { UserWalletCell, UserWalletTotalsCell, UserWalletContext } from "@/components/account/UserWalletCells";
+import { useContext } from "react";
+import { Wallet } from "lucide-react";
 
 const SSO_ID_HINT =
   "SSO ID is the ID of the user in the SSO provider. If the user is not using SSO, this will be null.";
@@ -27,6 +30,21 @@ const SCIM_INACTIVE_HINT = "Deactivated via SCIM (external identity provider). T
 
 function isScimInactive(user: UserInfo): boolean {
   return (user.metadata as Record<string, unknown> | null | undefined)?.scim_active === false;
+}
+
+function UserStatusCell({ user }: { user: UserInfo }) {
+  useUiLocale();
+  const { members } = useContext(UserGroupMembershipContext);
+  const scimInactive = isScimInactive(user);
+  const inactive = scimInactive || members.get(user.user_id)?.enabled === false;
+  return (
+    <StatusBadge
+      tone={inactive ? "error" : "success"}
+      label={translateMessage(inactive ? "Inactive" : "Active")}
+      tooltip={scimInactive ? SCIM_INACTIVE_HINT : undefined}
+      dataTestId={`user-status-${user.user_id}`}
+    />
+  );
 }
 
 interface UserRowActionsProps {
@@ -38,6 +56,8 @@ interface UserRowActionsProps {
 
 function UserRowActions({ user, onUserClick, onDeleteUser, onResetPassword }: UserRowActionsProps) {
   useUiLocale();
+  const finances = useContext(UserWalletContext);
+  const wallet = finances.status === "ready" ? finances.wallets.get(user.user_id) : undefined;
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
@@ -48,6 +68,12 @@ function UserRowActions({ user, onUserClick, onDeleteUser, onResetPassword }: Us
         <MoreHorizontal className="size-4" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48">
+        {wallet && finances.onOpen && (
+          <DropdownMenuItem onClick={() => finances.onOpen?.(user.user_id)}>
+            <Wallet />
+            <LocalizedText text="余额与流水" />
+          </DropdownMenuItem>
+        )}
         <DropdownMenuItem onClick={() => onUserClick(user.user_id, true)} data-testid="user-action-edit">
           <Pencil />
           <LocalizedText text={"Edit user"} />
@@ -74,6 +100,7 @@ function UserRowActions({ user, onUserClick, onDeleteUser, onResetPassword }: Us
 }
 
 export interface UsersTableColumnsDeps {
+  includeWallets?: boolean;
   includeUserGroups?: boolean;
   possibleUIRoles: Record<string, Record<string, string>> | null;
   includeSelection: boolean;
@@ -83,6 +110,7 @@ export interface UsersTableColumnsDeps {
 }
 
 export const getUsersTableColumns = ({
+  includeWallets = false,
   includeUserGroups = false,
   possibleUIRoles,
   includeSelection,
@@ -123,19 +151,53 @@ export const getUsersTableColumns = ({
     {
       id: "user_email",
       accessorKey: "user_email",
-      meta: markUiCopy({ title: "Email" }, { title: "Email" }),
+      meta: includeWallets
+        ? markUiCopy({ title: "用户" }, { title: "用户" })
+        : markUiCopy({ title: "Email" }, { title: "Email" }),
       header: ({ column }) => (
-        <DataTableSortHeader column={column} title={translateMessage("Email")} variant="header-cycle" />
+        <DataTableSortHeader
+          column={column}
+          title={translateMessage(includeWallets ? "用户" : "Email")}
+          variant="header-cycle"
+        />
       ),
       size: 220,
       enableSorting: true,
-      cell: ({ row }) => (
-        <span className="block max-w-60 truncate text-sm" title={row.original.user_email ?? undefined}>
-          {row.original.user_email || "-"}
-        </span>
-      ),
+      cell: ({ row }) =>
+        includeWallets ? (
+          <IdentityCell
+            title={row.original.user_email || row.original.user_id}
+            className="max-w-64"
+            subtitle={row.original.user_email ? row.original.user_id : row.original.user_alias ?? undefined}
+            onClick={() => onUserClick(row.original.user_id, false)}
+          />
+        ) : (
+          <span className="block max-w-60 truncate text-sm" title={row.original.user_email ?? undefined}>
+            {row.original.user_email || "-"}
+          </span>
+        ),
     },
     ...groupColumns,
+    ...(includeWallets
+      ? ([
+          {
+            id: "available_balance",
+            header: () => <LocalizedText text="可用余额" />,
+            meta: markUiCopy({ title: "可用余额", numeric: true }, { title: "可用余额" }),
+            size: 160,
+            enableSorting: false,
+            cell: ({ row }) => <UserWalletCell userId={row.original.user_id} />,
+          },
+          {
+            id: "wallet_totals",
+            header: () => <LocalizedText text="累计入账 / 扣减" />,
+            meta: markUiCopy({ title: "累计入账 / 扣减", numeric: true }, { title: "累计入账 / 扣减" }),
+            size: 170,
+            enableSorting: false,
+            cell: ({ row }) => <UserWalletTotalsCell userId={row.original.user_id} />,
+          },
+        ] satisfies ColumnDef<UserInfo>[])
+      : []),
     markUiCopy(
       {
         id: "status",
@@ -143,25 +205,7 @@ export const getUsersTableColumns = ({
         header: "Status",
         size: 110,
         enableSorting: false,
-        cell: ({ row }) => {
-          if (isScimInactive(row.original)) {
-            return (
-              <StatusBadge
-                tone="error"
-                label={translateMessage("Inactive")}
-                tooltip={SCIM_INACTIVE_HINT}
-                dataTestId={`user-status-${row.original.user_id}`}
-              />
-            );
-          }
-          return (
-            <StatusBadge
-              tone="success"
-              label={translateMessage("Active")}
-              dataTestId={`user-status-${row.original.user_id}`}
-            />
-          );
-        },
+        cell: ({ row }) => <UserStatusCell user={row.original} />,
       },
       { header: "Status" },
     ),
@@ -175,7 +219,10 @@ export const getUsersTableColumns = ({
       size: 160,
       enableSorting: true,
       cell: ({ row }) => (
-        <span className="text-sm">
+        <span
+          className="block max-w-44 truncate text-sm"
+          title={(row.original.user_role && possibleUIRoles?.[row.original.user_role]?.ui_label) || undefined}
+        >
           {(row.original.user_role && possibleUIRoles?.[row.original.user_role]?.ui_label) || "-"}
         </span>
       ),
@@ -302,7 +349,7 @@ export const getUsersTableColumns = ({
     {
       id: "actions",
       meta: markUiCopy(
-        { title: "Actions", className: "text-right", headerClassName: "text-right" },
+        { title: "Actions", className: "text-right", headerClassName: "text-right", pinned: "right" as const },
         { title: "Actions" },
       ),
       header: () => (
