@@ -22,6 +22,13 @@ const mockUserUpdateUserCall = vi.fn();
 const mockFetchMCPServers = vi.fn();
 const mockListMCPTools = vi.fn();
 const mockUserDailyActivityAggregatedCall = vi.fn();
+const authFlags = vi.hoisted(() => ({ isViewOnly: false }));
+vi.mock("@/app/(dashboard)/hooks/useAuthorized", () => ({
+  default: () => ({ premiumUser: false, userId: "user-1", isViewOnly: authFlags.isViewOnly }),
+}));
+afterEach(() => {
+  authFlags.isViewOnly = false;
+});
 
 const MCP_SERVER = { server_id: "srv-1", server_name: "GitHub MCP", alias: "GitHub MCP" };
 
@@ -101,6 +108,8 @@ describe("UserInfoView add-to-team form", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    testQueryClient.clear();
+    vi.stubGlobal("fetch", async () => Response.json({ items: [], has_more: false }));
     mockUserGetInfoV2.mockResolvedValue(MOCK_USER_DATA);
     mockTeamInfoCall.mockImplementation((_token: string, teamId: string) => {
       const teamMap: Record<string, any> = {
@@ -121,6 +130,174 @@ describe("UserInfoView add-to-team form", () => {
   });
 
   const setup = () => userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never });
+
+  it("manages basic information, group, effective models and wallet in the same account panel", async () => {
+    const user = setup();
+    let groupId = "default";
+    const adjustment = Promise.withResolvers<Response>();
+    vi.stubGlobal("fetch", async (input: RequestInfo | URL) => {
+      const request = input as Request;
+      if (request.url.endsWith("/adjustments")) return adjustment.promise;
+      if (request.url.endsWith("/billing-groups"))
+        return Response.json({
+          user_groups: [
+            { id: "default", name: "普通组" },
+            { id: "vip", name: "VIP" },
+          ],
+        });
+      if (request.url.endsWith("/members/batch")) {
+        const body = await request.json();
+        expect(body).toEqual({
+          group_id: "vip",
+          reason: "详情页分组调整",
+          members: [{ user_id: "user-123", expected_version: 1 }],
+        });
+        groupId = "vip";
+        return Response.json({
+          items: [
+            {
+              user_id: "user-123",
+              email: "test@example.com",
+              enabled: true,
+              group_id: "vip",
+              group_name: "VIP",
+              version: 2,
+            },
+          ],
+          has_more: false,
+        });
+      }
+      if (request.url.endsWith("/members/lookup"))
+        return Response.json({
+          items: [
+            {
+              user_id: "user-123",
+              email: "test@example.com",
+              enabled: true,
+              group_id: groupId,
+              group_name: groupId === "default" ? "普通组" : "VIP",
+              version: 1,
+            },
+          ],
+          has_more: false,
+        });
+      if (request.url.endsWith("/access"))
+        return Response.json({
+          models: [groupId === "default" ? "selected-user-model" : "vip-only-model"],
+          can_create_key: true,
+          model_access_source: "user_group",
+        });
+      if (request.url.endsWith("/wallets/lookup"))
+        return Response.json({
+          items: [
+            {
+              user_id: "user-123",
+              email: "test@example.com",
+              available_units: "1250000000",
+              reserved_units: "0",
+              credited_units: "1250000000",
+              debited_units: "0",
+              debt_units: "0",
+              currency: "USD",
+            },
+          ],
+          has_more: false,
+        });
+      return Response.json({ items: [], has_more: false });
+    });
+    render(<UserInfoView {...defaultProps} />);
+    expect(await screen.findByRole("tab", { name: "账户管理", exact: true })).toHaveAttribute("aria-selected", "true");
+    expect(await screen.findByText("普通组", { exact: true })).toBeInTheDocument();
+    expect(await screen.findByText("selected-user-model", { exact: true })).toBeInTheDocument();
+    expect(await screen.findByText("$1.25", { exact: true })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "基本信息", exact: true })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "余额与流水", exact: true })).toBeInTheDocument();
+    expect(screen.queryByRole("tab", { name: "Overview", exact: true })).not.toBeInTheDocument();
+    expect(screen.queryByRole("tab", { name: "Details", exact: true })).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "调整分组", exact: true }));
+    await user.click(await screen.findByRole("combobox", { name: "目标用户组", exact: true }));
+    await user.click(await screen.findByRole("option", { name: "VIP", exact: true }));
+    fireEvent.change(screen.getByLabelText("调整原因"), { target: { value: "详情页分组调整" } });
+    await user.click(screen.getByRole("button", { name: "保存用户组", exact: true }));
+    expect(await screen.findByText("vip-only-model", { exact: true })).toBeInTheDocument();
+    expect(screen.queryByText("selected-user-model", { exact: true })).not.toBeInTheDocument();
+    expect(mockUserUpdateUserCall).not.toHaveBeenCalled();
+    await user.click(screen.getByRole("tab", { name: "调整余额", exact: true }));
+    fireEvent.change(screen.getByLabelText("金额（USD）"), { target: { value: "1.00" } });
+    fireEvent.change(screen.getByLabelText("调整原因"), { target: { value: "详情页额度调整" } });
+    await user.click(screen.getByRole("button", { name: "确认调整", exact: true }));
+    try {
+      expect(screen.getByRole("button", { name: "Back to Users", exact: true })).toBeDisabled();
+      expect(screen.getByRole("button", { name: "Delete User", exact: true })).toBeDisabled();
+    } finally {
+      adjustment.resolve(Response.json({ id: "adjusted" }));
+    }
+    expect(await screen.findByText("余额已调整，已记录操作人和原因。", { exact: true })).toBeInTheDocument();
+  });
+
+  it("lets a normalized Admin viewer read the group and models without editing or reading financial records", async () => {
+    authFlags.isViewOnly = true;
+    const requested: string[] = [];
+    vi.stubGlobal("fetch", async (input: RequestInfo | URL) => {
+      const request = input as Request;
+      requested.push(request.url);
+      if (request.url.endsWith("/members/lookup"))
+        return Response.json({
+          items: [
+            {
+              user_id: "user-123",
+              email: "test@example.com",
+              enabled: true,
+              group_id: "default",
+              group_name: "普通组",
+              version: 1,
+            },
+          ],
+          has_more: false,
+        });
+      return Response.json({
+        models: ["selected-user-model"],
+        can_create_key: true,
+        model_access_source: "user_group",
+      });
+    });
+    render(<UserInfoView {...defaultProps} userRole="Admin" startInEditMode />);
+    expect(await screen.findByText("普通组", { exact: true })).toBeInTheDocument();
+    expect(await screen.findByText("selected-user-model", { exact: true })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Edit Settings" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Delete User" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "调整分组" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /save changes/i })).not.toBeInTheDocument();
+    expect(requested.some((url) => url.includes("/wallets/"))).toBe(false);
+  });
+
+  it("preserves personal-model editing when billing groups have not been activated as the access source", async () => {
+    const user = setup();
+    vi.stubGlobal("fetch", async (input: RequestInfo | URL) => {
+      const request = input as Request;
+      if (request.url.endsWith("/members/lookup"))
+        return Response.json({
+          items: [
+            {
+              user_id: "user-123",
+              email: "test@example.com",
+              enabled: true,
+              group_id: "default",
+              group_name: "普通组",
+              version: 1,
+            },
+          ],
+          has_more: false,
+        });
+      if (request.url.endsWith("/access"))
+        return Response.json({ models: ["native-model"], model_access_source: "personal", can_create_key: true });
+      return Response.json({ items: [], has_more: false });
+    });
+    render(<UserInfoView {...defaultProps} />);
+    await screen.findByText("native-model", { exact: true });
+    await user.click(screen.getByRole("button", { name: "Edit Settings", exact: true }));
+    expect(await screen.findByText("Personal Models", { exact: true })).toBeInTheDocument();
+  });
 
   const openAddTeam = async (user: ReturnType<typeof userEvent.setup>, anchorTeam = "Alpha Team") => {
     render(<UserInfoView {...defaultProps} />);
@@ -380,7 +557,11 @@ describe("UserInfoView auto-router usage", () => {
       Promise.resolve({ ...MOCK_USER_DATA_NO_TEAMS, user_id: userId }),
     );
     mockFetch.mockReset().mockResolvedValue(Response.json(routerUsageResponse(42)));
-    vi.stubGlobal("fetch", mockFetch);
+    vi.stubGlobal("fetch", (input: RequestInfo | URL, init?: RequestInit) =>
+      (input as Request).url.includes("/billing-groups/")
+        ? Promise.resolve(Response.json({ items: [], has_more: false }))
+        : mockFetch(input, init),
+    );
   });
 
   afterEach(() => {
@@ -426,7 +607,7 @@ describe("UserInfoView auto-router usage", () => {
 
   it.each(["internal_user", "org_admin", null])("keeps the admin-only tab unavailable to %s", async (userRole) => {
     render(<UserInfoView {...props} userRole={userRole} />);
-    await screen.findByRole("tab", { name: "Overview" });
+    await screen.findByRole("tab", { name: "账户管理" });
     expect(screen.queryByRole("tab", { name: "Auto-router usage" })).not.toBeInTheDocument();
     expect(mockFetch).not.toHaveBeenCalled();
   });
@@ -476,7 +657,7 @@ describe("UserInfoView savings", () => {
       mockUserDailyActivityAggregatedCall.mockClear();
       rerender(<UserInfoView {...props} userId="another-user" userRole={userRole} />);
       await screen.findAllByText("another-user");
-      expect(screen.getByRole("tab", { name: "Overview" })).toHaveAttribute("aria-selected", "true");
+      expect(screen.getByRole("tab", { name: "账户管理" })).toHaveAttribute("aria-selected", "true");
       expect(screen.queryByRole("tab", { name: "Savings" })).not.toBeInTheDocument();
       expect(screen.queryByText("No usage recorded for this user in this range.")).not.toBeInTheDocument();
       expect(mockUserDailyActivityAggregatedCall).not.toHaveBeenCalled();

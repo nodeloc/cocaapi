@@ -1,8 +1,16 @@
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import {
+  fireEvent,
+  renderWithProviders as render,
+  screen,
+  waitFor,
+  within,
+  testQueryClient,
+} from "@/../tests/test-utils";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import UserInfoView from "./user_info_view";
 import { extractMcpEntitlement } from "@/components/mcp_server_management/mcpEntitlement";
+vi.mock("@/components/shared/ScopedSavingsTab", () => ({ default: () => <section aria-label="Savings metrics" /> }));
 
 const mockTeamMemberAddCall = vi.fn();
 const mockTeamMemberDeleteCall = vi.fn();
@@ -78,6 +86,7 @@ vi.mock("@/app/(dashboard)/hooks/mcpServers/useMCPToolsets", () => ({
 }));
 
 describe("UserInfoView", () => {
+  afterEach(() => vi.unstubAllGlobals());
   const defaultProps = {
     userId: "user-123",
     onClose: vi.fn(),
@@ -88,6 +97,8 @@ describe("UserInfoView", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    testQueryClient.clear();
+    vi.stubGlobal("fetch", async () => Response.json({ items: [], has_more: false }));
     mockUserGetInfoV2.mockResolvedValue(MOCK_USER_DATA);
     mockTeamInfoCall.mockImplementation((_token: string, teamId: string) => {
       const teamMap: Record<string, any> = {
@@ -314,16 +325,16 @@ describe("UserInfoView", () => {
     });
   });
 
-  it("should keep the Details panel state while the Overview tab is shown", async () => {
+  it("keeps the account editor state while analytics are shown", async () => {
     const user = userEvent.setup();
     render(<UserInfoView {...defaultProps} userRole="proxy_admin" initialTab={1} />);
 
     await user.click(await screen.findByText("GitHub MCP (srv-1)"));
     expect(await screen.findByText("list_issues")).toBeInTheDocument();
 
-    await user.click(screen.getByRole("tab", { name: "Overview" }));
-    expect(await screen.findByText(/of \$100\.00/)).toBeVisible();
-    await user.click(screen.getByRole("tab", { name: "Details" }));
+    await user.click(screen.getByRole("tab", { name: "Savings" }));
+
+    await user.click(screen.getByRole("tab", { name: "账户管理" }));
 
     expect(screen.getByText("list_issues")).toBeVisible();
   });

@@ -338,6 +338,8 @@ const ViewUserDashboard: React.FC<ViewUserDashboardProps> = ({
   if (selectedUserId) {
     return (
       <UserInfoView
+        key={selectedUserId}
+        walletRequests={walletRequests}
         userId={selectedUserId}
         onClose={handleCloseUserInfo}
         accessToken={accessToken}

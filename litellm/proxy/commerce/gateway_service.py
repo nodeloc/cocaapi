@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from typing import Final
 
-from litellm.models.commerce_auth import AuthError, Session
+from litellm.models.commerce_auth import AuthError, Customer, Session
 from litellm.models.commerce_gateway import (
     CreatedGatewayKey,
     CreateGatewayKey,
@@ -39,8 +39,11 @@ class GatewayService:
         self.security = security
 
     async def access(self, session: Session) -> GatewayAccess | AuthError:
-        stored: Final = await self.store.access(session.customer.user_id)
-        grants: Final = await BillingGroupRepository(self.store.database).model_grants(session.customer.user_id)
+        return await self.customer_access(session.customer)
+
+    async def customer_access(self, customer: Customer) -> GatewayAccess | AuthError:
+        stored: Final = await self.store.access(customer.user_id)
+        grants: Final = await BillingGroupRepository(self.store.database).model_grants(customer.user_id)
         if isinstance(grants, AuthError):
             return grants
         available: Final = await self.native.models(
@@ -48,13 +51,15 @@ class GatewayService:
         )
         if isinstance(available, AuthError):
             return available
-        filtered: Final = await BillingGroupRepository(self.store.database).allowed_models(
-            session.customer.user_id, available
-        )
+        filtered: Final = await BillingGroupRepository(self.store.database).allowed_models(customer.user_id, available)
         if isinstance(filtered, AuthError):
             return filtered
         allowed: Final = tuple(sorted(set(filtered)))
-        reason: Final = creation_reason(session.customer.email_verified, allowed, stored.max_budget, stored.spend)
+        reason: Final = (
+            creation_reason(customer.email_verified, allowed, stored.max_budget, stored.spend)
+            if customer.enabled
+            else "account_unavailable"
+        )
         return GatewayAccess(
             models=allowed,
             max_budget_usd=stored.max_budget,
@@ -65,6 +70,7 @@ class GatewayService:
             can_create_key=reason is None,
             key_creation_reason=reason,
             budget_duration=stored.budget_duration,
+            model_access_source="personal" if grants is None else "user_group",
         )
 
     def key_view(self, row: StoredKey) -> GatewayKey:

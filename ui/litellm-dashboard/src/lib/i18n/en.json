@@ -479,5 +479,13 @@
   "待补缴 %{0}": "Outstanding %{0}",
   "余额暂不可用，请刷新后重试。": "Balance is unavailable. Refresh and try again.",
   "调整将直接影响用户可用额度，请核对用户并填写原因。": "This changes the user’s available credit. Check the account and provide a reason.",
-  "账户已不存在，请刷新用户列表。": "The account no longer exists. Refresh the user list."
+  "账户已不存在，请刷新用户列表。": "The account no longer exists. Refresh the user list.",
+  "账户管理": "Account management",
+  "基本信息": "Basic information",
+  "用户组与模型权限": "User group and model access",
+  "当前可用模型": "Available models",
+  "用户组暂不可用，请刷新后重试。": "User group is unavailable. Refresh and try again.",
+  "模型权限由用户组统一管理，实际调用仍受 API Key 权限、余额和调用限额限制。": "Model access comes from the user group. API Key permissions, balance checks and rate limits still apply.",
+  "模型权限由用户组统一管理，请在用户组与模型权限中调整。": "Model access is managed by the user group. Change it under User group and model access.",
+  "系统账户不使用余额钱包": "System accounts do not use a balance wallet"
 }

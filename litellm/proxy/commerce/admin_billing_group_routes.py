@@ -14,6 +14,7 @@ from litellm.models.commerce_billing_groups import (
     BillingGroupsView,
     BillingMemberLookup,
 )
+from litellm.models.commerce_gateway import GatewayAccess
 from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
 from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
 from litellm.proxy.commerce.account_routes import AccountErrorView, AccountRoute, Service, raise_public
@@ -128,6 +129,17 @@ async def lookup_members(body: BillingMemberLookup, admin: ReaderDep, store: Gro
 @router.post("/members/batch", response_model=BillingGroupMembers)
 async def assign_members(body: BillingGroupBatchAssignment, admin: AdminDep, store: GroupDep) -> BillingGroupMembers:
     result: Final = await store.assign_batch(body, admin.user_id, utcnow())
+    if isinstance(result, AuthError):
+        raise_public(result)
+    return result
+
+
+@router.get("/members/{user_id}/access", response_model=GatewayAccess)
+async def member_access(user_id: str, admin: ReaderDep, store: GroupDep, gateway: GatewayDep) -> GatewayAccess:
+    customer: Final = await AccountRepository(store.database).get_customer(user_id)
+    if customer is None:
+        raise_public(AuthError("account_not_found", 404))
+    result: Final = await gateway.customer_access(customer)
     if isinstance(result, AuthError):
         raise_public(result)
     return result

@@ -18,6 +18,7 @@ class GatewayAccess(FrozenModel):
     can_create_key: bool
     key_creation_reason: str | None
     budget_duration: str | None = None
+    model_access_source: Literal["user_group", "personal"] = "personal"
 
 
 class GatewayKey(FrozenModel):

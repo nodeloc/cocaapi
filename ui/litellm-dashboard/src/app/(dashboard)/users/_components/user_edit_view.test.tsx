@@ -80,6 +80,17 @@ describe("UserEditView", () => {
     });
   });
 
+  it("saves basic changes without a personal-model override when access is managed by a group", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<UserEditView {...defaultProps} modelAccessManagedByGroup />);
+    expect(screen.queryByText("Personal Models")).not.toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText("User Alias"), { target: { value: "Updated alias" } });
+    await user.click(screen.getByRole("button", { name: /save changes/i }));
+    await waitFor(() => expect(defaultProps.onSubmit).toHaveBeenCalledOnce());
+    expect(defaultProps.onSubmit.mock.calls[0][0]).toMatchObject({ user_alias: "Updated alias" });
+    expect(defaultProps.onSubmit.mock.calls[0][0]).not.toHaveProperty("models");
+  });
+
   it("should display user ID field when not in bulk edit mode", async () => {
     renderWithProviders(<UserEditView {...defaultProps} />);
 

@@ -4,9 +4,48 @@ from uuid import uuid4
 
 import pytest
 
+from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth, hash_token
+from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+
 from .conftest import WalletClient
-from .gateway_support import gateway_client
-from litellm.proxy._types import hash_token
+from .gateway_support import gateway_client  # noqa: F401  # Pytest discovers this fixture by its imported name
+
+
+@pytest.mark.asyncio
+async def test_admin_detail_access_matches_selected_customer_not_admin_catalog(gateway_client: WalletClient) -> None:
+    await grant(gateway_client)
+    own: Final = await gateway_client.http.get("/account/api/v1/gateway/access")
+    user_id: Final = gateway_client.session.customer.user_id
+    path: Final = f"/commerce/admin/v1/billing-groups/members/{user_id}/access"
+    anonymous: Final = await gateway_client.http.get(path)
+    assert anonymous.status_code == 401
+    gateway_client.app.dependency_overrides[user_api_key_auth] = lambda: UserAPIKeyAuth(
+        user_id="detail-reader", user_role=LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY
+    )
+    headers: Final = {"Authorization": "Bearer detail-reader"}
+    selected: Final = await gateway_client.http.get(path, headers=headers)
+    assert selected.status_code == 200
+    assert selected.json() == own.json()
+    assert selected.json()["model_access_source"] == "personal"
+    other: Final = await gateway_client.http.get(
+        f"/commerce/admin/v1/billing-groups/members/{gateway_client.other_session.customer.user_id}/access",
+        headers=headers,
+    )
+    assert other.status_code == 200 and other.json()["models"] == []
+    missing: Final = await gateway_client.http.get(
+        "/commerce/admin/v1/billing-groups/members/system-account/access", headers=headers
+    )
+    assert missing.status_code == 404
+    await gateway_client.database.execute_raw('UPDATE "CommerceCustomer" SET enabled=false WHERE user_id=$1', user_id)
+    disabled: Final = await gateway_client.http.get(path, headers=headers)
+    assert disabled.status_code == 200 and disabled.json()["models"] == own.json()["models"]
+    assert disabled.json()["can_create_key"] is False
+    assert disabled.json()["key_creation_reason"] == "account_unavailable"
+    gateway_client.app.dependency_overrides[user_api_key_auth] = lambda: UserAPIKeyAuth(
+        user_id="detail-customer", user_role=LitellmUserRoles.INTERNAL_USER
+    )
+    denied: Final = await gateway_client.http.get(path, headers=headers)
+    assert denied.status_code == 403
 
 
 async def grant(client: WalletClient) -> None:

@@ -1,6 +1,5 @@
-
 "use client";
-import { LocalizedText, getIntlLocale, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
+import { LocalizedText, markUiCopy, translateMessage, useUiLocale } from "@/lib/i18n";
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -31,18 +30,16 @@ import {
   ComboboxList,
 } from "@/components/ui/combobox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { hasProxyWideSpendView, rolesWithWriteAccess } from "@/utils/roles";
+import { hasProxyWideSpendView, isProxyAdminTierRole, rolesWithWriteAccess } from "@/utils/roles";
 import { teamDetailHref } from "@/utils/entityLinks";
 import { BadgeLink } from "@/components/shared/BadgeLink";
 import { UserEditView } from "../user_edit_view";
 import OnboardingModal, { InvitationLink } from "@/components/onboarding_link";
-import { formatNumberWithCommas, copyToClipboard as utilCopyToClipboard } from "@/utils/dataUtils";
+import { copyToClipboard as utilCopyToClipboard } from "@/utils/dataUtils";
 import { ArrowLeft, CheckIcon, CopyIcon, Plus, RefreshCw, Trash2 } from "lucide-react";
 import { toast } from "@/lib/toast";
-import { getBudgetDurationLabel } from "@/components/common_components/budget_duration_dropdown";
 import DeleteResourceModal from "@/components/common_components/DeleteResourceModal";
 import useAuthorized from "@/app/(dashboard)/hooks/useAuthorized";
-import MCPServerPermissions from "@/components/permissions/MCPServerPermissions";
 import { useMCPServers } from "@/app/(dashboard)/hooks/mcpServers/useMCPServers";
 import { useMCPToolsets } from "@/app/(dashboard)/hooks/mcpServers/useMCPToolsets";
 import { extractMcpEntitlement } from "@/components/mcp_server_management/mcpEntitlement";
@@ -51,6 +48,12 @@ import ScopedSavingsTab from "@/components/shared/ScopedSavingsTab";
 import { AutoRouterUsageView } from "@/app/(dashboard)/cost-optimization/_components/AutoRouterBenchmarksTab";
 import { useActivityDateRange } from "@/app/(dashboard)/cost-optimization/_components/useDailyActivityRange";
 
+import UserInformationFields, { UserSpendCard, userEditSeed } from "./UserInformationFields";
+import { useQueryClient } from "@tanstack/react-query";
+import { useUserGroupMemberships } from "@/components/account/useUserGroupMemberships";
+import UserAccountAccess, { useUserAccountAccess } from "@/components/account/UserAccountAccess";
+import UserWalletPanel, { type WalletAdjustmentRequests } from "@/components/account/UserWalletPanel";
+
 interface UserInfoViewProps {
   userId: string;
   onClose: () => void;
@@ -58,8 +61,9 @@ interface UserInfoViewProps {
   userRole: string | null;
   onDelete?: () => void;
   possibleUIRoles: Record<string, Record<string, string>> | null;
-  initialTab?: number; // 0 for Overview, 1 for Details
+  initialTab?: number;
   startInEditMode?: boolean;
+  walletRequests?: WalletAdjustmentRequests;
 }
 
 /** Team info used for display in user detail view */
@@ -88,11 +92,19 @@ export default function UserInfoView({
   userRole,
   onDelete,
   possibleUIRoles,
-  initialTab = 0,
   startInEditMode = false,
+  walletRequests,
 }: UserInfoViewProps) {
   useUiLocale();
-  const { premiumUser, userId: signedInUserId } = useAuthorized();
+  const { premiumUser, userId: signedInUserId, isViewOnly } = useAuthorized();
+  const canWriteUser = !isViewOnly && Boolean(userRole && rolesWithWriteAccess.includes(userRole));
+  const canReadAccount = isProxyAdminTierRole(userRole ?? "");
+  const queryClient = useQueryClient();
+  const membership = useUserGroupMemberships([userId], accessToken, canReadAccount);
+  const member = membership.members.get(userId);
+  const accountAccess = useUserAccountAccess(accessToken, userId, Boolean(member) && membership.status === "ready");
+  const [localWalletRequests] = useState<WalletAdjustmentRequests>(() => new Map());
+  const [walletBusy, setWalletBusy] = useState(false);
   const canViewAutoRouterUsage = hasProxyWideSpendView(userRole);
   const canViewSavings = canViewAutoRouterUsage || (Boolean(userId.trim()) && userId === signedInUserId);
   const activityDateRange = useActivityDateRange();
@@ -101,12 +113,12 @@ export default function UserInfoView({
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDeletingUser, setIsDeletingUser] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [isEditing, setIsEditing] = useState(startInEditMode);
+  const [isEditing, setIsEditing] = useState(startInEditMode && canWriteUser);
   const [userModels, setUserModels] = useState<string[]>([]);
   const [isInvitationLinkModalVisible, setIsInvitationLinkModalVisible] = useState(false);
   const [invitationLinkData, setInvitationLinkData] = useState<InvitationLink | null>(null);
   const [baseUrl, setBaseUrl] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<string>(initialTab === 1 ? "details" : "overview");
+  const [activeTab, setActiveTab] = useState<string>("account");
   const hiddenSavingsTab = activeTab === "savings" && !canViewSavings;
   const hiddenRouterTab = activeTab === "auto-router-usage" && !canViewAutoRouterUsage;
   const [copiedStates, setCopiedStates] = useState<Record<string, boolean>>({});
@@ -171,7 +183,7 @@ export default function UserInfoView({
     fetchData();
   }, [accessToken, userId, userRole]);
 
-  const isProxyAdmin = userRole === "proxy_admin" || userRole === "Admin";
+  const isProxyAdmin = !isViewOnly && (userRole === "proxy_admin" || userRole === "Admin");
 
   const fetchAllTeams = async () => {
     if (!accessToken) return;
@@ -323,7 +335,7 @@ export default function UserInfoView({
 
   const handleUserUpdate = async (formValues: Record<string, any>) => {
     try {
-      if (!accessToken || !userData) return;
+      if (!accessToken || !userData || !canWriteUser) return;
 
       const mcpEntitlement = extractMcpEntitlement(formValues, allMcpServers, allMcpToolsets);
       const userFields = Object.fromEntries(
@@ -343,6 +355,7 @@ export default function UserInfoView({
         ...userData,
         user_email: formValues.user_email ?? userData.user_email,
         user_alias: formValues.user_alias ?? userData.user_alias,
+        user_role: formValues.user_role ?? userData.user_role,
         models: formValues.models ?? userData.models,
         max_budget: formValues.max_budget === undefined ? userData.max_budget : formValues.max_budget,
         tpm_limit: formValues.tpm_limit === undefined ? userData.tpm_limit : formValues.tpm_limit,
@@ -358,18 +371,26 @@ export default function UserInfoView({
 
       toast.success(translateMessage("User updated successfully"));
       setIsEditing(false);
+      await queryClient.invalidateQueries({ queryKey: ["userList"] });
+      await queryClient.invalidateQueries({ queryKey: ["adminUserAccess", userId] });
     } catch (error) {
       console.error("Error updating user:", error);
       toast.fromError("Failed to update user");
     }
   };
 
+  const userDataForEdit = React.useMemo(() => (userData ? userEditSeed(userData) : null), [userData]);
+
   if (isLoading) {
     return (
       <div className="p-4">
-        <Button variant="ghost" onClick={onClose} className="mb-4">
-          <ArrowLeft /><LocalizedText text={"Back to Users"} /></Button>
-        <p className="text-sm"><LocalizedText text={"Loading user data..."} /></p>
+        <Button variant="ghost" onClick={onClose} disabled={walletBusy} className="mb-4">
+          <ArrowLeft />
+          <LocalizedText text={"Back to Users"} />
+        </Button>
+        <p className="text-sm">
+          <LocalizedText text={"Loading user data..."} />
+        </p>
       </div>
     );
   }
@@ -377,9 +398,13 @@ export default function UserInfoView({
   if (!userData) {
     return (
       <div className="p-4">
-        <Button variant="ghost" onClick={onClose} className="mb-4">
-          <ArrowLeft /><LocalizedText text={"Back to Users"} /></Button>
-        <p className="text-sm"><LocalizedText text={"User not found"} /></p>
+        <Button variant="ghost" onClick={onClose} disabled={walletBusy} className="mb-4">
+          <ArrowLeft />
+          <LocalizedText text={"Back to Users"} />
+        </Button>
+        <p className="text-sm">
+          <LocalizedText text={"User not found"} />
+        </p>
       </div>
     );
   }
@@ -394,35 +419,17 @@ export default function UserInfoView({
     }
   };
 
-  // Build a legacy-compatible shape for UserEditView
-  const userDataForEdit = {
-    user_id: userData.user_id,
-    user_info: {
-      user_email: userData.user_email,
-      user_alias: userData.user_alias,
-      user_role: userData.user_role,
-      models: userData.models,
-      max_budget: userData.max_budget,
-      tpm_limit: userData.tpm_limit,
-      rpm_limit: userData.rpm_limit,
-      budget_duration: userData.budget_duration,
-      metadata: userData.metadata,
-      // Without these the per-model budget editor mounts empty and a save
-      // replaces the user's existing budgets with whatever was typed.
-      model_max_budget: userData.model_max_budget,
-      model_max_budget_usage: userData.model_max_budget_usage,
-    },
-  };
-
   return (
     <div className="p-4">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <Button variant="ghost" onClick={onClose} className="mb-4">
-            <ArrowLeft /><LocalizedText text={"Back to Users"} /></Button>
-          <h2 className="text-xl font-semibold">{userData.user_email || translateMessage("User")}</h2>
+      <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
+        <div className="min-w-0 max-w-full">
+          <Button variant="ghost" onClick={onClose} disabled={walletBusy} className="mb-4">
+            <ArrowLeft />
+            <LocalizedText text={"Back to Users"} />
+          </Button>
+          <h2 className="break-all text-xl font-semibold">{userData.user_email || translateMessage("User")}</h2>
           <div className="flex items-center cursor-pointer">
-            <span className="text-sm text-muted-foreground font-mono">{userData.user_id}</span>
+            <span className="break-all text-sm text-muted-foreground font-mono">{userData.user_id}</span>
             <Button
               variant="ghost"
               size="icon-xs"
@@ -437,16 +444,26 @@ export default function UserInfoView({
             </Button>
           </div>
         </div>
-        {userRole && rolesWithWriteAccess.includes(userRole) && (
+        {canWriteUser && (
           <div className="flex items-center space-x-2">
-            <Button variant="secondary" onClick={handleResetPassword} className="flex items-center">
-              <RefreshCw /><LocalizedText text={"Reset Password"} /></Button>
             <Button
               variant="secondary"
+              onClick={handleResetPassword}
+              disabled={walletBusy}
+              className="flex items-center"
+            >
+              <RefreshCw />
+              <LocalizedText text={"Reset Password"} />
+            </Button>
+            <Button
+              variant="secondary"
+              disabled={walletBusy}
               onClick={() => setIsDeleteModalOpen(true)}
               className="flex items-center text-destructive border-destructive hover:bg-destructive/10"
             >
-              <Trash2 /><LocalizedText text={"Delete User"} /></Button>
+              <Trash2 />
+              <LocalizedText text={"Delete User"} />
+            </Button>
           </div>
         )}
       </div>
@@ -457,16 +474,23 @@ export default function UserInfoView({
         message={translateMessage("Are you sure you want to delete this user? This action cannot be undone.")}
         resourceInformationTitle="User Information"
         resourceInformation={[
-          markUiCopy({ label: "Email", value: userData.user_email }, {"label": "Email"}),
-          markUiCopy({ label: "User ID", value: userData.user_id, code: true }, {"label": "User ID"}),
-          markUiCopy({
-            label: "Global Proxy Role",
-            value: (userData.user_role && possibleUIRoles?.[userData.user_role]?.ui_label) || userData.user_role || "-",
-          }, {"label": "Global Proxy Role"}),
-          markUiCopy({
-            label: "Total Spend (USD)",
-            value: userData.spend !== null && userData.spend !== undefined ? userData.spend.toFixed(2) : undefined,
-          }, {"label": "Total Spend (USD)"}),
+          markUiCopy({ label: "Email", value: userData.user_email }, { label: "Email" }),
+          markUiCopy({ label: "User ID", value: userData.user_id, code: true }, { label: "User ID" }),
+          markUiCopy(
+            {
+              label: "Global Proxy Role",
+              value:
+                (userData.user_role && possibleUIRoles?.[userData.user_role]?.ui_label) || userData.user_role || "-",
+            },
+            { label: "Global Proxy Role" },
+          ),
+          markUiCopy(
+            {
+              label: "Total Spend (USD)",
+              value: userData.spend !== null && userData.spend !== undefined ? userData.spend.toFixed(2) : undefined,
+            },
+            { label: "Total Spend (USD)" },
+          ),
         ]}
         onCancel={cancelDelete}
         onOk={handleDelete}
@@ -474,39 +498,135 @@ export default function UserInfoView({
       />
 
       <Tabs
-        value={hiddenSavingsTab || hiddenRouterTab ? "overview" : activeTab}
-        onValueChange={(v: unknown) => setActiveTab(String(v))}
+        value={hiddenSavingsTab || hiddenRouterTab ? "account" : activeTab}
+        onValueChange={(v: unknown) => {
+          if (!walletBusy) setActiveTab(String(v));
+        }}
         className="gap-0"
       >
         <TabsList variant="line" className="mb-4">
-          <TabsTrigger value="overview" className="flex-none data-active:text-primary after:bg-primary"><LocalizedText text={"Overview"} /></TabsTrigger>
-          <TabsTrigger value="details" className="flex-none data-active:text-primary after:bg-primary"><LocalizedText text={"Details"} /></TabsTrigger>
+          <TabsTrigger value="account" className="flex-none data-active:text-primary after:bg-primary">
+            <LocalizedText text="账户管理" />
+          </TabsTrigger>
           {canViewSavings && (
-            <TabsTrigger value="savings" className="flex-none data-active:text-primary after:bg-primary"><LocalizedText text={"Savings"} /></TabsTrigger>
+            <TabsTrigger value="savings" className="flex-none data-active:text-primary after:bg-primary">
+              <LocalizedText text={"Savings"} />
+            </TabsTrigger>
           )}
           {canViewAutoRouterUsage && (
-            <TabsTrigger value="auto-router-usage" className="flex-none data-active:text-primary after:bg-primary"><LocalizedText text={"Auto-router usage"} /></TabsTrigger>
+            <TabsTrigger value="auto-router-usage" className="flex-none data-active:text-primary after:bg-primary">
+              <LocalizedText text={"Auto-router usage"} />
+            </TabsTrigger>
           )}
         </TabsList>
 
-        {/* Overview Panel */}
-        <TabsContent value="overview" keepMounted>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            <Card className="block p-6">
-              <p><LocalizedText text={"Spend"} /></p>
-              <div className="mt-2">
-                <h3 className="text-lg font-medium">${formatNumberWithCommas(userData.spend || 0, 2)}</h3>
-                <p><LocalizedText text={"of "} />{userData.max_budget !== null ? `$${formatNumberWithCommas(userData.max_budget, 2)}` : translateMessage("Unlimited")}
-                </p>
-              </div>
-            </Card>
+        <TabsContent value="account" keepMounted>
+          <div className="space-y-6">
+            <div className="grid items-start gap-6 xl:grid-cols-2">
+              <Card className="block p-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-medium">
+                    <LocalizedText text="基本信息" />
+                  </h3>
+                  {!isEditing && canWriteUser && (
+                    <Button onClick={() => setIsEditing(true)}>
+                      <LocalizedText text={"Edit Settings"} />
+                    </Button>
+                  )}
+                </div>
 
+                {isEditing && userData ? (
+                  <UserEditView
+                    userData={userDataForEdit}
+                    onCancel={() => setIsEditing(false)}
+                    onSubmit={handleUserUpdate}
+                    teams={teamDetails}
+                    accessToken={accessToken}
+                    userID={userId}
+                    userRole={userRole}
+                    userModels={userModels}
+                    possibleUIRoles={possibleUIRoles}
+                    objectPermission={userData.object_permission}
+                    premiumUser={premiumUser === true}
+                    modelAccessManagedByGroup={
+                      canReadAccount &&
+                      (membership.status !== "ready" ||
+                        (Boolean(member) && accountAccess.data?.model_access_source !== "personal"))
+                    }
+                  />
+                ) : (
+                  <UserInformationFields
+                    userData={userData}
+                    accessToken={accessToken}
+                    canReadAccount={canReadAccount}
+                    userIdCopied={Boolean(copiedStates["user-id"])}
+                    onCopyUserId={() => void copyToClipboard(userData.user_id, "user-id")}
+                  />
+                )}
+              </Card>
+              <div className="min-w-0 space-y-6">
+                {canReadAccount && accessToken && (
+                  <UserAccountAccess
+                    token={accessToken}
+                    userId={userId}
+                    member={member}
+                    status={membership.status}
+                    canManage={isProxyAdmin}
+                    nativeModels={userData.models}
+                    onChanged={() => {
+                      void queryClient.invalidateQueries({ queryKey: ["userList"] });
+                    }}
+                  />
+                )}
+                <UserSpendCard spend={userData.spend} maxBudget={userData.max_budget} />
+              </div>
+            </div>
+            {canReadAccount && (
+              <Card className="min-w-0 p-6">
+                <h3 className="mb-5 text-lg font-medium">
+                  <LocalizedText text="余额与流水" />
+                </h3>
+                {isProxyAdmin && membership.status === "ready" && member && accessToken && (
+                  <UserWalletPanel
+                    key={userId}
+                    token={accessToken}
+                    userId={userId}
+                    requests={walletRequests ?? localWalletRequests}
+                    onBusyChange={setWalletBusy}
+                  />
+                )}
+                {isProxyAdmin && membership.status === "loading" && (
+                  <p role="status">
+                    <LocalizedText text="加载中" />
+                  </p>
+                )}
+                {isProxyAdmin && membership.status === "error" && (
+                  <p role="alert">
+                    <LocalizedText text="用户组暂不可用，请刷新后重试。" />
+                  </p>
+                )}
+                {isProxyAdmin && membership.status === "ready" && !member && (
+                  <p className="text-sm text-muted-foreground">
+                    <LocalizedText text="系统账户不使用余额钱包" />
+                  </p>
+                )}
+                {!isProxyAdmin && (
+                  <p className="text-sm text-muted-foreground">
+                    <LocalizedText text="仅完整代理管理员可以管理余额、充值和兑换码。" />
+                  </p>
+                )}
+              </Card>
+            )}
             <Card className="block p-6">
               <div className="flex justify-between items-center mb-2">
-                <p><LocalizedText text={"Teams"} /></p>
+                <p>
+                  <LocalizedText text={"Teams"} />
+                </p>
                 {isProxyAdmin && (
                   <Button variant="ghost" size="sm" onClick={handleOpenAddTeamModal}>
-                    <Plus /><LocalizedText text={"Add Team"} /></Button>
+                    <Plus />
+                    <LocalizedText text={"Add Team"} />
+                  </Button>
                 )}
               </div>
               <div className="mt-2">
@@ -515,8 +635,14 @@ export default function UserInfoView({
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead><LocalizedText text={"Team Name"} /></TableHead>
-                          {isProxyAdmin && <TableHead className="text-right"><LocalizedText text={"Actions"} /></TableHead>}
+                          <TableHead>
+                            <LocalizedText text={"Team Name"} />
+                          </TableHead>
+                          {isProxyAdmin && (
+                            <TableHead className="text-right">
+                              <LocalizedText text={"Actions"} />
+                            </TableHead>
+                          )}
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -546,150 +672,24 @@ export default function UserInfoView({
                     </Table>
                   </div>
                 ) : (
-                  <p><LocalizedText text={"No teams"} /></p>
+                  <p>
+                    <LocalizedText text={"No teams"} />
+                  </p>
                 )}
                 {!isTeamsExpanded && teamDetails.length > 20 && (
                   <Button variant="ghost" size="sm" className="mt-2" onClick={() => setIsTeamsExpanded(true)}>
-                    +{teamDetails.length - 20}<LocalizedText text={" more"} /></Button>
+                    +{teamDetails.length - 20}
+                    <LocalizedText text={" more"} />
+                  </Button>
                 )}
                 {isTeamsExpanded && teamDetails.length > 20 && (
-                  <Button variant="ghost" size="sm" className="mt-2" onClick={() => setIsTeamsExpanded(false)}><LocalizedText text={"Show Less"} /></Button>
-                )}
-              </div>
-            </Card>
-
-            <Card className="block p-6">
-              <p><LocalizedText text={"Personal Models"} /></p>
-              <div className="mt-2">
-                {userData.models?.length && userData.models?.length > 0 ? (
-                  userData.models?.map((model, index) => <p key={index}>{model}</p>)
-                ) : (
-                  <p><LocalizedText text={"All proxy models"} /></p>
+                  <Button variant="ghost" size="sm" className="mt-2" onClick={() => setIsTeamsExpanded(false)}>
+                    <LocalizedText text={"Show Less"} />
+                  </Button>
                 )}
               </div>
             </Card>
           </div>
-        </TabsContent>
-
-        {/* Details Panel */}
-        <TabsContent value="details" keepMounted>
-          <Card className="block p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-medium"><LocalizedText text={"User Settings"} /></h3>
-              {!isEditing && userRole && rolesWithWriteAccess.includes(userRole) && (
-                <Button onClick={() => setIsEditing(true)}><LocalizedText text={"Edit Settings"} /></Button>
-              )}
-            </div>
-
-            {isEditing && userData ? (
-              <UserEditView
-                userData={userDataForEdit}
-                onCancel={() => setIsEditing(false)}
-                onSubmit={handleUserUpdate}
-                teams={teamDetails}
-                accessToken={accessToken}
-                userID={userId}
-                userRole={userRole}
-                userModels={userModels}
-                possibleUIRoles={possibleUIRoles}
-                objectPermission={userData.object_permission}
-                premiumUser={premiumUser === true}
-              />
-            ) : (
-              <div className="space-y-4">
-                <div>
-                  <p className="font-medium"><LocalizedText text={"User ID"} /></p>
-                  <div className="flex items-center cursor-pointer">
-                    <span className="font-mono">{userData.user_id}</span>
-                    <Button
-                      variant="ghost"
-                      size="icon-xs"
-                      onClick={() => copyToClipboard(userData.user_id, "user-id")}
-                      className={`left-2 z-raised transition-all duration-200 ${
-                        copiedStates["user-id"]
-                          ? "text-success bg-success/10 border-success/20"
-                          : "text-muted-foreground hover:text-foreground hover:bg-accent"
-                      }`}
-                    >
-                      {copiedStates["user-id"] ? <CheckIcon size={12} /> : <CopyIcon size={12} />}
-                    </Button>
-                  </div>
-                </div>
-
-                <div>
-                  <p className="font-medium"><LocalizedText text={"Email"} /></p>
-                  <p>{userData.user_email || translateMessage("Not Set")}</p>
-                </div>
-
-                <div>
-                  <p className="font-medium"><LocalizedText text={"User Alias"} /></p>
-                  <p>{userData.user_alias || translateMessage("Not Set")}</p>
-                </div>
-
-                <div>
-                  <p className="font-medium"><LocalizedText text={"Global Proxy Role"} /></p>
-                  <p>{userData.user_role || translateMessage("Not Set")}</p>
-                </div>
-
-                <div>
-                  <p className="font-medium"><LocalizedText text={"Created"} /></p>
-                  <p>{userData.created_at ? new Date(userData.created_at).toLocaleString(getIntlLocale()) : translateMessage("Unknown")}</p>
-                </div>
-
-                <div>
-                  <p className="font-medium"><LocalizedText text={"Last Updated"} /></p>
-                  <p>{userData.updated_at ? new Date(userData.updated_at).toLocaleString(getIntlLocale()) : translateMessage("Unknown")}</p>
-                </div>
-
-                <div>
-                  <p className="font-medium"><LocalizedText text={"Personal Models"} /></p>
-                  <div className="flex flex-wrap gap-2 mt-1">
-                    {userData.models?.length && userData.models?.length > 0 ? (
-                      userData.models?.map((model, index) => (
-                        <span key={index} className="px-2 py-1 bg-info/15 rounded-sm text-xs">
-                          {model}
-                        </span>
-                      ))
-                    ) : (
-                      <p><LocalizedText text={"All proxy models"} /></p>
-                    )}
-                  </div>
-                </div>
-
-                <div>
-                  <p className="font-medium"><LocalizedText text={"Max Budget"} /></p>
-                  <p>
-                    {userData.max_budget !== null && userData.max_budget !== undefined
-                      ? `$${formatNumberWithCommas(userData.max_budget, 4)}`
-                      : translateMessage("Unlimited")}
-                  </p>
-                </div>
-
-                <div>
-                  <p className="font-medium"><LocalizedText text={"Budget Reset"} /></p>
-                  <p>{getBudgetDurationLabel(userData.budget_duration ?? null)}</p>
-                </div>
-
-                <div>
-                  <p className="font-medium"><LocalizedText text={"Metadata"} /></p>
-                  <pre className="bg-muted p-2 rounded-sm text-xs overflow-auto mt-1">
-                    {JSON.stringify(userData.metadata || {}, null, 2)}
-                  </pre>
-                </div>
-
-                <div>
-                  <p className="font-medium mb-2"><LocalizedText text={"MCP Permissions"} /></p>
-                  <MCPServerPermissions
-                    mcpServers={userData.object_permission?.mcp_servers || []}
-                    mcpAccessGroups={userData.object_permission?.mcp_access_groups || []}
-                    mcpToolPermissions={userData.object_permission?.mcp_tool_permissions || {}}
-                    mcpToolsets={userData.object_permission?.mcp_toolsets || []}
-                    accessToken={accessToken}
-                  />
-                </div>
-              </div>
-            )}
-          </Card>
         </TabsContent>
         {canViewSavings && (
           <TabsContent value="savings">
@@ -704,7 +704,9 @@ export default function UserInfoView({
                   scopeNote="Savings for this user across API keys and JWT-authenticated requests."
                 />
               ) : (
-                <p role="alert"><LocalizedText text={"Savings are unavailable because this user has no ID."} /></p>
+                <p role="alert">
+                  <LocalizedText text={"Savings are unavailable because this user has no ID."} />
+                </p>
               ))}
           </TabsContent>
         )}
@@ -719,7 +721,9 @@ export default function UserInfoView({
                   activity={activityDateRange}
                 />
               ) : (
-                <p role="alert"><LocalizedText text={"Auto-router usage is unavailable because this user has no ID."} /></p>
+                <p role="alert">
+                  <LocalizedText text={"Auto-router usage is unavailable because this user has no ID."} />
+                </p>
               ))}
           </TabsContent>
         )}
@@ -737,12 +741,14 @@ export default function UserInfoView({
         isOpen={isRemoveTeamModalOpen}
         title={translateMessage("Remove from Team")}
         alertMessage="Removing this user from the team will also delete any keys the user created for this team."
-        message={translateMessage("Are you sure you want to remove this user from the team? This action cannot be undone.")}
+        message={translateMessage(
+          "Are you sure you want to remove this user from the team? This action cannot be undone.",
+        )}
         resourceInformationTitle="Team Membership"
         resourceInformation={[
-          markUiCopy({ label: "Team", value: teamToRemove?.team_alias || teamToRemove?.team_id }, {"label": "Team"}),
-          markUiCopy({ label: "User ID", value: userData?.user_id, code: true }, {"label": "User ID"}),
-          markUiCopy({ label: "Email", value: userData?.user_email }, {"label": "Email"}),
+          markUiCopy({ label: "Team", value: teamToRemove?.team_alias || teamToRemove?.team_id }, { label: "Team" }),
+          markUiCopy({ label: "User ID", value: userData?.user_id, code: true }, { label: "User ID" }),
+          markUiCopy({ label: "Email", value: userData?.user_email }, { label: "Email" }),
         ]}
         onCancel={handleRemoveTeamCancel}
         onOk={handleRemoveTeamConfirm}
@@ -757,7 +763,9 @@ export default function UserInfoView({
       >
         <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle><LocalizedText text={"Add User to Team"} /></DialogTitle>
+            <DialogTitle>
+              <LocalizedText text={"Add User to Team"} />
+            </DialogTitle>
           </DialogHeader>
           <form
             onSubmit={(event) => {
@@ -767,7 +775,9 @@ export default function UserInfoView({
           >
             <FieldGroup>
               <Field>
-                <FieldLabel htmlFor={ADD_TEAM_FIELD_ID}><LocalizedText text={"Team"} /></FieldLabel>
+                <FieldLabel htmlFor={ADD_TEAM_FIELD_ID}>
+                  <LocalizedText text={"Team"} />
+                </FieldLabel>
                 <Combobox
                   items={availableTeamsForAdd}
                   value={selectedTeamOption}
@@ -775,9 +785,15 @@ export default function UserInfoView({
                   itemToStringLabel={(team: TeamOption) => team.team_alias}
                   isItemEqualToValue={(team: TeamOption, value: TeamOption) => team.team_id === value.team_id}
                 >
-                  <ComboboxInput id={ADD_TEAM_FIELD_ID} placeholder={translateMessage("Select a team")} className="w-full" />
+                  <ComboboxInput
+                    id={ADD_TEAM_FIELD_ID}
+                    placeholder={translateMessage("Select a team")}
+                    className="w-full"
+                  />
                   <ComboboxContent>
-                    <ComboboxEmpty><LocalizedText text={"No teams found"} /></ComboboxEmpty>
+                    <ComboboxEmpty>
+                      <LocalizedText text={"No teams found"} />
+                    </ComboboxEmpty>
                     <ComboboxList>
                       {(team: TeamOption) => (
                         <ComboboxItem key={team.team_id} value={team} title={team.team_alias}>
@@ -790,7 +806,9 @@ export default function UserInfoView({
               </Field>
 
               <Field>
-                <FieldLabel htmlFor={ADD_TEAM_ROLE_FIELD_ID}><LocalizedText text={"Member Role"} /></FieldLabel>
+                <FieldLabel htmlFor={ADD_TEAM_ROLE_FIELD_ID}>
+                  <LocalizedText text={"Member Role"} />
+                </FieldLabel>
                 <Select value={selectedRole} onValueChange={(value) => value !== null && setSelectedRole(value)}>
                   <SelectTrigger id={ADD_TEAM_ROLE_FIELD_ID} className="w-full">
                     <SelectValue />

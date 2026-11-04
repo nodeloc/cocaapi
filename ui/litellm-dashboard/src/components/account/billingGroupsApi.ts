@@ -17,6 +17,13 @@ const client = createClient<paths>({
 });
 const admin = (token: string) => ({ Authorization: `Bearer ${token}` });
 export const billingGroupsApi = {
+  access: async (token: string, user_id: string) =>
+    unwrapWallet(
+      await client.GET("/commerce/admin/v1/billing-groups/members/{user_id}/access", {
+        headers: admin(token),
+        params: { path: { user_id } },
+      }),
+    ),
   lookup: async (token: string, userIds: readonly string[]) =>
     unwrapWallet(
       await client.POST("/commerce/admin/v1/billing-groups/members/lookup", {

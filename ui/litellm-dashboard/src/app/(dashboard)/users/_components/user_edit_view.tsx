@@ -45,6 +45,7 @@ interface UserEditViewProps {
   isBulkEdit?: boolean;
   objectPermission?: ObjectPermission | null;
   premiumUser?: boolean;
+  modelAccessManagedByGroup?: boolean;
 }
 
 const MCP_SELECTION_SHAPE = z.object({
@@ -161,6 +162,7 @@ export function UserEditView({
   isBulkEdit = false,
   objectPermission,
   premiumUser = false,
+  modelAccessManagedByGroup = false,
 }: UserEditViewProps) {
   useUiLocale();
   const canEditMcpPermissions = !isBulkEdit && all_admin_roles.includes(userRole || "");
@@ -206,7 +208,8 @@ export function UserEditView({
       max_budget:
         unlimitedBudget || values.max_budget === "" || values.max_budget === undefined ? null : values.max_budget,
     };
-    onSubmit(payload);
+    const { models, ...withoutModels } = payload;
+    onSubmit(modelAccessManagedByGroup ? withoutModels : { ...withoutModels, models });
   };
 
   const modelOptions = [
@@ -272,24 +275,31 @@ export function UserEditView({
             )}
           </FormField>
 
-          <FormField
-            control={form.control}
-            name="models"
-            label={labelWithHint(
-              "Personal Models",
-              "Select which models this user can access outside of team-scope. Choose 'All Proxy Models' to grant access to all models available on the proxy.",
-            )}
-          >
-            {({ value, onChange }) => (
-              <MultiSelect
-                options={modelOptions}
-                value={value}
-                onValueChange={onChange}
-                placeholder={translateMessage("Select models")}
-                disabled={!all_admin_roles.includes(userRole || "")}
-              />
-            )}
-          </FormField>
+          {modelAccessManagedByGroup && (
+            <p className="text-sm text-muted-foreground">
+              <LocalizedText text="模型权限由用户组统一管理，请在用户组与模型权限中调整。" />
+            </p>
+          )}
+          {!modelAccessManagedByGroup && (
+            <FormField
+              control={form.control}
+              name="models"
+              label={labelWithHint(
+                "Personal Models",
+                "Select which models this user can access outside of team-scope. Choose 'All Proxy Models' to grant access to all models available on the proxy.",
+              )}
+            >
+              {({ value, onChange }) => (
+                <MultiSelect
+                  options={modelOptions}
+                  value={value}
+                  onValueChange={onChange}
+                  placeholder={translateMessage("Select models")}
+                  disabled={!all_admin_roles.includes(userRole || "")}
+                />
+              )}
+            </FormField>
+          )}
 
           <FormField
             control={form.control}
