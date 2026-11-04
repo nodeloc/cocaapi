@@ -6,10 +6,17 @@ import UserGroupsPage from "./UserGroupsPage";
 const authorization = vi.hoisted(() => ({ userRole: "Admin", isAuthorized: true, isViewOnly: false }));
 vi.mock("@/app/(dashboard)/hooks/useAuthorized", () => ({ default: () => authorization }));
 vi.mock("./BillingGroupsAdmin", () => ({
-  default: () => <section aria-label="Billing groups"><input aria-label="Draft group name" defaultValue="" /></section>,
+  default: ({ onOpenGroup }: { onOpenGroup: (id: string) => void }) => (
+    <section aria-label="Unified group configuration"><button onClick={() => onOpenGroup("default")}>Open default group</button></section>
+  ),
 }));
 vi.mock("@/app/(dashboard)/access-groups/_components/AccessGroupsPage", () => ({
-  AccessGroupsPage: () => <section aria-label="Resource permissions">Key and team permissions</section>,
+  AccessGroupsPage: () => <section aria-label="Read-only groups">Canonical resource groups</section>,
+}));
+vi.mock("@/app/(dashboard)/access-groups/_components/AccessGroupsDetailsPage", () => ({
+  AccessGroupDetail: ({ accessGroupId, onBack }: { accessGroupId: string; onBack: () => void }) => (
+    <section aria-label="Group resources"><p>{accessGroupId}</p><button onClick={onBack}>Back to groups</button></section>
+  ),
 }));
 
 beforeEach(() => {
@@ -18,26 +25,23 @@ beforeEach(() => {
   authorization.isViewOnly = false;
 });
 
-it("keeps billing drafts while switching between billing and resource permission tabs", () => {
+it("opens the same group ID for resource and pricing administration", () => {
   renderWithProviders(<UserGroupsPage />);
-  fireEvent.change(screen.getByRole("textbox", { name: "Draft group name" }), { target: { value: "VIP" } });
-  fireEvent.click(screen.getByRole("tab", { name: "资源权限" }));
-  expect(screen.getByRole("region", { name: "Resource permissions" })).toBeVisible();
-  fireEvent.click(screen.getByRole("tab", { name: "分组与倍率" }));
-  expect(screen.getByRole("textbox", { name: "Draft group name" })).toHaveValue("VIP");
+  fireEvent.click(screen.getByRole("button", { name: "Open default group" }));
+  expect(screen.getByRole("region", { name: "Group resources" })).toHaveTextContent("default");
+  fireEvent.click(screen.getByRole("button", { name: "Back to groups" }));
+  expect(screen.getByRole("region", { name: "Unified group configuration" })).toBeVisible();
 });
 
-it("opens the resource permissions tab from a deep link", () => {
-  renderWithProviders(<UserGroupsPage />, { searchParams: "?groupTab=permissions" });
-  expect(screen.getByRole("region", { name: "Resource permissions" })).toBeVisible();
-  expect(screen.getByRole("tab", { name: "资源权限" })).toHaveAttribute("aria-selected", "true");
+it("opens a canonical group from its deep link", () => {
+  renderWithProviders(<UserGroupsPage />, { searchParams: "?group=default" });
+  expect(screen.getByRole("region", { name: "Group resources" })).toHaveTextContent("default");
 });
 
-it("does not mount billing management for view-only admins even through a billing deep link", () => {
+it("does not mount write-enabled configuration for view-only admins", () => {
   authorization.userRole = "proxy_admin_viewer";
   authorization.isViewOnly = true;
   renderWithProviders(<UserGroupsPage />, { searchParams: "?groupTab=billing" });
-  expect(screen.getByRole("region", { name: "Resource permissions" })).toBeVisible();
-  expect(screen.queryByRole("tab", { name: "分组与倍率" })).not.toBeInTheDocument();
-  expect(screen.queryByRole("textbox", { name: "Draft group name" })).not.toBeInTheDocument();
+  expect(screen.getByRole("region", { name: "Read-only groups" })).toBeVisible();
+  expect(screen.queryByRole("button", { name: "Open default group" })).not.toBeInTheDocument();
 });

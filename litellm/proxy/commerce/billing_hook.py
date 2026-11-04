@@ -1,6 +1,6 @@
 import os
 import uuid
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from contextvars import ContextVar
 from dataclasses import dataclass, replace
 from datetime import datetime
@@ -29,6 +29,7 @@ from litellm.proxy.commerce.billing_pricing import (
     selected_model,
 )
 from litellm.repositories.commerce_auth_repository import AccountDatabase, AccountRepository
+from litellm.repositories.commerce_billing_group_repository import BillingGroupRepository
 from litellm.repositories.commerce_wallet_repository import WalletRepository
 
 _TOKEN: Final = "_cocaapi_wallet_request"
@@ -168,6 +169,27 @@ class WalletBillingMiddleware:
 
 
 class WalletBillingHook(CustomLogger):
+    async def async_filter_listed_models(
+        self, user_api_key_dict: UserAPIKeyAuth, model_names: Sequence[str]
+    ) -> tuple[str, ...]:
+        names: Final = tuple(model_names)
+        store: Final = configured_store()
+        if store is None:
+            return names
+        try:
+            if not await customer_check(store, user_api_key_dict.user_id):
+                return names
+            if user_api_key_dict.user_id is None:
+                return names
+            result: Final = await BillingGroupRepository(store.database).allowed_models(
+                user_api_key_dict.user_id, names
+            )
+            if isinstance(result, AuthError):
+                raise HTTPException(result.status, detail=result.code)
+        except _BILLING_ERRORS:
+            raise HTTPException(503, detail="billing_groups_unavailable") from None
+        return result
+
     async def async_pre_call_hook(
         self, user_api_key_dict: UserAPIKeyAuth, cache: object, data: Mapping[str, object], call_type: str
     ) -> dict[str, object] | None:  # mutable-ok: CustomLogger requires a dict replacement payload

@@ -3,7 +3,7 @@ import uuid
 from datetime import datetime
 from typing import Final
 
-from pydantic import ValidationError
+from pydantic import TypeAdapter, ValidationError
 
 from litellm.models.commerce_auth import AuthError, FrozenModel
 from litellm.models.commerce_billing_groups import (
@@ -15,11 +15,16 @@ from litellm.models.commerce_billing_groups import (
     BillingGroupsUpdate,
     BillingGroupsView,
     PricingSnapshot,
+    PricingUserGroup,
     pricing_snapshot,
 )
 from litellm.repositories.commerce_auth_repository import AccountDatabase
+from litellm.repositories.commerce_user_group_repository import group_lock, record_configuration, sync_user_groups
 
-_CONFIG_SELECT: Final = """SELECT revision,payload,updated_by,created_at FROM "CommerceBillingConfiguration"
+_CONFIG_SELECT: Final = """SELECT revision,payload,updated_by,created_at,
+    (SELECT COALESCE(jsonb_agg(jsonb_build_object('id',access_group_id,'name',access_group_name,
+    'models',access_model_names) ORDER BY (access_group_id='default') DESC,access_group_id),'[]'::jsonb)::text
+    FROM "LiteLLM_AccessGroupTable") AS registry FROM "CommerceBillingConfiguration"
     ORDER BY revision DESC LIMIT 1"""
 _MEMBER_SELECT: Final = """SELECT user_id,email_normalized AS email,enabled,billing_group_id AS group_id,
     billing_group_version AS version FROM "CommerceCustomer" """
@@ -47,6 +52,7 @@ def member_view(member: StoredBillingMember, policy: BillingGroups) -> BillingGr
 
 def configuration_view(record: BillingGroupsRecord, policy: BillingGroups) -> BillingGroupsView:
     return BillingGroupsView(
+        group_source=policy.group_source,
         user_groups=policy.user_groups,
         model_groups=policy.model_groups,
         rules=policy.rules,
@@ -57,7 +63,19 @@ def configuration_view(record: BillingGroupsRecord, policy: BillingGroups) -> Bi
 
 
 async def config_lock(database: AccountDatabase) -> None:
-    await database.query_raw("SELECT pg_advisory_xact_lock(hashtextextended($1,0))::text", "cocaapi-billing-groups")
+    await group_lock(database)
+
+
+def group_allows_model(policy: BillingGroups, group_id: str, model: str) -> bool:
+    if policy.group_source != "access_groups":
+        return True
+    group: Final = next((group for group in policy.user_groups if group.id == group_id), None)
+    if group is None or not group.models:
+        return False
+    from litellm.proxy.auth.auth_checks import check_model_access_helper
+    from litellm.proxy.proxy_server import llm_router
+
+    return check_model_access_helper(model=model, llm_router=llm_router, models=list(group.models))
 
 
 class BillingGroupRepository:
@@ -70,9 +88,21 @@ class BillingGroupRepository:
             return AuthError("billing_groups_unavailable", 503)
         try:
             record: Final = BillingGroupsRecord.model_validate(rows[0])
-            return record, BillingGroups.model_validate_json(record.payload)
+            stored: Final = BillingGroups.model_validate_json(record.payload)
+            groups: Final = (
+                TypeAdapter(tuple[PricingUserGroup, ...]).validate_json(record.registry)
+                if stored.group_source == "access_groups"
+                else stored.user_groups
+            )
+            policy: Final = BillingGroups(
+                group_source=stored.group_source,
+                user_groups=groups,
+                model_groups=stored.model_groups,
+                rules=stored.rules,
+            )
         except ValidationError:
             return AuthError("billing_groups_unavailable", 503)
+        return record, policy
 
     async def read(self) -> BillingGroupsView | AuthError:
         state: Final = await self.state()
@@ -96,25 +126,18 @@ class BillingGroupRepository:
                 )
                 if used:
                     return AuthError("billing_group_in_use", 409)
-            changed: Final = body.policy()
-            inserted: Final = await tx.query_raw(
-                """INSERT INTO "CommerceBillingConfiguration" (revision,payload,updated_by,created_at)
-                VALUES ($1,$2,$3,$4::timestamptz) RETURNING revision,payload,updated_by,created_at""",
-                record.revision + 1,
-                changed.model_dump_json(),
-                actor,
-                now,
+            groups: Final = (
+                await sync_user_groups(tx, policy.user_groups, body.user_groups, actor, now)
+                if policy.group_source == "access_groups"
+                else body.user_groups
             )
-            await tx.execute_raw(
-                """INSERT INTO "CommerceAuditEvent" (id,actor_id,action,target_id,reason,created_at)
-                VALUES ($1,$2,'billing_groups_update',$3,$4,$5::timestamptz)""",
-                uuid.uuid4().hex,
-                actor,
-                str(record.revision + 1),
-                body.reason.strip(),
-                now,
+            if isinstance(groups, AuthError):
+                return groups
+            changed: Final = BillingGroups(
+                group_source=policy.group_source, user_groups=groups, model_groups=body.model_groups, rules=body.rules
             )
-            return configuration_view(BillingGroupsRecord.model_validate(inserted[0]), changed)
+            saved: Final = await record_configuration(tx, changed, record.revision + 1, actor, now, body.reason)
+            return configuration_view(saved, changed)
 
     async def member(self, user_id: str) -> BillingGroupMember | AuthError:
         state: Final = await self.state()
@@ -198,6 +221,8 @@ class BillingGroupRepository:
         if not rows:
             return AuthError("account_not_found", 404)
         member: Final = StoredBillingMember.model_validate(rows[0])
+        if not group_allows_model(state[1], member.group_id, model):
+            return AuthError("model_access_required", 403)
         return pricing_snapshot(state[1], member.group_id, model, state[0].revision, member.version)
 
     async def allowed_models(self, user_id: str, models: tuple[str, ...]) -> tuple[str, ...] | AuthError:
@@ -213,7 +238,21 @@ class BillingGroupRepository:
         return tuple(
             model
             for model in models
-            if not isinstance(
+            if group_allows_model(state[1], member.group_id, model)
+            and not isinstance(
                 pricing_snapshot(state[1], member.group_id, model, state[0].revision, member.version), AuthError
             )
         )
+
+    async def model_grants(self, user_id: str) -> tuple[str, ...] | AuthError | None:
+        rows: Final = await self.database.query_raw(_MEMBER_SELECT + " WHERE user_id=$1", user_id)
+        if not rows:
+            return None
+        state: Final = await self.state()
+        if isinstance(state, AuthError):
+            return state
+        if state[1].group_source != "access_groups":
+            return None
+        member: Final = StoredBillingMember.model_validate(rows[0])
+        group: Final = next((group for group in state[1].user_groups if group.id == member.group_id), None)
+        return group.models or () if group else AuthError("billing_groups_unavailable", 503)

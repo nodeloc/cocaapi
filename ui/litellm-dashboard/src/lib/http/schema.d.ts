@@ -28464,6 +28464,12 @@ export interface components {
         /** BillingGroupsUpdate */
         BillingGroupsUpdate: {
             /**
+             * Group Source
+             * @default legacy
+             * @enum {string}
+             */
+            group_source: "legacy" | "access_groups";
+            /**
              * Model Groups
              * @default [
              *       {
@@ -28496,6 +28502,12 @@ export interface components {
         };
         /** BillingGroupsView */
         BillingGroupsView: {
+            /**
+             * Group Source
+             * @default legacy
+             * @enum {string}
+             */
+            group_source: "legacy" | "access_groups";
             /**
              * Model Groups
              * @default [
@@ -43974,6 +43986,8 @@ export interface components {
         PricingUserGroup: {
             /** Id */
             id: string;
+            /** Models */
+            models?: string[] | null;
             /** Name */
             name: string;
         };

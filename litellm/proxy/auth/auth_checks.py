@@ -2756,6 +2756,8 @@ async def get_user_object(
     if user_id is None:
         return None
 
+    from litellm.proxy.commerce.group_authorization import projected_registered_user
+
     # check if in cache
     if not check_db_only:
         cached_user_obj: Final = await user_api_key_cache.async_get_cache(
@@ -2763,12 +2765,13 @@ async def get_user_object(
             model_type=LiteLLM_UserTable,
         )
         if cached_user_obj is not None:
-            return await _backfill_null_user_email(
+            backfilled: Final = await _backfill_null_user_email(
                 prisma_client=prisma_client,
                 user_api_key_cache=user_api_key_cache,
                 user_row=cached_user_obj,
                 user_email=user_email,
             )
+            return await projected_registered_user(backfilled)
     # else, check db
     if prisma_client is None:
         raise Exception("No db connected")
@@ -2875,7 +2878,7 @@ async def get_user_object(
             last_db_access_time=last_db_access_time,
         )
 
-        return _response
+        return await projected_registered_user(_response)
     except UserNotFoundError:
         raise
     except Exception as e:
@@ -5545,7 +5548,13 @@ async def can_user_call_model(
     if user_object is None:
         return True
 
-    if SpecialModelNames.no_default_models.value in user_object.models:
+    from litellm.proxy.commerce.group_authorization import registered_user_models
+
+    grants: Final = await registered_user_models(user_object.user_id)
+    models: Final = (
+        user_object.models if grants is None else list(grants or (SpecialModelNames.no_default_models.value,))
+    )
+    if SpecialModelNames.no_default_models.value in models:
         internal_message: Final = (
             f"User not allowed to access model. No default model access, only team models allowed. "
             f"Tried to access {model}"
@@ -5561,7 +5570,7 @@ async def can_user_call_model(
     return can_object_call_model(
         model=model,
         llm_router=llm_router,
-        models=user_object.models,
+        models=models,
         key_model_aliases=key_model_aliases,
         object_type="user",
     )

@@ -1,7 +1,7 @@
 from datetime import datetime
 from decimal import Decimal
 from itertools import chain
-from typing import Annotated, Final, TypeAlias
+from typing import Annotated, Final, Literal, TypeAlias
 
 from pydantic import Field, field_validator, model_validator
 from typing_extensions import Self
@@ -14,7 +14,7 @@ GroupID: TypeAlias = Annotated[str, Field(pattern=r"^[a-z0-9][a-z0-9_-]{0,63}$")
 ModelName: TypeAlias = Annotated[str, Field(min_length=1, max_length=256, pattern=r"\S")]
 
 
-class PricingUserGroup(FrozenModel):
+class PricingGroup(FrozenModel):
     id: GroupID
     name: str = Field(min_length=1, max_length=80, pattern=r"\S")
 
@@ -24,7 +24,11 @@ class PricingUserGroup(FrozenModel):
         return value.strip()
 
 
-class PricingModelGroup(PricingUserGroup):
+class PricingUserGroup(PricingGroup):
+    models: tuple[ModelName, ...] | None = Field(default=None, max_length=4096)
+
+
+class PricingModelGroup(PricingGroup):
     models: tuple[ModelName, ...] = Field(default=(), max_length=4096)
 
 
@@ -46,6 +50,7 @@ class PricingRule(FrozenModel):
 
 
 class BillingGroups(FrozenModel):
+    group_source: Literal["legacy", "access_groups"] = "legacy"
     user_groups: tuple[PricingUserGroup, ...] = Field(
         default=(PricingUserGroup(id="default", name="普通组"),), min_length=1, max_length=100
     )
@@ -88,6 +93,7 @@ class BillingGroupsRecord(FrozenModel):
     payload: str
     updated_by: str
     created_at: datetime
+    registry: str = "[]"
 
 
 class BillingGroupsView(BillingGroups):

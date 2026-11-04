@@ -67,7 +67,7 @@ export function AccessGroupsPage({ embedded = false }: { embedded?: boolean }) {
       <PageHeader>
         <PageHeaderTitle>
           <Boxes />
-          <LocalizedText text={embedded ? "Resource Permissions" : "Access Groups"} />
+          <LocalizedText text={embedded ? "Resource Permissions" : "User Groups"} />
         </PageHeaderTitle>
         <PageHeaderDescription>
           <LocalizedText text={embedded ? "管理 Key 和团队的资源权限，不修改账户分组与计费倍率" : "Manage resource permissions for your organization"} />

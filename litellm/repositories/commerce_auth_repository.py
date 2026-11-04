@@ -66,6 +66,14 @@ class AccountRepository:
         )
 
         async with self.database.tx() as tx:
+            from litellm.repositories.commerce_user_group_repository import group_lock
+
+            await group_lock(tx)
+            group_settings: Final = await tx.query_raw(
+                """SELECT payload::jsonb->>'group_source' AS source FROM "CommerceBillingConfiguration"
+                ORDER BY revision DESC LIMIT 1"""
+            )
+            unified: Final = bool(group_settings and group_settings[0].get("source") == "access_groups")
             if identity is not None:
                 await tx.query_raw(
                     "SELECT pg_advisory_xact_lock(hashtextextended($1,0))::text",
@@ -92,7 +100,7 @@ class AccountRepository:
                 user_id,
                 email,
                 list(self.default_models or ("no-default-models",)),
-                None if self.default_models else 0,
+                None if self.default_models or unified else 0,
             )
             await tx.execute_raw(
                 """INSERT INTO "CommerceCustomer"

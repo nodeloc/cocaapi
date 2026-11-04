@@ -59,6 +59,19 @@ docker compose exec -T postgres pg_dump -U cocaapi -d cocaapi -Fc > "backups/coc
 
 升级前保存 `.env`、配置文件和数据库备份，记录当前镜像摘要。验证新镜像后更新 Compose 的精确版本及摘要，执行 `docker compose up -d` 并验证后台、数据库和模型调用。数据库迁移可能影响回滚，恢复旧镜像前应先判断旧版本是否兼容迁移后的结构
 
+## 统一用户组升级
+
+升级前备份数据库和配置，并在切换期间启用 `COCAAPI_BILLING_MAINTENANCE=true` 暂停客户 API 调用。使用新镜像执行以下命令，第一条只检查迁移，第二条提交迁移
+
+```sh
+docker compose -f compose.yaml -f compose.auth.yaml exec gateway /app/.venv/bin/python /app/migrate_commerce_user_groups.py
+docker compose -f compose.yaml -f compose.auth.yaml exec gateway /app/.venv/bin/python /app/migrate_commerce_user_groups.py --apply
+```
+
+迁移按现有账号模型权限拆分组，并复制原倍率规则，不修改余额、Key 和调用记录。新注册用户默认加入普通组。迁移成功后，组名称和模型权限只从原生访问组表读取，计费规则引用相同组 ID；两个管理接口共享版本检查。原权限组可在后台重命名，合组前应核对其模型范围和倍率
+
+确认模型列表、受限 Key、余额不足拒绝及实际扣费正常后，关闭维护开关。迁移命令可重复执行，已经迁移的数据库不会再次拆组
+
 ## 首次部署验证
 
 2026-11-01 已完成 Compose 配置校验、Caddy 配置校验和 PostgreSQL 初始化。网关双 worker 启动，三个容器均为 healthy。Docker 和 Caddy 系统服务均已启用开机启动

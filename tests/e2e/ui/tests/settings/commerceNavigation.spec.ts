@@ -16,8 +16,7 @@ test.describe("Commerce navigation", () => {
     await page.getByRole("tab", { name: /^(用户组|User Groups)$/i }).click();
     await expect(page).toHaveURL(/\/ui\/access-groups\/?\?groupTab=billing$/);
     expect(await page.evaluate(() => performance.timeOrigin)).toBe(origin);
-    await page.getByRole("tab", { name: /^(资源权限|Resource Permissions)$/i }).click();
-    await expect(page.getByRole("button", { name: /^(创建访问组|Create Access Group)$/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /^(用户组|User Groups)$/i }).first()).toBeVisible();
     expect(await page.evaluate(() => performance.timeOrigin)).toBe(origin);
   });
 });

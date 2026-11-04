@@ -105,7 +105,7 @@ describe("AccessGroupsPage", () => {
 
   it("renders the page title and subtitle", () => {
     renderWithProviders(<AccessGroupsPage />);
-    expect(screen.getByRole("heading", { name: "Access Groups" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "User Groups" })).toBeInTheDocument();
     expect(screen.getByText("Manage resource permissions for your organization")).toBeInTheDocument();
     expect(document.querySelector(".lucide-boxes")).not.toBeNull();
   });

@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
+import userEvent from "@testing-library/user-event";
 import BillingGroupsAdmin from "./BillingGroupsAdmin";
 
 vi.mock("@/app/(dashboard)/hooks/useAuthorized", () => ({
@@ -7,12 +8,13 @@ vi.mock("@/app/(dashboard)/hooks/useAuthorized", () => ({
 }));
 const fetchMock = vi.fn<typeof fetch>();
 const config = {
+  group_source: "access_groups",
   revision: 3,
   updated_by: "admin",
   updated_at: "2026-11-02T00:00:00Z",
   user_groups: [
-    { id: "default", name: "普通组" },
-    { id: "vip", name: "VIP" },
+    { id: "default", name: "普通组", models: ["test-model"] },
+    { id: "vip", name: "VIP", models: [] },
   ],
   model_groups: [
     { id: "default", name: "普通模型组", models: [] },
@@ -46,6 +48,28 @@ beforeEach(() => {
 });
 afterEach(() => vi.unstubAllGlobals());
 
+it("saves model permissions on the same user group used by membership and pricing", async () => {
+  const user = userEvent.setup();
+  render(<BillingGroupsAdmin embedded />);
+  const selectors = await screen.findAllByRole("combobox", { name: "空列表禁止访问模型" });
+  await user.click(selectors[1]);
+  await user.click(await screen.findByRole("option", { name: "test-model", exact: true }));
+  await user.keyboard("{Escape}");
+  fireEvent.change(screen.getByLabelText("配置变更原因"), { target: { value: "组权限测试" } });
+  fetchMock.mockImplementationOnce(async (input) => {
+    const request = input as Request;
+    expect(request.method).toBe("PUT");
+    expect(await request.json()).toMatchObject({
+      user_groups: [{ id: "default", models: ["test-model"] }, { id: "vip", models: ["test-model"] }],
+      rules: config.rules,
+      reason: "组权限测试",
+    });
+    return Response.json({ ...config, revision: config.revision + 1 });
+  });
+  fireEvent.click(screen.getByRole("button", { name: "保存分组配置" }));
+  expect(await screen.findByRole("status")).toHaveTextContent("分组配置已保存");
+});
+
 it("saves multiplier and deny settings with version and reason using the native administration page", async () => {
   render(<BillingGroupsAdmin embedded />);
   const row = await screen.findByRole("row", { name: /普通组.*普通模型组.*1/ });
@@ -58,6 +82,7 @@ it("saves multiplier and deny settings with version and reason using the native 
     const request = input as Request;
     expect(request.method).toBe("PUT");
     expect(await request.json()).toEqual({
+      group_source: config.group_source,
       revision: 3,
       user_groups: config.user_groups,
       model_groups: config.model_groups,

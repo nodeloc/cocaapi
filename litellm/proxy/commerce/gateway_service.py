@@ -40,7 +40,12 @@ class GatewayService:
 
     async def access(self, session: Session) -> GatewayAccess | AuthError:
         stored: Final = await self.store.access(session.customer.user_id)
-        available: Final = await self.native.models(stored.models)
+        grants: Final = await BillingGroupRepository(self.store.database).model_grants(session.customer.user_id)
+        if isinstance(grants, AuthError):
+            return grants
+        available: Final = await self.native.models(
+            stored.models if grants is None else grants or ("no-default-models",)
+        )
         if isinstance(available, AuthError):
             return available
         filtered: Final = await BillingGroupRepository(self.store.database).allowed_models(

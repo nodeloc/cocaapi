@@ -1,6 +1,8 @@
 import asyncio
+import os
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from types import MappingProxyType
 from typing import Final, Protocol
 
@@ -9,6 +11,7 @@ from typing_extensions import ReadOnly, TypedDict
 
 from litellm._internal_context import with_service_target
 from litellm._logging import verbose_proxy_logger
+from litellm.models.commerce_auth import AuthError
 from litellm.proxy._experimental.mcp_server.mcp_server_manager import global_mcp_server_manager
 from litellm.proxy._types import (
     CommonProxyErrors,
@@ -37,6 +40,13 @@ from litellm.proxy.management_helpers.resource_display_names import (
     mcp_server_display_names,
 )
 from litellm.proxy.utils import PrismaClient, get_prisma_client_or_throw
+from litellm.repositories.commerce_auth_repository import AccountDatabase
+from litellm.repositories.commerce_user_group_repository import (
+    GroupChange,
+    begin_group_change,
+    finish_group_change,
+    group_deletion_error,
+)
 from litellm.repositories.table_repositories import AccessGroupRepository, TeamRepository
 from litellm.types.access_group import (
     AccessGroupCreateRequest,
@@ -146,7 +156,7 @@ class _AgentAccessGroupsData(TypedDict):
     access_group_ids: ReadOnly[Sequence[str]]
 
 
-class _AccessGroupTx(Protocol):
+class _AccessGroupTx(AccountDatabase, Protocol):
     @property
     def litellm_accessgrouptable(self) -> _AccessGroupTable: ...
 
@@ -158,6 +168,18 @@ class _AccessGroupTx(Protocol):
 
     @property
     def litellm_agentstable(self) -> _AgentTable: ...
+
+
+def _raise_group_error(error: AuthError | None) -> None:
+    if error is not None:
+        raise HTTPException(error.status, detail=error.code)
+
+
+async def _begin_user_group_change(database: AccountDatabase) -> GroupChange | None:
+    result: Final = await begin_group_change(database, enabled=bool(os.environ.get("COCAAPI_AUTH_SECRET")))
+    if isinstance(result, AuthError):
+        raise HTTPException(result.status, detail=result.code)
+    return result
 
 
 def _require_proxy_admin(user_api_key_dict: UserAPIKeyAuth) -> None:
@@ -528,6 +550,7 @@ async def create_access_group(
     try:
         tx: _AccessGroupTx
         async with prisma_client.db.tx() as tx:
+            change: Final = await _begin_user_group_change(tx)
             existing: Final = await tx.litellm_accessgrouptable.find_unique(
                 where={"access_group_name": data.access_group_name}
             )
@@ -555,6 +578,11 @@ async def create_access_group(
             # Sync team and key tables to reference the new access group
             await _sync_add_access_group_to_teams(tx, data.assigned_team_ids or [], record.access_group_id)
             await _sync_add_access_group_to_keys(tx, data.assigned_key_ids or [], record.access_group_id)
+            _raise_group_error(
+                await finish_group_change(
+                    tx, change, user_api_key_dict.user_id or "proxy-admin", datetime.now(timezone.utc)
+                )
+            )
     except HTTPException:
         raise
     except Exception as e:
@@ -568,7 +596,10 @@ async def create_access_group(
 
     from litellm.proxy.proxy_server import proxy_logging_obj, user_api_key_cache
 
-    await _cache_access_group_record(record)
+    if change is None:
+        await _cache_access_group_record(record)
+    else:
+        await invalidate_access_group_cache(record.access_group_id)
     await _patch_team_caches_add_access_group(
         data.assigned_team_ids or [],
         record.access_group_id,
@@ -660,6 +691,7 @@ async def update_access_group(
     try:
         tx: _AccessGroupTx
         async with prisma_client.db.tx() as tx:
+            change: Final = await _begin_user_group_change(tx)
             # Read inside the transaction so delta computation is consistent with the write,
             # avoiding a TOCTOU race where a concurrent update could make deltas stale.
             existing: Final = await tx.litellm_accessgrouptable.find_unique(where={"access_group_id": access_group_id})
@@ -694,6 +726,11 @@ async def update_access_group(
             await _sync_remove_access_group_from_teams(tx, teams_to_remove, access_group_id)
             await _sync_add_access_group_to_keys(tx, keys_to_add, access_group_id)
             await _sync_remove_access_group_from_keys(tx, keys_to_remove, access_group_id)
+            _raise_group_error(
+                await finish_group_change(
+                    tx, change, user_api_key_dict.user_id or "proxy-admin", datetime.now(timezone.utc)
+                )
+            )
     except HTTPException:
         raise
     except Exception as e:
@@ -707,7 +744,10 @@ async def update_access_group(
 
     from litellm.proxy.proxy_server import proxy_logging_obj, user_api_key_cache
 
-    await _cache_access_group_record(record)
+    if change is None:
+        await _cache_access_group_record(record)
+    else:
+        await invalidate_access_group_cache(record.access_group_id)
     await _patch_team_caches_add_access_group(teams_to_add, access_group_id, user_api_key_cache, proxy_logging_obj)
     await _patch_team_caches_remove_access_group(
         teams_to_remove, access_group_id, user_api_key_cache, proxy_logging_obj
@@ -735,6 +775,8 @@ async def delete_access_group(
 
         tx: _AccessGroupTx
         async with prisma_client.db.tx() as tx:
+            change: Final = await _begin_user_group_change(tx)
+            _raise_group_error(await group_deletion_error(tx, change, access_group_id))
             existing: Final = await tx.litellm_accessgrouptable.find_unique(where={"access_group_id": access_group_id})
             if existing is None:
                 raise HTTPException(
@@ -785,6 +827,11 @@ async def delete_access_group(
             detached_agent_ids: Final = await _detach_access_group_from_agents(tx, access_group_id)
 
             await tx.litellm_accessgrouptable.delete(where={"access_group_id": access_group_id})
+            _raise_group_error(
+                await finish_group_change(
+                    tx, change, user_api_key_dict.user_id or "proxy-admin", datetime.now(timezone.utc)
+                )
+            )
 
         from litellm.proxy.proxy_server import proxy_logging_obj, user_api_key_cache
 

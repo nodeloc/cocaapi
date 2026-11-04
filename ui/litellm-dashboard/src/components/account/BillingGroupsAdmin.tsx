@@ -27,7 +27,7 @@ const defaultRule: BillingRule = {
 const samePair = (left: BillingRule, right: BillingRule) =>
   left.user_group_id === right.user_group_id && left.model_group_id === right.model_group_id;
 
-export default function BillingGroupsAdmin({ embedded = false }: { embedded?: boolean }) {
+export default function BillingGroupsAdmin({ embedded = false, onOpenGroup }: { embedded?: boolean; onOpenGroup?: (id: string) => void }) {
   useUiLocale();
   const { accessToken, userRole, isViewOnly, isAuthorized } = useAuthorized();
   const allowed = isAuthorized && !isViewOnly && isProxyAdminRole(userRole);
@@ -80,6 +80,7 @@ export default function BillingGroupsAdmin({ embedded = false }: { embedded?: bo
     setMessage("");
     try {
       const next = await billingGroupsApi.save(accessToken, {
+        group_source: draft.group_source,
         revision: draft.revision,
         user_groups: draft.user_groups,
         model_groups: draft.model_groups,
@@ -252,6 +253,33 @@ export default function BillingGroupsAdmin({ embedded = false }: { embedded?: bo
                     <p className="break-all text-xs text-muted-foreground">
                       {group.id === "default" ? translateMessage("新注册用户默认加入此组") : group.id}
                     </p>
+                    {draft.group_source === "access_groups" && (
+                      <div className="space-y-2">
+                        <Label htmlFor={`user-models-${group.id}`}><LocalizedText text={"可访问模型"} /></Label>
+                        <MultiSelect
+                          id={`user-models-${group.id}`}
+                          disabled={busy}
+                          value={group.models ?? []}
+                          placeholder={translateMessage("空列表禁止访问模型")}
+                          options={[...new Set(["all-proxy-models", ...models, ...(group.models ?? [])])].map((model) => ({
+                            value: model,
+                            label: model === "all-proxy-models" ? translateMessage("全部公开模型") : model,
+                          }))}
+                          onValueChange={(value) => change({
+                            ...draft,
+                            user_groups: draft.user_groups.map((item) => item.id === group.id ? { ...item, models: value } : item),
+                          })}
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          <LocalizedText text={"组内账号使用以上模型权限，Key 和团队的独立限制继续生效。"} />
+                        </p>
+                        {onOpenGroup && (
+                          <Button type="button" variant="outline" size="sm" disabled={busy || dirty} onClick={() => onOpenGroup(group.id)}>
+                            <LocalizedText text={"资源及 Key / 团队"} />
+                          </Button>
+                        )}
+                      </div>
+                    )}
                   </div>
                 ))}
               </CardContent>

@@ -16,6 +16,7 @@
 !litellm/litellm_core_utils/llm_cost_calc/utils.py
 !litellm/repositories/
 !litellm/repositories/commerce_*_repository.py
+!litellm/repositories/commerce_group_migration.py
 !litellm/proxy/
 !litellm/proxy/commerce/
 !litellm/proxy/commerce/**
@@ -23,6 +24,11 @@
 !litellm/proxy/schema.prisma
 !litellm/proxy/auth/
 !litellm/proxy/auth/user_api_key_auth.py
+!litellm/proxy/auth/auth_checks.py
+!litellm/proxy/management_endpoints/
+!litellm/proxy/management_endpoints/access_group_endpoints.py
+!scripts/
+!scripts/migrate_commerce_user_groups.py
 !litellm/proxy/spend_tracking/
 !litellm/proxy/spend_tracking/budget_reservation.py
 !litellm/proxy/spend_tracking/spend_tracking_utils.py

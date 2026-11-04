@@ -16,6 +16,7 @@ from litellm.proxy.commerce.account_routes import AccountErrorView, AccountRoute
 from litellm.proxy.commerce.admin_wallet_routes import AdminDep
 from litellm.proxy.commerce.auth_service import utcnow
 from litellm.proxy.commerce.gateway_routes import GatewayDep
+from litellm.proxy.management_helpers.access_group_team_sync import invalidate_access_group_caches
 from litellm.repositories.commerce_auth_repository import AccountRepository
 from litellm.repositories.commerce_billing_group_repository import BillingGroupRepository
 
@@ -66,9 +67,17 @@ async def save_configuration(
     wanted: Final = frozenset(chain.from_iterable(group.models for group in body.model_groups))
     if not wanted.issubset(existing.union(catalog.models)):
         raise_public(AuthError("billing_model_not_found", 422))
+    current_grants: Final = frozenset(chain.from_iterable(group.models or () for group in current.user_groups))
+    wanted_grants: Final = frozenset(chain.from_iterable(group.models or () for group in body.user_groups))
+    if not wanted_grants.issubset(current_grants.union(catalog.models, ("all-proxy-models",))):
+        raise_public(AuthError("billing_model_not_found", 422))
     result: Final = await store.save(body, admin.user_id, utcnow())
     if isinstance(result, AuthError):
         raise_public(result)
+    if result.group_source == "access_groups":
+        await invalidate_access_group_caches(
+            tuple(dict.fromkeys(group.id for group in (*current.user_groups, *result.user_groups)))
+        )
     return result
 
 
