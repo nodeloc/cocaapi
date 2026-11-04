@@ -18,6 +18,21 @@ from litellm.proxy.auth.auth_checks_organization import user_is_org_admin
 from litellm.proxy.auth.route_checks import RouteChecks
 from litellm.proxy.pass_through_endpoints.llm_passthrough_endpoints import router as llm_passthrough_router
 
+
+def test_admin_viewer_can_lookup_groups_but_cannot_batch_assign_them() -> None:
+    lookup: Final = "/commerce/admin/v1/billing-groups/members/lookup"
+    batch: Final = "/commerce/admin/v1/billing-groups/members/batch"
+    RouteChecks._check_proxy_admin_viewer_access(
+        route=lookup, _user_role=LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY.value,
+        request_data={}, request=Request({"type": "http", "method": "POST", "path": lookup}),
+    )
+    with pytest.raises(HTTPException) as rejected:
+        RouteChecks._check_proxy_admin_viewer_access(
+            route=batch, _user_role=LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY.value,
+            request_data={}, request=Request({"type": "http", "method": "POST", "path": batch}),
+        )
+    assert rejected.value.status_code == 403
+
 DAILY_ACTIVITY_ROUTE_PAIRS: Final[tuple[tuple[str, str], ...]] = (
     ("/user/daily/activity", "/user/daily/activity/aggregated"),
     ("/user/daily/activity", "/user/daily/activity/aggregated/keys"),

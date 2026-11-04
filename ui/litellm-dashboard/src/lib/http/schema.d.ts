@@ -3389,6 +3389,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/commerce/admin/v1/billing-groups/members/batch": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Assign Members */
+        post: operations["assign_members_commerce_admin_v1_billing_groups_members_batch_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/commerce/admin/v1/billing-groups/members/lookup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Lookup Members */
+        post: operations["lookup_members_commerce_admin_v1_billing_groups_members_lookup_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/commerce/admin/v1/billing-groups/members/{user_id}": {
         parameters: {
             query?: never;
@@ -28434,6 +28468,15 @@ export interface components {
             /** Reason */
             reason: string;
         };
+        /** BillingGroupBatchAssignment */
+        BillingGroupBatchAssignment: {
+            /** Group Id */
+            group_id: string;
+            /** Members */
+            members: components["schemas"]["BillingMemberTarget"][];
+            /** Reason */
+            reason: string;
+        };
         /** BillingGroupCatalog */
         BillingGroupCatalog: {
             /** Models */
@@ -28543,6 +28586,18 @@ export interface components {
              *     ]
              */
             user_groups: components["schemas"]["PricingUserGroup"][];
+        };
+        /** BillingMemberLookup */
+        BillingMemberLookup: {
+            /** User Ids */
+            user_ids: string[];
+        };
+        /** BillingMemberTarget */
+        BillingMemberTarget: {
+            /** Expected Version */
+            expected_version: number;
+            /** User Id */
+            user_id: string;
         };
         /** Binding */
         Binding: {
@@ -61768,6 +61823,162 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BillingGroupMembers"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountErrorView"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountErrorView"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountErrorView"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountErrorView"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountErrorView"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountErrorView"];
+                };
+            };
+        };
+    };
+    assign_members_commerce_admin_v1_billing_groups_members_batch_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BillingGroupBatchAssignment"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BillingGroupMembers"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountErrorView"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountErrorView"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountErrorView"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountErrorView"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountErrorView"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountErrorView"];
+                };
+            };
+        };
+    };
+    lookup_members_commerce_admin_v1_billing_groups_members_lookup_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BillingMemberLookup"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {

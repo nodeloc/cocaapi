@@ -22,6 +22,9 @@ import { SearchSelect } from "@/components/shared/SearchSelect";
 import { Input } from "@/components/ui/input";
 
 import { getUsersTableColumns } from "./UsersTableColumns";
+import type { BillingMember } from "@/components/account/billingGroupsApi";
+import type { MembershipStatus } from "@/components/account/useUserGroupMemberships";
+import { UserGroupMembershipContext } from "@/components/account/UserGroupCell";
 
 export interface UsersTableTeamOption {
   team_id: string;
@@ -29,6 +32,9 @@ export interface UsersTableTeamOption {
 }
 
 interface UsersTableProps {
+  groupMembers?: ReadonlyMap<string, BillingMember>;
+  groupStatus?: MembershipStatus;
+  onChangeUserGroup?: (userId: string) => void;
   data: UserInfo[];
   rowCount: number;
   isLoading: boolean;
@@ -78,6 +84,9 @@ function EmptyState() {
 }
 
 export function UsersTable({
+  groupMembers,
+  groupStatus = "disabled",
+  onChangeUserGroup,
   data,
   rowCount,
   isLoading,
@@ -100,9 +109,11 @@ export function UsersTable({
 }: UsersTableProps) {
   useUiLocale();
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const includeUserGroups = groupStatus !== "disabled";
 
   const columns = useMemo(() => {
     const columnDeps = {
+      includeUserGroups,
       possibleUIRoles,
       includeSelection: selectionEnabled,
       onUserClick,
@@ -110,7 +121,7 @@ export function UsersTable({
       onResetPassword,
     };
     return getUsersTableColumns(columnDeps);
-  }, [possibleUIRoles, selectionEnabled, onUserClick, onDeleteUser, onResetPassword]);
+  }, [possibleUIRoles, selectionEnabled, onUserClick, onDeleteUser, onResetPassword, includeUserGroups]);
 
   const roleOptions = useMemo(
     () =>
@@ -142,85 +153,89 @@ export function UsersTable({
   };
 
   return (
-    <DataTable
-      data={data}
-      columns={columns}
-      getRowId={(row) => row.user_id}
-      sortingMode="server"
-      sorting={sorting}
-      onSortingChange={onSortingChange}
-      paginationMode="server"
-      pagination={pagination}
-      onPaginationChange={onPaginationChange}
-      rowCount={rowCount}
-      filterMode="server"
-      columnFilters={columnFilters}
-      onColumnFiltersChange={onColumnFiltersChange}
-      rowSelection={rowSelection}
-      onRowSelectionChange={onRowSelectionChange}
-      isLoading={isLoading}
-      loadingMessage={translateMessage("Loading users…")}
-      noDataMessage={<EmptyState />}
-      size="compact"
-      toolbar={(table) => (
-        <>
-          <DataTableToolbar
-            table={table}
-            searchValue={searchValue}
-            onSearchChange={onSearchChange}
-            searchPlaceholder={translateMessage("Search by email or ID…")}
-            onOpenFilters={() => setFiltersOpen(true)}
-            filterLabels={FILTER_LABELS}
-            formatFilterValue={formatFilterValue}
-          />
-          <DataTableFilterDrawer
-            table={table}
-            open={filtersOpen}
-            onOpenChange={setFiltersOpen}
-            title={translateMessage("Filters")}
-            description={translateMessage("Narrow down your users")}
-          >
-            {({ get, set }) => (
-              <>
-                <DataTableFilterField label={translateMessage("User ID")}>
-                  <Input
-                    value={(get("user_id") as string) ?? ""}
-                    onChange={(event) => set("user_id", event.target.value)}
-                    placeholder={translateMessage("Enter user ID…")}
-                    data-testid="users-filter-user-id"
-                  />
-                </DataTableFilterField>
-                <DataTableFilterField label={translateMessage("SSO ID")}>
-                  <Input
-                    value={(get("sso_user_id") as string) ?? ""}
-                    onChange={(event) => set("sso_user_id", event.target.value)}
-                    placeholder={translateMessage("Enter SSO ID…")}
-                    data-testid="users-filter-sso-id"
-                  />
-                </DataTableFilterField>
-                <DataTableFilterField label={translateMessage("Role")}>
-                  <SearchSelect
-                    options={roleOptions}
-                    value={(get("user_role") as string) || undefined}
-                    onValueChange={(value) => set("user_role", value ?? undefined)}
-                    placeholder={translateMessage("Select a role…")}
-                    emptyText={translateMessage("No roles found")}
-                  />
-                </DataTableFilterField>
-                <DataTableFilterField label={translateMessage("Team")}>
-                  <SearchSelect
-                    options={teamOptions}
-                    value={(get("team") as string) || undefined}
-                    onValueChange={(value) => set("team", value ?? undefined)}
-                    placeholder={translateMessage("Select a team…")}
-                    emptyText={translateMessage("No teams found")}
-                  />
-                </DataTableFilterField>
-              </>
-            )}
-          </DataTableFilterDrawer>
-        </>
-      )}
-    />
+    <UserGroupMembershipContext.Provider
+      value={{ members: groupMembers ?? new Map(), status: groupStatus, onChange: onChangeUserGroup }}
+    >
+      <DataTable
+        data={data}
+        columns={columns}
+        getRowId={(row) => row.user_id}
+        sortingMode="server"
+        sorting={sorting}
+        onSortingChange={onSortingChange}
+        paginationMode="server"
+        pagination={pagination}
+        onPaginationChange={onPaginationChange}
+        rowCount={rowCount}
+        filterMode="server"
+        columnFilters={columnFilters}
+        onColumnFiltersChange={onColumnFiltersChange}
+        rowSelection={rowSelection}
+        onRowSelectionChange={onRowSelectionChange}
+        isLoading={isLoading}
+        loadingMessage={translateMessage("Loading users…")}
+        noDataMessage={<EmptyState />}
+        size="compact"
+        toolbar={(table) => (
+          <>
+            <DataTableToolbar
+              table={table}
+              searchValue={searchValue}
+              onSearchChange={onSearchChange}
+              searchPlaceholder={translateMessage("Search by email or ID…")}
+              onOpenFilters={() => setFiltersOpen(true)}
+              filterLabels={FILTER_LABELS}
+              formatFilterValue={formatFilterValue}
+            />
+            <DataTableFilterDrawer
+              table={table}
+              open={filtersOpen}
+              onOpenChange={setFiltersOpen}
+              title={translateMessage("Filters")}
+              description={translateMessage("Narrow down your users")}
+            >
+              {({ get, set }) => (
+                <>
+                  <DataTableFilterField label={translateMessage("User ID")}>
+                    <Input
+                      value={(get("user_id") as string) ?? ""}
+                      onChange={(event) => set("user_id", event.target.value)}
+                      placeholder={translateMessage("Enter user ID…")}
+                      data-testid="users-filter-user-id"
+                    />
+                  </DataTableFilterField>
+                  <DataTableFilterField label={translateMessage("SSO ID")}>
+                    <Input
+                      value={(get("sso_user_id") as string) ?? ""}
+                      onChange={(event) => set("sso_user_id", event.target.value)}
+                      placeholder={translateMessage("Enter SSO ID…")}
+                      data-testid="users-filter-sso-id"
+                    />
+                  </DataTableFilterField>
+                  <DataTableFilterField label={translateMessage("Role")}>
+                    <SearchSelect
+                      options={roleOptions}
+                      value={(get("user_role") as string) || undefined}
+                      onValueChange={(value) => set("user_role", value ?? undefined)}
+                      placeholder={translateMessage("Select a role…")}
+                      emptyText={translateMessage("No roles found")}
+                    />
+                  </DataTableFilterField>
+                  <DataTableFilterField label={translateMessage("Team")}>
+                    <SearchSelect
+                      options={teamOptions}
+                      value={(get("team") as string) || undefined}
+                      onValueChange={(value) => set("team", value ?? undefined)}
+                      placeholder={translateMessage("Select a team…")}
+                      emptyText={translateMessage("No teams found")}
+                    />
+                  </DataTableFilterField>
+                </>
+              )}
+            </DataTableFilterDrawer>
+          </>
+        )}
+      />
+    </UserGroupMembershipContext.Provider>
   );
 }

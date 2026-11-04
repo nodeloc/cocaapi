@@ -1068,6 +1068,7 @@ class LiteLLMRoutes(enum.Enum):
     # updating this list — the default-allow behavior covers it automatically.
     admin_viewer_routes = (
         [
+            "/commerce/admin/v1/billing-groups/members/lookup",
             "/lens/traces/findings",
             "/lens/feedback/summary",
             "/user/list",

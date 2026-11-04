@@ -3,12 +3,13 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import React from "react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { renderWithProviders } from "../../../../../tests/test-utils";
 import ViewUserDashboard from "./view_users";
 
 const userListCall = vi.fn();
+const groupFetch = vi.fn<typeof fetch>();
 
 vi.mock("@/components/account/CommerceAdmin", () => ({
   default: function WalletPanel() {
@@ -86,6 +87,7 @@ const defaultProps = {
   accessToken: "test-token",
   token: "test-token",
   userRole: "Admin",
+  isViewOnly: false,
   userID: "admin-user-id",
   teams: [],
 };
@@ -100,6 +102,32 @@ const renderDashboard = (overrides: Partial<typeof defaultProps> = {}) =>
 describe("ViewUserDashboard", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    groupFetch.mockImplementation(async (input) => {
+      const request = input as Request;
+      if (request.url.endsWith("/lookup")) {
+        const value = (await request.json()) as { user_ids: string[] };
+        return Response.json({
+          items: value.user_ids
+            .filter((id) => id !== "system-user")
+            .map((id) => ({
+              user_id: id,
+              email: "test@example.com",
+              enabled: true,
+              group_id: "default",
+              group_name: "普通组",
+              version: 2,
+            })),
+          has_more: false,
+        });
+      }
+      return Response.json({
+        user_groups: [
+          { id: "default", name: "普通组" },
+          { id: "vip", name: "VIP" },
+        ],
+      });
+    });
+    vi.stubGlobal("fetch", groupFetch);
     userListCall.mockResolvedValue({
       users: [makeUser("user-1", "test@example.com")],
       total: 1,
@@ -108,6 +136,7 @@ describe("ViewUserDashboard", () => {
       total_pages: 1,
     });
   });
+  afterEach(() => vi.unstubAllGlobals());
 
   it("should render the ViewUserDashboard component", async () => {
     renderDashboard();
@@ -117,6 +146,90 @@ describe("ViewUserDashboard", () => {
     });
 
     expect(screen.getAllByText("Default User Settings").length).toBeGreaterThan(0);
+  });
+
+  it("shows the canonical group and saves a single user assignment with its version", async () => {
+    const user = userEvent.setup();
+    renderDashboard();
+    await user.click(await screen.findByRole("button", { name: "调整用户组 test@example.com" }));
+    await user.click(await screen.findByRole("combobox", { name: "目标用户组" }));
+    await user.click(await screen.findByRole("option", { name: "VIP", exact: true }));
+    fireEvent.change(screen.getByLabelText("调整原因"), { target: { value: "用户列表归组" } });
+    groupFetch.mockImplementation(async (input) => {
+      const request = input as Request;
+      if (request.url.endsWith("/batch"))
+        expect(await request.json()).toEqual({
+          group_id: "vip",
+          reason: "用户列表归组",
+          members: [{ user_id: "user-1", expected_version: 2 }],
+        });
+      return Response.json({
+        items: [
+          {
+            user_id: "user-1",
+            email: "test@example.com",
+            enabled: true,
+            group_id: "vip",
+            group_name: "VIP",
+            version: 3,
+          },
+        ],
+        has_more: false,
+      });
+    });
+    await user.click(screen.getByRole("button", { name: "保存用户组" }));
+    expect(await screen.findByText("VIP", { exact: true })).toBeInTheDocument();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("bulk assigns registered users and explicitly excludes selected system accounts", async () => {
+    const user = userEvent.setup();
+    userListCall.mockResolvedValue({
+      users: [
+        makeUser("user-1", "a@example.com"),
+        makeUser("user-2", "b@example.com"),
+        makeUser("system-user", "system@example.com"),
+      ],
+      total: 3,
+      page: 1,
+      page_size: 25,
+      total_pages: 1,
+    });
+    renderDashboard();
+    expect(await screen.findByText("系统账户")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Select Users", exact: true }));
+    await user.click(screen.getByRole("checkbox", { name: "Select all rows", exact: true }));
+    await user.click(screen.getByRole("button", { name: "批量调整用户组", exact: true }));
+    expect(await screen.findByText("已跳过 1 个系统账户")).toBeInTheDocument();
+    await user.click(await screen.findByRole("combobox", { name: "目标用户组" }));
+    await user.click(await screen.findByRole("option", { name: "VIP", exact: true }));
+    fireEvent.change(screen.getByLabelText("调整原因"), { target: { value: "批量升级" } });
+    groupFetch.mockImplementation(async (input) => {
+      const request = input as Request;
+      if (request.url.endsWith("/batch"))
+        expect(await request.json()).toEqual({
+          group_id: "vip",
+          reason: "批量升级",
+          members: [
+            { user_id: "user-1", expected_version: 2 },
+            { user_id: "user-2", expected_version: 2 },
+          ],
+        });
+      return Response.json({
+        items: ["user-1", "user-2"].map((id) => ({
+          user_id: id,
+          email: "test@example.com",
+          enabled: true,
+          group_id: "vip",
+          group_name: "VIP",
+          version: 3,
+        })),
+        has_more: false,
+      });
+    });
+    await user.click(screen.getByRole("button", { name: "保存用户组" }));
+    expect(await screen.findAllByText("VIP", { exact: true })).toHaveLength(2);
+    expect(screen.getByText("系统账户")).toBeInTheDocument();
   });
 
   it("switches between the users table and default settings tabs for proxy admins", async () => {
@@ -170,13 +283,16 @@ describe("ViewUserDashboard", () => {
   it("does not expose wallet management to a view-only admin through a deep link", async () => {
     renderWithProviders(
       <QueryClientProvider client={createQueryClient()}>
-        <ViewUserDashboard {...defaultProps} userRole="proxy_admin_viewer" />
+        <ViewUserDashboard {...defaultProps} isViewOnly />
       </QueryClientProvider>,
       { searchParams: "?userTab=wallets" },
     );
     expect(await screen.findByText("test@example.com")).toBeInTheDocument();
     expect(screen.queryByRole("tab", { name: "用户余额" })).not.toBeInTheDocument();
     expect(screen.queryByRole("region", { name: "User balances" })).not.toBeInTheDocument();
+    expect(await screen.findByText("普通组", { exact: true })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /调整用户组/ })).not.toBeInTheDocument();
+    expect(screen.queryByTestId("toggle-user-selection")).not.toBeInTheDocument();
   });
 
   it("renders invite and bulk invite as toolbar actions alongside the other admin controls", async () => {

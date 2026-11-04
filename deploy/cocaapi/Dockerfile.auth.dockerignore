@@ -21,6 +21,7 @@
 !litellm/proxy/commerce/
 !litellm/proxy/commerce/**
 !litellm/proxy/proxy_server.py
+!litellm/proxy/_types.py
 !litellm/proxy/schema.prisma
 !litellm/proxy/auth/
 !litellm/proxy/auth/user_api_key_auth.py

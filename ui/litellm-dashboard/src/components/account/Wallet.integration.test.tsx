@@ -1,4 +1,7 @@
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, screen } from "@testing-library/react";
+import { renderWithProviders as render, testQueryClient } from "@/../tests/test-utils";
+import { chooseSelectOption } from "@/../tests/test-utils";
+import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import AccountWallet from "./AccountWallet";
 import CommerceAdmin from "./CommerceAdmin";
@@ -26,6 +29,89 @@ const wallet = {
 const empty = { items: [], has_more: false };
 
 describe("wallet flows", () => {
+  it("refreshes group membership when another admin changes the group without changing the wallet list", async () => {
+    const user = userEvent.setup();
+    let groupName = "普通组";
+    vi.stubGlobal(
+      "fetch",
+      vi.fn<typeof fetch>().mockImplementation(async (input) => {
+        const request = input as Request;
+        if (request.url.endsWith("/lookup"))
+          return Response.json({
+            items: [
+              {
+                user_id: wallet.user_id,
+                email: "a@example.test",
+                enabled: true,
+                group_id: groupName,
+                group_name: groupName,
+                version: 1,
+              },
+            ],
+            has_more: false,
+          });
+        return Response.json({ items: [{ ...wallet, email: "a@example.test" }], has_more: false });
+      }),
+    );
+    render(<CommerceAdmin embedded />);
+    expect(await screen.findByText("普通组", { exact: true })).toBeInTheDocument();
+    groupName = "VIP";
+    await user.click(screen.getByRole("button", { name: "刷新", exact: true }));
+    expect(await screen.findByText("VIP", { exact: true })).toBeInTheDocument();
+    expect(screen.queryByText("普通组", { exact: true })).not.toBeInTheDocument();
+  });
+  it("shows wallet user groups and submits the checked wallets as one versioned batch", async () => {
+    const user = userEvent.setup();
+    const wallets = [
+      { ...wallet, email: "a@example.test" },
+      { ...wallet, user_id: "user-b", email: "b@example.test" },
+    ];
+    const members = wallets.map((value) => ({
+      user_id: value.user_id,
+      email: value.email,
+      enabled: true,
+      group_id: "default",
+      group_name: "普通组",
+      version: 1,
+    }));
+    const groups = {
+      user_groups: [
+        { id: "default", name: "普通组" },
+        { id: "vip", name: "VIP" },
+      ],
+    };
+    const network = vi.fn<typeof fetch>().mockImplementation(async (input) => {
+      const request = input as Request;
+      if (request.url.endsWith("/lookup")) return Response.json({ items: members, has_more: false });
+      if (request.url.endsWith("/billing-groups")) return Response.json(groups);
+      return Response.json({ items: wallets, has_more: false });
+    });
+    vi.stubGlobal("fetch", network);
+    render(<CommerceAdmin embedded />);
+    expect(await screen.findAllByText("普通组", { exact: true })).toHaveLength(2);
+    await user.click(screen.getByRole("button", { name: "Select Users", exact: true }));
+    await user.click(screen.getByRole("checkbox", { name: "Select all rows", exact: true }));
+    await user.click(screen.getByRole("button", { name: "批量调整用户组", exact: true }));
+    await chooseSelectOption(user, await screen.findByRole("combobox", { name: "目标用户组" }), "VIP");
+    fireEvent.change(screen.getByLabelText("调整原因"), { target: { value: "钱包用户归组" } });
+    const updated = members.map((member) => ({ ...member, group_id: "vip", group_name: "VIP", version: 2 }));
+    network.mockImplementation(async (input) => {
+      const request = input as Request;
+      if (request.url.endsWith("/batch"))
+        expect(await request.json()).toEqual({
+          group_id: "vip",
+          reason: "钱包用户归组",
+          members: [
+            { user_id: "user-a", expected_version: 1 },
+            { user_id: "user-b", expected_version: 1 },
+          ],
+        });
+      return Response.json({ items: updated, has_more: false });
+    });
+    await user.click(screen.getByRole("button", { name: "保存用户组" }));
+    expect(await screen.findAllByText("VIP", { exact: true })).toHaveLength(2);
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
   it("removes payment when the link expires while the order table stays open", async () => {
     vi.useFakeTimers();
     const now = new Date("2030-01-01T00:00:00Z");
@@ -269,7 +355,9 @@ describe("wallet flows", () => {
   });
 
   it("embeds wallet management without a second finance navigation and links the same user's permissions", async () => {
-    fetchMock.mockResolvedValue(Response.json({ items: [{ ...wallet, email: "customer@example.test" }], has_more: false }));
+    fetchMock.mockResolvedValue(
+      Response.json({ items: [{ ...wallet, email: "customer@example.test" }], has_more: false }),
+    );
     render(<CommerceAdmin embedded />);
     expect(await screen.findByText("customer@example.test")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "用户权限" })).toHaveAttribute("href", "/ui/users?user=user-a");
@@ -278,9 +366,34 @@ describe("wallet flows", () => {
     expect(screen.getByRole("heading", { name: "余额调整" })).toBeInTheDocument();
   });
   beforeEach(() => {
+    testQueryClient.clear();
     fetchMock.mockReset();
     assign.mockReset();
-    vi.stubGlobal("fetch", fetchMock);
+    vi.stubGlobal("fetch", async (input: RequestInfo | URL, init?: RequestInit) => {
+      const request = input as Request;
+      if (request.url.endsWith("/members/lookup")) {
+        const value = (await request.json()) as { user_ids: string[] };
+        return Response.json({
+          items: value.user_ids.map((id) => ({
+            user_id: id,
+            email: null,
+            enabled: true,
+            group_id: "default",
+            group_name: "普通组",
+            version: 1,
+          })),
+          has_more: false,
+        });
+      }
+      if (request.url.endsWith("/billing-groups"))
+        return Response.json({
+          user_groups: [
+            { id: "default", name: "普通组" },
+            { id: "vip", name: "VIP" },
+          ],
+        });
+      return fetchMock(input, init);
+    });
     vi.stubGlobal("location", { ...window.location, assign });
   });
   afterEach(() => {

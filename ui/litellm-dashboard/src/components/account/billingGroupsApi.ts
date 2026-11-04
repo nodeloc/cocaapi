@@ -17,6 +17,15 @@ const client = createClient<paths>({
 });
 const admin = (token: string) => ({ Authorization: `Bearer ${token}` });
 export const billingGroupsApi = {
+  lookup: async (token: string, userIds: readonly string[]) =>
+    unwrapWallet(
+      await client.POST("/commerce/admin/v1/billing-groups/members/lookup", {
+        headers: admin(token),
+        body: { user_ids: [...userIds] },
+      }),
+    ),
+  assignBatch: async (token: string, body: components["schemas"]["BillingGroupBatchAssignment"]) =>
+    unwrapWallet(await client.POST("/commerce/admin/v1/billing-groups/members/batch", { headers: admin(token), body })),
   read: async (token: string) =>
     unwrapWallet(await client.GET("/commerce/admin/v1/billing-groups", { headers: admin(token) })),
   catalog: async (token: string) =>

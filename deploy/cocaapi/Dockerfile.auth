@@ -9,7 +9,7 @@ RUN python3 -m ensurepip --upgrade \
 COPY litellm/models/commerce_*.py /app/.venv/lib/python3.13/site-packages/litellm/models/
 COPY litellm/repositories/commerce_*_repository.py litellm/repositories/commerce_group_migration.py /app/.venv/lib/python3.13/site-packages/litellm/repositories/
 COPY litellm/proxy/commerce/ /app/.venv/lib/python3.13/site-packages/litellm/proxy/commerce/
-COPY litellm/proxy/proxy_server.py litellm/proxy/schema.prisma /app/.venv/lib/python3.13/site-packages/litellm/proxy/
+COPY litellm/proxy/proxy_server.py litellm/proxy/_types.py litellm/proxy/schema.prisma /app/.venv/lib/python3.13/site-packages/litellm/proxy/
 COPY litellm/proxy/auth/user_api_key_auth.py litellm/proxy/auth/auth_checks.py /app/.venv/lib/python3.13/site-packages/litellm/proxy/auth/
 COPY litellm/proxy/management_endpoints/access_group_endpoints.py /app/.venv/lib/python3.13/site-packages/litellm/proxy/management_endpoints/access_group_endpoints.py
 COPY scripts/migrate_commerce_user_groups.py /app/migrate_commerce_user_groups.py

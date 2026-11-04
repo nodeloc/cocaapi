@@ -19,7 +19,7 @@ import {
 import OnboardingModal, { InvitationLink } from "@/components/onboarding_link";
 
 import { DEBOUNCE_WAIT_MS } from "@/utils/debounceConstants";
-import { isAdminRole, isProxyAdminRole } from "@/utils/roles";
+import { isAdminRole, isProxyAdminRole, isProxyAdminTierRole } from "@/utils/roles";
 import { useDebouncedValue } from "@tanstack/react-pacer/debouncer";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -37,11 +37,15 @@ import { UsersTable } from "./view_users/UsersTable";
 import UserInfoView from "./view_users/user_info_view";
 import { UserInfo } from "@/components/networking";
 import CommerceAdmin from "@/components/account/CommerceAdmin";
+import { useUserGroupMemberships } from "@/components/account/useUserGroupMemberships";
+import UserGroupChangeDialog from "@/components/account/UserGroupChangeDialog";
+import type { BillingMember } from "@/components/account/billingGroupsApi";
 
 interface ViewUserDashboardProps {
   accessToken: string | null;
   token: string | null;
   userRole: string | null;
+  isViewOnly?: boolean;
   userID: string | null;
   teams: any[] | null;
   orgAdminOrgIds?: Array<{ organization_id: string; organization_alias: string }> | null;
@@ -57,12 +61,13 @@ const ViewUserDashboard: React.FC<ViewUserDashboardProps> = ({
   accessToken,
   token,
   userRole,
+  isViewOnly = false,
   userID,
   teams,
   orgAdminOrgIds,
 }) => {
   useUiLocale();
-  const isProxyAdmin = userRole ? isProxyAdminRole(userRole) : false;
+  const isProxyAdmin = !isViewOnly && Boolean(userRole && isProxyAdminRole(userRole));
   const [activeTab, setActiveTab] = useQueryState(
     "userTab",
     parseAsStringLiteral(["users", "wallets", "default-settings"] as const)
@@ -79,6 +84,12 @@ const ViewUserDashboard: React.FC<ViewUserDashboardProps> = ({
 
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const [selectionMode, setSelectionMode] = useState(false);
+  const [groupTargets, setGroupTargets] = useState<string[]>([]);
+  const [skippedGroupTargets, setSkippedGroupTargets] = useState(0);
+  const changeUserGroup = useCallback((userId: string) => {
+    setSkippedGroupTargets(0);
+    setGroupTargets([userId]);
+  }, []);
   const [isBulkEditModalVisible, setIsBulkEditModalVisible] = useState(false);
 
   const [selectedUserId, setSelectedUserId] = useQueryState("user", parseAsString.withOptions({ history: "push" }));
@@ -284,8 +295,19 @@ const ViewUserDashboard: React.FC<ViewUserDashboardProps> = ({
 
   const users = useMemo<UserInfo[]>(() => userListQuery.data?.users ?? [], [userListQuery.data]);
   const totalUserCount = userListQuery.data?.total ?? 0;
+  const groupMemberships = useUserGroupMemberships(
+    users.map((user) => user.user_id),
+    accessToken,
+    isProxyAdminTierRole(userRole ?? ""),
+  );
 
   const selectedUsers = useMemo(() => users.filter((user) => rowSelection[user.user_id]), [users, rowSelection]);
+  const selectedGroupUsers = selectedUsers.filter((user) => groupMemberships.members.has(user.user_id));
+  const handleGroupSaved = (members: readonly BillingMember[]) => {
+    toast.success(translateMessage("已调整 %{0} 个用户的用户组", [String(members.length)]));
+    setRowSelection({});
+    setSelectionMode(false);
+  };
 
   if (selectedUserId) {
     return (
@@ -303,6 +325,9 @@ const ViewUserDashboard: React.FC<ViewUserDashboardProps> = ({
 
   const usersTable = (
     <UsersTable
+      groupMembers={groupMemberships.members}
+      groupStatus={groupMemberships.status}
+      onChangeUserGroup={isProxyAdmin ? changeUserGroup : undefined}
       data={users}
       rowCount={totalUserCount}
       isLoading={userListQuery.isLoading || userListQuery.isPlaceholderData}
@@ -354,6 +379,19 @@ const ViewUserDashboard: React.FC<ViewUserDashboardProps> = ({
                   data-testid="toggle-user-selection"
                 >
                   {selectionMode ? translateMessage("Cancel Selection") : translateMessage("Select Users")}
+                </Button>
+              )}
+
+              {isProxyAdmin && selectionMode && (
+                <Button
+                  type="button"
+                  disabled={groupMemberships.status !== "ready" || selectedGroupUsers.length === 0}
+                  onClick={() => {
+                    setSkippedGroupTargets(selectedUsers.length - selectedGroupUsers.length);
+                    setGroupTargets(selectedGroupUsers.map((user) => user.user_id));
+                  }}
+                >
+                  <LocalizedText text="批量调整用户组" />
                 </Button>
               )}
 
@@ -423,6 +461,16 @@ const ViewUserDashboard: React.FC<ViewUserDashboardProps> = ({
         </Tabs>
       ) : (
         usersTable
+      )}
+
+      {accessToken && isProxyAdmin && groupTargets.length > 0 && (
+        <UserGroupChangeDialog
+          token={accessToken}
+          userIds={groupTargets}
+          skippedCount={skippedGroupTargets}
+          onClose={() => setGroupTargets([])}
+          onSaved={handleGroupSaved}
+        />
       )}
 
       {/* Existing Modals */}

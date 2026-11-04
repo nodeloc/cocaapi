@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/cva.config";
 import { copyToClipboard } from "@/utils/dataUtils";
+import { UserGroupColumnCell } from "@/components/account/UserGroupCell";
 
 const SSO_ID_HINT =
   "SSO ID is the ID of the user in the SSO provider. If the user is not using SSO, this will be null.";
@@ -73,6 +74,7 @@ function UserRowActions({ user, onUserClick, onDeleteUser, onResetPassword }: Us
 }
 
 export interface UsersTableColumnsDeps {
+  includeUserGroups?: boolean;
   possibleUIRoles: Record<string, Record<string, string>> | null;
   includeSelection: boolean;
   onUserClick: (userId: string, openInEditMode?: boolean) => void;
@@ -81,12 +83,25 @@ export interface UsersTableColumnsDeps {
 }
 
 export const getUsersTableColumns = ({
+  includeUserGroups = false,
   possibleUIRoles,
   includeSelection,
   onUserClick,
   onDeleteUser,
   onResetPassword,
 }: UsersTableColumnsDeps): ColumnDef<UserInfo>[] => {
+  const groupColumns: ColumnDef<UserInfo>[] = !includeUserGroups
+    ? []
+    : [
+        {
+          id: "user_group",
+          header: () => <LocalizedText text="用户组" />,
+          meta: markUiCopy({ title: "用户组" }, { title: "用户组" }),
+          size: 180,
+          enableSorting: false,
+          cell: ({ row }) => <UserGroupColumnCell userId={row.original.user_id} />,
+        },
+      ];
   const baseColumns: ColumnDef<UserInfo>[] = [
     {
       id: "user_id",
@@ -120,6 +135,7 @@ export const getUsersTableColumns = ({
         </span>
       ),
     },
+    ...groupColumns,
     markUiCopy(
       {
         id: "status",

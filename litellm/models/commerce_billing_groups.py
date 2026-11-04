@@ -133,6 +133,33 @@ class BillingGroupAssignment(FrozenModel):
     reason: str = Field(min_length=1, max_length=500, pattern=r"\S")
 
 
+class BillingMemberTarget(FrozenModel):
+    user_id: str = Field(min_length=1, max_length=256, pattern=r"\S")
+    expected_version: int = Field(ge=1, strict=True)
+
+
+class BillingMemberLookup(FrozenModel):
+    user_ids: tuple[Annotated[str, Field(min_length=1, max_length=256)], ...] = Field(min_length=1, max_length=100)
+
+    @model_validator(mode="after")
+    def unique_users(self) -> Self:
+        if len(frozenset(self.user_ids)) != len(self.user_ids):
+            raise ValueError("User ids must be unique")
+        return self
+
+
+class BillingGroupBatchAssignment(FrozenModel):
+    group_id: GroupID
+    members: tuple[BillingMemberTarget, ...] = Field(min_length=1, max_length=100)
+    reason: str = Field(min_length=1, max_length=500, pattern=r"\S")
+
+    @model_validator(mode="after")
+    def unique_users(self) -> Self:
+        if len(frozenset(member.user_id for member in self.members)) != len(self.members):
+            raise ValueError("User ids must be unique")
+        return self
+
+
 class BillingGroupCatalog(FrozenModel):
     models: tuple[ModelName, ...]
 

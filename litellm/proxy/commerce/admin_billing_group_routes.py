@@ -6,14 +6,18 @@ from fastapi import APIRouter, Depends, Query
 from litellm.models.commerce_auth import AuthError
 from litellm.models.commerce_billing_groups import (
     BillingGroupAssignment,
+    BillingGroupBatchAssignment,
     BillingGroupCatalog,
     BillingGroupMember,
     BillingGroupMembers,
     BillingGroupsUpdate,
     BillingGroupsView,
+    BillingMemberLookup,
 )
+from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
 from litellm.proxy.commerce.account_routes import AccountErrorView, AccountRoute, Service, raise_public
-from litellm.proxy.commerce.admin_wallet_routes import AdminDep
+from litellm.proxy.commerce.admin_wallet_routes import AdminActor, AdminDep, require_bearer
 from litellm.proxy.commerce.auth_service import utcnow
 from litellm.proxy.commerce.gateway_routes import GatewayDep
 from litellm.proxy.management_helpers.access_group_team_sync import invalidate_access_group_caches
@@ -37,6 +41,18 @@ async def get_billing_catalog(gateway: GatewayDep) -> BillingGroupCatalog:
 
 GroupDep: TypeAlias = Annotated[BillingGroupRepository, Depends(get_group_repository)]
 CatalogDep: TypeAlias = Annotated[BillingGroupCatalog, Depends(get_billing_catalog)]
+
+
+async def require_group_reader(
+    bearer: Annotated[None, Depends(require_bearer)],
+    native: Annotated[UserAPIKeyAuth, Depends(user_api_key_auth)],
+) -> AdminActor:
+    if native.user_role not in (LitellmUserRoles.PROXY_ADMIN, LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY):
+        raise_public(AuthError("administrator_required", 403))
+    return AdminActor(user_id=native.user_id or "proxy-admin")
+
+
+ReaderDep: TypeAlias = Annotated[AdminActor, Depends(require_group_reader)]
 router: Final = APIRouter(
     prefix="/commerce/admin/v1/billing-groups",
     tags=["Commerce management"],
@@ -96,6 +112,22 @@ async def members(
     offset: Annotated[int, Query(ge=0, le=1_000_000)] = 0,
 ) -> BillingGroupMembers:
     result: Final = await store.members(search.strip(), group_id, limit, offset)
+    if isinstance(result, AuthError):
+        raise_public(result)
+    return result
+
+
+@router.post("/members/lookup", response_model=BillingGroupMembers)
+async def lookup_members(body: BillingMemberLookup, admin: ReaderDep, store: GroupDep) -> BillingGroupMembers:
+    result: Final = await store.lookup(body.user_ids)
+    if isinstance(result, AuthError):
+        raise_public(result)
+    return result
+
+
+@router.post("/members/batch", response_model=BillingGroupMembers)
+async def assign_members(body: BillingGroupBatchAssignment, admin: AdminDep, store: GroupDep) -> BillingGroupMembers:
+    result: Final = await store.assign_batch(body, admin.user_id, utcnow())
     if isinstance(result, AuthError):
         raise_public(result)
     return result
